@@ -149,32 +149,35 @@ export default function FeedPage() {
 				<PageHeader
 					icon={MessageSquare}
 					title='Feed'
-					subtitle='See what cooks are sharing, rating, and celebrating right now.'
+					subtitle=''
 					gradient='pink'
-					marginBottom='md'
-					showBack
+					marginBottom='sm'
+					showSparkles={false}
+					rightAction={
+						<div className='flex gap-1.5'>
+							<Button
+								type='button'
+								size='sm'
+								variant={feedMode === 'latest' ? 'default' : 'outline'}
+								onClick={() => setFeedMode('latest')}
+								className='gap-1.5 rounded-full px-3 text-xs'
+							>
+								<Sparkles className='size-3' />
+								Latest
+							</Button>
+							<Button
+								type='button'
+								size='sm'
+								variant={feedMode === 'trending' ? 'default' : 'outline'}
+								onClick={() => setFeedMode('trending')}
+								className='gap-1.5 rounded-full px-3 text-xs'
+							>
+								<Flame className='size-3' />
+								Trending
+							</Button>
+						</div>
+					}
 				/>
-
-				<div className='mb-6 flex flex-wrap gap-2'>
-					<Button
-						type='button'
-						variant={feedMode === 'latest' ? 'default' : 'outline'}
-						onClick={() => setFeedMode('latest')}
-						className='gap-2 rounded-full'
-					>
-						<Sparkles className='size-4' />
-						Latest
-					</Button>
-					<Button
-						type='button'
-						variant={feedMode === 'trending' ? 'default' : 'outline'}
-						onClick={() => setFeedMode('trending')}
-						className='gap-2 rounded-full'
-					>
-						<Flame className='size-4' />
-						Trending
-					</Button>
-				</div>
 
 				{isLoading ? (
 					<div className='space-y-4'>

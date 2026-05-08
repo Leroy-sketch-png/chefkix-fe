@@ -379,12 +379,16 @@ export function LeaderboardPage({
 					{/* Leaderboard List */}
 					<motion.div
 						variants={staggerContainer}
-						initial='hidden'
+						initial={false}
 						animate='visible'
 						className='bg-bg-card rounded-2xl p-2'
 					>
 						{listEntries.map((entry, index) => (
-							<motion.div key={entry.userId} variants={staggerItem}>
+							<motion.div
+								key={entry.userId}
+								variants={staggerItem}
+								initial={false}
+							>
 								<LeaderboardItem entry={entry} onClick={onUserClick} />
 								{/* Add divider after rank 6 if there's a gap to user */}
 								{index === 2 && userInList && userInList.rank > 10 && (

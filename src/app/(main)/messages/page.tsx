@@ -532,7 +532,7 @@ function MessagesContent() {
 					<PageHeader
 						icon={MessageCircle}
 						title={t('title')}
-						subtitle={t('subtitle')}
+						subtitle=''
 						gradient='blue'
 						marginBottom='sm'
 						className='mb-0'

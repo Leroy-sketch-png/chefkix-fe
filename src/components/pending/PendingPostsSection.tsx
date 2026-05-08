@@ -293,66 +293,71 @@ const MultiplePendingPosts = ({
 
 			{/* Preview Items */}
 			<div className='p-3'>
-				{previewSessions.map(session => (
-					<motion.div
-						key={session.id}
-						className={cn(
-							'flex items-center gap-3 p-3 rounded-xl mb-1',
-							'hover:bg-muted/50 transition-colors',
-							session.status === 'urgent' &&
-								'bg-error/5 border border-error/20',
-						)}
-						whileHover={{ x: 2 }}
-					>
-						<Image
-							src={session.recipeImage}
-							alt={session.recipeName}
-							width={44}
-							height={44}
-							className='size-11 rounded-lg object-cover'
-						/>
-						<div className='flex-1 min-w-0'>
-							<span className='block text-sm font-semibold text-text'>
-								{session.recipeName}
-							</span>
-							<span
-								className={cn(
-									'text-xs',
-									session.status === 'urgent' &&
-										hasClaimablePostXp(session.currentXP)
-										? 'text-error font-semibold'
-										: 'text-text-secondary',
-								)}
-							>
-								{getTimeLeft(session.expiresAt, t)}
-							</span>
-						</div>
-						{hasClaimablePostXp(session.currentXP) ? (
-							<span className='text-sm font-bold text-success tabular-nums'>
-								+<AnimatedNumber value={session.currentXP} />
-							</span>
-						) : (
-							<span className='text-xs font-semibold text-warning'>
-								{t('pdNoXp')}
-							</span>
-						)}
-						<motion.button
-							type='button'
+				{previewSessions.map(session => {
+					const hasSessionClaimableXp = hasClaimablePostXp(session.currentXP)
+
+					return (
+						<motion.div
+							key={session.id}
 							className={cn(
-								'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
+								'flex items-center gap-3 p-3 rounded-xl mb-1',
+								'hover:bg-muted/50 transition-colors',
 								session.status === 'urgent' &&
-									hasClaimablePostXp(session.currentXP)
-									? 'bg-error text-white'
-									: 'bg-brand text-white',
+									hasSessionClaimableXp &&
+									'bg-error/5 border border-error/20',
 							)}
-							onClick={() => onPost(session.id)}
-							whileHover={BUTTON_SUBTLE_HOVER}
-							whileTap={BUTTON_SUBTLE_TAP}
+							whileHover={{ x: 2 }}
 						>
-							{t('pdPost')}
-						</motion.button>
-					</motion.div>
-				))}
+							<Image
+								src={session.recipeImage}
+								alt={session.recipeName}
+								width={44}
+								height={44}
+								className='size-11 rounded-lg object-cover'
+							/>
+							<div className='flex-1 min-w-0'>
+								<span className='block text-sm font-semibold text-text'>
+									{session.recipeName}
+								</span>
+								<span
+									className={cn(
+										'text-xs',
+										session.status === 'urgent' && hasSessionClaimableXp
+											? 'text-error font-semibold'
+											: 'text-text-secondary',
+									)}
+								>
+									{getTimeLeft(session.expiresAt, t)}
+								</span>
+							</div>
+							{hasSessionClaimableXp ? (
+								<span className='text-sm font-bold text-success tabular-nums'>
+									+<AnimatedNumber value={session.currentXP} />
+								</span>
+							) : (
+								<span className='text-xs font-semibold text-warning'>
+									{t('pdNoXp')}
+								</span>
+							)}
+							<motion.button
+								type='button'
+								className={cn(
+									'px-3 py-1.5 rounded-lg text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50',
+									session.status === 'urgent' && hasSessionClaimableXp
+										? 'bg-error text-white'
+										: hasSessionClaimableXp
+											? 'bg-brand text-white'
+											: 'bg-bg-elevated text-text',
+								)}
+								onClick={() => onPost(session.id)}
+								whileHover={BUTTON_SUBTLE_HOVER}
+								whileTap={BUTTON_SUBTLE_TAP}
+							>
+								{hasSessionClaimableXp ? t('pdPost') : t('pdPostToShare')}
+							</motion.button>
+						</motion.div>
+					)
+				})}
 
 				{remaining > 0 && (
 					<button

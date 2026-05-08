@@ -680,7 +680,7 @@ const PostCardContent = ({
 								className='flex items-center gap-3 transition-opacity hover:opacity-80'
 							>
 								<Avatar
-									size='lg'
+									size='sm'
 									className='transition-all group-hover:opacity-90'
 								>
 									<AvatarImage

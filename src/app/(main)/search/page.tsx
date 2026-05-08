@@ -18,6 +18,7 @@ import {
 	Star,
 	Clock,
 	Flame,
+	Heart,
 	Bookmark,
 	Search,
 	ArrowLeft,
@@ -453,8 +454,9 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 					<p className='line-clamp-2 text-caption text-text-secondary'>
 						{post.caption}
 					</p>
-					<p className='mt-1 tabular-nums text-xs text-text-secondary'>
-						â¤ï¸ {post.likeCount} likes
+					<p className='mt-1 flex items-center gap-1 tabular-nums text-xs text-text-secondary'>
+						<Heart className='size-3 text-error' aria-hidden='true' />
+						<span>{post.likeCount} likes</span>
 					</p>
 				</div>
 			</Link>
@@ -710,33 +712,28 @@ function SearchContent() {
 							</div>
 							<div className='flex flex-wrap gap-2'>
 								{recentSearches.map(term => (
-									<motion.button
-										type='button'
+									<div
 										key={term}
-										onClick={() => handleSuggestionClick(term)}
-										whileTap={BUTTON_TAP}
-										className='group flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='group inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-card pr-1 transition-colors hover:border-brand/40 hover:bg-brand/5'
 									>
-										<span>{term}</span>
-										<span
-											role='button'
-											tabIndex={0}
-											onClick={e => {
-												e.stopPropagation()
-												handleRemoveRecent(term)
-											}}
-											onKeyDown={e => {
-												if (e.key === 'Enter' || e.key === ' ') {
-													e.stopPropagation()
-													handleRemoveRecent(term)
-												}
-											}}
-											className='ml-0.5 rounded-full p-0.5 text-text-muted opacity-70 transition-opacity hover:bg-bg-hover hover:text-text md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+										<motion.button
+											type='button'
+											onClick={() => handleSuggestionClick(term)}
+											whileTap={BUTTON_TAP}
+											className='px-3.5 py-2 text-sm font-medium text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+										>
+											{term}
+										</motion.button>
+										<motion.button
+											type='button'
+											onClick={() => handleRemoveRecent(term)}
+											whileTap={BUTTON_TAP}
+											className='flex size-7 items-center justify-center rounded-full text-text-muted opacity-80 transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('removeRecentSearch', { term })}
 										>
 											<X className='size-3' />
-										</span>
-									</motion.button>
+										</motion.button>
+									</div>
 								))}
 							</div>
 						</div>
@@ -755,7 +752,7 @@ function SearchContent() {
 									key={term}
 									onClick={() => handleSuggestionClick(term)}
 									whileTap={BUTTON_TAP}
-									className='rounded-full border border-border-subtle bg-bg-card px-3.5 py-2 text-sm text-text-secondary transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-medium text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{term}
 								</motion.button>

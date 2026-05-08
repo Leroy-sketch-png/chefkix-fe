@@ -55,6 +55,11 @@ export function ImageCarousel({
 		setCurrentIndex(prev => Math.min(prev, Math.max(images.length - 1, 0)))
 		setFailedIndices([])
 	}, [imageSetKey, images.length])
+	const [loadedIndices, setLoadedIndices] = useState<number[]>([])
+	const allFailed = images.length > 0 && failedIndices.length === images.length
+	const currentImageIsLoading =
+		!loadedIndices.includes(currentIndex) &&
+		!failedIndices.includes(currentIndex)
 
 	const goToNext = useCallback(() => {
 		if (!hasMultiple) return
@@ -83,6 +88,10 @@ export function ImageCarousel({
 		},
 		[onImageError],
 	)
+
+	const handleImageLoad = useCallback((index: number) => {
+		setLoadedIndices(prev => (prev.includes(index) ? prev : [...prev, index]))
+	}, [])
 
 	// Keyboard navigation
 	useEffect(() => {
@@ -144,6 +153,9 @@ export function ImageCarousel({
 
 	if (images.length === 0) return null
 
+	// Collapse entirely if every image has definitively failed — prevents dead zone
+	if (allFailed) return null
+
 	return (
 		<div
 			ref={containerRef}
@@ -195,7 +207,15 @@ export function ImageCarousel({
 							className='object-cover'
 							sizes='(max-width: 768px) 100vw, 600px'
 							onError={() => handleImageError(currentIndex)}
+							onLoad={() => handleImageLoad(currentIndex)}
 							unoptimized={/^https?:\/\//.test(images[currentIndex] || '')}
+						/>
+					)}
+					{/* Shimmer overlay while current image is loading */}
+					{currentImageIsLoading && !currentImageHasFailed && (
+						<div
+							className='absolute inset-0 animate-pulse bg-bg-elevated'
+							aria-hidden='true'
 						/>
 					)}
 				</motion.div>

@@ -256,8 +256,7 @@ const transformToGamifiedNotification = (
 			return {
 				id: notif.id,
 				type: 'challenge_reminder',
-				challengeTitle:
-					(data.challengeTitle as string) || parsed.title || 'Challenge',
+				challengeTitle: (data.challengeTitle as string) || parsed.title || '',
 				challengeDescription:
 					(data.challengeDescription as string) || parsed.description || '',
 				xpBonusPercent: (data.xpBonusPercent as number) || 0,
@@ -417,7 +416,7 @@ const FilterTabs = ({
 		<div
 			role='tablist'
 			aria-label={t('filterLabel')}
-			className='grid grid-cols-4 gap-2 sm:flex sm:gap-2 sm:overflow-x-auto sm:pb-2 sm:pr-8 scrollbar-hide'
+			className='grid grid-cols-2 gap-2 pb-2 sm:flex sm:flex-wrap sm:pb-0'
 		>
 			{filters.map(filter => {
 				const count = counts[filter.id]
@@ -433,7 +432,7 @@ const FilterTabs = ({
 						onClick={() => onFilterChange(filter.id)}
 						whileTap={BUTTON_SUBTLE_TAP}
 						className={cn(
-							'flex items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-1.5 sm:px-3 sm:text-sm',
+							'flex min-h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-3.5 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 							isActive
 								? 'border border-brand/20 bg-brand/10 text-brand-text shadow-card'
 								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
@@ -444,7 +443,7 @@ const FilterTabs = ({
 						{count > 0 && (
 							<span
 								className={cn(
-									'min-w-5 tabular-nums rounded-full px-1 py-0.5 text-center text-xs font-bold sm:min-w-6 sm:px-1.5',
+									'min-w-6 tabular-nums rounded-full px-1.5 py-0.5 text-center text-xs font-bold',
 									isActive
 										? 'bg-brand/15 text-brand-text'
 										: 'bg-brand/10 text-brand',
@@ -791,11 +790,11 @@ export default function NotificationsPage() {
 					rightAction={
 						counts.unread > 0 ? (
 							<Button
-								variant='ghost'
+								variant='outline'
 								size='sm'
 								onClick={handleMarkAllRead}
 								disabled={isMarkingAllRead}
-								className='gap-2'
+								className='gap-2 rounded-full px-3'
 							>
 								{isMarkingAllRead ? (
 									<Loader2 className='size-4 animate-spin' />
@@ -809,13 +808,13 @@ export default function NotificationsPage() {
 				/>
 
 				{/* Filter Tabs */}
-				<div className='relative mb-3'>
+				<div className='sticky top-mobile-header z-sticky -mx-3 mb-3 bg-bg/95 px-3 pb-2 pt-1 backdrop-blur-xl sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0'>
 					<FilterTabs
 						activeFilter={activeFilter}
 						onFilterChange={setActiveFilter}
 						counts={counts}
 					/>
-					<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:block' />
+					<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:hidden' />
 				</div>
 
 				{/* Loading State — content-shaped skeleton */}
@@ -886,7 +885,7 @@ export default function NotificationsPage() {
 								{filtered.gamified.map(notif => {
 									// Add callbacks based on notification type
 									const extraProps: Record<string, unknown> = {}
-									if (notif.type === 'xp_awarded') {
+									if (notif.type === 'xp_awarded' && notif.pendingXp > 0) {
 										extraProps.onPost = () =>
 											startNavigationTransition(() => {
 												router.push('/create')

@@ -180,7 +180,7 @@ export default function ChallengesPage() {
 				<PageHeader
 					icon={Trophy}
 					title={t('title')}
-					subtitle={t('subtitle')}
+					subtitle=''
 					gradient='yellow'
 				/>
 

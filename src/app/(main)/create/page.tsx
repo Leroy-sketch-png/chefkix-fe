@@ -214,7 +214,7 @@ function CreateRecipeContent() {
 							<PageHeader
 								icon={Edit3}
 								title={t('title')}
-								subtitle={t('pageSubtitle')}
+								subtitle=''
 								gradient='orange'
 								marginBottom='md'
 							/>

@@ -233,7 +233,7 @@ export default function CommunityPage() {
 				<PageHeader
 					icon={Users}
 					title={t('title')}
-					subtitle={t('subtitle')}
+					subtitle=''
 					gradient='pink'
 					marginBottom='md'
 				/>
@@ -247,7 +247,9 @@ export default function CommunityPage() {
 					>
 						<TabsTrigger value='discover' className='gap-2'>
 							<Search className='size-4' />
-							<span className='hidden sm:inline'>{t('discover')}</span>
+							<span className={isAuthenticated ? 'hidden sm:inline' : 'inline'}>
+								{t('discover')}
+							</span>
 						</TabsTrigger>
 						{isAuthenticated && (
 							<TabsTrigger value='friends' className='gap-2'>
@@ -268,7 +270,9 @@ export default function CommunityPage() {
 						)}
 						<TabsTrigger value='leaderboard' className='gap-2'>
 							<Trophy className='size-4' />
-							<span className='hidden sm:inline'>{t('leaderboard')}</span>
+							<span className={isAuthenticated ? 'hidden sm:inline' : 'inline'}>
+								{t('leaderboard')}
+							</span>
 						</TabsTrigger>
 					</TabsList>
 

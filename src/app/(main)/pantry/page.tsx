@@ -412,7 +412,7 @@ export default function PantryPage() {
 					<PageHeader
 						icon={Package}
 						title={t('title')}
-						subtitle={t('subtitle')}
+						subtitle=''
 						gradient='green'
 						marginBottom='sm'
 						rightAction={

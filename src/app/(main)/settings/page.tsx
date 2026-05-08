@@ -987,7 +987,7 @@ export default function SettingsPage() {
 				<PageHeader
 					icon={Settings}
 					title={t('title')}
-					subtitle={t('subtitle')}
+					subtitle=''
 					gradient='gray'
 					iconAnimation={{ rotate: 45 }}
 				/>

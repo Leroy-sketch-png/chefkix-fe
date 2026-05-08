@@ -181,8 +181,6 @@ export default function DashboardPage() {
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 
-	useOnboardingOrchestrator({ delay: 1200, condition: !isLoading })
-
 	const filteredPosts = useFilterBlockedContent(posts)
 	const { focusedIndex: focusedPostIndex } = usePostKeyboardNav(filteredPosts)
 
@@ -570,7 +568,7 @@ export default function DashboardPage() {
 					<PageHeader
 						icon={Home}
 						title={t('title')}
-						subtitle={t('subtitle')}
+						subtitle=''
 						gradient='orange'
 						marginBottom='md'
 					/>
@@ -967,7 +965,9 @@ export default function DashboardPage() {
 					</ColdStartExperience>
 					<div className='pb-24 md:pb-8' />
 				</PageContainer>
-				<QuickPostFAB onPostCreated={handlePostCreated} />
+				<div className='hidden md:block'>
+					<QuickPostFAB onPostCreated={handlePostCreated} />
+				</div>
 			</PageTransition>
 		</>
 	)

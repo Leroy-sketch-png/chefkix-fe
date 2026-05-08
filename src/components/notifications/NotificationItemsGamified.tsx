@@ -210,7 +210,7 @@ const NotifWrapper = ({
 		animate={{ opacity: 1, x: 0 }}
 		whileHover={LIST_ITEM_HOVER}
 		className={cn(
-			'relative grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-2 gap-y-1 border-b border-border px-4 py-1.5 transition-colors hover:bg-bg-elevated sm:flex sm:gap-3 sm:py-2.5',
+			'relative grid grid-cols-[auto,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-2xl border border-border-subtle bg-bg-card px-3.5 py-2.5 transition-colors hover:bg-bg-elevated sm:flex sm:gap-4 sm:py-3',
 			!isRead && 'bg-brand/5',
 			className,
 		)}
@@ -229,11 +229,23 @@ const NotifHeader = ({
 	className?: string
 }) => {
 	const t = useTranslations('notifications')
+	const normalizedType = type?.trim() || ''
+	const hasType = normalizedType.length > 0
 	return (
-		<div className='mb-0.5 flex items-center justify-between gap-2'>
-			<span className={cn('text-xs font-semibold text-text-muted', className)}>
-				{type}
-			</span>
+		<div
+			className={cn(
+				hasType
+					? 'mb-0.5 flex items-center justify-between gap-2'
+					: 'mb-0 flex items-center justify-end gap-2',
+			)}
+		>
+			{hasType ? (
+				<span
+					className={cn('text-xs font-semibold text-text-muted', className)}
+				>
+					{normalizedType}
+				</span>
+			) : null}
 			<span className='text-xs text-text-muted tabular-nums'>
 				{formatShortTimeAgo(time)}
 			</span>
@@ -273,7 +285,7 @@ const ActionButton = ({
 		whileHover={BUTTON_HOVER}
 		whileTap={BUTTON_TAP}
 		className={cn(
-			'col-start-2 inline-flex w-fit items-center justify-center gap-1.5 justify-self-start self-start rounded-md border border-border-subtle bg-bg-card px-2 py-1 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50',
+			'col-start-2 inline-flex min-h-9 w-fit items-center justify-center gap-1.5 justify-self-start self-start rounded-full border border-border-subtle bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50 sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',
 			className,
 		)}
 	>
@@ -295,6 +307,7 @@ const XPAwardedItem = ({
 	onPost,
 }: XPAwardedNotification) => {
 	const t = useTranslations('notifications')
+	const hasPendingXp = pendingXp > 0
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
@@ -315,20 +328,24 @@ const XPAwardedItem = ({
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
 					<MetaTag className='bg-xp/15 text-xp'>{t('xpInstant')}</MetaTag>
-					<span className='text-xs text-text-muted'>
-						{t('xpPendingPost', { xp: pendingXp })}
-					</span>
+					{hasPendingXp && (
+						<span className='text-xs text-text-muted'>
+							{t('xpPendingPost', { xp: pendingXp })}
+						</span>
+					)}
 				</div>
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onPost}
-				className='border-xp/20 bg-xp/10 text-xp-text hover:bg-xp/15 sm:flex-shrink-0'
-			>
-				<Upload className='size-4' />
-				{t('post')}
-			</ActionButton>
+			{hasPendingXp && onPost && (
+				<ActionButton
+					onClick={onPost}
+					className='border-xp/20 bg-xp/10 text-xp-text hover:bg-xp/15 sm:flex-shrink-0'
+				>
+					<Upload className='size-4' />
+					{t('post')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -384,6 +401,7 @@ const LevelUpItem = ({
 	isRead,
 }: LevelUpNotification) => {
 	const t = useTranslations('notifications')
+	const levelUpTitle = (t('typeLevelUp') || '').trim() || 'Level Up!'
 	return (
 		<NotifWrapper
 			isRead={isRead}
@@ -391,19 +409,17 @@ const LevelUpItem = ({
 		>
 			{/* Icon */}
 			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-purple-subtle'>
-				<Crown className='absolute -right-2 -top-2 z-10 size-5 text-gold' />
-				<span className='text-lg font-display font-extrabold text-accent-purple-hover'>
-					{newLevel ?? '?'}
-				</span>
+				<Crown className='size-5 text-gold' />
 			</div>
 
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
-				<NotifHeader
-					type={t('typeLevelUp')}
-					time={timestamp}
-					className='text-sm text-rare'
-				/>
+				<div className='mb-1 flex items-start justify-between gap-2'>
+					<p className='text-sm font-semibold text-rare'>{levelUpTitle}</p>
+					<span className='text-xs text-text-muted tabular-nums'>
+						{formatShortTimeAgo(timestamp)}
+					</span>
+				</div>
 				<p className='text-sm'>
 					{t('levelUpCongrats', { level: newLevel ?? '?' })}
 				</p>
@@ -746,8 +762,8 @@ const StreakLostItem = ({
 	return (
 		<NotifWrapper isRead={isRead} className='opacity-80'>
 			{/* Icon */}
-			<div className='flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-text-muted'>
-				<span className='text-lg'>☀️</span>
+			<div className='flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-text-muted/15'>
+				<Sun className='size-5 text-text-muted' />
 			</div>
 
 			{/* Content */}
@@ -793,6 +809,13 @@ const ChallengeReminderItem = ({
 	onSeeRecipes,
 }: ChallengeReminderNotification) => {
 	const t = useTranslations('notifications')
+	const trimmedTitle = challengeTitle?.trim()
+	const hasTitle = Boolean(
+		trimmedTitle && trimmedTitle.toLowerCase() !== 'challenge',
+	)
+	const hasDescription = Boolean(
+		challengeDescription && challengeDescription !== trimmedTitle,
+	)
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
@@ -807,14 +830,24 @@ const ChallengeReminderItem = ({
 					time={timestamp}
 					className='text-xp'
 				/>
-				<p className='text-sm'>
-					<strong className='font-bold'>{challengeTitle}</strong>
-					{challengeDescription && challengeDescription !== challengeTitle && (
-						<> {challengeDescription}</>
-					)}
-				</p>
+				{(hasTitle || hasDescription) && (
+					<p className='text-sm'>
+						{hasTitle && <strong className='font-bold'>{trimmedTitle}</strong>}
+						{hasDescription && (
+							<>
+								{hasTitle ? ' ' : ''}
+								{challengeDescription}
+							</>
+						)}
+					</p>
+				)}
 				{(xpBonusPercent > 0 || timeLabel || hoursRemaining > 0) && (
-					<div className='mt-1.5 flex flex-wrap items-center gap-2'>
+					<div
+						className={cn(
+							'flex flex-wrap items-center gap-2',
+							hasTitle || hasDescription ? 'mt-1.5' : 'mt-0.5',
+						)}
+					>
 						{xpBonusPercent > 0 && (
 							<MetaTag className='bg-xp/15 text-xp'>
 								{t('challengeXPBonus', { percent: xpBonusPercent })}

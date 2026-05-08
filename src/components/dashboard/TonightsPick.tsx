@@ -73,9 +73,13 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			try {
 				const res = await getTonightsPick()
 				if (cancelled) return
-				if (res.success && res.data) {
+				if (res.success && res.data?.recipe) {
 					setRecommendation(res.data)
+					setHasError(false)
+					return
 				}
+
+				setHasError(true)
 			} catch (err) {
 				logDevError("Failed to fetch Tonight's Pick:", err)
 				if (!cancelled) setHasError(true)
@@ -215,9 +219,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 
 					{/* Top Label */}
 					<div className='absolute top-5 left-5 z-10'>
-						<div className='inline-flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg'>
+						<div className='inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/45 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-md'>
 							<Sparkles className='size-4 text-streak' />
-							<span className='bg-gradient-to-r from-streak to-combo bg-clip-text text-transparent'>
+							<span className='text-streak drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]'>
 								{t('tpLabel')}
 							</span>
 						</div>

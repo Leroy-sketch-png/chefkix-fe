@@ -64,6 +64,9 @@ export const Topbar = () => {
 	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 	const brandHref = user ? PATHS.DASHBOARD : PATHS.EXPLORE
+	const isSearchPage = pathname?.startsWith('/search')
+	const isMessagesPage = pathname?.startsWith('/messages')
+	const isNotificationsPage = pathname?.startsWith('/notifications')
 
 	// Typeahead state
 	const [suggestions, setSuggestions] = useState<{
@@ -333,13 +336,15 @@ export const Topbar = () => {
 					</div>
 				</motion.div>
 			</Link>
-			<Link
-				href='/search'
-				className='grid size-10 shrink-0 place-items-center rounded-xl border border-border-medium bg-bg-input text-text-secondary shadow-card transition-colors hover:border-brand hover:text-brand md:hidden'
-				aria-label={t('tbSearchLabel')}
-			>
-				<Search className='size-4.5 text-current' />
-			</Link>
+			{!isSearchPage && !isMessagesPage && (
+				<Link
+					href='/search'
+					className='grid size-10 shrink-0 place-items-center rounded-xl border border-border-medium bg-bg-input text-text-secondary shadow-card transition-colors hover:border-brand hover:text-brand md:hidden'
+					aria-label={t('tbSearchLabel')}
+				>
+					<Search className='size-4.5 text-current' />
+				</Link>
+			)}
 			{/* Search Bar - constrained max width, with left margin to clear the absolute logo */}
 			<form
 				ref={searchFormRef}
@@ -749,7 +754,7 @@ export const Topbar = () => {
 					</Link>
 					<Link
 						href={guestSignUpHref}
-						className='whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
+						className='hidden whitespace-nowrap rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-brand/90 md:inline-flex md:rounded-radius md:px-4 md:py-2 md:text-sm md:font-bold md:shadow-card md:hover:shadow-warm'
 					>
 						{t('tbGetStarted')}
 					</Link>
@@ -759,65 +764,71 @@ export const Topbar = () => {
 			{/* Communication Icons - authenticated users only */}
 			{user && (
 				<div className='flex gap-2 md:gap-3'>
-					<motion.button
-						type='button'
-						onClick={toggleNotificationsPopup}
-						whileHover={ICON_BUTTON_HOVER}
-						whileTap={ICON_BUTTON_TAP}
-						transition={TRANSITION_SPRING}
-						className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
-						aria-label={
-							unreadNotifications > 0
-								? t('tbNotificationsUnread', { count: unreadNotifications })
-								: t('tbNotifications')
-						}
-					>
-						<motion.div
-							key={unreadNotifications}
-							animate={unreadNotifications > 0 ? BELL_SHAKE.animate : undefined}
+					{!isNotificationsPage && (
+						<motion.button
+							type='button'
+							onClick={toggleNotificationsPopup}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+							className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
+							aria-label={
+								unreadNotifications > 0
+									? t('tbNotificationsUnread', { count: unreadNotifications })
+									: t('tbNotifications')
+							}
 						>
-							<Bell className='size-4 md:size-5' />
-						</motion.div>
-						{unreadNotifications > 0 && (
-							<motion.span
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={TRANSITION_SPRING}
-								className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-								aria-live='polite'
-								aria-atomic='true'
+							<motion.div
+								key={unreadNotifications}
+								animate={
+									unreadNotifications > 0 ? BELL_SHAKE.animate : undefined
+								}
 							>
-								{unreadNotifications > 99 ? '99+' : unreadNotifications}
-							</motion.span>
-						)}
-					</motion.button>
-					<motion.button
-						type='button'
-						onClick={toggleMessagesDrawer}
-						whileHover={ICON_BUTTON_HOVER}
-						whileTap={ICON_BUTTON_TAP}
-						transition={TRANSITION_SPRING}
-						className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
-						aria-label={
-							unreadMessages > 0
-								? t('tbMessagesUnread', { count: unreadMessages })
-								: t('tbMessages')
-						}
-					>
-						<MessageCircle className='size-4 md:size-5' />
-						{unreadMessages > 0 && (
-							<motion.span
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={TRANSITION_SPRING}
-								className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
-								aria-live='polite'
-								aria-atomic='true'
-							>
-								{unreadMessages > 99 ? '99+' : unreadMessages}
-							</motion.span>
-						)}
-					</motion.button>
+								<Bell className='size-4 md:size-5' />
+							</motion.div>
+							{unreadNotifications > 0 && (
+								<motion.span
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									transition={TRANSITION_SPRING}
+									className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+									aria-live='polite'
+									aria-atomic='true'
+								>
+									{unreadNotifications > 99 ? '99+' : unreadNotifications}
+								</motion.span>
+							)}
+						</motion.button>
+					)}
+					{!isMessagesPage && (
+						<motion.button
+							type='button'
+							onClick={toggleMessagesDrawer}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+							className='relative grid size-10 cursor-pointer place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-elevated hover:text-xp focus-visible:ring-2 focus-visible:ring-brand/50 md:size-11 md:rounded-xl'
+							aria-label={
+								unreadMessages > 0
+									? t('tbMessagesUnread', { count: unreadMessages })
+									: t('tbMessages')
+							}
+						>
+							<MessageCircle className='size-4 md:size-5' />
+							{unreadMessages > 0 && (
+								<motion.span
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									transition={TRANSITION_SPRING}
+									className='absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-xp px-1.5 py-0.5 text-xs font-bold text-white shadow-card'
+									aria-live='polite'
+									aria-atomic='true'
+								>
+									{unreadMessages > 99 ? '99+' : unreadMessages}
+								</motion.span>
+							)}
+						</motion.button>
+					)}
 				</div>
 			)}
 		</header>
