@@ -788,7 +788,7 @@ export function EmptyState({
 								type='button'
 								key={index}
 								onClick={() => onSuggestionClick?.(suggestion)}
-								className='rounded-full border border-border-subtle px-4 py-2 text-sm text-text transition-colors hover:border-brand/30 hover:text-brand'
+								className='rounded-full border border-border-subtle px-4 py-2 text-sm text-text-primary transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 							>
 								{suggestion}
 							</button>
@@ -836,7 +836,7 @@ export function EmptyState({
 							<Link
 								key={index}
 								href={action.href}
-								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
+								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text-primary transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 							>
 								{action.icon}
 								{action.label}
@@ -846,7 +846,7 @@ export function EmptyState({
 								type='button'
 								key={index}
 								onClick={action.onClick}
-								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
+								className='inline-flex items-center gap-2 rounded-xl border border-border-medium px-5 py-3 text-sm font-semibold text-text-primary transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 							>
 								{action.icon}
 								{action.label}
@@ -862,7 +862,7 @@ export function EmptyState({
 					<span className='text-xs text-text-muted'>Quick start:</span>
 					{quickActions.map((action, index) => {
 						const className =
-							'py-2 px-3.5 bg-bg border border-border rounded-full text-sm text-text hover:border-brand transition-colors'
+							'py-2 px-3.5 bg-bg border border-border rounded-full text-sm text-text-primary transition-all hover:border-brand hover:bg-brand/8 hover:text-brand'
 						const content = (
 							<>
 								{action.emoji && <span className='mr-1'>{action.emoji}</span>}
@@ -967,18 +967,18 @@ export function EmptyCookingHistory({
 			className={className}
 		>
 			{/* XP Teaser */}
-			<div className='flex flex-col gap-2.5 p-4 bg-bg rounded-xl mb-6 max-w-xs mx-auto text-left'>
-				<div className='flex items-center gap-2.5 text-sm text-text'>
+			<div className='mb-6 mx-auto flex max-w-xs flex-col gap-2.5 rounded-xl bg-bg p-4 text-left'>
+				<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 					<span className='text-lg'>⚡</span>
 					{t.rich('earnXp', { strong: chunks => <strong>{chunks}</strong> })}
 				</div>
-				<div className='flex items-center gap-2.5 text-sm text-text'>
+				<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 					<span className='text-lg'>🎖️</span>
 					{t.rich('unlockBadge', {
 						strong: chunks => <strong>{chunks}</strong>,
 					})}
 				</div>
-				<div className='flex items-center gap-2.5 text-sm text-text'>
+				<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 					<span className='text-lg'>🔥</span>
 					{t.rich('startStreak', {
 						strong: chunks => <strong>{chunks}</strong>,
@@ -988,13 +988,13 @@ export function EmptyCookingHistory({
 
 			{/* Beginner Pick */}
 			{beginnerRecipe && (
-				<div className='pt-6 border-t border-border'>
-					<span className='block text-xs text-text-muted mb-3'>
+				<div className='border-t border-border pt-6'>
+					<span className='mb-3 block text-xs text-text-muted'>
 						{t('greatForBeginners')}
 					</span>
 					<Link
 						href={beginnerRecipe.href}
-						className='inline-flex items-center gap-3 py-2.5 px-4 pr-5 bg-bg border border-border rounded-xl hover:border-brand transition-all'
+						className='inline-flex items-center gap-3 rounded-xl border border-border bg-bg px-4 py-2.5 pr-5 transition-all hover:border-brand hover:bg-brand/8'
 					>
 						<Image
 							src={beginnerRecipe.imageUrl}
@@ -1004,7 +1004,7 @@ export function EmptyCookingHistory({
 							className='size-12 rounded-xl object-cover'
 						/>
 						<div className='text-left'>
-							<span className='block text-sm font-semibold text-text'>
+							<span className='block text-sm font-semibold text-text-primary'>
 								{beginnerRecipe.title}
 							</span>
 							<span className='text-xs text-text-muted'>
@@ -1043,11 +1043,11 @@ export function EmptySaved({
 				{[t('savedStep1'), t('savedStep2'), t('savedStep3')].map(
 					(step, index) => (
 						<div key={index} className='flex items-center gap-2'>
-							<div className='flex items-center gap-2 py-2 px-3.5 bg-bg rounded-xl'>
+							<div className='flex items-center gap-2 rounded-xl bg-bg px-3.5 py-2'>
 								<span className='size-icon-md flex items-center justify-center bg-brand text-white rounded-full text-xs font-bold'>
 									{index + 1}
 								</span>
-								<span className='text-sm text-text'>{step}</span>
+								<span className='text-sm text-text-primary'>{step}</span>
 							</div>
 							{index < 2 && (
 								<span className='text-text-muted hidden sm:block'>→</span>
@@ -1105,14 +1105,14 @@ export function AllCaughtUp({
 			className={className}
 		>
 			{/* Next Goal */}
-			<div className='mt-5 max-w-xs mx-auto text-left'>
-				<span className='block text-xs text-text-muted mb-2.5'>
+			<div className='mt-5 mx-auto max-w-xs text-left'>
+				<span className='mb-2.5 block text-xs text-text-muted'>
 					{t('nextGoal')}
 				</span>
-				<div className='flex items-center gap-3 p-3.5 bg-bg border border-border rounded-xl'>
+				<div className='flex items-center gap-3 rounded-xl border border-border bg-bg p-3.5'>
 					<span className='text-icon-lg'>🍳</span>
 					<div className='flex-1'>
-						<span className='block text-sm font-semibold text-text'>
+						<span className='block text-sm font-semibold text-text-primary'>
 							{t('cookSomethingNew')}
 						</span>
 						<span className='text-xs text-text-muted'>{t('earnMoreXp')}</span>

@@ -109,7 +109,7 @@ function LeaderboardTabs({
 						'rounded-xl text-sm font-semibold transition-all',
 						activeType === type
 							? 'bg-gradient-xp text-white'
-							: 'text-text-muted hover:text-text',
+							: 'text-text-muted hover:text-text-primary',
 					)}
 				>
 					<Icon className='size-icon-sm' />
@@ -166,7 +166,7 @@ function TimeframeToggle({
 					onClick={() => onTimeframeChange?.(value)}
 					className={cn(
 						'flex-1 py-2.5 text-sm font-semibold z-10 transition-colors',
-						activeTimeframe === value ? 'text-text' : 'text-text-muted',
+						activeTimeframe === value ? 'text-text-primary' : 'text-text-muted',
 					)}
 				>
 					{label}
@@ -208,13 +208,13 @@ function MyRankBanner({
 			{/* Stats */}
 			<div className='flex gap-5'>
 				<div className='flex flex-col'>
-					<span className='text-xl font-bold tracking-tight text-text'>
+					<span className='text-xl font-bold tracking-tight text-text-primary'>
 						{myRank.xpThisWeek}
 					</span>
 					<span className='text-xs text-text-muted'>{t('xpThisWeek')}</span>
 				</div>
 				<div className='flex flex-col'>
-					<span className='text-xl font-bold tracking-tight text-text'>
+					<span className='text-xl font-bold tracking-tight text-text-primary'>
 						{myRank.recipesCooked}
 					</span>
 					<span className='text-xs text-text-muted'>{t('recipesCooked')}</span>
@@ -236,7 +236,7 @@ function MyRankBanner({
 					onClick={onCookNow}
 					className={cn(
 						'py-2 px-4 rounded-xl text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50',
-						'bg-gradient-xp',
+						'bg-brand shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 						'w-full sm:w-auto',
 					)}
 				>
@@ -258,7 +258,7 @@ function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
 			<Clock className='size-icon-sm' />
 			<span>
 				{t('resetsIn')}{' '}
-				<strong className='text-text'>
+				<strong className='text-text-primary'>
 					{resetInfo.days}d {resetInfo.hours}h {resetInfo.minutes}m
 				</strong>
 			</span>
@@ -312,13 +312,13 @@ export function LeaderboardPage({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						onClick={onBack}
-						className='size-10 flex items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='size-10 flex items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text-primary shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text-primary'>
 					{t('title')}
 				</h1>
 				{onShare && (
@@ -428,7 +428,7 @@ export function LeaderboardPage({
 					>
 						<ChefHat className='size-8 text-white' />
 					</motion.div>
-					<h3 className='text-lg font-bold text-text mb-2'>
+					<h3 className='text-lg font-bold text-text-primary mb-2'>
 						{type === 'friends'
 							? t('emptyFriendsTitle')
 							: t('emptyGlobalTitle')}
@@ -438,7 +438,7 @@ export function LeaderboardPage({
 					</p>
 					<Link
 						href={type === 'friends' ? '/community' : '/explore'}
-						className='mt-4 rounded-xl bg-gradient-hero px-5 py-2.5 text-sm font-semibold text-white shadow-warm transition-shadow hover:shadow-warm'
+						className='mt-4 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 					>
 						{type === 'friends' ? t('findFriends') : t('startCooking')}
 					</Link>

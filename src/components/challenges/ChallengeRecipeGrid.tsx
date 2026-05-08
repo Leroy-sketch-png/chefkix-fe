@@ -103,7 +103,7 @@ const FilterChip = ({
 			'rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
 			isActive
 				? 'border-brand bg-brand text-white'
-				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text',
+				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text-primary',
 		)}
 	>
 		{label}
@@ -182,7 +182,7 @@ const ChallengeRecipeCard = ({
 
 				{/* Content */}
 				<div className='p-4'>
-					<h3 className='mb-1.5 text-base font-serif font-bold text-text'>
+					<h3 className='mb-1.5 text-base font-serif font-bold text-text-primary'>
 						{recipe.title}
 					</h3>
 					<p className='mb-3 line-clamp-1 text-xs leading-relaxed text-text-secondary'>
@@ -224,7 +224,9 @@ const ChallengeRecipeCard = ({
 								height={28}
 								className='rounded-full'
 							/>
-							<span className='text-xs text-text'>{recipe.author.name}</span>
+							<span className='text-xs text-text-primary'>
+								{recipe.author.name}
+							</span>
 						</div>
 						<motion.button
 							type='button'
@@ -301,7 +303,7 @@ export const ChallengeRecipeGrid = ({
 					<button
 						type='button'
 						onClick={onBack}
-						className='mb-4 flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text'
+						className='mb-4 flex items-center gap-1.5 text-xs text-text-secondary transition-colors hover:text-text-primary'
 					>
 						<ArrowLeft className='size-4' />
 						{t('backToFeed')}
@@ -316,7 +318,7 @@ export const ChallengeRecipeGrid = ({
 							<span className='text-2xs font-bold uppercase tracking-wide text-brand'>
 								{challenge.type}
 							</span>
-							<h1 className='my-1 text-2xl font-bold tracking-tight text-text md:text-3xl'>
+							<h1 className='my-1 text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>
 								{challenge.title}
 							</h1>
 							<p className='text-sm text-text-secondary'>
@@ -377,7 +379,7 @@ export const ChallengeRecipeGrid = ({
 								prev === 'xp' ? 'time' : prev === 'time' ? 'rating' : 'xp',
 							)
 						}
-						className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+						className='flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs text-text-secondary transition-colors hover:bg-bg hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 					>
 						<ArrowUpDown className='size-3.5' />
 						{sortBy === 'xp'
@@ -404,10 +406,10 @@ export const ChallengeRecipeGrid = ({
 
 			{/* XP Potential Footer */}
 			{topPick && (
-				<div className='rounded-xl bg-bg-card px-5 py-4'>
+				<div className='rounded-2xl bg-bg-card px-5 py-4'>
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
 						<span className='text-text-secondary'>{t('topPickXp')}</span>
-						<span className='tabular-nums font-semibold text-text'>
+						<span className='tabular-nums font-semibold text-text-primary'>
 							{topPick.baseXp} XP base
 						</span>
 						<span className='text-text-secondary'>+</span>
