@@ -395,7 +395,7 @@ function CreatePostContent() {
 								type='button'
 								onClick={() => router.back()}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								aria-label={t('ariaGoBack')}
 							>
 								<ArrowLeft className='size-5' />
@@ -468,7 +468,7 @@ function CreatePostContent() {
 												{t('cookedLabel')}
 											</span>
 										</div>
-										<h3 className='mb-2 text-lg font-bold text-text'>
+										<h3 className='mb-2 text-lg font-bold text-text-primary'>
 											{session.recipeTitle}
 										</h3>
 										<div className='flex flex-wrap items-center gap-3'>
@@ -530,7 +530,7 @@ function CreatePostContent() {
 								<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
 									<Star className='size-5 text-warning' />
 									<div>
-										<h4 className='text-sm font-bold text-text'>
+										<h4 className='text-sm font-bold text-text-primary'>
 											{t('rateRecipe')}
 										</h4>
 										<p className='text-xs text-text-muted'>
@@ -598,7 +598,7 @@ function CreatePostContent() {
 									</AvatarFallback>
 								</Avatar>
 								<div>
-									<div className='font-semibold text-text'>
+									<div className='font-semibold text-text-primary'>
 										{user?.displayName || user?.username || 'You'}
 									</div>
 									<div className='text-sm text-text-secondary'>
@@ -629,7 +629,7 @@ function CreatePostContent() {
 												})
 											: t('placeholderGeneric')
 									}
-									className='min-h-textarea-sm w-full resize-none rounded-xl bg-transparent py-2 text-text placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='min-h-textarea-sm w-full resize-none rounded-xl bg-transparent py-2 text-text-primary placeholder-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									autoFocus
 								/>
 								<p
@@ -712,7 +712,7 @@ function CreatePostContent() {
 									className={cn(
 										'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 										session
-											? 'bg-gradient-hero text-white shadow-warm shadow-primary/30'
+											? 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 											: 'bg-brand text-white',
 									)}
 								>

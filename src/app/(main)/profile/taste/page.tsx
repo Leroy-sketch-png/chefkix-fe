@@ -358,7 +358,7 @@ export default function TasteProfilePage() {
 							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />
@@ -467,7 +467,7 @@ export default function TasteProfilePage() {
 											<div className='grid size-8 place-items-center rounded-xl bg-brand/10 text-brand'>
 												{dim.icon}
 											</div>
-											<span className='font-semibold text-text'>
+											<span className='font-semibold text-text-primary'>
 												{dim.label}
 											</span>
 										</div>
@@ -513,7 +513,7 @@ export default function TasteProfilePage() {
 								transition={{ delay: 0.7 }}
 								className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 							>
-								<h2 className='mb-4 flex items-center gap-2 font-semibold text-text'>
+								<h2 className='mb-4 flex items-center gap-2 font-semibold text-text-primary'>
 									<Globe className='size-5 text-brand' />
 									Your Cuisine DNA
 								</h2>
@@ -555,7 +555,7 @@ export default function TasteProfilePage() {
 						transition={{ delay: 0.8 }}
 						className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 					>
-						<h2 className='mb-3 flex items-center gap-2 font-semibold text-text'>
+						<h2 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
 							<Zap className='size-5 text-gaming-xp' />
 							Your Interests
 						</h2>
@@ -582,7 +582,7 @@ export default function TasteProfilePage() {
 					>
 						{cookingPrefs.preferredCuisines.length > 0 && (
 							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
-								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text'>
+								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary'>
 									<Globe className='size-4 text-brand' />
 									Favorite Cuisines
 								</h3>
@@ -600,7 +600,7 @@ export default function TasteProfilePage() {
 						)}
 						{cookingPrefs.dietaryRestrictions.length > 0 && (
 							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
-								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text'>
+								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary'>
 									<Trophy className='size-4 text-gaming-xp' />
 									Dietary Preferences
 								</h3>
@@ -637,7 +637,7 @@ export default function TasteProfilePage() {
 									<Calendar className='size-6' />
 								</div>
 								<div className='flex-1'>
-									<h3 className='font-semibold text-text'>
+									<h3 className='font-semibold text-text-primary'>
 										{t('yearInCooking')}
 									</h3>
 									<p className='text-sm text-text-muted'>

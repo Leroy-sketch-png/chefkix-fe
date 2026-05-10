@@ -5,14 +5,8 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PageTransition } from '@/components/layout/PageTransition'
 import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
-import {
-	MessageCircle,
 	Send,
 	Loader2,
 	Wifi,
@@ -23,6 +17,7 @@ import {
 	Phone,
 	X,
 	Users,
+	MessageSquare,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -33,6 +28,7 @@ import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import VideoCall from '@/components/chat/VideoCall'
 import AvatarImage from '@/components/messages/AvatarImage'
+import { MessagesContextRail } from '@/components/messages'
 import {
 	getMyConversations,
 	getMessages,
@@ -131,7 +127,7 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				initial={{ scale: 0.8, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={TRANSITION_SPRING}
-				className='grid size-20 place-items-center rounded-2xl bg-gradient-hero'
+				className='grid size-20 place-items-center rounded-2xl bg-brand shadow-[0_4px_16px_rgba(255,90,54,0.3)]'
 			>
 				<Sparkles className='size-10 text-white' />
 			</motion.div>
@@ -520,52 +516,55 @@ function MessagesContent() {
 
 	const selectedInfo = getSelectedInfo()
 
-	// ============================================
-	// RENDER: Master-Detail Split-Pane Layout
-	// ============================================
+	const unreadConversations = conversations.filter(
+		conv => (conv.unreadCount ?? 0) > 0,
+	).length
 
 	return (
-		<div className='flex h-[calc(100vh-4rem)] overflow-hidden'>
+		<div className='grid h-[calc(100vh-4rem)] grid-cols-1 overflow-hidden xl:grid-cols-[22rem_minmax(0,1fr)_20rem]'>
 			{/* ========== LEFT PANEL: Conversations Sidebar ========== */}
 			{/* Full height, fixed width on desktop, full screen on mobile when no chat selected */}
 			<aside
-				className={`flex h-full w-full flex-col border-r border-border-subtle bg-bg-card md:w-80 md:flex-shrink-0 ${
+				className={`flex h-full w-full flex-col border-r border-border-subtle bg-bg-card md:w-80 md:flex-shrink-0 xl:w-auto ${
 					showMobileChat ? 'hidden md:flex' : 'flex'
 				}`}
 			>
-				{/* Sidebar Header with PageHeader */}
-				<header className='flex-shrink-0 border-b border-border-subtle p-3'>
-					<PremiumSurface tone='blue'>
-						<div>
-							<PageHeader
-								icon={MessageCircle}
-								title={t('title')}
-								subtitle=''
-								gradient='blue'
-								marginBottom='sm'
-								className='mb-0'
-							/>
-							{/* Search */}
-							<div className='relative mt-3'>
-								<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-								<Input
-									placeholder={t('searchConversations')}
-									aria-label={t('searchConversations')}
-									value={searchQuery}
-									onChange={e => setSearchQuery(e.target.value)}
-									className='h-11 rounded-xl border-border-medium bg-bg-elevated/80 pl-9'
-								/>
+				<header className='flex-shrink-0 border-b border-border-subtle bg-bg-card p-4'>
+					<div className='rounded-xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-4 shadow-card'>
+						<div className='mb-3 flex items-start justify-between gap-3'>
+							<div>
+								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+									Inbox
+								</p>
+								<h1 className='mt-1 text-xl font-black text-text-primary'>
+									{t('title')}
+								</h1>
+							</div>
+							<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/25 bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand'>
+								<MessageSquare className='size-3.5' />
+								{filteredConversations.length}
 							</div>
 						</div>
-					</PremiumSurface>
+						<div className='relative'>
+							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+							<Input
+								placeholder={t('searchConversations')}
+								aria-label={t('searchConversations')}
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+								className='h-11 rounded-xl border-border-medium bg-bg-elevated/80 pl-9'
+							/>
+						</div>
+					</div>
 				</header>
 
 				{/* Conversations List - Scrollable */}
 				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-24 md:pb-2'>
-					<SurfaceSectionHeader
-						className='mb-2 px-2'
-						eyebrow='Active Conversations'
-					/>
+					<div className='mb-2 px-2'>
+						<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+							Active conversations
+						</p>
+					</div>
 					{isLoadingConversations ? (
 						<div className='space-y-2 px-2'>
 							{Array.from({ length: 5 }).map((_, i) => (
@@ -624,7 +623,7 @@ function MessagesContent() {
 									transition={TRANSITION_SPRING}
 									className='mt-3 rounded-xl border border-border-subtle bg-bg-elevated p-3'
 								>
-									<p className='text-sm font-semibold text-text'>
+									<p className='text-sm font-semibold text-text-primary'>
 										{t('findPeopleToChat')}
 									</p>
 									<p className='mt-1 text-xs text-text-muted'>
@@ -679,7 +678,7 @@ function MessagesContent() {
 								/>
 							</div>
 							<div className='min-w-0 flex-1'>
-								<h2 className='truncate font-semibold text-text'>
+								<h2 className='truncate font-semibold text-text-primary'>
 									{selectedInfo.name}
 								</h2>
 								<ConnectionStatus isConnected={isConnected} error={wsError} />
@@ -825,7 +824,7 @@ function MessagesContent() {
 										type='button'
 										onClick={() => setReplyingTo(null)}
 										aria-label={t('ariaCancelReply')}
-										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text'
+										className='flex-shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
 									>
 										<X className='size-3.5' />
 									</button>
@@ -891,6 +890,14 @@ function MessagesContent() {
 					<WelcomeState hasConversations={conversations.length > 0} />
 				)}
 			</main>
+
+			<MessagesContextRail
+				totalConversations={conversations.length}
+				unreadConversations={unreadConversations}
+				isConnected={isConnected}
+				connectionError={wsError}
+				hasActiveConversation={Boolean(selectedConversation)}
+			/>
 		</div>
 	)
 }

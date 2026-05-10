@@ -2,16 +2,14 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
+import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import { CommunityCommandDeck } from '@/components/community/CommunityCommandDeck'
+import { CommunityContextRail } from '@/components/community/CommunityContextRail'
 import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
 import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
@@ -23,26 +21,9 @@ import {
 	getFollowers,
 	getSuggestedFollows,
 } from '@/services/social'
-import {
-	getLeaderboard,
-	type LeaderboardEntry as LeaderboardServiceEntry,
-} from '@/services/leaderboard'
+import { getLeaderboard } from '@/services/leaderboard'
 import { Profile } from '@/lib/types'
-import { cn } from '@/lib/utils'
-import {
-	Users,
-	UserPlus,
-	Trophy,
-	Search,
-	Sparkles,
-	UsersRound,
-	Loader2,
-} from 'lucide-react'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from '@/components/ui/input-group'
+import { Users, Loader2 } from 'lucide-react'
 import {
 	FriendsLeaderboard,
 	type LeaderboardEntry,
@@ -58,7 +39,9 @@ export default function CommunityPage() {
 	const t = useTranslations('community')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
-	const [activeTab, setActiveTab] = useState('discover')
+	const [activeTab, setActiveTab] = useState<
+		'discover' | 'friends' | 'groups' | 'leaderboard'
+	>('discover')
 	const [friends, setFriends] = useState<Profile[]>([])
 	const [followers, setFollowers] = useState<Profile[]>([])
 	const [suggestedFollows, setSuggestedFollows] = useState<Profile[]>([])
@@ -232,7 +215,7 @@ export default function CommunityPage() {
 				)}
 			</AnimatePresence>
 
-			<PageContainer maxWidth='xl'>
+			<PageContainer maxWidth='2xl'>
 				{/* Header */}
 				<PageHeader
 					icon={Users}
@@ -240,183 +223,166 @@ export default function CommunityPage() {
 					subtitle=''
 					gradient='pink'
 					marginBottom='md'
+					className='hidden sm:block'
 				/>
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+					<div>
+						<CommunityCommandDeck
+							activeTab={activeTab}
+							onTabChange={setActiveTab}
+							isAuthenticated={isAuthenticated}
+							counts={{
+								friends: friends.length,
+								followers: followers.length,
+								suggested: suggestedFollows.length,
+								leaderboard: leaderboardEntries.length,
+							}}
+							className='mb-6'
+						/>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<PremiumSurface
-						className='mb-6'
-						eyebrow='Community Modes'
-						chipText={`${leaderboardEntries.length} ranked`}
-					>
-						<TabsList
-							className={cn(
-								'grid w-full lg:w-auto',
-								isAuthenticated ? 'grid-cols-4' : 'grid-cols-2',
-							)}
-						>
-							<TabsTrigger value='discover' className='gap-2'>
-								<Search className='size-4' />
-								<span
-									className={isAuthenticated ? 'hidden sm:inline' : 'inline'}
-								>
-									{t('discover')}
-								</span>
-							</TabsTrigger>
-							{isAuthenticated && (
-								<TabsTrigger value='friends' className='gap-2'>
-									<Users className='size-4' />
-									<span className='hidden sm:inline'>{t('friends')}</span>
-									{friends.length > 0 && (
-										<span className='ml-1 rounded-full bg-brand/20 px-2 py-0.5 text-xs font-medium tabular-nums text-brand'>
-											{friends.length}
-										</span>
-									)}
-								</TabsTrigger>
-							)}
-							{isAuthenticated && (
-								<TabsTrigger value='groups' className='gap-2'>
-									<UsersRound className='size-4' />
-									<span className='hidden sm:inline'>{t('groups')}</span>
-								</TabsTrigger>
-							)}
-							<TabsTrigger value='leaderboard' className='gap-2'>
-								<Trophy className='size-4' />
-								<span
-									className={isAuthenticated ? 'hidden sm:inline' : 'inline'}
-								>
-									{t('leaderboard')}
-								</span>
-							</TabsTrigger>
-						</TabsList>
-					</PremiumSurface>
-
-					<TabsContent value='discover' className='mt-0 animate-fadeIn'>
-						{/* UserDiscoveryClient handles its own data fetching with pagination */}
-						<UserDiscoveryClient />
-					</TabsContent>
-
-					<TabsContent
-						value='friends'
-						className='mt-0 space-y-8 animate-fadeIn'
-					>
-						<section>
-							<SurfaceSectionHeader
-								className='mb-4'
-								eyebrow={t('followBackSuggestions')}
-								chipText={`${followers.length}`}
-							/>
-							{followers.length === 0 ? (
-								<EmptyStateGamified
-									variant='feed'
-									title={t('noFollowRequests')}
-									description={t('noFollowRequestsDesc')}
-									quickActions={[
-										{
-											label: t('browseDiscover'),
-											emoji: '🔍',
-											onClick: () => setActiveTab('discover'),
-										},
-									]}
-								/>
-							) : (
-								<StaggerContainer staggerDelay={0.05}>
-									<AnimatePresence mode='popLayout'>
-										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-											{followers.map(follower => (
-												<FollowSuggestionCard
-													key={follower.userId}
-													profile={follower}
-													onFollowBack={handleFollowBack}
-													onDismiss={handleDismiss}
-												/>
-											))}
-										</div>
-									</AnimatePresence>
-								</StaggerContainer>
-							)}
-						</section>
-
-						{/* {t('suggestedForYou')} — AI-powered user discovery */}
-						{suggestedFollows.length > 0 && (
-							<section>
-								<SurfaceSectionHeader
-									className='mb-4'
-									eyebrow={t('suggestedForYou')}
-									chipText={`${suggestedFollows.length}`}
-								/>
-								<StaggerContainer staggerDelay={0.05}>
-									<AnimatePresence mode='popLayout'>
-										<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-											{suggestedFollows.map(user => (
-												<FollowSuggestionCard
-													key={user.userId}
-													profile={user}
-													variant='suggested'
-													onFollowBack={handleSuggestedFollow}
-													onDismiss={handleSuggestedDismiss}
-												/>
-											))}
-										</div>
-									</AnimatePresence>
-								</StaggerContainer>
-							</section>
+						{activeTab === 'discover' && (
+							<div className='animate-fadeIn'>
+								{/* UserDiscoveryClient handles its own data fetching with pagination */}
+								<UserDiscoveryClient />
+							</div>
 						)}
 
-						<section>
-							<SurfaceSectionHeader
-								className='mb-4'
-								eyebrow={t('myFriends')}
-								chipText={`${friends.length}`}
-							/>
-							{friends.length === 0 ? (
-								<EmptyStateGamified
-									variant='feed'
-									title={t('noFriendsYet')}
-									description={t('noFriendsDesc')}
-									quickActions={[
-										{
-											label: t('browseDiscover'),
-											emoji: '🔍',
-											onClick: () => setActiveTab('discover'),
-										},
-									]}
+						{isAuthenticated && activeTab === 'friends' && (
+							<div className='space-y-8 animate-fadeIn'>
+								<section>
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow={t('followBackSuggestions')}
+										chipText={`${followers.length}`}
+									/>
+									{followers.length === 0 ? (
+										<EmptyStateGamified
+											variant='feed'
+											title={t('noFollowRequests')}
+											description={t('noFollowRequestsDesc')}
+											quickActions={[
+												{
+													label: t('browseDiscover'),
+													emoji: '🔍',
+													onClick: () => setActiveTab('discover'),
+												},
+											]}
+										/>
+									) : (
+										<StaggerContainer staggerDelay={0.05}>
+											<AnimatePresence mode='popLayout'>
+												<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+													{followers.map(follower => (
+														<FollowSuggestionCard
+															key={follower.userId}
+															profile={follower}
+															onFollowBack={handleFollowBack}
+															onDismiss={handleDismiss}
+														/>
+													))}
+												</div>
+											</AnimatePresence>
+										</StaggerContainer>
+									)}
+								</section>
+
+								{/* {t('suggestedForYou')} — AI-powered user discovery */}
+								{suggestedFollows.length > 0 && (
+									<section>
+										<SurfaceSectionHeader
+											className='mb-4'
+											eyebrow={t('suggestedForYou')}
+											chipText={`${suggestedFollows.length}`}
+										/>
+										<StaggerContainer staggerDelay={0.05}>
+											<AnimatePresence mode='popLayout'>
+												<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+													{suggestedFollows.map(user => (
+														<FollowSuggestionCard
+															key={user.userId}
+															profile={user}
+															variant='suggested'
+															onFollowBack={handleSuggestedFollow}
+															onDismiss={handleSuggestedDismiss}
+														/>
+													))}
+												</div>
+											</AnimatePresence>
+										</StaggerContainer>
+									</section>
+								)}
+
+								<section>
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow={t('myFriends')}
+										chipText={`${friends.length}`}
+									/>
+									{friends.length === 0 ? (
+										<EmptyStateGamified
+											variant='feed'
+											title={t('noFriendsYet')}
+											description={t('noFriendsDesc')}
+											quickActions={[
+												{
+													label: t('browseDiscover'),
+													emoji: '🔍',
+													onClick: () => setActiveTab('discover'),
+												},
+											]}
+										/>
+									) : (
+										<StaggerContainer staggerDelay={0.05}>
+											<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+												{friends.map(friend => (
+													<FriendCard
+														key={friend.userId}
+														profile={friend}
+														onUnfollow={handleUnfollow}
+													/>
+												))}
+											</div>
+										</StaggerContainer>
+									)}
+								</section>
+							</div>
+						)}
+
+						{isAuthenticated && activeTab === 'groups' && (
+							<div className='animate-fadeIn'>
+								<GroupsExploreGrid currentUserId={user?.userId} />
+							</div>
+						)}
+
+						{activeTab === 'leaderboard' && (
+							<div className='animate-fadeIn'>
+								<FriendsLeaderboard
+									entries={leaderboardEntries}
+									totalFriends={friends.length}
+									isGlobal={true}
+									closestCompetitor={closestCompetitor}
+									onUserClick={handleLeaderboardUserClick}
+									onInviteFriends={() => setActiveTab('discover')}
+									onCookToDefend={() =>
+										startNavigationTransition(() => {
+											router.push('/explore')
+										})
+									}
 								/>
-							) : (
-								<StaggerContainer staggerDelay={0.05}>
-									<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-										{friends.map(friend => (
-											<FriendCard
-												key={friend.userId}
-												profile={friend}
-												onUnfollow={handleUnfollow}
-											/>
-										))}
-									</div>
-								</StaggerContainer>
-							)}
-						</section>
-					</TabsContent>
+							</div>
+						)}
+					</div>
 
-					<TabsContent value='groups' className='mt-0 animate-fadeIn'>
-						<GroupsExploreGrid currentUserId={user?.userId} />
-					</TabsContent>
-
-					<TabsContent value='leaderboard' className='mt-0 animate-fadeIn'>
-						<FriendsLeaderboard
-							entries={leaderboardEntries}
-							totalFriends={friends.length}
-							isGlobal={true}
-							closestCompetitor={closestCompetitor}
-							onUserClick={handleLeaderboardUserClick}
-							onInviteFriends={() => setActiveTab('discover')}
-							onCookToDefend={() =>
-								startNavigationTransition(() => {
-									router.push('/explore')
-								})
-							}
-						/>
-					</TabsContent>
-				</Tabs>
+					<CommunityContextRail
+						counts={{
+							friends: friends.length,
+							followers: followers.length,
+							suggested: suggestedFollows.length,
+							leaderboard: leaderboardEntries.length,
+						}}
+						showOnlineWidget={isAuthenticated}
+					/>
+				</div>
 
 				{/* Bottom breathing room for MobileBottomNav */}
 				<div className='pb-40 md:pb-8' />

@@ -57,8 +57,8 @@ export interface PageHeaderProps {
 const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
 	{
 		orange: {
-			bg: 'bg-gradient-hero',
-			shadow: 'shadow-brand/25',
+			bg: 'bg-brand',
+			shadow: 'shadow-[0_2px_8px_rgba(255,90,54,0.35)]',
 		},
 		yellow: {
 			bg: 'bg-gradient-streak',
@@ -81,8 +81,8 @@ const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
 			shadow: 'shadow-border-strong/25',
 		},
 		warm: {
-			bg: 'bg-gradient-warm',
-			shadow: 'shadow-brand/20',
+			bg: 'bg-brand',
+			shadow: 'shadow-[0_2px_8px_rgba(255,90,54,0.35)]',
 		},
 		pink: {
 			bg: 'bg-gradient-social',
@@ -129,7 +129,7 @@ export function PageHeader({
 				<button
 					type='button'
 					onClick={() => router.back()}
-					className='mb-3 inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-card px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card transition-colors hover:bg-bg-elevated hover:text-text'
+					className='mb-3 inline-flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-card px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card transition-colors hover:border-brand/30 hover:bg-bg-elevated hover:text-text-primary'
 				>
 					<ArrowLeft className='size-4' />
 					<span>{t('back')}</span>

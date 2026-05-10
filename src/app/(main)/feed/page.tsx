@@ -8,6 +8,8 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
+import { FeedCommandDeck } from '@/components/social/FeedCommandDeck'
+import { FeedContextRail } from '@/components/social/FeedContextRail'
 import { PostCard } from '@/components/social/PostCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { Button } from '@/components/ui/button'
@@ -146,7 +148,7 @@ export default function FeedPage() {
 				)}
 			</AnimatePresence>
 
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='2xl'>
 				<PageHeader
 					icon={MessageSquare}
 					title='Feed'
@@ -154,88 +156,82 @@ export default function FeedPage() {
 					gradient='pink'
 					marginBottom='sm'
 					showSparkles={false}
-					rightAction={
-						<div className='rounded-full border border-border-subtle bg-bg-card/70 p-1 shadow-card backdrop-blur-sm'>
-							<div className='flex gap-1.5'>
-							<Button
-								type='button'
-								size='sm'
-								variant={feedMode === 'latest' ? 'default' : 'outline'}
-								onClick={() => setFeedMode('latest')}
-								className='gap-1.5 rounded-full px-3 text-xs'
-							>
-								<Sparkles className='size-3' />
-								Latest
-							</Button>
-							<Button
-								type='button'
-								size='sm'
-								variant={feedMode === 'trending' ? 'default' : 'outline'}
-								onClick={() => setFeedMode('trending')}
-								className='gap-1.5 rounded-full px-3 text-xs'
-							>
-								<Flame className='size-3' />
-								Trending
-							</Button>
-							</div>
-						</div>
-					}
 				/>
 
-				{isLoading ? (
-					<div className='space-y-4'>
-						<PostCardSkeleton />
-						<PostCardSkeleton />
-						<PostCardSkeleton />
-					</div>
-				) : posts.length === 0 ? (
-					<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 text-center shadow-card'>
-						<div className='mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand'>
-							<MessageSquare className='size-6' />
-						</div>
-						<h2 className='mb-2 text-lg font-bold text-text'>No posts yet</h2>
-						<p className='text-sm text-text-secondary'>
-							The public feed is quiet right now. Check back soon for fresh
-							cooks, tips, and kitchen wins.
-						</p>
-					</div>
-				) : (
-					<>
-						<SurfaceSectionHeader
-							className='mb-3'
-							eyebrow='Live Feed'
-							chipText={`${posts.length} posts`}
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+					<div>
+						<FeedCommandDeck
+							feedMode={feedMode}
+							onFeedModeChange={setFeedMode}
+							postCount={posts.length}
+							hasMore={hasMore}
+							className='mb-6'
 						/>
-						<div className='space-y-4'>
-							{posts.map(post => (
-								<PostCard
-									key={post.id}
-									post={post}
-									currentUserId={user?.userId}
-								/>
-							))}
-						</div>
 
-						{hasMore && (
-							<div className='mt-6 flex justify-center'>
-								<Button
-									type='button'
-									variant='outline'
-									onClick={handleLoadMore}
-									disabled={isLoadingMore}
-									className='rounded-full'
-								>
-									{isLoadingMore ? (
-										<Loader2 className='size-4 animate-spin' />
-									) : null}
-									Load more
-								</Button>
+						{isLoading ? (
+							<div className='space-y-4'>
+								<PostCardSkeleton />
+								<PostCardSkeleton />
+								<PostCardSkeleton />
 							</div>
-						)}
-					</>
-				)}
+						) : posts.length === 0 ? (
+							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 text-center shadow-card'>
+								<div className='mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand'>
+									<MessageSquare className='size-6' />
+								</div>
+								<h2 className='mb-2 text-lg font-bold text-text-primary'>
+									No posts yet
+								</h2>
+								<p className='text-sm text-text-secondary'>
+									The public feed is quiet right now. Check back soon for fresh
+									cooks, tips, and kitchen wins.
+								</p>
+							</div>
+						) : (
+							<>
+								<SurfaceSectionHeader
+									className='mb-3'
+									eyebrow='Live Feed'
+									chipText={`${posts.length} posts`}
+								/>
+								<div className='space-y-4'>
+									{posts.map(post => (
+										<PostCard
+											key={post.id}
+											post={post}
+											currentUserId={user?.userId}
+										/>
+									))}
+								</div>
 
-				<div className='pb-24 md:pb-8' />
+								{hasMore && (
+									<div className='mt-6 flex justify-center'>
+										<Button
+											type='button'
+											variant='outline'
+											onClick={handleLoadMore}
+											disabled={isLoadingMore}
+											className='rounded-full'
+										>
+											{isLoadingMore ? (
+												<Loader2 className='size-4 animate-spin' />
+											) : null}
+											Load more
+										</Button>
+									</div>
+								)}
+							</>
+						)}
+
+						<div className='pb-24 md:pb-8' />
+					</div>
+
+					<FeedContextRail
+						postCount={posts.length}
+						feedMode={feedMode}
+						showFriendsOnline={Boolean(user)}
+					/>
+				</div>
 			</PageContainer>
 		</PageTransition>
 	)

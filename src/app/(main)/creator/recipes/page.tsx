@@ -64,7 +64,10 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ============================================
 // RECIPE CARD COMPONENT
@@ -153,7 +156,7 @@ const RecipeManageCard = ({
 			{/* Content */}
 			<div className='p-4'>
 				<Link href={`/recipes/${recipe.id}`}>
-					<h3 className='mb-1 line-clamp-1 text-lg font-serif font-bold text-text group-hover:text-brand'>
+					<h3 className='mb-1 line-clamp-1 text-lg font-serif font-bold text-text-primary group-hover:text-brand'>
 						{recipe.title}
 					</h3>
 				</Link>
@@ -414,40 +417,40 @@ export default function MyRecipesPage() {
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex items-center gap-3'>
-					<button
-						type='button'
-						aria-label='Go back'
-						onClick={() => router.back()}
-						className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-					>
-						<ArrowLeft className='size-5' />
-					</button>
-					<div className='flex-1'>
-						<PageHeader
-							icon={ChefHat}
-							title={t('myRecipes')}
-							subtitle={t('recipeCount', { count: recipes.length })}
-							gradient='purple'
-							marginBottom='sm'
-							className='mb-0'
-							rightAction={
-								<Button
-									onClick={() =>
-										startNavigationTransition(() => {
-											router.push('/create')
-										})
-									}
-									disabled={isNavigating}
-									className='gap-2 bg-gradient-hero text-white shadow-warm shadow-brand/30 disabled:opacity-50'
-								>
-									<Plus className='size-4' />
-									{t('createRecipe')}
-								</Button>
-							}
-						/>
+						<button
+							type='button'
+							aria-label='Go back'
+							onClick={() => router.back()}
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
+						>
+							<ArrowLeft className='size-5' />
+						</button>
+						<div className='flex-1'>
+							<PageHeader
+								icon={ChefHat}
+								title={t('myRecipes')}
+								subtitle={t('recipeCount', { count: recipes.length })}
+								gradient='purple'
+								marginBottom='sm'
+								className='mb-0'
+								rightAction={
+									<Button
+										onClick={() =>
+											startNavigationTransition(() => {
+												router.push('/create')
+											})
+										}
+										disabled={isNavigating}
+										className='gap-2 rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50'
+									>
+										<Plus className='size-4' />
+										{t('createRecipe')}
+									</Button>
+								}
+							/>
+						</div>
 					</div>
-				</div>
-			</PremiumSurface>
+				</PremiumSurface>
 
 				{/* Filters */}
 				{recipes.length > 0 && (
@@ -458,33 +461,33 @@ export default function MyRecipesPage() {
 						showOrbs={false}
 					>
 						<motion.div
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.1 }}
-						className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
-					>
-						<div className='relative flex-1 sm:max-w-xs'>
-							<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-							<Input
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-								placeholder={t('searchRecipes')}
-								className='pl-9'
-							/>
-						</div>
-						<Select
-							value={sortBy}
-							onValueChange={v => setSortBy(v as typeof sortBy)}
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.1 }}
+							className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
 						>
-							<SelectTrigger className='w-full sm:w-40'>
-								<SelectValue placeholder={t('sortBy')} />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value='newest'>{t('sortNewest')}</SelectItem>
-								<SelectItem value='popular'>{t('sortMostLiked')}</SelectItem>
-								<SelectItem value='views'>{t('sortMostViewed')}</SelectItem>
-							</SelectContent>
-						</Select>
+							<div className='relative flex-1 sm:max-w-xs'>
+								<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+								<Input
+									value={searchQuery}
+									onChange={e => setSearchQuery(e.target.value)}
+									placeholder={t('searchRecipes')}
+									className='pl-9'
+								/>
+							</div>
+							<Select
+								value={sortBy}
+								onValueChange={v => setSortBy(v as typeof sortBy)}
+							>
+								<SelectTrigger className='w-full sm:w-40'>
+									<SelectValue placeholder={t('sortBy')} />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='newest'>{t('sortNewest')}</SelectItem>
+									<SelectItem value='popular'>{t('sortMostLiked')}</SelectItem>
+									<SelectItem value='views'>{t('sortMostViewed')}</SelectItem>
+								</SelectContent>
+							</Select>
 						</motion.div>
 					</PremiumSurface>
 				)}
@@ -499,7 +502,7 @@ export default function MyRecipesPage() {
 						<div className='mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-brand/10'>
 							<ChefHat className='size-8 text-brand' />
 						</div>
-						<h3 className='mb-2 text-xl font-bold text-text'>
+						<h3 className='mb-2 text-xl font-bold text-text-primary'>
 							{t('noRecipesYet')}
 						</h3>
 						<p className='mb-6 text-text-muted'>{t('noRecipesYetDesc')}</p>
@@ -510,7 +513,7 @@ export default function MyRecipesPage() {
 								})
 							}
 							disabled={isNavigating}
-							className='gap-2 bg-gradient-hero text-white disabled:opacity-50'
+							className='gap-2 rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50'
 						>
 							<Plus className='size-4' />
 							Create Your First Recipe

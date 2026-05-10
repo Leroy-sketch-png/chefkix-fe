@@ -114,7 +114,7 @@ const ProfileContent = () => {
 					<button
 						type='button'
 						onClick={() => router.back()}
-						className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
+						className='flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
 						aria-label={t('ariaGoBack')}
 					>
 						<ArrowLeft className='size-4' />

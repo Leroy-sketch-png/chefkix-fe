@@ -58,7 +58,9 @@ export default function AdminLayout({
 					<Shield className='size-5 text-destructive' />
 				</div>
 				<div>
-					<h1 className='text-xl font-bold text-text'>{t('dashboardTitle')}</h1>
+					<h1 className='text-xl font-bold text-text-primary'>
+						{t('dashboardTitle')}
+					</h1>
 					<p className='text-sm text-text-muted'>{t('dashboardSubtitle')}</p>
 				</div>
 			</div>
@@ -74,8 +76,8 @@ export default function AdminLayout({
 							className={cn(
 								'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
 								isActive
-									? 'bg-bg-card text-text shadow-card'
-									: 'text-text-muted hover:text-text',
+									? 'bg-bg-card text-text-primary shadow-card'
+									: 'text-text-muted hover:text-text-primary',
 							)}
 						>
 							<item.icon className='size-4' />

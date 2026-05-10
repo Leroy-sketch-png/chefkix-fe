@@ -148,7 +148,7 @@ export default function SharedShoppingListPage() {
 									<AlertCircle className='size-16 text-warning' />
 								</div>
 							</div>
-							<h1 className='mb-2 text-2xl font-bold text-text'>
+							<h1 className='mb-2 text-2xl font-bold text-text-primary'>
 								{t('notFoundTitle')}
 							</h1>
 							<p className='mb-8 text-text-secondary'>{t('notFoundDesc')}</p>
@@ -219,7 +219,7 @@ export default function SharedShoppingListPage() {
 						<div className='mb-2 flex items-center justify-between text-sm'>
 							<span className='text-text-secondary'>{t('progress')}</span>
 							<span
-								className={`font-semibold ${isComplete ? 'text-success' : 'text-text'}`}
+								className={`font-semibold ${isComplete ? 'text-success' : 'text-text-primary'}`}
 							>
 								{isComplete
 									? t('allDone')
@@ -250,7 +250,9 @@ export default function SharedShoppingListPage() {
 							className='flex flex-col items-center justify-center py-16 text-center'
 						>
 							<Package className='mb-4 size-12 text-text-muted' />
-							<p className='text-lg font-medium text-text'>{t('emptyTitle')}</p>
+							<p className='text-lg font-medium text-text-primary'>
+								{t('emptyTitle')}
+							</p>
 							<p className='mt-1 text-sm text-text-secondary'>
 								{t('emptyDesc')}
 							</p>
@@ -311,7 +313,7 @@ export default function SharedShoppingListPage() {
 												className={`flex-1 text-sm ${
 													item.checked
 														? 'text-text-muted line-through'
-														: 'text-text'
+														: 'text-text-primary'
 												}`}
 											>
 												{item.ingredient}
@@ -341,7 +343,7 @@ export default function SharedShoppingListPage() {
 						className='mt-8 rounded-radius-lg border border-border-subtle bg-bg-card p-6 text-center shadow-card'
 					>
 						<UserPlus className='mx-auto mb-3 size-8 text-brand' />
-						<h3 className='mb-1 text-lg font-semibold text-text'>
+						<h3 className='mb-1 text-lg font-semibold text-text-primary'>
 							{t('ctaTitle')}
 						</h3>
 						<p className='mb-4 text-sm text-text-secondary'>{t('ctaDesc')}</p>

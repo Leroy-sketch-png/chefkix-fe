@@ -906,7 +906,7 @@ function RecipeDetailContent() {
 											/>
 										</div>
 										<div>
-											<p className='font-semibold text-text group-hover/author:text-brand'>
+											<p className='font-semibold text-text-primary group-hover/author:text-brand'>
 												{recipe.author.displayName ||
 													recipe.author.username ||
 													'Unknown'}
@@ -987,7 +987,7 @@ function RecipeDetailContent() {
 										<TooltipContent className='max-w-xs p-3'>
 											{DIFFICULTY_EXPLANATIONS[recipe.difficulty] ? (
 												<div className='space-y-2 text-sm'>
-													<p className='font-semibold text-text'>
+													<p className='font-semibold text-text-primary'>
 														{DIFFICULTY_EXPLANATIONS[recipe.difficulty].label}
 													</p>
 													<p className='text-text-secondary'>
@@ -1027,7 +1027,7 @@ function RecipeDetailContent() {
 												</TooltipTrigger>
 												<TooltipContent className='max-w-xs p-3'>
 													<div className='space-y-1 text-sm'>
-														<p className='font-semibold text-text'>
+														<p className='font-semibold text-text-primary'>
 															{t('aiDifficultyCalibration')}
 														</p>
 														<p className='text-text-secondary'>
@@ -1072,7 +1072,7 @@ function RecipeDetailContent() {
 											</TooltipTrigger>
 											<TooltipContent className='max-w-xs p-3'>
 												<div className='space-y-1 text-sm'>
-													<p className='font-semibold text-text'>
+													<p className='font-semibold text-text-primary'>
 														{t('recipeQuality', { tier: recipe.qualityTier })}
 													</p>
 													<p className='text-text-secondary'>
@@ -1158,7 +1158,7 @@ function RecipeDetailContent() {
 										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 										: hasOtherSession
 											? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
-											: 'bg-gradient-hero text-white shadow-brand/30 hover:shadow-warm hover:shadow-brand/40',
+											: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 								)}
 							>
 								{isCookingLoading ? (
@@ -1423,7 +1423,7 @@ function RecipeDetailContent() {
 						transition={{ delay: 0.5 }}
 						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
 					>
-						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
+						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
 							<Zap className='size-5 text-xp' />
 							{t('xpBreakdownHeading')}
 							<TooltipProvider delayDuration={100}>
@@ -1505,7 +1505,7 @@ function RecipeDetailContent() {
 						transition={{ delay: 0.5 }}
 						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
 					>
-						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text'>
+						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
 							<Zap className='size-5 text-xp' />
 							{t('xpRewardHeading')}
 							<TooltipProvider delayDuration={100}>
@@ -1545,7 +1545,7 @@ function RecipeDetailContent() {
 						className='lg:col-span-1'
 					>
 						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
-							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text'>
+							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text-primary'>
 								<span className='text-2xl'>🧾</span> {t('ingredients')}
 							</h2>
 							<p className='mb-4 text-sm text-text-muted'>
@@ -1563,7 +1563,7 @@ function RecipeDetailContent() {
 									>
 										<div className='mt-1.5 size-2 flex-shrink-0 rounded-full bg-brand' />
 										<span className='flex-1 text-text-secondary'>
-											<span className='font-semibold text-text'>
+											<span className='font-semibold text-text-primary'>
 												{ingredient.quantity} {ingredient.unit}
 											</span>{' '}
 											{ingredient.name}
@@ -1606,7 +1606,7 @@ function RecipeDetailContent() {
 						animate='visible'
 						className='lg:col-span-2'
 					>
-						<h2 className='mb-6 flex items-center gap-2 text-2xl font-bold text-text'>
+						<h2 className='mb-6 flex items-center gap-2 text-2xl font-bold text-text-primary'>
 							<span className='text-2xl'>👨‍🍳</span> {t('instructions')}
 						</h2>
 						<div className='space-y-4'>
@@ -1628,7 +1628,7 @@ function RecipeDetailContent() {
 												{index + 1}
 											</motion.div>
 											<div className='flex-1'>
-												<h3 className='text-lg font-bold text-text'>
+												<h3 className='text-lg font-bold text-text-primary'>
 													{step.title}
 												</h3>
 												{step.timerSeconds && (
@@ -1716,7 +1716,7 @@ function RecipeDetailContent() {
 									</span>
 									<h2
 										id='remix-result-title'
-										className='mt-2 text-xl font-bold text-text'
+										className='mt-2 text-xl font-bold text-text-primary'
 									>
 										{remixResult.remix_title}
 									</h2>
@@ -1724,7 +1724,7 @@ function RecipeDetailContent() {
 								<button
 									type='button'
 									onClick={() => setRemixResult(null)}
-									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 									aria-label={t('remixClose')}
 								>
 									✕
@@ -1850,7 +1850,7 @@ function RecipeDetailContent() {
 						>
 							<h3
 								id='delete-confirm-title'
-								className='mb-2 text-lg font-bold text-text'
+								className='mb-2 text-lg font-bold text-text-primary'
 							>
 								{t('deleteRecipeConfirmTitle')}
 							</h3>

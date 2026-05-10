@@ -79,7 +79,7 @@ function ShoppingListItemRowContent({
 			<div className='min-w-0 flex-1'>
 				<span
 					className={`text-sm transition-all ${
-						item.checked ? 'text-text-muted line-through' : 'text-text'
+						item.checked ? 'text-text-muted line-through' : 'text-text-primary'
 					}`}
 				>
 					{item.ingredient}

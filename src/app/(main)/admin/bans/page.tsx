@@ -138,7 +138,7 @@ export default function BansPage() {
 								onKeyDown={e => e.key === 'Enter' && searchBans()}
 								placeholder={t('searchPlaceholder')}
 								aria-label={t('searchPlaceholder')}
-								className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+								className='w-full rounded-xl border border-border-subtle bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 							/>
 						</div>
 						<Button onClick={searchBans} disabled={loading} className='gap-1.5'>
@@ -196,7 +196,7 @@ export default function BansPage() {
 							{/* Ban form */}
 							{showBanForm && (
 								<div className='rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3'>
-									<p className='text-sm font-semibold text-text'>
+									<p className='text-sm font-semibold text-text-primary'>
 										{t('banUserLabel', { userId: userId.trim() })}
 									</p>
 									<p className='text-xs text-text-muted'>
@@ -206,7 +206,7 @@ export default function BansPage() {
 										value={banReason}
 										onChange={e => setBanReason(e.target.value)}
 										placeholder={t('banReasonPlaceholder')}
-										className='w-full resize-none rounded-xl border border-border-subtle bg-bg-card p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+										className='w-full resize-none rounded-xl border border-border-subtle bg-bg-card p-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 										rows={2}
 									/>
 									<div className='flex items-center gap-3'>
@@ -222,7 +222,7 @@ export default function BansPage() {
 													'rounded-xl px-3 py-1.5 text-xs font-medium transition-colors',
 													banScope === scope
 														? 'bg-destructive text-destructive-foreground'
-														: 'bg-bg-elevated text-text-muted hover:text-text',
+														: 'bg-bg-elevated text-text-muted hover:text-text-primary',
 												)}
 											>
 												{t(`scope_${scope}`)}
@@ -273,7 +273,7 @@ export default function BansPage() {
 													</div>
 													<div>
 														<div className='flex items-center gap-2'>
-															<span className='text-sm font-semibold text-text'>
+															<span className='text-sm font-semibold text-text-primary'>
 																{t('offenseLabel', {
 																	number: ban.offenseNumber,
 																})}
@@ -350,7 +350,7 @@ export default function BansPage() {
 									<div className='grid size-12 place-items-center rounded-full bg-success/10'>
 										<Shield className='size-6 text-success' />
 									</div>
-									<p className='text-sm font-medium text-text'>
+									<p className='text-sm font-medium text-text-primary'>
 										{t('noActiveBansTitle')}
 									</p>
 									<p className='text-xs text-text-muted'>{t('cleanRecord')}</p>
@@ -362,7 +362,7 @@ export default function BansPage() {
 							<div className='grid size-12 place-items-center rounded-full bg-bg-elevated'>
 								<Search className='size-6 text-text-muted' />
 							</div>
-							<p className='text-sm font-medium text-text'>
+							<p className='text-sm font-medium text-text-primary'>
 								{t('lookUpTitle')}
 							</p>
 							<p className='text-xs text-text-muted'>{t('lookUpSubtitle')}</p>

@@ -261,7 +261,9 @@ function ReportList({
 		return (
 			<div className='flex flex-col items-center gap-3 py-16 text-center'>
 				<CheckCircle className='size-12 text-success' />
-				<p className='text-sm font-medium text-text'>{t('noReportsTitle')}</p>
+				<p className='text-sm font-medium text-text-primary'>
+					{t('noReportsTitle')}
+				</p>
 				<p className='text-xs text-text-muted'>{t('noReportsSubtitle')}</p>
 			</div>
 		)
@@ -295,7 +297,7 @@ function ReportList({
 								</div>
 								<div>
 									<div className='flex items-center gap-2'>
-										<span className='text-sm font-semibold text-text capitalize'>
+										<span className='text-sm font-semibold text-text-primary capitalize'>
 											{t('reportLabel', { type: report.targetType })}
 										</span>
 										<Badge
@@ -331,7 +333,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('reporterIdLabel')}
 										</span>
-										<p className='mt-0.5 font-mono text-text'>
+										<p className='mt-0.5 font-mono text-text-primary'>
 											{report.reporterId}
 										</p>
 									</div>
@@ -339,7 +341,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('targetIdLabel')}
 										</span>
-										<p className='mt-0.5 font-mono text-text'>
+										<p className='mt-0.5 font-mono text-text-primary'>
 											{report.targetId}
 										</p>
 									</div>
@@ -350,7 +352,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('detailsLabel')}
 										</span>
-										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
+										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text-primary'>
 											{report.details}
 										</p>
 									</div>
@@ -362,7 +364,7 @@ function ReportList({
 											<span className='font-medium text-text-muted'>
 												{t('reviewedByLabel')}
 											</span>
-											<p className='mt-0.5 font-mono text-text'>
+											<p className='mt-0.5 font-mono text-text-primary'>
 												{report.reviewedBy}
 											</p>
 										</div>
@@ -371,7 +373,7 @@ function ReportList({
 												<span className='font-medium text-text-muted'>
 													{t('reviewedAtLabel')}
 												</span>
-												<p className='mt-0.5 text-text'>
+												<p className='mt-0.5 text-text-primary'>
 													{new Date(report.reviewedAt).toLocaleString()}
 												</p>
 											</div>
@@ -384,7 +386,7 @@ function ReportList({
 										<span className='font-medium text-text-muted'>
 											{t('reviewNotesLabel')}
 										</span>
-										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
+										<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text-primary'>
 											{report.reviewNotes}
 										</p>
 									</div>
@@ -399,7 +401,7 @@ function ReportList({
 											placeholder={t('reviewNotesPlaceholder')}
 											aria-label={t('reviewNotesPlaceholder')}
 											maxLength={1000}
-											className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+											className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 											rows={2}
 										/>
 										<div className='flex flex-wrap gap-2'>

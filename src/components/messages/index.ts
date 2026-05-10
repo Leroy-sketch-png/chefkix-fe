@@ -12,3 +12,4 @@ export {
 	ConversationListSkeleton,
 	type Conversation,
 } from './ConversationItem'
+export { MessagesContextRail } from './MessagesContextRail'

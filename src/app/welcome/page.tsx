@@ -106,7 +106,7 @@ const HeroSection = () => {
 									}
 									disabled={isNavigating}
 									size='lg'
-									className='group relative overflow-hidden bg-gradient-hero px-10 py-7 text-xl font-bold text-white shadow-[0_0_40px_rgba(var(--brand),0.4)] transition-all hover:shadow-[0_0_60px_rgba(var(--brand),0.6)] disabled:opacity-50 rounded-2xl'
+									className='group relative overflow-hidden bg-brand px-10 py-7 text-xl font-bold text-white shadow-[0_0_40px_rgba(var(--brand),0.4)] transition-all hover:shadow-[0_0_60px_rgba(var(--brand),0.6)] disabled:opacity-50 rounded-2xl'
 								>
 									<span className='relative z-10 flex items-center gap-3'>
 										{t('startCooking')}
@@ -125,7 +125,7 @@ const HeroSection = () => {
 									disabled={isNavigating}
 									variant='outline'
 									size='lg'
-									className='border-2 border-border-medium bg-bg/50 backdrop-blur-md px-8 py-7 text-xl font-semibold text-text transition-all hover:border-brand hover:text-brand disabled:opacity-50 rounded-2xl'
+									className='border-2 border-border-medium bg-bg/50 backdrop-blur-md px-8 py-7 text-xl font-semibold text-text-primary transition-all hover:border-brand hover:text-brand disabled:opacity-50 rounded-2xl'
 								>
 									<PlayCircle className='mr-3 size-6' />
 									{t('exploreRecipes')}
@@ -157,14 +157,16 @@ const HeroSection = () => {
 									))}
 								</div>
 								<span>
-									<strong className='text-text font-bold text-lg'>10k+</strong>{' '}
+									<strong className='text-text-primary font-bold text-lg'>
+										10k+
+									</strong>{' '}
 									{t('socialProofChefs')}
 								</span>
 							</div>
 							<div className='hidden sm:flex items-center gap-2 border-l border-border pl-8'>
 								<Trophy className='size-6 text-streak' />
 								<div className='flex flex-col'>
-									<span className='text-text font-bold leading-none'>
+									<span className='text-text-primary font-bold leading-none'>
 										4.9/5
 									</span>
 									<span className='text-xs leading-none mt-1'>App Store</span>
@@ -347,7 +349,7 @@ const FeaturesSection = () => {
 					transition={TRANSITION_SPRING}
 					className='mb-16 text-center'
 				>
-					<h2 className='mb-4 text-4xl font-bold text-text md:text-5xl'>
+					<h2 className='mb-4 text-4xl font-bold text-text-primary md:text-5xl'>
 						{t('whyDifferentTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
@@ -437,7 +439,7 @@ const HowItWorksSection = () => {
 					transition={TRANSITION_SPRING}
 					className='mb-16 text-center'
 				>
-					<h2 className='mb-4 text-4xl font-bold text-text md:text-5xl'>
+					<h2 className='mb-4 text-4xl font-bold text-text-primary md:text-5xl'>
 						{t('howItWorksTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
@@ -463,7 +465,7 @@ const HowItWorksSection = () => {
 								)}
 
 								<div className='relative text-center'>
-									<div className='relative mx-auto mb-6 inline-flex size-20 items-center justify-center rounded-2xl bg-gradient-hero shadow-warm shadow-brand/40'>
+									<div className='relative mx-auto mb-6 inline-flex size-20 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/40'>
 										<Icon className='size-10 text-white' />
 										<span className='absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-xp text-xs font-bold text-white shadow-card'>
 											{step.number}

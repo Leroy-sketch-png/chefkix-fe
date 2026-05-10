@@ -41,7 +41,8 @@ import Image from 'next/image'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { SettingsCommandDeck } from '@/components/settings/SettingsCommandDeck'
+import { SettingsContextRail } from '@/components/settings/SettingsContextRail'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuth } from '@/hooks/useAuth'
@@ -70,7 +71,6 @@ import {
 	BUTTON_TAP,
 	LIST_ITEM_HOVER,
 	LIST_ITEM_TAP,
-	NAV_ITEM_HOVER,
 	staggerContainer,
 	DURATION_S,
 } from '@/lib/motion'
@@ -345,7 +345,7 @@ const ToggleRow = ({
 		<div className='flex items-center gap-3'>
 			{Icon && <Icon className='size-4 text-text-secondary' />}
 			<div>
-				<p className='text-sm font-medium text-text'>{label}</p>
+				<p className='text-sm font-medium text-text-primary'>{label}</p>
 				{description && (
 					<p className='text-xs text-text-secondary'>{description}</p>
 				)}
@@ -981,9 +981,14 @@ export default function SettingsPage() {
 		)
 	}
 
+	const activeTabConfig = TABS.find(tab => tab.id === activeTab) ?? TABS[0]
+	const profileStrength = displayName.trim().length > 0 ? 'Ready' : 'Thin'
+	const privacyMode = settings?.privacy.profileVisibility ?? 'public'
+	const alertsMode = settings?.notifications.push.enabled ? 'Enabled' : 'Muted'
+
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='2xl'>
 				{/* Header - Unified icon-box pattern */}
 				<PageHeader
 					icon={Settings}
@@ -993,1366 +998,1343 @@ export default function SettingsPage() {
 					iconAnimation={{ rotate: 45 }}
 				/>
 
-				<div className='grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]'>
-					{/* Sidebar Tabs */}
-					<motion.nav
-						initial={{ opacity: 0, x: -20 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={TRANSITION_SPRING}
-						className='relative'
-					>
-						<PremiumSurface
-							className='h-fit p-1.5 lg:sticky lg:top-24 lg:p-2'
-							eyebrow='Settings Rail'
-							chipText={`${TABS.length} tabs`}
-							showOrbs={false}
-						>
-							<div
-								role='tablist'
-								aria-label={t('title')}
-								className='flex gap-1.5 overflow-x-auto pb-1 pr-6 lg:pr-0 lg:pb-0 lg:flex-col scrollbar-hide lg:gap-2'
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+					<div>
+						<SettingsCommandDeck
+							tabs={TABS.map(tab => ({
+								id: tab.id,
+								label: t(tab.labelKey),
+								description: t(tab.descriptionKey),
+								icon: tab.icon,
+							}))}
+							activeTab={activeTab}
+							onTabChange={handleTabChange}
+							onSignOut={handleLogout}
+							isSigningOut={isLoggingOut}
+							counts={{
+								tabs: TABS.length,
+								hasDisplayName: displayName.trim().length > 0,
+								notificationsEnabled: Boolean(
+									settings?.notifications.push.enabled,
+								),
+								verificationReady: verificationStatus?.status === 'VERIFIED',
+							}}
+							className='mb-6'
+						/>
+
+						{/* Content Area */}
+						<AnimatePresence mode='wait'>
+							<motion.div
+								key={activeTab}
+								id={`tabpanel-${activeTab}`}
+								role='tabpanel'
+								aria-labelledby={activeTab}
+								variants={tabContentVariants}
+								initial='hidden'
+								animate='visible'
+								exit='exit'
+								className='space-y-6'
 							>
-								{TABS.map(tab => {
-									const Icon = tab.icon
-									const isActive = activeTab === tab.id
-									return (
-										<motion.button
-											type='button'
-											key={tab.id}
-											role='tab'
-											aria-selected={isActive}
-											aria-controls={`tabpanel-${tab.id}`}
-											whileHover={NAV_ITEM_HOVER}
-											whileTap={LIST_ITEM_TAP}
-											onClick={() => handleTabChange(tab.id)}
-											title={t(tab.labelKey)}
-											className={cn(
-												'flex min-w-[6.25rem] flex-shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-center transition-all focus-visible:ring-2 focus-visible:ring-brand/50 lg:min-w-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-xl lg:px-4 lg:py-3 lg:text-left',
-												isActive
-													? 'bg-brand/10 text-brand font-semibold'
-													: 'text-text-secondary hover:bg-bg-hover hover:text-text',
-											)}
-										>
-											<Icon
-												className={cn(
-													'size-5 flex-shrink-0',
-													isActive ? 'text-brand' : 'text-text-secondary',
-												)}
-											/>
-											<p className='text-xs font-medium leading-tight lg:text-sm'>
-												{t(tab.labelKey)}
-											</p>
-										</motion.button>
-									)
-								})}
-
-								{/* Divider + Sign Out */}
-								<div className='hidden lg:block my-1 h-px bg-border-subtle' />
-								<div className='lg:hidden my-1 w-px bg-border-subtle' />
-								<motion.button
-									type='button'
-									whileHover={isLoggingOut ? {} : NAV_ITEM_HOVER}
-									whileTap={isLoggingOut ? {} : LIST_ITEM_TAP}
-									onClick={handleLogout}
-									disabled={isLoggingOut}
-									className='flex min-w-[6.25rem] flex-shrink-0 flex-col items-center gap-1 rounded-xl px-2.5 py-2 text-center text-error transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 hover:bg-error/10 lg:min-w-0 lg:flex-row lg:gap-3 lg:rounded-xl lg:px-4 lg:py-3 lg:text-left'
-								>
-									{isLoggingOut ? (
-										<Loader2 className='size-5 flex-shrink-0 animate-spin' />
-									) : (
-										<LogOut className='size-5 flex-shrink-0' />
-									)}
-									<p className='text-xs font-medium leading-tight lg:text-sm'>
-										{isLoggingOut ? t('signingOut') : t('signOut')}
-									</p>
-								</motion.button>
-							</div>
-						</PremiumSurface>
-						{/* Scroll fade indicator (mobile only) */}
-						<div className='pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-bg-card to-transparent lg:hidden' />
-					</motion.nav>
-
-					{/* Content Area */}
-					<AnimatePresence mode='wait'>
-						<motion.div
-							key={activeTab}
-							id={`tabpanel-${activeTab}`}
-							role='tabpanel'
-							aria-labelledby={activeTab}
-							variants={tabContentVariants}
-							initial='hidden'
-							animate='visible'
-							exit='exit'
-							className='space-y-6'
-						>
-							{/* Account Tab */}
-							{activeTab === 'account' && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard
-										title={t('profileInfo')}
-										description={t('profileInfoDesc')}
+								{/* Account Tab */}
+								{activeTab === 'account' && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
 									>
-										<div className='space-y-4'>
-											{/* Cover Photo Upload */}
-											<div className='grid gap-2'>
-												<Label id='settings-cover-label'>
-													{t('coverPhoto')}
-												</Label>
-												<div
-													className='relative'
-													aria-labelledby='settings-cover-label'
-												>
+										<SettingsCard
+											title={t('profileInfo')}
+											description={t('profileInfoDesc')}
+										>
+											<div className='space-y-4'>
+												{/* Cover Photo Upload */}
+												<div className='grid gap-2'>
+													<Label id='settings-cover-label'>
+														{t('coverPhoto')}
+													</Label>
 													<div
-														className={cn(
-															'relative h-28 w-full overflow-hidden rounded-2xl border-2 bg-gradient-warm transition-all sm:h-32',
-															coverImageUrl
-																? 'border-border-subtle'
-																: 'border-dashed border-border-subtle',
-															isUploadingCover && 'opacity-60',
-														)}
+														className='relative'
+														aria-labelledby='settings-cover-label'
 													>
-														{coverImageUrl ? (
-															<Image
-																src={coverImageUrl}
-																alt='Cover'
-																fill
-																sizes='100vw'
-																className='object-cover'
-																onError={e => {
-																	;(e.target as HTMLImageElement).src =
-																		'/default-cover.svg'
-																}}
-															/>
-														) : (
-															<div className='flex h-full items-center justify-center'>
-																<ImagePlus className='size-8 text-text-secondary' />
-															</div>
-														)}
-														{isUploadingCover && (
-															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
-																<Loader2 className='size-6 animate-spin text-brand' />
-															</div>
-														)}
+														<div
+															className={cn(
+																'relative h-28 w-full overflow-hidden rounded-2xl border-2 bg-gradient-warm transition-all sm:h-32',
+																coverImageUrl
+																	? 'border-border-subtle'
+																	: 'border-dashed border-border-subtle',
+																isUploadingCover && 'opacity-60',
+															)}
+														>
+															{coverImageUrl ? (
+																<Image
+																	src={coverImageUrl}
+																	alt='Cover'
+																	fill
+																	sizes='100vw'
+																	className='object-cover'
+																	onError={e => {
+																		;(e.target as HTMLImageElement).src =
+																			'/default-cover.svg'
+																	}}
+																/>
+															) : (
+																<div className='flex h-full items-center justify-center'>
+																	<ImagePlus className='size-8 text-text-secondary' />
+																</div>
+															)}
+															{isUploadingCover && (
+																<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
+																	<Loader2 className='size-6 animate-spin text-brand' />
+																</div>
+															)}
+														</div>
+														<Button
+															type='button'
+															variant='outline'
+															size='sm'
+															className='absolute bottom-2 right-2 hidden gap-1.5 sm:inline-flex'
+															onClick={() => coverInputRef.current?.click()}
+															disabled={isUploadingCover}
+														>
+															<Camera className='size-4' />
+															{coverImageUrl
+																? t('changeCover')
+																: t('uploadCover')}
+														</Button>
+														<input
+															ref={coverInputRef}
+															type='file'
+															accept='image/*'
+															aria-label={
+																coverImageUrl
+																	? t('changeCover')
+																	: t('uploadCover')
+															}
+															className='hidden'
+															onChange={handleCoverUpload}
+														/>
 													</div>
 													<Button
 														type='button'
 														variant='outline'
 														size='sm'
-														className='absolute bottom-2 right-2 hidden gap-1.5 sm:inline-flex'
+														className='w-full gap-1.5 sm:hidden'
 														onClick={() => coverInputRef.current?.click()}
 														disabled={isUploadingCover}
 													>
 														<Camera className='size-4' />
 														{coverImageUrl
-															? t('changeCover')
-															: t('uploadCover')}
+															? t('changeCoverMobile')
+															: t('uploadCoverMobile')}
 													</Button>
-													<input
-														ref={coverInputRef}
-														type='file'
-														accept='image/*'
-														aria-label={
-															coverImageUrl
-																? t('changeCover')
-																: t('uploadCover')
-														}
-														className='hidden'
-														onChange={handleCoverUpload}
-													/>
+													<p className='text-xs text-text-muted'>
+														{t('coverPhotoHint')}
+													</p>
 												</div>
-												<Button
-													type='button'
-													variant='outline'
-													size='sm'
-													className='w-full gap-1.5 sm:hidden'
-													onClick={() => coverInputRef.current?.click()}
-													disabled={isUploadingCover}
-												>
-													<Camera className='size-4' />
-													{coverImageUrl
-														? t('changeCoverMobile')
-														: t('uploadCoverMobile')}
-												</Button>
-												<p className='text-xs text-text-muted'>
-													{t('coverPhotoHint')}
-												</p>
-											</div>
 
-											{/* Avatar Upload */}
-											<div className='grid gap-2'>
-												<Label id='settings-avatar-label'>
-													{t('profilePhoto')}
-												</Label>
-												<div
-													className='flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4'
-													aria-labelledby='settings-avatar-label'
-												>
+												{/* Avatar Upload */}
+												<div className='grid gap-2'>
+													<Label id='settings-avatar-label'>
+														{t('profilePhoto')}
+													</Label>
 													<div
-														className={cn(
-															'relative size-20 overflow-hidden rounded-full border-2 border-border-subtle bg-bg-elevated transition-all',
-															!avatarUrl && 'border-dashed',
-															isUploadingAvatar && 'opacity-60',
-														)}
+														className='flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4'
+														aria-labelledby='settings-avatar-label'
 													>
-														{avatarUrl ? (
-															<Image
-																src={avatarUrl}
-																alt='Avatar'
-																fill
-																sizes='80px'
-																className='object-cover'
-																onError={e => {
-																	;(e.target as HTMLImageElement).src =
-																		'/placeholder-avatar.svg'
-																}}
-															/>
-														) : (
-															<div className='flex size-full items-center justify-center'>
-																<User className='size-8 text-text-secondary' />
-															</div>
-														)}
-														{isUploadingAvatar && (
-															<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
-																<Loader2 className='size-5 animate-spin text-brand' />
-															</div>
-														)}
-													</div>
-													<div className='flex flex-col gap-2'>
-														<Button
-															type='button'
-															variant='outline'
-															size='sm'
-															className='gap-1.5'
-															onClick={() => avatarInputRef.current?.click()}
-															disabled={isUploadingAvatar}
-														>
-															<Camera className='size-4' />
-															{avatarUrl ? t('changePhoto') : t('uploadPhoto')}
-														</Button>
-														<p className='text-xs text-text-muted'>
-															{t('photoHint')}
-														</p>
-													</div>
-													<input
-														ref={avatarInputRef}
-														type='file'
-														accept='image/*'
-														aria-label={
-															avatarUrl ? t('changePhoto') : t('uploadPhoto')
-														}
-														className='hidden'
-														onChange={handleAvatarUpload}
-													/>
-												</div>
-											</div>
-
-											<div className='grid gap-2'>
-												<Label htmlFor='displayName'>{t('displayName')}</Label>
-												<Input
-													id='displayName'
-													value={displayName}
-													onChange={e => setDisplayName(e.target.value)}
-													placeholder={t('displayNamePlaceholder')}
-													maxLength={50}
-												/>
-											</div>
-											<div className='grid gap-2'>
-												<Label htmlFor='email'>{t('emailLabel')}</Label>
-												<Input
-													id='email'
-													value={user?.email || ''}
-													disabled
-													className='bg-bg-elevated'
-												/>
-												<p className='text-xs text-text-muted'>
-													{t('emailCannotChange')}
-												</p>
-												<a
-													href='mailto:support@chefkix.com?subject=Email%20Change%20Request'
-													className='inline-flex w-fit items-center text-xs font-semibold text-brand hover:underline'
-												>
-													{t('contactSupport')}
-												</a>
-											</div>
-											<div className='grid gap-2'>
-												<Label htmlFor='bio'>{t('bio')}</Label>
-												<Textarea
-													id='bio'
-													value={bio}
-													onChange={e => setBio(e.target.value)}
-													placeholder={t('bioPlaceholder')}
-													maxLength={160}
-												/>
-												<p
-													className={cn(
-														'tabular-nums text-xs text-right',
-														bio.length >= 160
-															? 'font-semibold text-error'
-															: bio.length > 128
-																? 'text-warning'
-																: 'text-text-muted',
-													)}
-												>
-													{bio.length}/160
-												</p>
-											</div>
-											<Button
-												onClick={handleSaveProfile}
-												disabled={
-													isSaving || isUploadingAvatar || isUploadingCover
-												}
-												className='w-full sm:w-auto'
-											>
-												{isSaving ? (
-													<Loader2 className='mr-2 size-4 animate-spin' />
-												) : (
-													<Save className='mr-2 size-4' />
-												)}
-												{isUploadingAvatar || isUploadingCover
-													? t('uploading')
-													: t('saveProfile')}
-											</Button>
-										</div>
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('accountSecurity')}
-										description={t('accountSecurityDesc')}
-									>
-										{!showPasswordForm ? (
-											<Button
-												variant='outline'
-												className='w-full sm:w-auto'
-												onClick={() => setShowPasswordForm(true)}
-											>
-												<Shield className='mr-2 size-4' />
-												{t('changePassword')}
-											</Button>
-										) : (
-											<div className='space-y-4'>
-												<div className='space-y-2'>
-													<Label htmlFor='oldPassword'>
-														{t('currentPassword')}
-													</Label>
-													<Input
-														id='oldPassword'
-														type='password'
-														value={oldPassword}
-														onChange={e => setOldPassword(e.target.value)}
-														placeholder={t('currentPasswordPlaceholder')}
-														autoComplete='current-password'
-													/>
-												</div>
-												<div className='space-y-2'>
-													<Label htmlFor='newPassword'>
-														{t('newPasswordLabel')}
-													</Label>
-													<Input
-														id='newPassword'
-														type='password'
-														value={newPassword}
-														onChange={e => setNewPassword(e.target.value)}
-														placeholder={t('newPasswordPlaceholder')}
-														autoComplete='new-password'
-													/>
-												</div>
-												<div className='space-y-2'>
-													<Label htmlFor='confirmPassword'>
-														{t('confirmPasswordLabel')}
-													</Label>
-													<Input
-														id='confirmPassword'
-														type='password'
-														value={confirmPassword}
-														onChange={e => setConfirmPassword(e.target.value)}
-														placeholder={t('confirmPasswordPlaceholder')}
-														autoComplete='new-password'
-													/>
-												</div>
-												{newPassword &&
-													confirmPassword &&
-													newPassword !== confirmPassword && (
-														<p className='text-xs text-destructive'>
-															{t('passwordsDoNotMatch')}
-														</p>
-													)}
-												<div className='flex gap-2'>
-													<Button
-														disabled={
-															isChangingPassword ||
-															!oldPassword ||
-															!newPassword ||
-															newPassword.length < 8 ||
-															newPassword !== confirmPassword
-														}
-														onClick={async () => {
-															setIsChangingPassword(true)
-															try {
-																const res = await changePassword({
-																	oldPassword,
-																	newPassword,
-																})
-																if (res.success) {
-																	toast.success(t('toastPasswordChanged'))
-																	setOldPassword('')
-																	setNewPassword('')
-																	setConfirmPassword('')
-																	setShowPasswordForm(false)
-																} else {
-																	toast.error(
-																		res.message || t('toastPasswordFailed'),
-																	)
-																}
-															} catch {
-																toast.error(t('toastPasswordFailed'))
-															} finally {
-																setIsChangingPassword(false)
-															}
-														}}
-													>
-														{isChangingPassword ? (
-															<Loader2 className='mr-2 size-4 animate-spin' />
-														) : (
-															<Save className='mr-2 size-4' />
-														)}
-														{isChangingPassword
-															? t('changingPassword')
-															: t('updatePassword')}
-													</Button>
-													<Button
-														variant='outline'
-														onClick={() => {
-															setShowPasswordForm(false)
-															setOldPassword('')
-															setNewPassword('')
-															setConfirmPassword('')
-														}}
-													>
-														Cancel
-													</Button>
-												</div>
-											</div>
-										)}
-									</SettingsCard>
-
-									{/* Data & Account Management */}
-									<SettingsCard
-										title={t('yourData')}
-										description={t('yourDataDesc')}
-									>
-										<div className='space-y-4'>
-											<div className='flex items-center justify-between'>
-												<div>
-													<p className='text-sm font-medium text-text'>
-														{t('exportYourData')}
-													</p>
-													<p className='text-xs text-text-secondary'>
-														{t('exportDataDesc')}
-													</p>
-												</div>
-												<Button
-													variant='outline'
-													size='sm'
-													onClick={handleExportData}
-													disabled={isExportingData}
-												>
-													{isExportingData ? (
-														<Loader2 className='mr-2 size-4 animate-spin' />
-													) : (
-														<Download className='mr-2 size-4' />
-													)}
-													{isExportingData ? t('exporting') : t('exportData')}
-												</Button>
-											</div>
-										</div>
-									</SettingsCard>
-
-									{/* Danger Zone */}
-									<SettingsCard
-										title={t('dangerZone')}
-										description={t('dangerZoneDesc')}
-										className='border-error/30'
-									>
-										<div className='space-y-4'>
-											<p className='text-sm text-text-secondary'>
-												{t('deleteWarning')}
-											</p>
-											{!showDeleteConfirm ? (
-												<Button
-													variant='outline'
-													className='border-error/50 text-error hover:bg-error/10'
-													onClick={() => setShowDeleteConfirm(true)}
-												>
-													<Trash2 className='mr-2 size-4' />
-													{t('deleteAccount')}
-												</Button>
-											) : (
-												<div className='space-y-3 rounded-radius border border-error/30 bg-error/5 p-4'>
-													<p className='text-sm font-medium text-error'>
-														{t('deleteConfirmInstruction')}
-													</p>
-													<Input
-														value={deleteConfirmText}
-														onChange={e => setDeleteConfirmText(e.target.value)}
-														placeholder={t('deleteConfirmPlaceholder')}
-														aria-label={t('deleteConfirmInstruction')}
-														className='max-w-xs'
-													/>
-													<div className='flex gap-2'>
-														<Button
-															variant='outline'
-															size='sm'
-															onClick={() => {
-																setShowDeleteConfirm(false)
-																setDeleteConfirmText('')
-															}}
-														>
-															{t('cancelEdit')}
-														</Button>
-														<Button
-															size='sm'
-															disabled={deleteConfirmText !== 'DELETE'}
-															onClick={handleDeleteAccount}
-															title={
-																deleteConfirmText !== 'DELETE'
-																	? t('deleteConfirmInstruction')
-																	: undefined
-															}
-															className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
-														>
-															<Trash2 className='mr-2 size-4' />
-															{t('permanentlyDelete')}
-														</Button>
-													</div>
-												</div>
-											)}
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
-
-							{/* Privacy Tab */}
-							{activeTab === 'privacy' && settings && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard
-										title={t('profileVisibility')}
-										description={t('profileVisibilityDesc')}
-									>
-										<div className='space-y-4'>
-											<div
-												role='group'
-												aria-labelledby='settings-visibility-label'
-											>
-												<Label
-													id='settings-visibility-label'
-													className='mb-3 block'
-												>
-													{t('whoCanSeeProfile')}
-												</Label>
-												<ButtonGroup
-													options={VISIBILITY_OPTIONS.map(o => ({
-														...o,
-														label: t(o.labelKey),
-													}))}
-													value={settings.privacy.profileVisibility}
-													onChange={v =>
-														handleUpdatePrivacy({ profileVisibility: v })
-													}
-												/>
-											</div>
-											<div
-												role='group'
-												aria-labelledby='settings-messaging-label'
-											>
-												<Label
-													id='settings-messaging-label'
-													className='mb-3 block'
-												>
-													{t('whoCanMessage')}
-												</Label>
-												<ButtonGroup
-													options={MESSAGE_OPTIONS.map(o => ({
-														...o,
-														label: t(o.labelKey),
-													}))}
-													value={settings.privacy.allowMessagesFrom}
-													onChange={v =>
-														handleUpdatePrivacy({ allowMessagesFrom: v })
-													}
-												/>
-											</div>
-										</div>
-									</SettingsCard>
-
-									<SettingsCard title={t('privacyToggles')}>
-										<div>
-											<ToggleRow
-												label={t('showOnLeaderboard')}
-												description={t('showOnLeaderboardDesc')}
-												icon={Trophy}
-												checked={settings.privacy.showOnLeaderboard}
-												onCheckedChange={checked =>
-													handleUpdatePrivacy({ showOnLeaderboard: checked })
-												}
-											/>
-											<ToggleRow
-												label={t('allowFollowers')}
-												description={t('allowFollowersDesc')}
-												icon={Users}
-												checked={settings.privacy.allowFollowers}
-												onCheckedChange={checked =>
-													handleUpdatePrivacy({ allowFollowers: checked })
-												}
-											/>
-											<ToggleRow
-												label={t('showCookingActivity')}
-												description={t('showCookingActivityDesc')}
-												icon={ChefHat}
-												checked={settings.privacy.showCookingActivity}
-												onCheckedChange={checked =>
-													handleUpdatePrivacy({ showCookingActivity: checked })
-												}
-											/>
-										</div>
-									</SettingsCard>
-
-									{/* Data & Analytics Card */}
-									<SettingsCard
-										title={t('dataAndAnalytics')}
-										description={t('dataAndAnalyticsDesc')}
-									>
-										<div>
-											<ToggleRow
-												label={t('usageAnalytics')}
-												description={t('usageAnalyticsDesc')}
-												icon={Eye}
-												checked={!isTrackingOptedOut()}
-												onCheckedChange={checked => {
-													setTrackingOptOut(!checked)
-													// Force re-render
-													setSettings(prev => (prev ? { ...prev } : prev))
-												}}
-											/>
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
-
-							{/* Notifications Tab */}
-							{activeTab === 'notifications' && settings && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard
-										title={t('emailNotifications')}
-										description={t('emailNotificationsDesc')}
-									>
-										<div>
-											<ToggleRow
-												label={t('weeklyDigest')}
-												description={t('weeklyDigestDesc')}
-												icon={Mail}
-												checked={settings.notifications.email.weeklyDigest}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														email: {
-															...settings.notifications.email,
-															weeklyDigest: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('newFollower')}
-												description={t('newFollowerDesc')}
-												icon={Users}
-												checked={settings.notifications.email.newFollower}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														email: {
-															...settings.notifications.email,
-															newFollower: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('recipeMilestones')}
-												description={t('recipeMilestonesDesc')}
-												icon={Trophy}
-												checked={settings.notifications.email.recipeMilestone}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														email: {
-															...settings.notifications.email,
-															recipeMilestone: checked,
-														},
-													})
-												}
-											/>
-										</div>
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('inAppNotifications')}
-										description={t('inAppNotificationsDesc')}
-									>
-										<div>
-											<ToggleRow
-												label={t('xpAndLevelUps')}
-												description={t('xpAndLevelUpsDesc')}
-												icon={Sparkles}
-												checked={settings.notifications.inApp.xpAndLevelUps}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															xpAndLevelUps: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('badges')}
-												description={t('badgesDesc')}
-												icon={Trophy}
-												checked={settings.notifications.inApp.badges}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															badges: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('socialActivity')}
-												description={t('socialActivityDesc')}
-												icon={MessageSquare}
-												checked={settings.notifications.inApp.social}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															social: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('newFollowers')}
-												description={t('newFollowerDesc')}
-												icon={Users}
-												checked={settings.notifications.inApp.followers}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															followers: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('postReminders')}
-												description={t('postRemindersDesc')}
-												icon={Clock}
-												checked={settings.notifications.inApp.postDeadline}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															postDeadline: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('streakWarnings')}
-												description={t('streakWarningsDesc')}
-												icon={AlertTriangle}
-												checked={settings.notifications.inApp.streakWarning}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															streakWarning: checked,
-														},
-													})
-												}
-											/>
-											<ToggleRow
-												label={t('dailyChallenge')}
-												description={t('dailyChallengeDesc')}
-												icon={ChefHat}
-												checked={settings.notifications.inApp.dailyChallenge}
-												onCheckedChange={checked =>
-													handleUpdateNotifications({
-														inApp: {
-															...settings.notifications.inApp,
-															dailyChallenge: checked,
-														},
-													})
-												}
-											/>
-										</div>
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('pushNotifications')}
-										description={t('pushNotificationsDesc')}
-									>
-										<div>
-											<ToggleRow
-												label={t('enablePush')}
-												description={
-													!isNotificationSupported()
-														? t('pushNotSupported')
-														: getNotificationPermission() === 'denied'
-															? t('pushBlocked')
-															: t('pushDefault')
-												}
-												icon={Smartphone}
-												checked={settings.notifications.push.enabled}
-												disabled={
-													!isNotificationSupported() ||
-													getNotificationPermission() === 'denied'
-												}
-												onCheckedChange={async checked => {
-													if (checked) {
-														const permission =
-															await requestNotificationPermission()
-														if (permission !== 'granted') {
-															toast.error(t('pushPermissionDenied'))
-															return
-														}
-														// Register FCM token with backend for real push delivery
-														const fcmToken = await getFCMToken()
-														if (fcmToken) {
-															await registerPushToken(fcmToken)
-														}
-													} else {
-														// Unregister FCM token when disabling push
-														await unregisterPushToken()
-													}
-													handleUpdateNotifications({
-														push: {
-															...settings.notifications.push,
-															enabled: checked,
-														},
-													})
-												}}
-											/>
-											<ToggleRow
-												label={t('timerAlerts')}
-												description={t('timerAlertsDesc')}
-												icon={Timer}
-												checked={settings.notifications.push.timerAlerts}
-												onCheckedChange={checked => {
-													setTimerAlertsEnabled(checked)
-													handleUpdateNotifications({
-														push: {
-															...settings.notifications.push,
-															timerAlerts: checked,
-														},
-													})
-												}}
-											/>
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
-
-							{/* Cooking Tab */}
-							{activeTab === 'cooking' && settings && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard
-										title={t('skillLevel')}
-										description={t('skillLevelDesc')}
-									>
-										<ButtonGroup
-											options={SKILL_LEVELS.map(o => ({
-												...o,
-												label: t(o.labelKey),
-											}))}
-											value={settings.cooking.skillLevel}
-											onChange={v => handleUpdateCooking({ skillLevel: v })}
-										/>
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('dietaryRestrictions')}
-										description={t('dietaryRestrictionsDesc')}
-									>
-										<ChipSelect
-											options={dietaryOptions}
-											selected={settings.cooking.dietaryRestrictions}
-											onToggle={opt =>
-												handleUpdateCooking({
-													dietaryRestrictions: toggleArrayItem(
-														settings.cooking.dietaryRestrictions,
-														opt,
-													),
-												})
-											}
-										/>
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('allergies')}
-										description={t('allergiesDesc')}
-									>
-										<ChipSelect
-											options={allergyOptions}
-											selected={settings.cooking.allergies}
-											onToggle={opt =>
-												handleUpdateCooking({
-													allergies: toggleArrayItem(
-														settings.cooking.allergies,
-														opt,
-													),
-												})
-											}
-										/>
-										{settings.cooking.allergies.length > 0 && (
-											<div className='mt-3 flex items-center gap-2 rounded-xl bg-warning/10 p-3 text-warning'>
-												<AlertTriangle className='size-4' />
-												<span className='text-sm'>
-													{t('allergyWarning', {
-														allergies: settings.cooking.allergies.join(', '),
-													})}
-												</span>
-											</div>
-										)}
-									</SettingsCard>
-
-									<SettingsCard
-										title={t('preferredCuisines')}
-										description={t('preferredCuisinesDesc')}
-									>
-										<ChipSelect
-											options={cuisineOptions}
-											selected={settings.cooking.preferredCuisines}
-											onToggle={opt =>
-												handleUpdateCooking({
-													preferredCuisines: toggleArrayItem(
-														settings.cooking.preferredCuisines,
-														opt,
-													),
-												})
-											}
-										/>
-									</SettingsCard>
-
-									<SettingsCard title={t('cuisinePreferences')}>
-										<div className='space-y-4'>
-											<p className='text-sm text-text-secondary'>
-												{t('cuisinePreferencesInfo')}
-											</p>
-											{user?.preferences && user.preferences.length > 0 ? (
-												<div className='flex flex-wrap gap-2'>
-													{user.preferences.map(pref => (
-														<span
-															key={pref}
-															className='rounded-full bg-brand/10 px-3 py-1 text-sm font-medium text-brand'
-														>
-															{pref}
-														</span>
-													))}
-												</div>
-											) : (
-												<p className='text-sm text-text-muted italic'>
-													{t('noPreferencesYet')}
-												</p>
-											)}
-											<motion.button
-												type='button'
-												onClick={() => setShowInterestPicker(true)}
-												whileHover={LIST_ITEM_HOVER}
-												whileTap={LIST_ITEM_TAP}
-												className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
-											>
-												<Sparkles className='size-4' />
-												{user?.preferences && user.preferences.length > 0
-													? t('editCuisinePreferences')
-													: t('setCuisinePreferences')}
-											</motion.button>
-										</div>
-									</SettingsCard>
-
-									<SettingsCard title={t('cookingPreferences')}>
-										<div className='space-y-6'>
-											<div>
-												<Label
-													htmlFor='settings-default-servings'
-													className='mb-3 block'
-												>
-													{t('defaultServings')}
-												</Label>
-												<div className='flex items-center gap-4'>
-													<Input
-														id='settings-default-servings'
-														type='number'
-														min={1}
-														max={20}
-														value={settings.cooking.defaultServings}
-														onChange={e =>
-															handleUpdateCooking({
-																defaultServings: parseInt(e.target.value) || 2,
-															})
-														}
-														className='w-24'
-													/>
-													<span className='text-sm text-text-secondary'>
-														servings
-													</span>
-												</div>
-											</div>
-											<div>
-												<Label
-													htmlFor='settings-max-cooking-time'
-													className='mb-3 block'
-												>
-													{t('maxCookingTime')}
-												</Label>
-												<div className='flex items-center gap-4'>
-													<Input
-														id='settings-max-cooking-time'
-														type='number'
-														min={0}
-														max={480}
-														value={settings.cooking.maxCookingTimeMinutes || ''}
-														onChange={e =>
-															handleUpdateCooking({
-																maxCookingTimeMinutes: e.target.value
-																	? parseInt(e.target.value)
-																	: null,
-															})
-														}
-														placeholder={t('noLimit')}
-														className='w-24'
-													/>
-													<span className='text-sm text-text-secondary'>
-														{t('maxCookingTimeHint')}
-													</span>
-												</div>
-											</div>
-											<div role='group' aria-labelledby='settings-units-label'>
-												<Label id='settings-units-label' className='mb-3 block'>
-													{t('measurementUnits')}
-												</Label>
-												<ButtonGroup
-													options={[
-														{
-															value: 'metric' as MeasurementUnits,
-															label: t('metric'),
-														},
-														{
-															value: 'imperial' as MeasurementUnits,
-															label: t('imperial'),
-														},
-													]}
-													value={settings.cooking.measurementUnits}
-													onChange={v =>
-														handleUpdateCooking({ measurementUnits: v })
-													}
-												/>
-											</div>
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
-
-							{/* Referral Tab */}
-							{activeTab === 'referral' && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<ReferralCard />
-								</motion.div>
-							)}
-
-							{/* Premium Tab */}
-							{activeTab === 'premium' && <PremiumUpgradeCard />}
-
-							{/* Verification Tab */}
-							{activeTab === 'verification' && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard
-										title={t('creatorVerification')}
-										description={t('creatorVerificationDesc')}
-									>
-										<div className='space-y-4'>
-											{verificationStatus ? (
-												<div className='space-y-3'>
-													<div className='flex items-center gap-2'>
-														<span className='text-sm font-medium text-text-secondary'>
-															{t('statusLabel')}
-														</span>
-														<span
+														<div
 															className={cn(
-																'rounded-full px-2.5 py-0.5 text-xs font-semibold',
-																verificationStatus.status === 'APPROVED' &&
-																	'bg-success/10 text-success',
-																verificationStatus.status === 'PENDING' &&
-																	'bg-warning/10 text-warning',
-																verificationStatus.status === 'REJECTED' &&
-																	'bg-error/10 text-error',
+																'relative size-20 overflow-hidden rounded-full border-2 border-border-subtle bg-bg-elevated transition-all',
+																!avatarUrl && 'border-dashed',
+																isUploadingAvatar && 'opacity-60',
 															)}
 														>
-															{verificationStatus.status}
-														</span>
-													</div>
-													{verificationStatus.status === 'APPROVED' && (
-														<div className='flex items-center gap-2 rounded-xl bg-success/5 p-3'>
-															<BadgeCheck className='size-5 text-info' />
-															<p className='text-sm font-medium text-success'>
-																{t('verifiedSuccess')}
+															{avatarUrl ? (
+																<Image
+																	src={avatarUrl}
+																	alt='Avatar'
+																	fill
+																	sizes='80px'
+																	className='object-cover'
+																	onError={e => {
+																		;(e.target as HTMLImageElement).src =
+																			'/placeholder-avatar.svg'
+																	}}
+																/>
+															) : (
+																<div className='flex size-full items-center justify-center'>
+																	<User className='size-8 text-text-secondary' />
+																</div>
+															)}
+															{isUploadingAvatar && (
+																<div className='absolute inset-0 flex items-center justify-center bg-bg/50'>
+																	<Loader2 className='size-5 animate-spin text-brand' />
+																</div>
+															)}
+														</div>
+														<div className='flex flex-col gap-2'>
+															<Button
+																type='button'
+																variant='outline'
+																size='sm'
+																className='gap-1.5'
+																onClick={() => avatarInputRef.current?.click()}
+																disabled={isUploadingAvatar}
+															>
+																<Camera className='size-4' />
+																{avatarUrl
+																	? t('changePhoto')
+																	: t('uploadPhoto')}
+															</Button>
+															<p className='text-xs text-text-muted'>
+																{t('photoHint')}
 															</p>
 														</div>
-													)}
-													{verificationStatus.status === 'REJECTED' &&
-														verificationStatus.adminNotes && (
-															<p className='text-sm text-text-secondary'>
-																<span className='font-medium'>
-																	{t('feedbackLabel')}
-																</span>{' '}
-																{verificationStatus.adminNotes}
-															</p>
-														)}
-													{verificationStatus.status === 'PENDING' && (
-														<p className='text-sm text-text-muted'>
-															{t('verificationPending')}
-														</p>
-													)}
+														<input
+															ref={avatarInputRef}
+															type='file'
+															accept='image/*'
+															aria-label={
+																avatarUrl ? t('changePhoto') : t('uploadPhoto')
+															}
+															className='hidden'
+															onChange={handleAvatarUpload}
+														/>
+													</div>
 												</div>
+
+												<div className='grid gap-2'>
+													<Label htmlFor='displayName'>
+														{t('displayName')}
+													</Label>
+													<Input
+														id='displayName'
+														value={displayName}
+														onChange={e => setDisplayName(e.target.value)}
+														placeholder={t('displayNamePlaceholder')}
+														maxLength={50}
+													/>
+												</div>
+												<div className='grid gap-2'>
+													<Label htmlFor='email'>{t('emailLabel')}</Label>
+													<Input
+														id='email'
+														value={user?.email || ''}
+														disabled
+														className='bg-bg-elevated'
+													/>
+													<p className='text-xs text-text-muted'>
+														{t('emailCannotChange')}
+													</p>
+													<a
+														href='mailto:support@chefkix.com?subject=Email%20Change%20Request'
+														className='inline-flex w-fit items-center text-xs font-semibold text-brand hover:underline'
+													>
+														{t('contactSupport')}
+													</a>
+												</div>
+												<div className='grid gap-2'>
+													<Label htmlFor='bio'>{t('bio')}</Label>
+													<Textarea
+														id='bio'
+														value={bio}
+														onChange={e => setBio(e.target.value)}
+														placeholder={t('bioPlaceholder')}
+														maxLength={160}
+													/>
+													<p
+														className={cn(
+															'tabular-nums text-xs text-right',
+															bio.length >= 160
+																? 'font-semibold text-error'
+																: bio.length > 128
+																	? 'text-warning'
+																	: 'text-text-muted',
+														)}
+													>
+														{bio.length}/160
+													</p>
+												</div>
+												<Button
+													onClick={handleSaveProfile}
+													disabled={
+														isSaving || isUploadingAvatar || isUploadingCover
+													}
+													className='w-full sm:w-auto'
+												>
+													{isSaving ? (
+														<Loader2 className='mr-2 size-4 animate-spin' />
+													) : (
+														<Save className='mr-2 size-4' />
+													)}
+													{isUploadingAvatar || isUploadingCover
+														? t('uploading')
+														: t('saveProfile')}
+												</Button>
+											</div>
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('accountSecurity')}
+											description={t('accountSecurityDesc')}
+										>
+											{!showPasswordForm ? (
+												<Button
+													variant='outline'
+													className='w-full sm:w-auto'
+													onClick={() => setShowPasswordForm(true)}
+												>
+													<Shield className='mr-2 size-4' />
+													{t('changePassword')}
+												</Button>
 											) : (
 												<div className='space-y-4'>
-													<p className='text-sm leading-relaxed text-text-secondary'>
-														{t('verificationInfo')}
-														creator. Share recipes, build your following, and
-														apply when you&apos;re ready.
-													</p>
-													<div>
-														<Label className='mb-1.5 block text-sm font-medium'>
-															{t('whyVerified')}
+													<div className='space-y-2'>
+														<Label htmlFor='oldPassword'>
+															{t('currentPassword')}
 														</Label>
-														<Textarea
-															value={verificationReason}
-															onChange={e =>
-																setVerificationReason(e.target.value)
-															}
-															placeholder={t('whyVerifiedPlaceholder')}
-															className='min-h-20 resize-none'
-															maxLength={500}
+														<Input
+															id='oldPassword'
+															type='password'
+															value={oldPassword}
+															onChange={e => setOldPassword(e.target.value)}
+															placeholder={t('currentPasswordPlaceholder')}
+															autoComplete='current-password'
 														/>
-														<p
-															className={cn(
-																'mt-1 tabular-nums text-right text-xs',
-																verificationReason.length >= 500
-																	? 'font-semibold text-error'
-																	: verificationReason.length > 400
-																		? 'text-warning'
-																		: 'text-text-muted',
-															)}
+													</div>
+													<div className='space-y-2'>
+														<Label htmlFor='newPassword'>
+															{t('newPasswordLabel')}
+														</Label>
+														<Input
+															id='newPassword'
+															type='password'
+															value={newPassword}
+															onChange={e => setNewPassword(e.target.value)}
+															placeholder={t('newPasswordPlaceholder')}
+															autoComplete='new-password'
+														/>
+													</div>
+													<div className='space-y-2'>
+														<Label htmlFor='confirmPassword'>
+															{t('confirmPasswordLabel')}
+														</Label>
+														<Input
+															id='confirmPassword'
+															type='password'
+															value={confirmPassword}
+															onChange={e => setConfirmPassword(e.target.value)}
+															placeholder={t('confirmPasswordPlaceholder')}
+															autoComplete='new-password'
+														/>
+													</div>
+													{newPassword &&
+														confirmPassword &&
+														newPassword !== confirmPassword && (
+															<p className='text-xs text-destructive'>
+																{t('passwordsDoNotMatch')}
+															</p>
+														)}
+													<div className='flex gap-2'>
+														<Button
+															disabled={
+																isChangingPassword ||
+																!oldPassword ||
+																!newPassword ||
+																newPassword.length < 8 ||
+																newPassword !== confirmPassword
+															}
+															onClick={async () => {
+																setIsChangingPassword(true)
+																try {
+																	const res = await changePassword({
+																		oldPassword,
+																		newPassword,
+																	})
+																	if (res.success) {
+																		toast.success(t('toastPasswordChanged'))
+																		setOldPassword('')
+																		setNewPassword('')
+																		setConfirmPassword('')
+																		setShowPasswordForm(false)
+																	} else {
+																		toast.error(
+																			res.message || t('toastPasswordFailed'),
+																		)
+																	}
+																} catch {
+																	toast.error(t('toastPasswordFailed'))
+																} finally {
+																	setIsChangingPassword(false)
+																}
+															}}
 														>
-															{verificationReason.length}/500
+															{isChangingPassword ? (
+																<Loader2 className='mr-2 size-4 animate-spin' />
+															) : (
+																<Save className='mr-2 size-4' />
+															)}
+															{isChangingPassword
+																? t('changingPassword')
+																: t('updatePassword')}
+														</Button>
+														<Button
+															variant='outline'
+															onClick={() => {
+																setShowPasswordForm(false)
+																setOldPassword('')
+																setNewPassword('')
+																setConfirmPassword('')
+															}}
+														>
+															Cancel
+														</Button>
+													</div>
+												</div>
+											)}
+										</SettingsCard>
+
+										{/* Data & Account Management */}
+										<SettingsCard
+											title={t('yourData')}
+											description={t('yourDataDesc')}
+										>
+											<div className='space-y-4'>
+												<div className='flex items-center justify-between'>
+													<div>
+														<p className='text-sm font-medium text-text-primary'>
+															{t('exportYourData')}
+														</p>
+														<p className='text-xs text-text-secondary'>
+															{t('exportDataDesc')}
 														</p>
 													</div>
 													<Button
-														onClick={async () => {
-															setVerificationLoading(true)
-															try {
-																const res = await applyForVerification(
-																	verificationReason || undefined,
-																)
-																if (res.success && res.data) {
-																	setVerificationStatus(res.data)
-																	toast.success(t('applicationSubmitted'))
-																} else {
-																	toast.error(
-																		res.message ||
-																			'Failed to submit application',
-																	)
-																}
-															} catch {
-																toast.error(t('verificationFailed'))
-															} finally {
-																setVerificationLoading(false)
-															}
-														}}
-														disabled={verificationLoading}
-														className='w-full'
+														variant='outline'
+														size='sm'
+														onClick={handleExportData}
+														disabled={isExportingData}
 													>
-														{verificationLoading ? (
+														{isExportingData ? (
 															<Loader2 className='mr-2 size-4 animate-spin' />
 														) : (
-															<BadgeCheck className='mr-2 size-4' />
+															<Download className='mr-2 size-4' />
 														)}
-														{t('applyForVerification')}
+														{isExportingData ? t('exporting') : t('exportData')}
 													</Button>
 												</div>
-											)}
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
+											</div>
+										</SettingsCard>
 
-							{/* Appearance Tab */}
-							{activeTab === 'appearance' && settings && (
-								<motion.div
-									variants={staggerContainer}
-									initial='hidden'
-									animate='visible'
-									className='space-y-6'
-								>
-									<SettingsCard title={t('theme')} description={t('themeDesc')}>
-										<div className='flex gap-3'>
-											{(
-												[
-													{
-														mode: 'light' as ThemeMode,
-														icon: Sun,
-														label: t('themeLight'),
-													},
-													{
-														mode: 'dark' as ThemeMode,
-														icon: Moon,
-														label: t('themeDark'),
-													},
-													{
-														mode: 'system' as ThemeMode,
-														icon: Monitor,
-														label: t('themeSystem'),
-													},
-												] as const
-											).map(({ mode, icon: ThemeIcon, label }) => (
-												<button
-													type='button'
-													key={mode}
-													onClick={() => setTheme(mode)}
-													className={cn(
-														'flex flex-1 flex-col items-center gap-2 rounded-radius border p-3 transition-all',
-														theme === mode
-															? 'border-brand bg-brand/10 text-brand shadow-card'
-															: 'border-border-subtle bg-bg text-text-secondary hover:border-border hover:bg-bg-elevated',
-													)}
+										{/* Danger Zone */}
+										<SettingsCard
+											title={t('dangerZone')}
+											description={t('dangerZoneDesc')}
+											className='border-error/30'
+										>
+											<div className='space-y-4'>
+												<p className='text-sm text-text-secondary'>
+													{t('deleteWarning')}
+												</p>
+												{!showDeleteConfirm ? (
+													<Button
+														variant='outline'
+														className='border-error/50 text-error hover:bg-error/10'
+														onClick={() => setShowDeleteConfirm(true)}
+													>
+														<Trash2 className='mr-2 size-4' />
+														{t('deleteAccount')}
+													</Button>
+												) : (
+													<div className='space-y-3 rounded-radius border border-error/30 bg-error/5 p-4'>
+														<p className='text-sm font-medium text-error'>
+															{t('deleteConfirmInstruction')}
+														</p>
+														<Input
+															value={deleteConfirmText}
+															onChange={e =>
+																setDeleteConfirmText(e.target.value)
+															}
+															placeholder={t('deleteConfirmPlaceholder')}
+															aria-label={t('deleteConfirmInstruction')}
+															className='max-w-xs'
+														/>
+														<div className='flex gap-2'>
+															<Button
+																variant='outline'
+																size='sm'
+																onClick={() => {
+																	setShowDeleteConfirm(false)
+																	setDeleteConfirmText('')
+																}}
+															>
+																{t('cancelEdit')}
+															</Button>
+															<Button
+																size='sm'
+																disabled={deleteConfirmText !== 'DELETE'}
+																onClick={handleDeleteAccount}
+																title={
+																	deleteConfirmText !== 'DELETE'
+																		? t('deleteConfirmInstruction')
+																		: undefined
+																}
+																className='bg-error text-white hover:bg-error/90 disabled:opacity-50'
+															>
+																<Trash2 className='mr-2 size-4' />
+																{t('permanentlyDelete')}
+															</Button>
+														</div>
+													</div>
+												)}
+											</div>
+										</SettingsCard>
+									</motion.div>
+								)}
+
+								{/* Privacy Tab */}
+								{activeTab === 'privacy' && settings && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<SettingsCard
+											title={t('profileVisibility')}
+											description={t('profileVisibilityDesc')}
+										>
+											<div className='space-y-4'>
+												<div
+													role='group'
+													aria-labelledby='settings-visibility-label'
 												>
-													<ThemeIcon className='size-5' />
-													<span className='text-xs font-medium'>{label}</span>
-												</button>
-											))}
-										</div>
-									</SettingsCard>
+													<Label
+														id='settings-visibility-label'
+														className='mb-3 block'
+													>
+														{t('whoCanSeeProfile')}
+													</Label>
+													<ButtonGroup
+														options={VISIBILITY_OPTIONS.map(o => ({
+															...o,
+															label: t(o.labelKey),
+														}))}
+														value={settings.privacy.profileVisibility}
+														onChange={v =>
+															handleUpdatePrivacy({ profileVisibility: v })
+														}
+													/>
+												</div>
+												<div
+													role='group'
+													aria-labelledby='settings-messaging-label'
+												>
+													<Label
+														id='settings-messaging-label'
+														className='mb-3 block'
+													>
+														{t('whoCanMessage')}
+													</Label>
+													<ButtonGroup
+														options={MESSAGE_OPTIONS.map(o => ({
+															...o,
+															label: t(o.labelKey),
+														}))}
+														value={settings.privacy.allowMessagesFrom}
+														onChange={v =>
+															handleUpdatePrivacy({ allowMessagesFrom: v })
+														}
+													/>
+												</div>
+											</div>
+										</SettingsCard>
 
-									<SettingsCard title={t('soundAndMotion')}>
-										<div>
-											<ToggleRow
-												label={t('soundEffects')}
-												description={t('soundEffectsDesc')}
-												icon={Volume2}
-												checked={settings.app.soundEffects}
-												onCheckedChange={checked => {
-													setAudioEnabled(checked)
-													handleUpdateApp({ soundEffects: checked })
-												}}
+										<SettingsCard title={t('privacyToggles')}>
+											<div>
+												<ToggleRow
+													label={t('showOnLeaderboard')}
+													description={t('showOnLeaderboardDesc')}
+													icon={Trophy}
+													checked={settings.privacy.showOnLeaderboard}
+													onCheckedChange={checked =>
+														handleUpdatePrivacy({ showOnLeaderboard: checked })
+													}
+												/>
+												<ToggleRow
+													label={t('allowFollowers')}
+													description={t('allowFollowersDesc')}
+													icon={Users}
+													checked={settings.privacy.allowFollowers}
+													onCheckedChange={checked =>
+														handleUpdatePrivacy({ allowFollowers: checked })
+													}
+												/>
+												<ToggleRow
+													label={t('showCookingActivity')}
+													description={t('showCookingActivityDesc')}
+													icon={ChefHat}
+													checked={settings.privacy.showCookingActivity}
+													onCheckedChange={checked =>
+														handleUpdatePrivacy({
+															showCookingActivity: checked,
+														})
+													}
+												/>
+											</div>
+										</SettingsCard>
+
+										{/* Data & Analytics Card */}
+										<SettingsCard
+											title={t('dataAndAnalytics')}
+											description={t('dataAndAnalyticsDesc')}
+										>
+											<div>
+												<ToggleRow
+													label={t('usageAnalytics')}
+													description={t('usageAnalyticsDesc')}
+													icon={Eye}
+													checked={!isTrackingOptedOut()}
+													onCheckedChange={checked => {
+														setTrackingOptOut(!checked)
+														// Force re-render
+														setSettings(prev => (prev ? { ...prev } : prev))
+													}}
+												/>
+											</div>
+										</SettingsCard>
+									</motion.div>
+								)}
+
+								{/* Notifications Tab */}
+								{activeTab === 'notifications' && settings && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<SettingsCard
+											title={t('emailNotifications')}
+											description={t('emailNotificationsDesc')}
+										>
+											<div>
+												<ToggleRow
+													label={t('weeklyDigest')}
+													description={t('weeklyDigestDesc')}
+													icon={Mail}
+													checked={settings.notifications.email.weeklyDigest}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															email: {
+																...settings.notifications.email,
+																weeklyDigest: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('newFollower')}
+													description={t('newFollowerDesc')}
+													icon={Users}
+													checked={settings.notifications.email.newFollower}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															email: {
+																...settings.notifications.email,
+																newFollower: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('recipeMilestones')}
+													description={t('recipeMilestonesDesc')}
+													icon={Trophy}
+													checked={settings.notifications.email.recipeMilestone}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															email: {
+																...settings.notifications.email,
+																recipeMilestone: checked,
+															},
+														})
+													}
+												/>
+											</div>
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('inAppNotifications')}
+											description={t('inAppNotificationsDesc')}
+										>
+											<div>
+												<ToggleRow
+													label={t('xpAndLevelUps')}
+													description={t('xpAndLevelUpsDesc')}
+													icon={Sparkles}
+													checked={settings.notifications.inApp.xpAndLevelUps}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																xpAndLevelUps: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('badges')}
+													description={t('badgesDesc')}
+													icon={Trophy}
+													checked={settings.notifications.inApp.badges}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																badges: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('socialActivity')}
+													description={t('socialActivityDesc')}
+													icon={MessageSquare}
+													checked={settings.notifications.inApp.social}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																social: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('newFollowers')}
+													description={t('newFollowerDesc')}
+													icon={Users}
+													checked={settings.notifications.inApp.followers}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																followers: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('postReminders')}
+													description={t('postRemindersDesc')}
+													icon={Clock}
+													checked={settings.notifications.inApp.postDeadline}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																postDeadline: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('streakWarnings')}
+													description={t('streakWarningsDesc')}
+													icon={AlertTriangle}
+													checked={settings.notifications.inApp.streakWarning}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																streakWarning: checked,
+															},
+														})
+													}
+												/>
+												<ToggleRow
+													label={t('dailyChallenge')}
+													description={t('dailyChallengeDesc')}
+													icon={ChefHat}
+													checked={settings.notifications.inApp.dailyChallenge}
+													onCheckedChange={checked =>
+														handleUpdateNotifications({
+															inApp: {
+																...settings.notifications.inApp,
+																dailyChallenge: checked,
+															},
+														})
+													}
+												/>
+											</div>
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('pushNotifications')}
+											description={t('pushNotificationsDesc')}
+										>
+											<div>
+												<ToggleRow
+													label={t('enablePush')}
+													description={
+														!isNotificationSupported()
+															? t('pushNotSupported')
+															: getNotificationPermission() === 'denied'
+																? t('pushBlocked')
+																: t('pushDefault')
+													}
+													icon={Smartphone}
+													checked={settings.notifications.push.enabled}
+													disabled={
+														!isNotificationSupported() ||
+														getNotificationPermission() === 'denied'
+													}
+													onCheckedChange={async checked => {
+														if (checked) {
+															const permission =
+																await requestNotificationPermission()
+															if (permission !== 'granted') {
+																toast.error(t('pushPermissionDenied'))
+																return
+															}
+															// Register FCM token with backend for real push delivery
+															const fcmToken = await getFCMToken()
+															if (fcmToken) {
+																await registerPushToken(fcmToken)
+															}
+														} else {
+															// Unregister FCM token when disabling push
+															await unregisterPushToken()
+														}
+														handleUpdateNotifications({
+															push: {
+																...settings.notifications.push,
+																enabled: checked,
+															},
+														})
+													}}
+												/>
+												<ToggleRow
+													label={t('timerAlerts')}
+													description={t('timerAlertsDesc')}
+													icon={Timer}
+													checked={settings.notifications.push.timerAlerts}
+													onCheckedChange={checked => {
+														setTimerAlertsEnabled(checked)
+														handleUpdateNotifications({
+															push: {
+																...settings.notifications.push,
+																timerAlerts: checked,
+															},
+														})
+													}}
+												/>
+											</div>
+										</SettingsCard>
+									</motion.div>
+								)}
+
+								{/* Cooking Tab */}
+								{activeTab === 'cooking' && settings && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<SettingsCard
+											title={t('skillLevel')}
+											description={t('skillLevelDesc')}
+										>
+											<ButtonGroup
+												options={SKILL_LEVELS.map(o => ({
+													...o,
+													label: t(o.labelKey),
+												}))}
+												value={settings.cooking.skillLevel}
+												onChange={v => handleUpdateCooking({ skillLevel: v })}
 											/>
-											{/* Test Timer Sound Button */}
-											<div className='flex items-center justify-between border-b border-border-subtle py-3'>
-												<div className='flex items-center gap-3'>
-													<Timer className='size-4 text-text-secondary' />
-													<div>
-														<p className='text-sm font-medium text-text'>
-															{t('timerNotificationSound')}
-														</p>
-														<p className='text-xs text-text-secondary'>
-															{t('timerNotificationSoundDesc')}
-														</p>
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('dietaryRestrictions')}
+											description={t('dietaryRestrictionsDesc')}
+										>
+											<ChipSelect
+												options={dietaryOptions}
+												selected={settings.cooking.dietaryRestrictions}
+												onToggle={opt =>
+													handleUpdateCooking({
+														dietaryRestrictions: toggleArrayItem(
+															settings.cooking.dietaryRestrictions,
+															opt,
+														),
+													})
+												}
+											/>
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('allergies')}
+											description={t('allergiesDesc')}
+										>
+											<ChipSelect
+												options={allergyOptions}
+												selected={settings.cooking.allergies}
+												onToggle={opt =>
+													handleUpdateCooking({
+														allergies: toggleArrayItem(
+															settings.cooking.allergies,
+															opt,
+														),
+													})
+												}
+											/>
+											{settings.cooking.allergies.length > 0 && (
+												<div className='mt-3 flex items-center gap-2 rounded-xl bg-warning/10 p-3 text-warning'>
+													<AlertTriangle className='size-4' />
+													<span className='text-sm'>
+														{t('allergyWarning', {
+															allergies: settings.cooking.allergies.join(', '),
+														})}
+													</span>
+												</div>
+											)}
+										</SettingsCard>
+
+										<SettingsCard
+											title={t('preferredCuisines')}
+											description={t('preferredCuisinesDesc')}
+										>
+											<ChipSelect
+												options={cuisineOptions}
+												selected={settings.cooking.preferredCuisines}
+												onToggle={opt =>
+													handleUpdateCooking({
+														preferredCuisines: toggleArrayItem(
+															settings.cooking.preferredCuisines,
+															opt,
+														),
+													})
+												}
+											/>
+										</SettingsCard>
+
+										<SettingsCard title={t('cuisinePreferences')}>
+											<div className='space-y-4'>
+												<p className='text-sm text-text-secondary'>
+													{t('cuisinePreferencesInfo')}
+												</p>
+												{user?.preferences && user.preferences.length > 0 ? (
+													<div className='flex flex-wrap gap-2'>
+														{user.preferences.map(pref => (
+															<span
+																key={pref}
+																className='rounded-full bg-brand/10 px-3 py-1 text-sm font-medium text-brand'
+															>
+																{pref}
+															</span>
+														))}
+													</div>
+												) : (
+													<p className='text-sm text-text-muted italic'>
+														{t('noPreferencesYet')}
+													</p>
+												)}
+												<motion.button
+													type='button'
+													onClick={() => setShowInterestPicker(true)}
+													whileHover={LIST_ITEM_HOVER}
+													whileTap={LIST_ITEM_TAP}
+													className='flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													<Sparkles className='size-4' />
+													{user?.preferences && user.preferences.length > 0
+														? t('editCuisinePreferences')
+														: t('setCuisinePreferences')}
+												</motion.button>
+											</div>
+										</SettingsCard>
+
+										<SettingsCard title={t('cookingPreferences')}>
+											<div className='space-y-6'>
+												<div>
+													<Label
+														htmlFor='settings-default-servings'
+														className='mb-3 block'
+													>
+														{t('defaultServings')}
+													</Label>
+													<div className='flex items-center gap-4'>
+														<Input
+															id='settings-default-servings'
+															type='number'
+															min={1}
+															max={20}
+															value={settings.cooking.defaultServings}
+															onChange={e =>
+																handleUpdateCooking({
+																	defaultServings:
+																		parseInt(e.target.value) || 2,
+																})
+															}
+															className='w-24'
+														/>
+														<span className='text-sm text-text-secondary'>
+															servings
+														</span>
 													</div>
 												</div>
-												<Button
-													variant='outline'
-													size='sm'
-													onClick={() => {
-														if (!settings?.app.soundEffects) {
-															toast.info(t('soundDisabledHint'))
-															return
-														}
-														playTimerChime()
-														toast.success(t('timerSoundPlayed'))
-													}}
-													className='shrink-0'
+												<div>
+													<Label
+														htmlFor='settings-max-cooking-time'
+														className='mb-3 block'
+													>
+														{t('maxCookingTime')}
+													</Label>
+													<div className='flex items-center gap-4'>
+														<Input
+															id='settings-max-cooking-time'
+															type='number'
+															min={0}
+															max={480}
+															value={
+																settings.cooking.maxCookingTimeMinutes || ''
+															}
+															onChange={e =>
+																handleUpdateCooking({
+																	maxCookingTimeMinutes: e.target.value
+																		? parseInt(e.target.value)
+																		: null,
+																})
+															}
+															placeholder={t('noLimit')}
+															className='w-24'
+														/>
+														<span className='text-sm text-text-secondary'>
+															{t('maxCookingTimeHint')}
+														</span>
+													</div>
+												</div>
+												<div
+													role='group'
+													aria-labelledby='settings-units-label'
 												>
-													<Volume2 className='mr-2 size-4' />
-													Test Sound
-												</Button>
+													<Label
+														id='settings-units-label'
+														className='mb-3 block'
+													>
+														{t('measurementUnits')}
+													</Label>
+													<ButtonGroup
+														options={[
+															{
+																value: 'metric' as MeasurementUnits,
+																label: t('metric'),
+															},
+															{
+																value: 'imperial' as MeasurementUnits,
+																label: t('imperial'),
+															},
+														]}
+														value={settings.cooking.measurementUnits}
+														onChange={v =>
+															handleUpdateCooking({ measurementUnits: v })
+														}
+													/>
+												</div>
 											</div>
-											<ToggleRow
-												label={t('reducedMotion')}
-												description={t('reducedMotionDesc')}
-												icon={Eye}
-												checked={settings.app.reducedMotion}
-												onCheckedChange={checked => {
-													setMotionPreference(checked ? 'reduced' : 'auto')
-													handleUpdateApp({ reducedMotion: checked })
-												}}
-											/>
-											<ToggleRow
-												label={t('autoPlayVideos')}
-												description={t('autoPlayVideosDesc')}
-												icon={Smartphone}
-												checked={settings.app.autoPlayVideos}
-												onCheckedChange={checked =>
-													handleUpdateApp({ autoPlayVideos: checked })
-												}
-											/>
-										</div>
-									</SettingsCard>
+										</SettingsCard>
+									</motion.div>
+								)}
 
-									<SettingsCard title={t('cookingSession')}>
-										<div>
-											<ToggleRow
-												label={t('keepScreenOn')}
-												description={t('keepScreenOnDesc')}
-												icon={Smartphone}
-												checked={settings.app.keepScreenOn}
-												onCheckedChange={checked =>
-													handleUpdateApp({ keepScreenOn: checked })
-												}
-											/>
-										</div>
-									</SettingsCard>
-								</motion.div>
-							)}
-						</motion.div>
-					</AnimatePresence>
+								{/* Referral Tab */}
+								{activeTab === 'referral' && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<ReferralCard />
+									</motion.div>
+								)}
+
+								{/* Premium Tab */}
+								{activeTab === 'premium' && <PremiumUpgradeCard />}
+
+								{/* Verification Tab */}
+								{activeTab === 'verification' && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<SettingsCard
+											title={t('creatorVerification')}
+											description={t('creatorVerificationDesc')}
+										>
+											<div className='space-y-4'>
+												{verificationStatus ? (
+													<div className='space-y-3'>
+														<div className='flex items-center gap-2'>
+															<span className='text-sm font-medium text-text-secondary'>
+																{t('statusLabel')}
+															</span>
+															<span
+																className={cn(
+																	'rounded-full px-2.5 py-0.5 text-xs font-semibold',
+																	verificationStatus.status === 'APPROVED' &&
+																		'bg-success/10 text-success',
+																	verificationStatus.status === 'PENDING' &&
+																		'bg-warning/10 text-warning',
+																	verificationStatus.status === 'REJECTED' &&
+																		'bg-error/10 text-error',
+																)}
+															>
+																{verificationStatus.status}
+															</span>
+														</div>
+														{verificationStatus.status === 'APPROVED' && (
+															<div className='flex items-center gap-2 rounded-xl bg-success/5 p-3'>
+																<BadgeCheck className='size-5 text-info' />
+																<p className='text-sm font-medium text-success'>
+																	{t('verifiedSuccess')}
+																</p>
+															</div>
+														)}
+														{verificationStatus.status === 'REJECTED' &&
+															verificationStatus.adminNotes && (
+																<p className='text-sm text-text-secondary'>
+																	<span className='font-medium'>
+																		{t('feedbackLabel')}
+																	</span>{' '}
+																	{verificationStatus.adminNotes}
+																</p>
+															)}
+														{verificationStatus.status === 'PENDING' && (
+															<p className='text-sm text-text-muted'>
+																{t('verificationPending')}
+															</p>
+														)}
+													</div>
+												) : (
+													<div className='space-y-4'>
+														<p className='text-sm leading-relaxed text-text-secondary'>
+															{t('verificationInfo')}
+															creator. Share recipes, build your following, and
+															apply when you&apos;re ready.
+														</p>
+														<div>
+															<Label className='mb-1.5 block text-sm font-medium'>
+																{t('whyVerified')}
+															</Label>
+															<Textarea
+																value={verificationReason}
+																onChange={e =>
+																	setVerificationReason(e.target.value)
+																}
+																placeholder={t('whyVerifiedPlaceholder')}
+																className='min-h-20 resize-none'
+																maxLength={500}
+															/>
+															<p
+																className={cn(
+																	'mt-1 tabular-nums text-right text-xs',
+																	verificationReason.length >= 500
+																		? 'font-semibold text-error'
+																		: verificationReason.length > 400
+																			? 'text-warning'
+																			: 'text-text-muted',
+																)}
+															>
+																{verificationReason.length}/500
+															</p>
+														</div>
+														<Button
+															onClick={async () => {
+																setVerificationLoading(true)
+																try {
+																	const res = await applyForVerification(
+																		verificationReason || undefined,
+																	)
+																	if (res.success && res.data) {
+																		setVerificationStatus(res.data)
+																		toast.success(t('applicationSubmitted'))
+																	} else {
+																		toast.error(
+																			res.message ||
+																				'Failed to submit application',
+																		)
+																	}
+																} catch {
+																	toast.error(t('verificationFailed'))
+																} finally {
+																	setVerificationLoading(false)
+																}
+															}}
+															disabled={verificationLoading}
+															className='w-full'
+														>
+															{verificationLoading ? (
+																<Loader2 className='mr-2 size-4 animate-spin' />
+															) : (
+																<BadgeCheck className='mr-2 size-4' />
+															)}
+															{t('applyForVerification')}
+														</Button>
+													</div>
+												)}
+											</div>
+										</SettingsCard>
+									</motion.div>
+								)}
+
+								{/* Appearance Tab */}
+								{activeTab === 'appearance' && settings && (
+									<motion.div
+										variants={staggerContainer}
+										initial='hidden'
+										animate='visible'
+										className='space-y-6'
+									>
+										<SettingsCard
+											title={t('theme')}
+											description={t('themeDesc')}
+										>
+											<div className='flex gap-3'>
+												{(
+													[
+														{
+															mode: 'light' as ThemeMode,
+															icon: Sun,
+															label: t('themeLight'),
+														},
+														{
+															mode: 'dark' as ThemeMode,
+															icon: Moon,
+															label: t('themeDark'),
+														},
+														{
+															mode: 'system' as ThemeMode,
+															icon: Monitor,
+															label: t('themeSystem'),
+														},
+													] as const
+												).map(({ mode, icon: ThemeIcon, label }) => (
+													<button
+														type='button'
+														key={mode}
+														onClick={() => setTheme(mode)}
+														className={cn(
+															'flex flex-1 flex-col items-center gap-2 rounded-radius border p-3 transition-all',
+															theme === mode
+																? 'border-brand bg-brand/10 text-brand shadow-card'
+																: 'border-border-subtle bg-bg text-text-secondary hover:border-border hover:bg-bg-elevated',
+														)}
+													>
+														<ThemeIcon className='size-5' />
+														<span className='text-xs font-medium'>{label}</span>
+													</button>
+												))}
+											</div>
+										</SettingsCard>
+
+										<SettingsCard title={t('soundAndMotion')}>
+											<div>
+												<ToggleRow
+													label={t('soundEffects')}
+													description={t('soundEffectsDesc')}
+													icon={Volume2}
+													checked={settings.app.soundEffects}
+													onCheckedChange={checked => {
+														setAudioEnabled(checked)
+														handleUpdateApp({ soundEffects: checked })
+													}}
+												/>
+												{/* Test Timer Sound Button */}
+												<div className='flex items-center justify-between border-b border-border-subtle py-3'>
+													<div className='flex items-center gap-3'>
+														<Timer className='size-4 text-text-secondary' />
+														<div>
+															<p className='text-sm font-medium text-text-primary'>
+																{t('timerNotificationSound')}
+															</p>
+															<p className='text-xs text-text-secondary'>
+																{t('timerNotificationSoundDesc')}
+															</p>
+														</div>
+													</div>
+													<Button
+														variant='outline'
+														size='sm'
+														onClick={() => {
+															if (!settings?.app.soundEffects) {
+																toast.info(t('soundDisabledHint'))
+																return
+															}
+															playTimerChime()
+															toast.success(t('timerSoundPlayed'))
+														}}
+														className='shrink-0'
+													>
+														<Volume2 className='mr-2 size-4' />
+														Test Sound
+													</Button>
+												</div>
+												<ToggleRow
+													label={t('reducedMotion')}
+													description={t('reducedMotionDesc')}
+													icon={Eye}
+													checked={settings.app.reducedMotion}
+													onCheckedChange={checked => {
+														setMotionPreference(checked ? 'reduced' : 'auto')
+														handleUpdateApp({ reducedMotion: checked })
+													}}
+												/>
+												<ToggleRow
+													label={t('autoPlayVideos')}
+													description={t('autoPlayVideosDesc')}
+													icon={Smartphone}
+													checked={settings.app.autoPlayVideos}
+													onCheckedChange={checked =>
+														handleUpdateApp({ autoPlayVideos: checked })
+													}
+												/>
+											</div>
+										</SettingsCard>
+
+										<SettingsCard title={t('cookingSession')}>
+											<div>
+												<ToggleRow
+													label={t('keepScreenOn')}
+													description={t('keepScreenOnDesc')}
+													icon={Smartphone}
+													checked={settings.app.keepScreenOn}
+													onCheckedChange={checked =>
+														handleUpdateApp({ keepScreenOn: checked })
+													}
+												/>
+											</div>
+										</SettingsCard>
+									</motion.div>
+								)}
+							</motion.div>
+						</AnimatePresence>
+					</div>
+
+					<SettingsContextRail
+						activeTab={activeTab}
+						activeLabel={t(activeTabConfig.labelKey)}
+						activeDescription={t(activeTabConfig.descriptionKey)}
+						counts={{
+							profileStrength,
+							privacyMode,
+							alertsMode,
+						}}
+					/>
 				</div>
 
 				<div className='pb-40 md:pb-8' />

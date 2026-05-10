@@ -147,7 +147,9 @@ export default function AppealsPage() {
 					<div className='grid size-12 place-items-center rounded-full bg-success/10'>
 						<Scale className='size-6 text-success' />
 					</div>
-					<p className='text-sm font-medium text-text'>{t('noAppealsTitle')}</p>
+					<p className='text-sm font-medium text-text-primary'>
+						{t('noAppealsTitle')}
+					</p>
 					<p className='text-xs text-text-muted'>{t('noAppealsSubtitle')}</p>
 					<Button
 						variant='outline'
@@ -226,7 +228,7 @@ export default function AppealsPage() {
 										</div>
 										<div>
 											<div className='flex items-center gap-2'>
-												<span className='text-sm font-semibold text-text'>
+												<span className='text-sm font-semibold text-text-primary'>
 													{t('banAppeal')}
 												</span>
 												<Badge
@@ -259,7 +261,7 @@ export default function AppealsPage() {
 												<span className='font-medium text-text-muted'>
 													{t('userIdLabel')}
 												</span>
-												<p className='mt-0.5 font-mono text-text'>
+												<p className='mt-0.5 font-mono text-text-primary'>
 													{appeal.userId}
 												</p>
 											</div>
@@ -267,7 +269,7 @@ export default function AppealsPage() {
 												<span className='font-medium text-text-muted'>
 													{t('banIdLabel')}
 												</span>
-												<p className='mt-0.5 font-mono text-text'>
+												<p className='mt-0.5 font-mono text-text-primary'>
 													{appeal.banId}
 												</p>
 											</div>
@@ -277,7 +279,7 @@ export default function AppealsPage() {
 											<span className='font-medium text-text-muted'>
 												{t('appealReasonLabel')}
 											</span>
-											<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
+											<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text-primary'>
 												{appeal.reason}
 											</p>
 										</div>
@@ -312,7 +314,7 @@ export default function AppealsPage() {
 													<span className='font-medium text-text-muted'>
 														{t('reviewedByLabel')}
 													</span>
-													<p className='mt-0.5 font-mono text-text'>
+													<p className='mt-0.5 font-mono text-text-primary'>
 														{appeal.reviewedBy}
 													</p>
 												</div>
@@ -321,7 +323,7 @@ export default function AppealsPage() {
 														<span className='font-medium text-text-muted'>
 															{t('reviewedAtLabel')}
 														</span>
-														<p className='mt-0.5 text-text'>
+														<p className='mt-0.5 text-text-primary'>
 															{new Date(appeal.reviewedAt).toLocaleString()}
 														</p>
 													</div>
@@ -334,7 +336,7 @@ export default function AppealsPage() {
 												<span className='font-medium text-text-muted'>
 													{t('reviewNotesLabel')}
 												</span>
-												<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text'>
+												<p className='mt-0.5 rounded-xl bg-bg-elevated p-3 text-text-primary'>
 													{appeal.reviewNotes}
 												</p>
 											</div>
@@ -349,7 +351,7 @@ export default function AppealsPage() {
 														setReviewNotes(appeal.id, e.target.value)
 													}
 													placeholder={t('reviewNotesPlaceholder')}
-													className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
+													className='w-full resize-none rounded-xl border border-border-subtle bg-bg-elevated p-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30'
 													rows={2}
 												/>
 												<div className='flex gap-2'>

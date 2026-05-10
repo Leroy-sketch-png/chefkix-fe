@@ -41,7 +41,7 @@ export default function NotFound() {
 					</div>
 				</div>
 
-				<h1 className='mb-2 text-2xl font-bold leading-tight text-text'>
+				<h1 className='mb-2 text-2xl font-bold leading-tight text-text-primary'>
 					{t('notFoundTitle')}
 				</h1>
 				<p className='mb-8 leading-normal text-text-secondary'>

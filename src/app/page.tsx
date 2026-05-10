@@ -54,6 +54,15 @@ interface FeatureHighlight {
 	iconColor: string
 }
 
+interface FallbackRecipePreview {
+	id: string
+	title: string
+	time: string
+	difficulty: string
+	xp: number
+	imageUrl: string
+}
+
 // ============================================
 // DATA - Features are REAL product capabilities, not fake stats
 // ============================================
@@ -79,6 +88,41 @@ const featureHighlights: FeatureHighlight[] = [
 		descriptionKey: 'stepByStepDesc',
 		accent: 'bg-brand/10',
 		iconColor: 'text-brand',
+	},
+]
+
+const fallbackTrendingPreview: FallbackRecipePreview[] = [
+	{
+		id: 'fallback-quick-pasta',
+		title: 'Quick Garlic Pasta',
+		time: '20 min',
+		difficulty: 'Beginner',
+		xp: 20,
+		imageUrl: '/placeholder-recipe.svg',
+	},
+	{
+		id: 'fallback-pan-seared-chicken',
+		title: 'Pan-Seared Chicken Bowl',
+		time: '30 min',
+		difficulty: 'Intermediate',
+		xp: 30,
+		imageUrl: '/placeholder-recipe.svg',
+	},
+	{
+		id: 'fallback-veggie-stir-fry',
+		title: 'Veggie Stir Fry',
+		time: '18 min',
+		difficulty: 'Beginner',
+		xp: 18,
+		imageUrl: '/placeholder-recipe.svg',
+	},
+	{
+		id: 'fallback-protein-wrap',
+		title: 'Protein Wrap',
+		time: '12 min',
+		difficulty: 'Beginner',
+		xp: 15,
+		imageUrl: '/placeholder-recipe.svg',
 	},
 ]
 
@@ -114,7 +158,7 @@ const FeatureCard = ({
 				<Icon className={cn('size-5', feature.iconColor)} />
 			</div>
 			<div>
-				<h3 className='font-semibold text-text'>{title}</h3>
+				<h3 className='font-semibold text-text-primary'>{title}</h3>
 				<p className='mt-0.5 text-sm text-text-secondary'>{description}</p>
 			</div>
 		</motion.div>
@@ -188,7 +232,7 @@ const TrendingRecipeCard = ({
 					</div>
 				</div>
 				<div className='p-4'>
-					<h3 className='line-clamp-1 font-bold text-text transition-colors group-hover:text-brand'>
+					<h3 className='line-clamp-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
 						{recipe.title}
 					</h3>
 					<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
@@ -206,6 +250,49 @@ const TrendingRecipeCard = ({
 	)
 }
 
+const FallbackTrendingCard = ({ item }: { item: FallbackRecipePreview }) => {
+	return (
+		<Link
+			href='/explore'
+			className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
+		>
+			<div className='relative aspect-video w-full overflow-hidden sm:aspect-[4/3]'>
+				<Image
+					src={item.imageUrl}
+					alt={item.title}
+					fill
+					className='object-cover transition-transform duration-500 group-hover:scale-105'
+					sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
+				/>
+				<div className='pointer-events-none absolute inset-0 bg-gradient-scrim' />
+				<div className='absolute bottom-0 left-0 right-0 flex items-center justify-between p-3'>
+					<div className='flex items-center gap-2 text-xs text-white/90'>
+						<span className='flex items-center gap-1'>
+							<Clock className='size-3' />
+							{item.time}
+						</span>
+						<span className='flex items-center gap-1'>
+							<Flame className='size-3' />
+							{item.difficulty}
+						</span>
+					</div>
+					<span className='rounded-full bg-xp/90 px-2 py-0.5 text-xs font-bold text-white'>
+						+{item.xp} XP
+					</span>
+				</div>
+			</div>
+			<div className='p-4'>
+				<h3 className='line-clamp-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
+					{item.title}
+				</h3>
+				<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
+					ChefKix Preview
+				</p>
+			</div>
+		</Link>
+	)
+}
+
 // ============================================
 // MAIN PAGE
 // ============================================
@@ -218,6 +305,7 @@ export default function HomePage() {
 	const [recipesLoading, setRecipesLoading] = useState(true)
 	const [recipesError, setRecipesError] = useState<string | null>(null)
 	const [showCookModeDemo, setShowCookModeDemo] = useState(false)
+	const hasTrendingContent = trendingRecipes.length > 0
 
 	useEffect(() => {
 		if (!isLoading && user) {
@@ -302,13 +390,13 @@ export default function HomePage() {
 					<div className='flex items-center gap-3'>
 						<Link
 							href='/auth/sign-in'
-							className='rounded-radius px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary'
+							className='rounded-xl px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary'
 						>
 							{t('signIn')}
 						</Link>
 						<Link
 							href='/auth/sign-up'
-							className='rounded-radius bg-gradient-hero px-5 py-2 text-sm font-bold text-white shadow-card shadow-brand/25 transition-all hover:shadow-warm'
+							className='hidden rounded-xl bg-brand px-5 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:inline-flex'
 						>
 							{t('getStarted')}
 						</Link>
@@ -358,14 +446,14 @@ export default function HomePage() {
 					>
 						<Link
 							href='/auth/sign-up'
-							className='group flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 text-base font-bold text-white shadow-card shadow-brand/30 transition-all hover:shadow-warm hover:shadow-brand/40'
+							className='group flex items-center gap-2 rounded-xl bg-brand px-8 py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 						>
 							{t('startCookingFree')}
 							<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
 						</Link>
 						<Link
 							href='/explore'
-							className='flex items-center gap-2 rounded-radius border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:shadow-warm'
+							className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
 						>
 							{t('browseRecipes')}
 						</Link>
@@ -405,50 +493,91 @@ export default function HomePage() {
 								</div>
 							))}
 						</div>
+					) : hasTrendingContent ? (
+						<>
+							{recipesError && (
+								<div className='mb-4 flex items-center justify-between rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
+									<div className='flex items-center gap-2 text-sm text-text-secondary'>
+										<AlertTriangle className='size-4 text-warning' />
+										<span>{t('couldntLoadRecipes')}</span>
+									</div>
+									<button
+										type='button'
+										onClick={() => {
+											setRecipesLoading(true)
+											setRecipesError(null)
+											getTrendingRecipes({ limit: 4 })
+												.then(res => {
+													if (res.success && res.data) {
+														setTrendingRecipes(res.data.slice(0, 4))
+													} else {
+														setRecipesError(
+															res.message || t('couldNotLoadDefault'),
+														)
+													}
+												})
+												.catch(() => setRecipesError(t('couldNotConnect')))
+												.finally(() => setRecipesLoading(false))
+										}}
+										className='inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
+									>
+										<RefreshCw className='size-4' />
+										{t('tryAgain')}
+									</button>
+								</div>
+							)}
+							<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+								{trendingRecipes.map((recipe, i) => (
+									<TrendingRecipeCard
+										key={recipe.id}
+										recipe={recipe}
+										index={i}
+										byLabel={t('by', {
+											name: recipe.author?.displayName || 'ChefKix',
+										})}
+										cookedLabel={t('peopleCookedThis', {
+											count: recipe.cookCount,
+										})}
+									/>
+								))}
+							</div>
+						</>
 					) : recipesError ? (
-						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
-							<AlertTriangle className='mx-auto mb-3 size-10 text-warning' />
-							<p className='mb-2 font-medium text-text-primary'>
-								{t('couldntLoadRecipes')}
-							</p>
-							<p className='mb-4 text-sm text-text-secondary'>{recipesError}</p>
-							<button
-								type='button'
-								onClick={() => {
-									setRecipesLoading(true)
-									setRecipesError(null)
-									getTrendingRecipes({ limit: 4 })
-										.then(res => {
-											if (res.success && res.data) {
-												setTrendingRecipes(res.data.slice(0, 4))
-											} else {
-												setRecipesError(res.message || t('couldNotLoadDefault'))
-											}
-										})
-										.catch(() => setRecipesError(t('couldNotConnect')))
-										.finally(() => setRecipesLoading(false))
-								}}
-								className='inline-flex items-center gap-2 rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
-							>
-								<RefreshCw className='size-4' />
-								{t('tryAgain')}
-							</button>
-						</div>
-					) : trendingRecipes.length > 0 ? (
-						<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-							{trendingRecipes.map((recipe, i) => (
-								<TrendingRecipeCard
-									key={recipe.id}
-									recipe={recipe}
-									index={i}
-									byLabel={t('by', {
-										name: recipe.author?.displayName || 'ChefKix',
-									})}
-									cookedLabel={t('peopleCookedThis', {
-										count: recipe.cookCount,
-									})}
-								/>
-							))}
+						<div className='space-y-4'>
+							<div className='flex items-center justify-between rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
+								<div className='flex items-center gap-2 text-sm text-text-secondary'>
+									<AlertTriangle className='size-4 text-warning' />
+									<span>{t('couldntLoadRecipes')}</span>
+								</div>
+								<button
+									type='button'
+									onClick={() => {
+										setRecipesLoading(true)
+										setRecipesError(null)
+										getTrendingRecipes({ limit: 4 })
+											.then(res => {
+												if (res.success && res.data) {
+													setTrendingRecipes(res.data.slice(0, 4))
+												} else {
+													setRecipesError(
+														res.message || t('couldNotLoadDefault'),
+													)
+												}
+											})
+											.catch(() => setRecipesError(t('couldNotConnect')))
+											.finally(() => setRecipesLoading(false))
+									}}
+									className='inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
+								>
+									<RefreshCw className='size-4' />
+									{t('tryAgain')}
+								</button>
+							</div>
+							<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+								{fallbackTrendingPreview.map(item => (
+									<FallbackTrendingCard key={item.id} item={item} />
+								))}
+							</div>
 						</div>
 					) : (
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-center'>
@@ -714,7 +843,7 @@ export default function HomePage() {
 						<p className='mb-6 text-text-secondary'>{t('bottomCtaDesc')}</p>
 						<Link
 							href='/auth/sign-up'
-							className='inline-flex items-center gap-2 rounded-radius bg-gradient-hero px-8 py-3.5 font-bold text-white shadow-card shadow-brand/30 transition-all hover:shadow-warm'
+							className='inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-3.5 font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 						>
 							<ChefHat className='size-5' />
 							{t('startCookingFree')}

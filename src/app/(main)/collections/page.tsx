@@ -266,7 +266,7 @@ export default function CollectionsPage() {
 										<div className='p-4'>
 											<div className='flex items-start justify-between'>
 												<div className='min-w-0 flex-1'>
-													<h3 className='truncate font-semibold text-text'>
+													<h3 className='truncate font-semibold text-text-primary'>
 														{collection.name}
 													</h3>
 													{collection.description && (
@@ -328,7 +328,7 @@ export default function CollectionsPage() {
 								aria-labelledby='create-collection-title'
 							>
 								<h2
-									className='mb-4 text-lg font-bold text-text'
+									className='mb-4 text-lg font-bold text-text-primary'
 									id='create-collection-title'
 								>
 									{t('newCollection')}
@@ -344,7 +344,7 @@ export default function CollectionsPage() {
 											onChange={e => setNewName(e.target.value)}
 											placeholder={t('namePlaceholder')}
 											maxLength={60}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 											autoFocus
 										/>
 									</div>
@@ -361,7 +361,7 @@ export default function CollectionsPage() {
 											onChange={e => setNewDescription(e.target.value)}
 											placeholder={t('descriptionPlaceholder')}
 											maxLength={200}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 										/>
 									</div>
 									<label className='flex cursor-pointer items-center gap-3'>
@@ -371,7 +371,9 @@ export default function CollectionsPage() {
 											onChange={e => setNewIsPublic(e.target.checked)}
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
-										<span className='text-sm text-text'>{t('makePublic')}</span>
+										<span className='text-sm text-text-primary'>
+											{t('makePublic')}
+										</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
@@ -424,7 +426,7 @@ export default function CollectionsPage() {
 								aria-describedby='delete-collection-desc'
 							>
 								<h3
-									className='mb-2 text-lg font-bold text-text'
+									className='mb-2 text-lg font-bold text-text-primary'
 									id='delete-collection-title'
 								>
 									{t('deleteTitle')}

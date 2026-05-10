@@ -31,7 +31,10 @@ import {
 } from '@/services/collection'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 export default function CollectionDetailPage({
 	params,
@@ -173,7 +176,7 @@ export default function CollectionDetailPage({
 				<PageContainer maxWidth='lg'>
 					<div className='py-20 text-center'>
 						<FolderHeart className='mx-auto mb-4 size-16 text-text-muted/30' />
-						<h2 className='text-lg font-semibold text-text'>
+						<h2 className='text-lg font-semibold text-text-primary'>
 							{t('detailNotFound')}
 						</h2>
 						<button
@@ -205,7 +208,7 @@ export default function CollectionDetailPage({
 						<button
 							type='button'
 							onClick={() => router.back()}
-							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text'
+							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
 						>
 							<ArrowLeft className='size-4' />
 							{t('detailBack')}
@@ -223,56 +226,56 @@ export default function CollectionDetailPage({
 								className='p-3 md:p-4'
 							>
 								<div className='flex items-start justify-between'>
-								<div>
-									<div className='flex items-center gap-2'>
-										<h1 className='text-2xl font-bold text-text'>
-											{collection.name}
-										</h1>
-										<span
-											className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-												collection.isPublic
-													? 'bg-success/100/10 text-success'
-													: 'bg-text-muted/10 text-text-muted'
-											}`}
-										>
-											{collection.isPublic ? (
-												<Globe className='size-3' />
-											) : (
-												<Lock className='size-3' />
-											)}
-											{collection.isPublic ? t('public') : t('private')}
-										</span>
-									</div>
-									{collection.description && (
-										<p className='mt-1 text-sm text-text-muted'>
-											{collection.description}
+									<div>
+										<div className='flex items-center gap-2'>
+											<h1 className='text-2xl font-bold text-text-primary'>
+												{collection.name}
+											</h1>
+											<span
+												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+													collection.isPublic
+														? 'bg-success/100/10 text-success'
+														: 'bg-text-muted/10 text-text-muted'
+												}`}
+											>
+												{collection.isPublic ? (
+													<Globe className='size-3' />
+												) : (
+													<Lock className='size-3' />
+												)}
+												{collection.isPublic ? t('public') : t('private')}
+											</span>
+										</div>
+										{collection.description && (
+											<p className='mt-1 text-sm text-text-muted'>
+												{collection.description}
+											</p>
+										)}
+										<p className='mt-1 text-xs text-text-muted'>
+											{collection.itemCount}{' '}
+											{collection.itemCount === 1
+												? t('postSingle')
+												: t('postPlural')}
 										</p>
-									)}
-									<p className='mt-1 text-xs text-text-muted'>
-										{collection.itemCount}{' '}
-										{collection.itemCount === 1
-											? t('postSingle')
-											: t('postPlural')}
-									</p>
-								</div>
-								{isOwner && (
-									<div className='flex gap-2'>
-										<button
-											type='button'
-											onClick={() => setShowEditModal(true)}
-											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
-										>
-											<Pencil className='size-4' />
-										</button>
-										<button
-											type='button'
-											onClick={() => setShowDeleteConfirm(true)}
-											className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
-										>
-											<Trash2 className='size-4' />
-										</button>
 									</div>
-								)}
+									{isOwner && (
+										<div className='flex gap-2'>
+											<button
+												type='button'
+												onClick={() => setShowEditModal(true)}
+												className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
+											>
+												<Pencil className='size-4' />
+											</button>
+											<button
+												type='button'
+												onClick={() => setShowDeleteConfirm(true)}
+												className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+											>
+												<Trash2 className='size-4' />
+											</button>
+										</div>
+									)}
 								</div>
 							</PremiumSurface>
 
@@ -300,24 +303,24 @@ export default function CollectionDetailPage({
 										className='mb-3'
 									/>
 									<div className='space-y-4'>
-									{posts.map(post => (
-										<div key={post.id} className='relative'>
-											<PostCard
-												post={post}
-												currentUserId={currentUser?.userId}
-											/>
-											{isOwner && (
-												<button
-													type='button'
-													onClick={() => handleRemovePost(post.id)}
-													className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-card backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
-													aria-label={t('removeFromCollection')}
-												>
-													<Trash2 className='size-3.5' />
-												</button>
-											)}
-										</div>
-									))}
+										{posts.map(post => (
+											<div key={post.id} className='relative'>
+												<PostCard
+													post={post}
+													currentUserId={currentUser?.userId}
+												/>
+												{isOwner && (
+													<button
+														type='button'
+														onClick={() => handleRemovePost(post.id)}
+														className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-card backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
+														aria-label={t('removeFromCollection')}
+													>
+														<Trash2 className='size-3.5' />
+													</button>
+												)}
+											</div>
+										))}
 									</div>
 								</PremiumSurface>
 							)}
@@ -350,7 +353,7 @@ export default function CollectionDetailPage({
 								className='w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-warm'
 								onClick={e => e.stopPropagation()}
 							>
-								<h2 className='mb-4 text-lg font-bold text-text'>
+								<h2 className='mb-4 text-lg font-bold text-text-primary'>
 									{t('detailEditTitle')}
 								</h2>
 								<div className='space-y-4'>
@@ -363,7 +366,7 @@ export default function CollectionDetailPage({
 											value={editName}
 											onChange={e => setEditName(e.target.value)}
 											maxLength={60}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
 											autoFocus
 										/>
 									</div>
@@ -376,7 +379,7 @@ export default function CollectionDetailPage({
 											value={editDescription}
 											onChange={e => setEditDescription(e.target.value)}
 											maxLength={200}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none'
+											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
 										/>
 									</div>
 									<label className='flex cursor-pointer items-center gap-3'>
@@ -386,7 +389,9 @@ export default function CollectionDetailPage({
 											onChange={e => setEditIsPublic(e.target.checked)}
 											className='size-4 rounded border-border-subtle accent-brand'
 										/>
-										<span className='text-sm text-text'>{t('makePublic')}</span>
+										<span className='text-sm text-text-primary'>
+											{t('makePublic')}
+										</span>
 									</label>
 								</div>
 								<div className='mt-6 flex justify-end gap-3'>
@@ -434,7 +439,7 @@ export default function CollectionDetailPage({
 								className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
 								onClick={e => e.stopPropagation()}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text'>
+								<h3 className='mb-2 text-lg font-bold text-text-primary'>
 									{t('detailDeleteTitle')}
 								</h3>
 								<p className='mb-6 text-sm text-text-muted'>

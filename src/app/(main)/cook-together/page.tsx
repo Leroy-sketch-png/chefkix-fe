@@ -194,7 +194,7 @@ function CookTogetherContent() {
 										<button
 											type='button'
 											onClick={handleCopyRoomCode}
-											className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-bg-elevated'
+											className='flex items-center gap-2 rounded-xl bg-bg-card px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated'
 										>
 											{copied ? (
 												<Check className='size-4 text-success' />
@@ -235,7 +235,7 @@ function CookTogetherContent() {
 								<Share2 className='size-5 text-white' />
 							</div>
 							<div>
-								<h2 className='text-xl font-bold text-text'>
+								<h2 className='text-xl font-bold text-text-primary'>
 									{t('ctJoinRoom')}
 								</h2>
 								<p className='text-sm text-text-secondary'>
@@ -256,7 +256,7 @@ function CookTogetherContent() {
 								placeholder={t('ctRoomCodePlaceholder')}
 								maxLength={6}
 								aria-label={t('ctRoomCodeLabel')}
-								className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
+								className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
 								disabled={isJoining}
 							/>
 							<button
@@ -315,7 +315,7 @@ function CookTogetherContent() {
 							<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-warning to-streak'>
 								<Sparkles className='size-5 text-white' />
 							</div>
-							<h2 className='text-xl font-bold text-text'>
+							<h2 className='text-xl font-bold text-text-primary'>
 								{t('ctHowItWorks')}
 							</h2>
 						</div>
@@ -351,7 +351,9 @@ function CookTogetherContent() {
 									<div className='mb-3 flex size-8 items-center justify-center rounded-xl bg-brand/10 font-bold text-brand'>
 										{item.step}
 									</div>
-									<h3 className='mb-1 font-semibold text-text'>{item.title}</h3>
+									<h3 className='mb-1 font-semibold text-text-primary'>
+										{item.title}
+									</h3>
 									<p className='text-sm text-text-secondary'>{item.desc}</p>
 								</motion.div>
 							))}

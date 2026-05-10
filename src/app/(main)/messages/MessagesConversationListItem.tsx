@@ -135,9 +135,11 @@ function ConversationItem({
 			whileTap={LIST_ITEM_TAP}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'group flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
+				'group flex w-full cursor-pointer items-center gap-2.5 rounded-xl border px-2.5 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50',
 				hasLastMessage ? 'py-2.5' : 'py-2',
-				isSelected ? 'bg-brand/10' : 'hover:bg-bg-elevated',
+				isSelected
+					? 'border-brand/25 bg-gradient-to-r from-brand/10 to-xp/10 shadow-card'
+					: 'border-transparent hover:border-border-subtle hover:bg-bg-elevated',
 			)}
 		>
 			<div
@@ -153,6 +155,9 @@ function ConversationItem({
 					sizes={hasLastMessage ? '44px' : '40px'}
 					className='rounded-full object-cover'
 				/>
+				{hasUnread && (
+					<span className='absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-bg-card bg-brand' />
+				)}
 			</div>
 
 			<div className='min-w-0 flex-1'>
@@ -160,7 +165,7 @@ function ConversationItem({
 					<span
 						className={cn(
 							'truncate font-semibold',
-							hasUnread ? 'text-text' : 'text-text-secondary',
+							hasUnread ? 'text-text-primary' : 'text-text-secondary',
 						)}
 					>
 						{name}
@@ -171,11 +176,16 @@ function ConversationItem({
 						</span>
 					)}
 				</div>
+				<div className='mt-0.5 flex items-center gap-1.5'>
+					<span className='inline-flex items-center rounded-full border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted'>
+						{contextBadge}
+					</span>
+				</div>
 				{conversation.lastMessage ? (
 					<p
 						className={cn(
-							'mt-0.5 truncate text-sm',
-							hasUnread ? 'font-medium text-text' : 'text-text-muted',
+							'mt-1 truncate text-sm',
+							hasUnread ? 'font-medium text-text-primary' : 'text-text-muted',
 						)}
 					>
 						{previewText}
@@ -184,9 +194,6 @@ function ConversationItem({
 					<div className='mt-1 flex flex-wrap items-center gap-1.5'>
 						<span className='inline-flex items-center rounded-full bg-bg-elevated px-2 py-0.5 text-xs font-medium text-text-muted'>
 							{previewText}
-						</span>
-						<span className='inline-flex items-center rounded-full border border-border-subtle bg-bg-card px-2 py-0.5 text-xs font-medium text-text-muted'>
-							{contextBadge}
 						</span>
 					</div>
 				)}

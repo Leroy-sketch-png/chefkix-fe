@@ -7,16 +7,15 @@ import { getPostById } from '@/services/post'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
+import { PostDetailCommandDeck } from '@/components/social/PostDetailCommandDeck'
+import { PostDetailContextRail } from '@/components/social/PostDetailContextRail'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { useAuth } from '@/hooks/useAuth'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { PremiumSurface } from '@/components/layout/PremiumSurface'
 
 /**
  * Post Detail Page
@@ -100,7 +99,7 @@ export default function PostDetailPage() {
 
 	if (isLoading) {
 		return (
-			<PageContainer maxWidth='md' className='py-6'>
+			<PageContainer maxWidth='2xl' className='py-6'>
 				<PostDetailSkeleton />
 			</PageContainer>
 		)
@@ -108,7 +107,7 @@ export default function PostDetailPage() {
 
 	if (error || !post) {
 		return (
-			<PageContainer maxWidth='md' className='py-6'>
+			<PageContainer maxWidth='2xl' className='py-6'>
 				<ErrorState
 					title={t('postNotFound')}
 					message={
@@ -123,50 +122,27 @@ export default function PostDetailPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='md' className='py-6'>
-				<PremiumSurface
-					eyebrow='Post Detail'
-					chipText='Conversation View'
-					className='mb-4 p-2 md:p-3'
-					tone='blue'
-					showOrbs={false}
-				>
-					<motion.div
-					initial={{ opacity: 0, x: -10 }}
-					animate={{ opacity: 1, x: 0 }}
-					transition={TRANSITION_SPRING}
-					className=''
-				>
-					<Button
-						variant='ghost'
-						size='sm'
-						onClick={() => router.back()}
-						className='gap-2 text-text-secondary hover:text-text'
-					>
-						<ArrowLeft className='size-4' />
-						<span>{t('backLabel')}</span>
-					</Button>
-					</motion.div>
-				</PremiumSurface>
+			<PageContainer maxWidth='2xl' className='py-6'>
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+					<div className='space-y-6'>
+						<PostDetailCommandDeck post={post} onBack={() => router.back()} />
 
-				<PremiumSurface
-					eyebrow='Post Content'
-					chipText='Live comments'
-					className='p-2 md:p-3'
-				>
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-					>
-						<PostCard
-							post={post}
-							onUpdate={handlePostUpdate}
-							onDelete={handlePostDelete}
-							currentUserId={user?.userId}
-						/>
-					</motion.div>
-				</PremiumSurface>
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+						>
+							<PostCard
+								post={post}
+								onUpdate={handlePostUpdate}
+								onDelete={handlePostDelete}
+								currentUserId={user?.userId}
+							/>
+						</motion.div>
+					</div>
+
+					<PostDetailContextRail post={post} />
+				</div>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>
@@ -179,37 +155,45 @@ export default function PostDetailPage() {
  */
 function PostDetailSkeleton() {
 	return (
-		<div className='space-y-4'>
-			{/* Back button skeleton */}
-			<Skeleton className='h-9 w-20' />
+		<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+			<div className='space-y-4'>
+				{/* Command deck skeleton */}
+				<Skeleton className='h-14 rounded-xl' />
 
-			{/* Post card skeleton */}
-			<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
-				{/* Header */}
-				<div className='mb-4 flex items-center gap-3'>
-					<Skeleton className='size-10 rounded-full' />
-					<div className='flex-1'>
-						<Skeleton className='mb-1 h-4 w-32' />
-						<Skeleton className='h-3 w-24' />
+				{/* Post card skeleton */}
+				<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
+					{/* Header */}
+					<div className='mb-4 flex items-center gap-3'>
+						<Skeleton className='size-10 rounded-full' />
+						<div className='flex-1'>
+							<Skeleton className='mb-1 h-4 w-32' />
+							<Skeleton className='h-3 w-24' />
+						</div>
+					</div>
+
+					{/* Content */}
+					<div className='mb-4 space-y-2'>
+						<Skeleton className='h-4 w-full' />
+						<Skeleton className='h-4 w-3/4' />
+						<Skeleton className='h-4 w-1/2' />
+					</div>
+
+					{/* Image placeholder */}
+					<Skeleton className='mb-4 aspect-video w-full rounded-lg' />
+
+					{/* Actions */}
+					<div className='flex gap-4'>
+						<Skeleton className='h-8 w-16' />
+						<Skeleton className='h-8 w-16' />
+						<Skeleton className='h-8 w-16' />
 					</div>
 				</div>
+			</div>
 
-				{/* Content */}
-				<div className='mb-4 space-y-2'>
-					<Skeleton className='h-4 w-full' />
-					<Skeleton className='h-4 w-3/4' />
-					<Skeleton className='h-4 w-1/2' />
-				</div>
-
-				{/* Image placeholder */}
-				<Skeleton className='mb-4 aspect-video w-full rounded-lg' />
-
-				{/* Actions */}
-				<div className='flex gap-4'>
-					<Skeleton className='h-8 w-16' />
-					<Skeleton className='h-8 w-16' />
-					<Skeleton className='h-8 w-16' />
-				</div>
+			{/* Rail skeleton */}
+			<div className='hidden xl:flex xl:flex-col xl:gap-4'>
+				<Skeleton className='h-40 rounded-xl' />
+				<Skeleton className='h-60 rounded-xl' />
 			</div>
 		</div>
 	)

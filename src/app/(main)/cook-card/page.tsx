@@ -47,7 +47,7 @@ function CookCardContent() {
 							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />

@@ -20,14 +20,13 @@ import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
+import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import {
 	DailyChallengeBanner,
 	ActiveBattlesSection,
 } from '@/components/challenges'
+import { ChallengesCommandDeck } from '@/components/challenges/ChallengesCommandDeck'
+import { ChallengesContextRail } from '@/components/challenges/ChallengesContextRail'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -179,7 +178,7 @@ export default function ChallengesPage() {
 				)}
 			</AnimatePresence>
 
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='2xl'>
 				{/* Header */}
 				<PageHeader
 					icon={Trophy}
@@ -188,463 +187,485 @@ export default function ChallengesPage() {
 					gradient='yellow'
 				/>
 
-				{/* Cooking Duels — 1v1 friend challenges */}
-				<DuelsSection />
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+					<div>
+						<ChallengesCommandDeck
+							counts={{
+								community: communityChallenges.length,
+								seasonal: seasonalChallenges.length,
+								hasDaily: Boolean(dailyChallenge),
+								hasWeekly: Boolean(weeklyChallenge),
+							}}
+							className='mb-6'
+						/>
 
-				{/* Active Recipe Battles — community voting */}
-				<ActiveBattlesSection />
+						{/* Cooking Duels — 1v1 friend challenges */}
+						<DuelsSection />
 
-				{loading ? (
-					<div className='space-y-6'>
-						{/* Daily challenge skeleton */}
-						<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
-							<div className='flex items-center gap-4'>
-								<Skeleton className='size-12 shrink-0 rounded-2xl' />
-								<div className='flex-1 space-y-2'>
-									<Skeleton className='h-5 w-1/3' />
-									<Skeleton className='h-4 w-2/3' />
-								</div>
-								<Skeleton className='h-8 w-20 rounded-full' />
-							</div>
-						</div>
-						{/* Weekly + community skeletons */}
-						{Array.from({ length: 3 }).map((_, i) => (
-							<div
-								key={i}
-								className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
-							>
-								<div className='flex items-center gap-3'>
-									<Skeleton className='size-11 shrink-0 rounded-xl' />
-									<div className='flex-1 space-y-1.5'>
-										<Skeleton className='h-4 w-2/5' />
-										<Skeleton className='h-3 w-3/5' />
+						{/* Active Recipe Battles — community voting */}
+						<ActiveBattlesSection />
+
+						{loading ? (
+							<div className='space-y-6'>
+								{/* Daily challenge skeleton */}
+								<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+									<div className='flex items-center gap-4'>
+										<Skeleton className='size-12 shrink-0 rounded-2xl' />
+										<div className='flex-1 space-y-2'>
+											<Skeleton className='h-5 w-1/3' />
+											<Skeleton className='h-4 w-2/3' />
+										</div>
+										<Skeleton className='h-8 w-20 rounded-full' />
 									</div>
 								</div>
-							</div>
-						))}
-					</div>
-				) : hasNoChallenges ? (
-					<EmptyStateGamified
-						variant='challenges'
-						title={t('noChallenges')}
-						description={t('noChallengesDesc')}
-						primaryAction={{
-							label: t('refresh'),
-							onClick: () => router.refresh(),
-						}}
-						secondaryActions={[
-							{
-								label: t('viewHistory'),
-								href: '/challenges/history',
-							},
-							{
-								label: t('exploreRecipes'),
-								href: '/explore',
-							},
-						]}
-					/>
-				) : (
-					<>
-						{/* Daily Challenge Banner - Featured */}
-						{dailyChallenge && (
-							<DailyChallengeBanner
-								variant='active'
-								challenge={dailyChallenge}
-								onFindRecipe={() =>
-									startNavigationTransition(() => {
-										router.push(
-											`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
-										)
-									})
-								}
-							/>
-						)}
-
-						{/* Weekly Challenge Section */}
-						{weeklyChallenge && (
-							<BlurFade delay={0.1}>
-								<section className='mb-8'>
-									<SurfaceSectionHeader
-										className='mb-4'
-										eyebrow={t('weeklyChallenge')}
-										chipText={`+${weeklyChallenge.bonusXp} XP`}
-									/>
-									<motion.div
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+								{/* Weekly + community skeletons */}
+								{Array.from({ length: 3 }).map((_, i) => (
+									<div
+										key={i}
 										className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
 									>
-										<div className='mb-3 flex items-center justify-between'>
-											<div className='flex items-center gap-3'>
-												<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
-													<Trophy className='size-5 text-white' />
-												</div>
-												<div>
-													<h3 className='text-lg font-bold text-text-primary'>
-														{weeklyChallenge.title}
-													</h3>
-													<p className='text-sm text-text-secondary'>
-														{weeklyChallenge.description}
-													</p>
-												</div>
-											</div>
-											<div className='text-right'>
-												<span className='tabular-nums text-lg font-bold text-xp'>
-													+{weeklyChallenge.bonusXp} XP
-												</span>
-												{weeklyChallenge.completed && (
-													<p className='text-xs font-semibold text-success'>
-														✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
-													</p>
-												)}
+										<div className='flex items-center gap-3'>
+											<Skeleton className='size-11 shrink-0 rounded-xl' />
+											<div className='flex-1 space-y-1.5'>
+												<Skeleton className='h-4 w-2/5' />
+												<Skeleton className='h-3 w-3/5' />
 											</div>
 										</div>
-
-										{/* Progress bar */}
-										<div className='mb-2'>
-											<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
-												<span>
-													{t('progressCount', {
-														progress: weeklyChallenge.progress,
-														target: weeklyChallenge.target,
-													})}
-												</span>
-												<span>
-													{weeklyChallenge.target > 0
-														? Math.round(
-																(weeklyChallenge.progress /
-																	weeklyChallenge.target) *
-																	100,
-															)
-														: 0}
-													%
-												</span>
-											</div>
-											<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
-												<motion.div
-													initial={{ width: 0 }}
-													animate={{
-														width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
-													}}
-													transition={{
-														duration: DURATION_S.verySlow,
-														ease: 'easeOut',
-													}}
-													className='h-full rounded-full bg-gradient-indigo'
-												/>
-											</div>
-										</div>
-
-										{/* Time remaining */}
-										<p className='text-xs text-text-muted'>
-											{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
-										</p>
-
-										{/* CTA: Find matching recipes */}
-										{!weeklyChallenge.completed &&
-											weeklyChallenge.matchingRecipes &&
-											weeklyChallenge.matchingRecipes.length > 0 && (
-												<button
-													type='button'
-													onClick={() =>
-														startNavigationTransition(() => {
-															router.push(
-																`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
-															)
-														})
-													}
-													disabled={isNavigating}
-													className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-												>
-													{t('findMatchingRecipes')}
-													<ChevronRight className='size-4' />
-												</button>
-											)}
-									</motion.div>
-								</section>
-							</BlurFade>
-						)}
-
-						{/* Community Challenges Section */}
-						{communityChallenges.length > 0 && (
-							<BlurFade delay={0.15}>
-								<section className='mb-8'>
-									<SurfaceSectionHeader
-										className='mb-4'
-										eyebrow={t('communityChallenges')}
-										chipText={`${communityChallenges.length} live`}
+									</div>
+								))}
+							</div>
+						) : hasNoChallenges ? (
+							<EmptyStateGamified
+								variant='challenges'
+								title={t('noChallenges')}
+								description={t('noChallengesDesc')}
+								primaryAction={{
+									label: t('refresh'),
+									onClick: () => router.refresh(),
+								}}
+								secondaryActions={[
+									{
+										label: t('viewHistory'),
+										href: '/challenges/history',
+									},
+									{
+										label: t('exploreRecipes'),
+										href: '/explore',
+									},
+								]}
+							/>
+						) : (
+							<>
+								{/* Daily Challenge Banner - Featured */}
+								{dailyChallenge && (
+									<DailyChallengeBanner
+										variant='active'
+										challenge={dailyChallenge}
+										onFindRecipe={() =>
+											startNavigationTransition(() => {
+												router.push(
+													`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
+												)
+											})
+										}
 									/>
-									<div className='space-y-4'>
-										{communityChallenges.map((ch, i) => (
+								)}
+
+								{/* Weekly Challenge Section */}
+								{weeklyChallenge && (
+									<BlurFade delay={0.1}>
+										<section className='mb-8'>
+											<SurfaceSectionHeader
+												className='mb-4'
+												eyebrow={t('weeklyChallenge')}
+												chipText={`+${weeklyChallenge.bonusXp} XP`}
+											/>
 											<motion.div
-												key={ch.id}
-												initial={{ opacity: 0, y: 12 }}
+												initial={{ opacity: 0, y: 10 }}
 												animate={{ opacity: 1, y: 0 }}
-												transition={{
-													delay: 0.15 + i * 0.08,
-													...TRANSITION_SPRING,
-												}}
-												className='group rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+												transition={{ delay: 0.1, ...TRANSITION_SPRING }}
+												className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'
 											>
 												<div className='mb-3 flex items-center justify-between'>
 													<div className='flex items-center gap-3'>
-														<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
-															{ch.emoji || '👥'}
+														<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
+															<Trophy className='size-5 text-white' />
 														</div>
 														<div>
 															<h3 className='text-lg font-bold text-text-primary'>
-																{ch.title}
+																{weeklyChallenge.title}
 															</h3>
 															<p className='text-sm text-text-secondary'>
-																{ch.description}
+																{weeklyChallenge.description}
 															</p>
 														</div>
 													</div>
 													<div className='text-right'>
 														<span className='tabular-nums text-lg font-bold text-xp'>
-															+{ch.rewardXpPerUser} XP
+															+{weeklyChallenge.bonusXp} XP
 														</span>
-														<p className='text-xs text-text-muted'>
-															{formatEventTimeRemaining(ch.endsAt, t)}
-														</p>
+														{weeklyChallenge.completed && (
+															<p className='text-xs font-semibold text-success'>
+																✓ +{weeklyChallenge.bonusXp} {t('xpAwarded')}
+															</p>
+														)}
 													</div>
 												</div>
 
-												{/* Global progress bar */}
+												{/* Progress bar */}
 												<div className='mb-2'>
 													<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
 														<span>
-															{ch.currentProgress.toLocaleString()} /{' '}
-															{ch.targetCount.toLocaleString()} {ch.targetUnit}
+															{t('progressCount', {
+																progress: weeklyChallenge.progress,
+																target: weeklyChallenge.target,
+															})}
 														</span>
-														<span className='tabular-nums'>
-															{Math.round(ch.progressPercent)}%
+														<span>
+															{weeklyChallenge.target > 0
+																? Math.round(
+																		(weeklyChallenge.progress /
+																			weeklyChallenge.target) *
+																			100,
+																	)
+																: 0}
+															%
 														</span>
 													</div>
 													<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
 														<motion.div
 															initial={{ width: 0 }}
 															animate={{
-																width: `${Math.min(ch.progressPercent, 100)}%`,
+																width: `${weeklyChallenge.target > 0 ? Math.min((weeklyChallenge.progress / weeklyChallenge.target) * 100, 100) : 0}%`,
 															}}
 															transition={{
-																duration: DURATION_S.dramatic,
+																duration: DURATION_S.verySlow,
 																ease: 'easeOut',
 															}}
-															className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
+															className='h-full rounded-full bg-gradient-indigo'
 														/>
 													</div>
 												</div>
 
-												{/* Footer: participants + contribution status */}
-												<div className='flex items-center justify-between text-xs text-text-muted'>
-													<span className='flex items-center gap-1'>
-														<Users className='size-3.5' />
-														{t('participantsCount', {
-															count: ch.participantCount,
-														})}
-													</span>
-													{ch.hasContributed ? (
-														<span className='font-medium text-success'>
-															✓ {t('youContributed')}
-														</span>
-													) : (
+												{/* Time remaining */}
+												<p className='text-xs text-text-muted'>
+													{formatEventTimeRemaining(weeklyChallenge.endsAt, t)}
+												</p>
+
+												{/* CTA: Find matching recipes */}
+												{!weeklyChallenge.completed &&
+													weeklyChallenge.matchingRecipes &&
+													weeklyChallenge.matchingRecipes.length > 0 && (
 														<button
 															type='button'
 															onClick={() =>
 																startNavigationTransition(() => {
 																	router.push(
-																		`/explore?q=${encodeURIComponent(ch.title)}`,
+																		`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
 																	)
 																})
 															}
 															disabled={isNavigating}
-															className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															className='mt-3 flex items-center gap-1.5 text-sm font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
-															{t('cookToContribute')}
-															<ChevronRight className='size-3.5' />
+															{t('findMatchingRecipes')}
+															<ChevronRight className='size-4' />
 														</button>
 													)}
-												</div>
 											</motion.div>
-										))}
-									</div>
-								</section>
-							</BlurFade>
-						)}
+										</section>
+									</BlurFade>
+								)}
 
-						{/* Seasonal Challenges Section */}
-						{seasonalChallenges.length > 0 && (
-							<BlurFade delay={0.2}>
-								<section className='mb-8'>
-									<SurfaceSectionHeader
-										className='mb-4'
-										eyebrow={t('seasonalEvents')}
-										chipText={`${seasonalChallenges.length} seasons`}
-									/>
-									<div className='space-y-4'>
-										{seasonalChallenges.map((ev, i) => (
-											<motion.div
-												key={ev.id}
-												initial={{ opacity: 0, y: 12 }}
-												animate={{ opacity: 1, y: 0 }}
-												transition={{
-													delay: 0.2 + i * 0.08,
-													...TRANSITION_SPRING,
-												}}
-												className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
-											>
-												{/* Hero header — accent color or image */}
-												{ev.heroImageUrl ? (
-													<div
-														className='relative h-28 bg-cover bg-center'
-														style={{
-															backgroundImage: `url(${ev.heroImageUrl})`,
+								{/* Community Challenges Section */}
+								{communityChallenges.length > 0 && (
+									<BlurFade delay={0.15}>
+										<section className='mb-8'>
+											<SurfaceSectionHeader
+												className='mb-4'
+												eyebrow={t('communityChallenges')}
+												chipText={`${communityChallenges.length} live`}
+											/>
+											<div className='space-y-4'>
+												{communityChallenges.map((ch, i) => (
+													<motion.div
+														key={ch.id}
+														initial={{ opacity: 0, y: 12 }}
+														animate={{ opacity: 1, y: 0 }}
+														transition={{
+															delay: 0.15 + i * 0.08,
+															...TRANSITION_SPRING,
 														}}
+														className='group rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
 													>
-														<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
-														<div className='absolute bottom-3 left-4 text-xl font-bold text-white'>
-															{ev.emoji} {ev.title}
-														</div>
-													</div>
-												) : (
-													<div
-														className='flex h-20 items-center gap-3 px-5'
-														style={{
-															background: ev.accentColor
-																? `linear-gradient(135deg, ${ev.accentColor}30, ${ev.accentColor}10)`
-																: undefined,
-														}}
-													>
-														<span className='text-3xl'>{ev.emoji || '🌿'}</span>
-														<h3 className='text-lg font-bold text-text-primary'>
-															{ev.title}
-														</h3>
-													</div>
-												)}
-
-												<div className='p-5'>
-													<p className='mb-3 text-sm text-text-secondary'>
-														{ev.description}
-													</p>
-
-													{/* Per-user progress */}
-													<div className='mb-2'>
-														<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
-															<span>
-																{ev.userProgress} / {ev.targetCount}{' '}
-																{ev.targetUnit}
-															</span>
-															<span>
-																{ev.targetCount > 0
-																	? Math.round(
-																			(ev.userProgress / ev.targetCount) * 100,
-																		)
-																	: 0}
-																%
-															</span>
-														</div>
-														<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
-															<motion.div
-																initial={{ width: 0 }}
-																animate={{
-																	width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
-																}}
-																transition={{
-																	duration: DURATION_S.dramatic,
-																	ease: 'easeOut',
-																}}
-																className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
-															/>
-														</div>
-													</div>
-
-													{/* Footer */}
-													<div className='flex items-center justify-between text-xs text-text-muted'>
-														<span className='flex items-center gap-1'>
-															<Clock className='size-3.5' />
-															{formatEventTimeRemaining(ev.endsAt, t)}
-														</span>
-														<div className='flex items-center gap-2'>
-															{ev.rewardBadgeName && (
-																<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
-																	🏅 {ev.rewardBadgeName}
+														<div className='mb-3 flex items-center justify-between'>
+															<div className='flex items-center gap-3'>
+																<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
+																	{ch.emoji || '👥'}
+																</div>
+																<div>
+																	<h3 className='text-lg font-bold text-text-primary'>
+																		{ch.title}
+																	</h3>
+																	<p className='text-sm text-text-secondary'>
+																		{ch.description}
+																	</p>
+																</div>
+															</div>
+															<div className='text-right'>
+																<span className='tabular-nums text-lg font-bold text-xp'>
+																	+{ch.rewardXpPerUser} XP
 																</span>
-															)}
-															<span className='tabular-nums font-bold text-xp'>
-																+{ev.rewardXp} XP
-															</span>
+																<p className='text-xs text-text-muted'>
+																	{formatEventTimeRemaining(ch.endsAt, t)}
+																</p>
+															</div>
 														</div>
-													</div>
 
-													{/* Featured recipes link */}
-													{ev.featuredRecipes &&
-														ev.featuredRecipes.length > 0 && (
-															<button
-																type='button'
-																onClick={() =>
-																	startNavigationTransition(() => {
-																		router.push(`/explore?seasonal=${ev.id}`)
-																	})
-																}
-																disabled={isNavigating}
-																className='mt-3 flex items-center gap-1 rounded-xl text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-															>
-																{t('featuredRecipesCount', {
-																	count: ev.featuredRecipes.length,
+														{/* Global progress bar */}
+														<div className='mb-2'>
+															<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
+																<span>
+																	{ch.currentProgress.toLocaleString()} /{' '}
+																	{ch.targetCount.toLocaleString()}{' '}
+																	{ch.targetUnit}
+																</span>
+																<span className='tabular-nums'>
+																	{Math.round(ch.progressPercent)}%
+																</span>
+															</div>
+															<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
+																<motion.div
+																	initial={{ width: 0 }}
+																	animate={{
+																		width: `${Math.min(ch.progressPercent, 100)}%`,
+																	}}
+																	transition={{
+																		duration: DURATION_S.dramatic,
+																		ease: 'easeOut',
+																	}}
+																	className='h-full rounded-full bg-gradient-to-r from-combo to-brand'
+																/>
+															</div>
+														</div>
+
+														{/* Footer: participants + contribution status */}
+														<div className='flex items-center justify-between text-xs text-text-muted'>
+															<span className='flex items-center gap-1'>
+																<Users className='size-3.5' />
+																{t('participantsCount', {
+																	count: ch.participantCount,
 																})}
-																<ChevronRight className='size-3.5' />
-															</button>
+															</span>
+															{ch.hasContributed ? (
+																<span className='font-medium text-success'>
+																	✓ {t('youContributed')}
+																</span>
+															) : (
+																<button
+																	type='button'
+																	onClick={() =>
+																		startNavigationTransition(() => {
+																			router.push(
+																				`/explore?q=${encodeURIComponent(ch.title)}`,
+																			)
+																		})
+																	}
+																	disabled={isNavigating}
+																	className='flex items-center gap-1 font-medium text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+																>
+																	{t('cookToContribute')}
+																	<ChevronRight className='size-3.5' />
+																</button>
+															)}
+														</div>
+													</motion.div>
+												))}
+											</div>
+										</section>
+									</BlurFade>
+								)}
+
+								{/* Seasonal Challenges Section */}
+								{seasonalChallenges.length > 0 && (
+									<BlurFade delay={0.2}>
+										<section className='mb-8'>
+											<SurfaceSectionHeader
+												className='mb-4'
+												eyebrow={t('seasonalEvents')}
+												chipText={`${seasonalChallenges.length} seasons`}
+											/>
+											<div className='space-y-4'>
+												{seasonalChallenges.map((ev, i) => (
+													<motion.div
+														key={ev.id}
+														initial={{ opacity: 0, y: 12 }}
+														animate={{ opacity: 1, y: 0 }}
+														transition={{
+															delay: 0.2 + i * 0.08,
+															...TRANSITION_SPRING,
+														}}
+														className='group overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:shadow-warm'
+													>
+														{/* Hero header — accent color or image */}
+														{ev.heroImageUrl ? (
+															<div
+																className='relative h-28 bg-cover bg-center'
+																style={{
+																	backgroundImage: `url(${ev.heroImageUrl})`,
+																}}
+															>
+																<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
+																<div className='absolute bottom-3 left-4 text-xl font-bold text-white'>
+																	{ev.emoji} {ev.title}
+																</div>
+															</div>
+														) : (
+															<div
+																className='flex h-20 items-center gap-3 px-5'
+																style={{
+																	background: ev.accentColor
+																		? `linear-gradient(135deg, ${ev.accentColor}30, ${ev.accentColor}10)`
+																		: undefined,
+																}}
+															>
+																<span className='text-3xl'>
+																	{ev.emoji || '🌿'}
+																</span>
+																<h3 className='text-lg font-bold text-text-primary'>
+																	{ev.title}
+																</h3>
+															</div>
 														)}
 
-													{ev.userCompleted && (
-														<div className='mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
-															✓ +{ev.rewardXp} {t('xpAwarded')}
+														<div className='p-5'>
+															<p className='mb-3 text-sm text-text-secondary'>
+																{ev.description}
+															</p>
+
+															{/* Per-user progress */}
+															<div className='mb-2'>
+																<div className='mb-1 flex justify-between tabular-nums text-xs text-text-muted'>
+																	<span>
+																		{ev.userProgress} / {ev.targetCount}{' '}
+																		{ev.targetUnit}
+																	</span>
+																	<span>
+																		{ev.targetCount > 0
+																			? Math.round(
+																					(ev.userProgress / ev.targetCount) *
+																						100,
+																				)
+																			: 0}
+																		%
+																	</span>
+																</div>
+																<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle'>
+																	<motion.div
+																		initial={{ width: 0 }}
+																		animate={{
+																			width: `${ev.targetCount > 0 ? Math.min((ev.userProgress / ev.targetCount) * 100, 100) : 0}%`,
+																		}}
+																		transition={{
+																			duration: DURATION_S.dramatic,
+																			ease: 'easeOut',
+																		}}
+																		className='h-full rounded-full bg-gradient-to-r from-streak to-brand'
+																	/>
+																</div>
+															</div>
+
+															{/* Footer */}
+															<div className='flex items-center justify-between text-xs text-text-muted'>
+																<span className='flex items-center gap-1'>
+																	<Clock className='size-3.5' />
+																	{formatEventTimeRemaining(ev.endsAt, t)}
+																</span>
+																<div className='flex items-center gap-2'>
+																	{ev.rewardBadgeName && (
+																		<span className='rounded-full bg-warning/15 px-2 py-0.5 text-2xs font-semibold text-warning'>
+																			🏅 {ev.rewardBadgeName}
+																		</span>
+																	)}
+																	<span className='tabular-nums font-bold text-xp'>
+																		+{ev.rewardXp} XP
+																	</span>
+																</div>
+															</div>
+
+															{/* Featured recipes link */}
+															{ev.featuredRecipes &&
+																ev.featuredRecipes.length > 0 && (
+																	<button
+																		type='button'
+																		onClick={() =>
+																			startNavigationTransition(() => {
+																				router.push(
+																					`/explore?seasonal=${ev.id}`,
+																				)
+																			})
+																		}
+																		disabled={isNavigating}
+																		className='mt-3 flex items-center gap-1 rounded-xl text-xs font-semibold text-brand transition-colors hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+																	>
+																		{t('featuredRecipesCount', {
+																			count: ev.featuredRecipes.length,
+																		})}
+																		<ChevronRight className='size-3.5' />
+																	</button>
+																)}
+
+															{ev.userCompleted && (
+																<div className='mt-3 rounded-xl bg-success/10 px-3 py-2 text-center text-sm font-semibold text-success'>
+																	✓ +{ev.rewardXp} {t('xpAwarded')}
+																</div>
+															)}
 														</div>
-													)}
-												</div>
-											</motion.div>
-										))}
-									</div>
+													</motion.div>
+												))}
+											</div>
+										</section>
+									</BlurFade>
+								)}
+
+								{/* Past Challenges link */}
+								<section>
+									<Link
+										href='/challenges/history'
+										className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
+									>
+										<div className='flex items-center gap-3'>
+											<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
+												<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
+											</div>
+											<div>
+												<h3 className='font-semibold text-text-primary'>
+													{t('challengeHistory')}
+												</h3>
+												<p className='text-sm text-text-muted'>
+													{t('challengeHistoryDesc')}
+												</p>
+											</div>
+										</div>
+										<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
+									</Link>
 								</section>
-							</BlurFade>
+							</>
 						)}
 
-						{/* Past Challenges link */}
-						<section>
-							<PremiumSurface
-								eyebrow='Archive Access'
-								chipText='Past Seasons'
-								showOrbs={false}
-								className='p-3'
-							>
-								<Link
-									href='/challenges/history'
-									className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card transition-all duration-300 hover:shadow-warm'
-								>
-									<div className='flex items-center gap-3'>
-										<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
-											<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
-										</div>
-										<div>
-											<h3 className='font-semibold text-text-primary'>
-												{t('challengeHistory')}
-											</h3>
-											<p className='text-sm text-text-muted'>
-												{t('challengeHistoryDesc')}
-											</p>
-										</div>
-									</div>
-									<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand' />
-								</Link>
-							</PremiumSurface>
-						</section>
-					</>
-				)}
+						{/* Bottom breathing room for MobileBottomNav */}
+						<div className='pb-40 md:pb-8' />
+					</div>
 
-				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+					<ChallengesContextRail
+						counts={{
+							community: communityChallenges.length,
+							seasonal: seasonalChallenges.length,
+							hasDaily: Boolean(dailyChallenge),
+							hasWeekly: Boolean(weeklyChallenge),
+						}}
+					/>
+				</div>
 			</PageContainer>
 		</PageTransition>
 	)

@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
@@ -311,33 +310,56 @@ export default function CookingRoomPage() {
 					tone='streak'
 					className='mb-8 p-3 md:p-4'
 				>
-					<PageHeader
-						icon={Users}
-						title={t('ctCookingRoom')}
-						subtitle={t('ctRoomCode', { code: roomCode })}
-						gradient='orange'
-						marginBottom='sm'
-						showSparkles={false}
-						showBack
-					/>
-					<div className='mt-2 flex items-center gap-2 text-text-secondary'>
-						<span
-							className={`flex items-center gap-1 text-sm ${isConnected ? 'text-success' : 'text-text-muted'}`}
-						>
+					<div className='flex flex-col gap-4'>
+						<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+							<div className='flex min-w-0 items-start gap-3'>
+								<motion.button
+									type='button'
+									onClick={() => router.push('/cook-together')}
+									whileTap={BUTTON_TAP}
+									className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ctLeave')}
+								>
+									<LogOut className='size-4' />
+								</motion.button>
+								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
+									<Users className='size-5' />
+								</div>
+								<div className='min-w-0'>
+									<h1 className='truncate text-xl font-bold tracking-tight text-text-primary md:text-2xl'>
+										{t('ctCookingRoom')}
+									</h1>
+									<p className='mt-0.5 text-sm text-text-secondary'>
+										{t('ctRoomCode', { code: roomCode })}
+									</p>
+								</div>
+							</div>
+
+							<div className='inline-flex h-9 items-center rounded-xl border border-border-subtle bg-bg-card px-3 text-sm font-semibold text-text-primary'>
+								{roomCode}
+							</div>
+						</div>
+
+						<div className='flex flex-wrap items-center gap-2'>
 							<span
-								className={`inline-block size-2 rounded-full ${isConnected ? 'bg-success' : 'bg-text-muted'}`}
-							/>
-							{isConnected ? t('ctConnected') : t('ctConnecting')}
-						</span>
-						{spectatorCount > 0 && (
-							<>
-								<span>•</span>
-								<span className='flex items-center gap-1 text-sm text-info'>
+								className={`inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-semibold ${isConnected ? 'bg-success/12 text-success' : 'bg-bg-elevated text-text-muted'}`}
+							>
+								<span
+									className={`inline-block size-1.5 rounded-full ${isConnected ? 'bg-success' : 'bg-text-muted'}`}
+								/>
+								{isConnected ? t('ctConnected') : t('ctConnecting')}
+							</span>
+							<span className='inline-flex h-7 items-center gap-1 rounded-full bg-brand/10 px-2.5 text-xs font-semibold text-brand'>
+								<ChefHat className='size-3.5' />
+								{t('ctCooksCount', { count: cookCount })}
+							</span>
+							{spectatorCount > 0 && (
+								<span className='inline-flex h-7 items-center gap-1 rounded-full bg-info/12 px-2.5 text-xs font-semibold text-info'>
 									<Eye className='size-3.5' />
 									{t('ctWatchingCount', { count: spectatorCount })}
 								</span>
-							</>
-						)}
+							)}
+						</div>
 					</div>
 				</PremiumSurface>
 
@@ -352,7 +374,7 @@ export default function CookingRoomPage() {
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
+							className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 						>
 							{/* Recipe Info */}
 							{recipe && (
@@ -361,7 +383,7 @@ export default function CookingRoomPage() {
 										<ChefHat className='size-7 text-brand' />
 									</div>
 									<div>
-										<h2 className='text-xl font-bold text-text'>
+										<h2 className='text-xl font-bold text-text-primary'>
 											{recipe.title}
 										</h2>
 										<p className='text-sm text-text-secondary'>
@@ -424,7 +446,7 @@ export default function CookingRoomPage() {
 												</div>
 												<div className='flex-1'>
 													<div className='flex items-center gap-2'>
-														<span className='font-medium text-text'>
+														<span className='font-medium text-text-primary'>
 															{p.displayName}
 														</span>
 														{p.isHost && (
@@ -480,7 +502,7 @@ export default function CookingRoomPage() {
 										disabled={isUpgrading}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-info to-info/70 py-4 text-lg font-bold text-white shadow-warm shadow-info/30 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-info py-4 text-lg font-bold text-white shadow-[0_2px_8px_rgba(14,165,233,0.35)] transition-all hover:bg-info/90 hover:shadow-[0_4px_16px_rgba(14,165,233,0.4)] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<ArrowUpCircle className='size-6' />
 										{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
@@ -491,7 +513,7 @@ export default function CookingRoomPage() {
 										onClick={handleStartCooking}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero py-4 text-lg font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-4 text-lg font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<ChefHat className='size-6' />
 										{session ? t('ctContinueCooking') : t('ctStartCooking')}
@@ -533,14 +555,14 @@ export default function CookingRoomPage() {
 					<PremiumSurface
 						eyebrow='Activity Feed'
 						chipText={isConnected ? 'Live' : 'Reconnecting'}
-						className='p-0 lg:col-span-1'
+						className='p-0 lg:col-span-1 lg:sticky lg:top-24 lg:self-start'
 						tone='blue'
 					>
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card'
+							className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'
 						>
 							<SurfaceSectionHeader
 								eyebrow='Room Events'

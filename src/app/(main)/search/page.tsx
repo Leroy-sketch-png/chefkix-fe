@@ -277,7 +277,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 				</div>
 				<div className='p-4'>
 					<div className='mb-3 flex items-start justify-between gap-2'>
-						<h4 className='flex-1 text-base font-bold leading-snug text-text'>
+						<h4 className='flex-1 text-base font-bold leading-snug text-text-primary'>
 							{recipe.title}
 						</h4>
 						<motion.button
@@ -394,7 +394,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				</AvatarFallback>
 			</Avatar>
 			<div className='min-w-0 flex-1'>
-				<p className='flex items-center gap-1 text-base font-bold text-text'>
+				<p className='flex items-center gap-1 text-base font-bold text-text-primary'>
 					{person.displayName}
 					{person.isVerified && <VerifiedBadge size='sm' />}
 				</p>
@@ -411,7 +411,7 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 				className={cn(
 					'flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50',
 					following
-						? 'border-2 border-border-subtle bg-bg-elevated text-text hover:border-error hover:bg-error/5 hover:text-error'
+						? 'border-2 border-border-subtle bg-bg-elevated text-text-primary hover:border-error hover:bg-error/5 hover:text-error'
 						: 'bg-brand text-white',
 				)}
 			>
@@ -451,7 +451,7 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 								{post.author.username?.slice(0, 2).toUpperCase() || '??'}
 							</AvatarFallback>
 						</Avatar>
-						<span className='text-sm font-semibold text-text'>
+						<span className='text-sm font-semibold text-text-primary'>
 							@{post.author.username}
 						</span>
 					</div>
@@ -665,6 +665,11 @@ function SearchContent() {
 	}
 
 	if (!query) {
+		const visibleSuggestionTerms = SEARCH_SUGGESTIONS.slice(0, 6)
+		const trendingTermsForDeck = TRENDING_SEARCH_TERMS.filter(
+			({ term }) => !visibleSuggestionTerms.includes(term),
+		)
+
 		const handleSuggestionClick = (term: string) => {
 			setSearchInput(term)
 			isInternalNav.current = true
@@ -678,201 +683,229 @@ function SearchContent() {
 
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
-					<PremiumSurface
-						eyebrow='Discovery Search'
-						chipText='Refine as you type'
-						className='mx-auto mt-2 mb-5 max-w-xl p-3 md:p-4'
-						showOrbs={false}
-					>
-						<div className='relative'>
-							<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
-							<input
-								type='text'
-								value={searchInput}
-								onChange={e => handleSearchInputChange(e.target.value)}
-								placeholder={t('searchPlaceholder')}
-								aria-label={t('searchPlaceholder')}
-								className='w-full rounded-2xl border border-border-subtle bg-bg-card py-4 pl-12 pr-12 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
-							/>
-							{searchInput && (
-								<motion.button
-									type='button'
-									onClick={() => handleSearchInputChange('')}
-									whileTap={BUTTON_TAP}
-									className='absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('clearSearch')}
-								>
-									<X className='size-5' />
-								</motion.button>
-							)}
-						</div>
-					</PremiumSurface>
-
-					{/* Recent searches */}
-					{recentSearches.length > 0 && (
-						<PremiumSurface
-							eyebrow='Recent Searches'
-							chipText={`${recentSearches.length} saved`}
-							className='mx-auto mb-6 max-w-xl p-3 md:p-4'
-						>
-							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-								<History className='size-4' />
-								<span className='text-sm font-semibold'>
-									{t('recentSearches')}
-								</span>
-							</div>
-							<div className='flex flex-wrap gap-2'>
-								{recentSearches.map(term => (
-									<div
-										key={term}
-										className='group inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-card pr-1 transition-colors hover:border-brand/40 hover:bg-brand/5'
-									>
-										<motion.button
-											type='button'
-											onClick={() => handleSuggestionClick(term)}
-											whileTap={BUTTON_TAP}
-											className='px-3.5 py-2 text-sm font-medium text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											{term}
-										</motion.button>
-										<motion.button
-											type='button'
-											onClick={() => handleRemoveRecent(term)}
-											whileTap={BUTTON_TAP}
-											className='flex size-7 items-center justify-center rounded-full text-text-muted opacity-80 transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-											aria-label={t('removeRecentSearch', { term })}
-										>
-											<X className='size-3' />
-										</motion.button>
+				<PageContainer maxWidth='2xl'>
+					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+						<div className='space-y-6'>
+							<motion.section
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={TRANSITION_SPRING}
+								className='rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-4 shadow-card md:p-5'
+							>
+								<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+									<div>
+										<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+											Discovery Command
+										</p>
+										<h1 className='mt-1 text-xl font-black leading-tight text-text-primary md:text-2xl'>
+											Search what to cook now
+										</h1>
 									</div>
-								))}
-							</div>
-						</PremiumSurface>
-					)}
+									<div className='hidden items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
+										<Sparkles className='size-3.5' />
+										Live suggestions
+									</div>
+								</div>
 
-					<PremiumSurface
-						eyebrow='Smart Suggestions'
-						chipText='Trending + shortcuts'
-						className='mx-auto mb-6 max-w-xl p-3 md:p-4'
-					>
-						<SurfaceSectionHeader
-							eyebrow='Suggestion Packs'
-							chipText='Tap to launch'
-							className='mb-3'
-						/>
-						<div className='mx-auto mb-6 max-w-xl'>
-							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-								<TrendingUp className='size-4' />
-								<span className='text-sm font-semibold'>
-									{t('suggestions')}
-								</span>
-							</div>
-							<div className='flex flex-wrap gap-2'>
-								{SEARCH_SUGGESTIONS.map(term => (
-									<motion.button
-										type='button'
-										key={term}
-										onClick={() => handleSuggestionClick(term)}
-										whileTap={BUTTON_TAP}
-										className='min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2.5 text-sm font-medium text-text transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50'
-									>
-										{term}
-									</motion.button>
-								))}
-							</div>
-						</div>
+								<div className='relative mb-4'>
+									<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										value={searchInput}
+										onChange={e => handleSearchInputChange(e.target.value)}
+										placeholder={t('searchPlaceholder')}
+										aria-label={t('searchPlaceholder')}
+										className='w-full rounded-xl border border-border-subtle bg-bg-card py-3.5 pl-12 pr-11 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:ring-0'
+									/>
+									{searchInput && (
+										<motion.button
+											type='button'
+											onClick={() => handleSearchInputChange('')}
+											whileTap={BUTTON_TAP}
+											className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+											aria-label={t('clearSearch')}
+										>
+											<X className='size-4' />
+										</motion.button>
+									)}
+								</div>
 
-						<div className='mx-auto mb-6 max-w-xl'>
-							<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-								<Flame className='size-4 text-streak' />
-								<span className='text-sm font-semibold'>
-									{t('trendingSearches')}
-								</span>
-							</div>
-							<div className='grid grid-cols-2 gap-2'>
-								{TRENDING_SEARCH_TERMS.map(
-									({ term, icon: Icon, iconClass }) => (
+								<div className='flex flex-wrap gap-2'>
+									{visibleSuggestionTerms.map((term, index) => (
 										<motion.button
 											type='button'
 											key={term}
 											onClick={() => handleSuggestionClick(term)}
 											whileTap={BUTTON_TAP}
-											className='group flex items-center gap-2 rounded-2xl border border-border-subtle bg-bg-card p-3 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+											className={cn(
+												'min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50',
+												index >= 3 && 'hidden sm:inline-flex',
+											)}
 										>
-											<span
+											{term}
+										</motion.button>
+									))}
+								</div>
+							</motion.section>
+
+							{recentSearches.length > 0 && (
+								<motion.section
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ ...TRANSITION_SPRING, delay: 0.05 }}
+									className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+								>
+									<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+										<History className='size-4' />
+										<p className='text-sm font-semibold'>
+											{t('recentSearches')}
+										</p>
+									</div>
+									<div className='flex flex-wrap gap-2'>
+										{recentSearches.map(term => (
+											<div
+												key={term}
+												className='inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-elevated pr-1'
+											>
+												<motion.button
+													type='button'
+													onClick={() => handleSuggestionClick(term)}
+													whileTap={BUTTON_TAP}
+													className='px-3 py-1.5 text-sm font-medium text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													{term}
+												</motion.button>
+												<motion.button
+													type='button'
+													onClick={() => handleRemoveRecent(term)}
+													whileTap={BUTTON_TAP}
+													className='flex size-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+													aria-label={t('removeRecentSearch', { term })}
+												>
+													<X className='size-3' />
+												</motion.button>
+											</div>
+										))}
+									</div>
+								</motion.section>
+							)}
+
+							<motion.section
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+								className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+							>
+								<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+									<Flame className='size-4 text-streak' />
+									<p className='text-sm font-semibold'>
+										{t('trendingSearches')}
+									</p>
+								</div>
+								<div className='grid grid-cols-2 gap-2'>
+									{trendingTermsForDeck.map(
+										({ term, icon: Icon, iconClass }, index) => (
+											<motion.button
+												type='button'
+												key={term}
+												onClick={() => handleSuggestionClick(term)}
+												whileTap={BUTTON_TAP}
 												className={cn(
-													'flex size-8 flex-shrink-0 items-center justify-center rounded-xl transition-transform group-hover:scale-105',
-													iconClass,
+													'group flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-elevated px-2 py-2 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-2 sm:p-3',
+													index >= 2 && 'hidden sm:flex',
 												)}
 											>
-												<Icon className='size-4' />
-											</span>
-											<span className='text-sm font-semibold text-text'>
-												{term}
-											</span>
-										</motion.button>
-									),
-								)}
-							</div>
+												<span
+													className={cn(
+														'flex size-6 items-center justify-center rounded-lg sm:size-8',
+														iconClass,
+													)}
+												>
+													<Icon className='size-3 sm:size-4' />
+												</span>
+												<span className='text-[13px] font-semibold leading-tight text-text-primary sm:text-sm'>
+													{term}
+												</span>
+											</motion.button>
+										),
+									)}
+								</div>
+							</motion.section>
+
+							<div className='pb-24 md:pb-8' />
 						</div>
 
-						<div className='mx-auto mb-2 max-w-xl'>
-							<div className='grid grid-cols-1 gap-2 sm:grid-cols-3'>
-								<Link
-									href='/explore'
-									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-										<BookOpen className='size-4' />
-									</span>
-									<div className='min-w-0'>
-										<p className='text-sm font-semibold text-text'>
-											{t('tabRecipes')}
-										</p>
-										<p className='text-caption text-text-secondary'>
-											{t('exploreAll')}
-										</p>
+						<motion.aside
+							initial={{ opacity: 0, x: 10 }}
+							animate={{ opacity: 1, x: 0 }}
+							transition={{ duration: DURATION_S.normal }}
+							className='hidden xl:flex xl:flex-col xl:gap-4 xl:self-start xl:sticky xl:top-24'
+						>
+							<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+									Search Pulse
+								</p>
+								<h3 className='mt-1 text-lg font-black text-text-primary'>
+									Discovery ready
+								</h3>
+								<div className='mt-3 grid gap-2'>
+									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
+										<span className='text-xs font-semibold text-text-secondary'>
+											Recent terms
+										</span>
+										<span className='text-sm font-black tabular-nums text-text-primary'>
+											{recentSearches.length}
+										</span>
 									</div>
-								</Link>
-
-								<Link
-									href='/community'
-									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-										<Users className='size-4' />
-									</span>
-									<div className='min-w-0'>
-										<p className='text-sm font-semibold text-text'>
-											{t('tabPeople')}
-										</p>
-										<p className='text-caption text-text-secondary'>
-											{t('discoverPeople')}
-										</p>
+									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
+										<span className='text-xs font-semibold text-text-secondary'>
+											Suggestion packs
+										</span>
+										<span className='text-sm font-black tabular-nums text-text-primary'>
+											{SEARCH_SUGGESTIONS.length}
+										</span>
 									</div>
-								</Link>
-
-								<Link
-									href='/feed'
-									className='group flex items-center gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<span className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-brand transition-colors group-hover:bg-brand/10'>
-										<ImageIcon className='size-4' />
-									</span>
-									<div className='min-w-0'>
-										<p className='text-sm font-semibold text-text'>
-											{t('tabPosts')}
-										</p>
-										<p className='text-caption text-text-secondary'>
-											{t('viewFeed')}
-										</p>
+									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
+										<span className='text-xs font-semibold text-text-secondary'>
+											Trending slots
+										</span>
+										<span className='text-sm font-black tabular-nums text-text-primary'>
+											{TRENDING_SEARCH_TERMS.length}
+										</span>
 									</div>
-								</Link>
+								</div>
 							</div>
-						</div>
-					</PremiumSurface>
-					<div className='pb-24 md:pb-8' />
+
+							<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+									Quick Moves
+								</p>
+								<div className='mt-3 grid gap-2'>
+									<Link
+										href='/explore'
+										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+									>
+										<BookOpen className='size-3.5' />
+										{t('exploreAll')}
+									</Link>
+									<Link
+										href='/community'
+										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+									>
+										<Users className='size-3.5' />
+										{t('discoverPeople')}
+									</Link>
+									<Link
+										href='/feed'
+										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+									>
+										<ImageIcon className='size-3.5' />
+										{t('viewFeed')}
+									</Link>
+								</div>
+							</div>
+						</motion.aside>
+					</div>
 				</PageContainer>
 			</PageTransition>
 		)
@@ -917,7 +950,7 @@ function SearchContent() {
 								type='button'
 								onClick={() => router.back()}
 								whileTap={BUTTON_TAP}
-								className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								aria-label={t('goBack')}
 							>
 								<ArrowLeft className='size-5' />
@@ -930,14 +963,14 @@ function SearchContent() {
 									onChange={e => handleSearchInputChange(e.target.value)}
 									placeholder={t('searchPlaceholder')}
 									aria-label={t('searchPlaceholder')}
-									className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
+									className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
 								/>
 								{searchInput && (
 									<motion.button
 										type='button'
 										onClick={() => handleSearchInputChange('')}
 										whileTap={BUTTON_TAP}
-										className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 										aria-label={t('clearSearch')}
 									>
 										<X className='size-4' />
@@ -954,7 +987,7 @@ function SearchContent() {
 							>
 								<Search className='size-6 text-white' />
 							</motion.div>
-							<h1 className='text-3xl font-bold text-text'>
+							<h1 className='text-3xl font-bold text-text-primary'>
 								Results for &quot;{query}&quot;
 							</h1>
 						</div>

@@ -92,11 +92,17 @@ function computeWeekProgress(
 
 export const RightSidebar = () => {
 	const t = useTranslations('common')
+	const tNav = useTranslations('nav')
 	const { user } = useAuth()
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 	usePresence() // Send heartbeat while sidebar is mounted
+	const isDiscoverySurface =
+		pathname.startsWith('/search') ||
+		pathname.startsWith('/explore') ||
+		pathname.startsWith('/feed') ||
+		pathname.startsWith('/community')
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
@@ -244,51 +250,88 @@ export const RightSidebar = () => {
 			<div className='pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-border-subtle to-transparent' />
 			{/* Guest experience — compelling sign-up prompt instead of dead space */}
 			{!user && (
-				<div className='relative z-10 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 p-6 shadow-card'>
-					<p className='mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+				<div
+					className={cn(
+						'relative z-10 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 shadow-card',
+						isDiscoverySurface ? 'p-4' : 'p-6',
+					)}
+				>
+					<p className='mb-2 text-2xs font-bold uppercase tracking-[0.18em] text-text-muted'>
 						Guest Mode
 					</p>
 					<div className='mb-4 flex items-center gap-2'>
-						<ChefHat className='size-6 text-brand' />
-						<h3 className='text-base font-bold text-text'>
+						<ChefHat className='size-5 text-brand' />
+						<h3 className='text-sm font-bold text-text-primary sm:text-base'>
 							{t('guestSidebarTitle')}
 						</h3>
 					</div>
-					<p className='mb-5 text-sm leading-relaxed text-text-secondary'>
+					<p className='mb-4 text-sm leading-relaxed text-text-secondary'>
 						{t('guestSidebarDesc')}
 					</p>
-					<div className='mb-5 flex flex-col gap-2.5'>
-						{[
-							{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
-							{
-								icon: Trophy,
-								text: t('guestBenefitLevel'),
-								color: 'text-level',
-							},
-							{
-								icon: Users,
-								text: t('guestBenefitCommunity'),
-								color: 'text-brand',
-							},
-						].map(({ icon: Icon, text, color }) => (
-							<div key={text} className='flex items-center gap-2.5'>
-								<Icon className={cn('size-4 flex-shrink-0', color)} />
-								<span className='text-sm text-text-secondary'>{text}</span>
-							</div>
-						))}
+					<div className='mb-4 rounded-xl border border-border-subtle bg-bg-card/80 p-3'>
+						<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
+							{t('exploreNow')}
+						</p>
+						<div className='grid gap-2'>
+							<Link
+								href={PATHS.EXPLORE}
+								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
+							>
+								<span>{tNav('explore')}</span>
+								<ChefHat className='size-4 text-brand' />
+							</Link>
+							<Link
+								href={PATHS.COMMUNITY ?? '/community'}
+								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
+							>
+								<span>{tNav('community')}</span>
+								<Users className='size-4 text-xp' />
+							</Link>
+							<Link
+								href={PATHS.LEADERBOARD}
+								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
+							>
+								<span>{tNav('leaderboard')}</span>
+								<Trophy className='size-4 text-level' />
+							</Link>
+						</div>
 					</div>
+					{!isDiscoverySurface && (
+						<div className='mb-5 flex flex-col gap-2.5'>
+							{[
+								{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
+								{
+									icon: Trophy,
+									text: t('guestBenefitLevel'),
+									color: 'text-level',
+								},
+								{
+									icon: Users,
+									text: t('guestBenefitCommunity'),
+									color: 'text-brand',
+								},
+							].map(({ icon: Icon, text, color }) => (
+								<div key={text} className='flex items-center gap-2.5'>
+									<Icon className={cn('size-4 flex-shrink-0', color)} />
+									<span className='text-sm text-text-secondary'>{text}</span>
+								</div>
+							))}
+						</div>
+					)}
 					<Link
 						href={guestSignUpHref}
 						className='flex h-10 w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)]'
 					>
 						{t('guestSidebarCta')}
 					</Link>
-					<Link
-						href={guestSignInHref}
-						className='mt-2 flex h-9 w-full items-center justify-center rounded-xl border border-border-subtle/80 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text'
-					>
-						{t('guestSidebarSignIn')}
-					</Link>
+					<p className='mt-2 text-center text-xs text-text-muted'>
+						<Link
+							href={guestSignInHref}
+							className='font-semibold text-brand transition-colors hover:text-brand/80'
+						>
+							{t('guestSidebarSignIn')}
+						</Link>
+					</p>
 				</div>
 			)}
 
@@ -305,7 +348,7 @@ export const RightSidebar = () => {
 							<button
 								type='button'
 								onClick={() => setRetryCount(c => c + 1)}
-								className='flex items-center gap-1.5 rounded-xl bg-bg-card px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-bg-hover'
+								className='flex items-center gap-1.5 rounded-xl bg-bg-card px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-bg-hover'
 							>
 								<RefreshCw className='size-3' />
 								{t('retry')}

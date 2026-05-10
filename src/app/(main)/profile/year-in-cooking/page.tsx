@@ -515,12 +515,12 @@ export default function YearInCookingPage() {
 								type='button'
 								onClick={() => router.back()}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								aria-label={t('ariaGoBack')}
 							>
 								<ArrowLeft className='size-5' />
 							</motion.button>
-							<h1 className='text-xl font-bold text-text'>
+							<h1 className='text-xl font-bold text-text-primary'>
 								{t('yearInCooking')}
 							</h1>
 						</div>
@@ -552,13 +552,13 @@ export default function YearInCookingPage() {
 							type='button'
 							onClick={() => router.back()}
 							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
 						<div className='flex-1'>
-							<h1 className='text-xl font-bold text-text'>
+							<h1 className='text-xl font-bold text-text-primary'>
 								{t('yearInCooking')}
 							</h1>
 							<p className='text-sm text-text-muted'>
@@ -652,7 +652,7 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(-1)}
-							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='absolute left-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text-primary shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaPrevious')}
 						>
 							<ChevronLeft className='size-5' />
@@ -663,7 +663,7 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={() => paginate(1)}
-							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='absolute right-2 top-1/2 z-sticky flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg-card/90 text-text-primary shadow-card backdrop-blur-sm transition-colors hover:bg-bg-card focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaNext')}
 						>
 							<ChevronRight className='size-5' />
@@ -677,7 +677,7 @@ export default function YearInCookingPage() {
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={handleDownload}
 							disabled={isGenerating}
-							className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isGenerating ? (
 								<Loader2 className='size-4 animate-spin' />

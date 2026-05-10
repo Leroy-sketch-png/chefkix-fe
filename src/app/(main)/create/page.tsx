@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
+import { CreateCommandDeck } from '@/components/recipe/CreateCommandDeck'
+import { CreateContextRail } from '@/components/recipe/CreateContextRail'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -201,7 +203,7 @@ function CreateRecipeContent() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth={mode === 'list' ? '2xl' : 'lg'}>
 				<AnimatePresence mode='wait'>
 					{mode === 'list' ? (
 						<motion.div
@@ -211,7 +213,6 @@ function CreateRecipeContent() {
 							exit={{ opacity: 0, x: -20 }}
 							transition={TRANSITION_SPRING}
 						>
-							{/* Header */}
 							<PageHeader
 								icon={Edit3}
 								title={t('title')}
@@ -220,110 +221,124 @@ function CreateRecipeContent() {
 								marginBottom='md'
 							/>
 
-							<SurfaceSectionHeader
-								className='mb-4'
-								eyebrow='Creation Studio'
-								chipText='Draft-ready'
-							/>
+							<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+								<div>
+									<CreateCommandDeck
+										hasLocalDraft={Boolean(localDraft)}
+										isLoadingDraft={isLoadingDraft}
+										onNewRecipe={handleNewRecipe}
+										className='mb-6'
+									/>
 
-							{/* Local Draft Recovery Card */}
-							{localDraft && (
-								<motion.div
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									className='mb-6 relative overflow-hidden rounded-2xl border-2 border-streak/60 bg-gradient-to-r from-streak/10 via-bg-card to-streak/5 p-5 shadow-card'
-								>
-									<div className='pointer-events-none absolute -right-8 -top-8 size-28 rounded-full bg-streak/20 blur-2xl' />
-									<div className='flex items-start gap-4'>
-										<div className='flex size-12 items-center justify-center rounded-xl bg-streak/20'>
-											<FileText className='size-6 text-streak' />
-										</div>
-										<div className='flex-1'>
-											<div className='flex items-center gap-2'>
-												<h2 className='font-semibold text-text'>
-													{localDraft.data.title || t('untitledRecipe')}
-												</h2>
-												<span className='rounded-full bg-streak/20 px-2 py-0.5 text-xs font-medium text-streak'>
-													{t('localDraft')}
-												</span>
-											</div>
-											<div className='mt-1 flex items-center gap-1.5 text-xs text-text-muted'>
-												<Clock className='size-3' />
-												<span>
-													{t('savedAgo', {
-														time: formatDistanceToNow(
-															new Date(localDraft.savedAt),
-															{ addSuffix: true },
-														),
-													})}
-												</span>
-											</div>
-											<p className='mt-2 text-sm text-text-secondary'>
-												{t('ingredientsSteps', {
-													ingredients: localDraft.data.ingredients?.length || 0,
-													steps: localDraft.data.steps?.length || 0,
-												})}
-											</p>
-										</div>
-									</div>
-									<div className='mt-4 flex gap-3'>
-										<motion.button
-											type='button'
-											onClick={handleResumeLocalDraft}
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+									<SurfaceSectionHeader
+										className='mb-4'
+										eyebrow='Creation Studio'
+										chipText='Draft-ready'
+									/>
+
+									{/* Local Draft Recovery Card */}
+									{localDraft && (
+										<motion.div
+											initial={{ opacity: 0, y: -10 }}
+											animate={{ opacity: 1, y: 0 }}
+											className='mb-6 relative overflow-hidden rounded-2xl border-2 border-streak/60 bg-gradient-to-r from-streak/10 via-bg-card to-streak/5 p-5 shadow-card'
 										>
-											{t('resumeEditing')}
-										</motion.button>
-										<motion.button
-											type='button'
-											onClick={() => setShowDiscardDialog(true)}
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											<Trash2 className='size-4' />
-										</motion.button>
-									</div>
-								</motion.div>
-							)}
+											<div className='pointer-events-none absolute -right-8 -top-8 size-28 rounded-full bg-streak/20 blur-2xl' />
+											<div className='flex items-start gap-4'>
+												<div className='flex size-12 items-center justify-center rounded-xl bg-streak/20'>
+													<FileText className='size-6 text-streak' />
+												</div>
+												<div className='flex-1'>
+													<div className='flex items-center gap-2'>
+														<h2 className='font-semibold text-text-primary'>
+															{localDraft.data.title || t('untitledRecipe')}
+														</h2>
+														<span className='rounded-full bg-streak/20 px-2 py-0.5 text-xs font-medium text-streak'>
+															{t('localDraft')}
+														</span>
+													</div>
+													<div className='mt-1 flex items-center gap-1.5 text-xs text-text-muted'>
+														<Clock className='size-3' />
+														<span>
+															{t('savedAgo', {
+																time: formatDistanceToNow(
+																	new Date(localDraft.savedAt),
+																	{
+																		addSuffix: true,
+																	},
+																),
+															})}
+														</span>
+													</div>
+													<p className='mt-2 text-sm text-text-secondary'>
+														{t('ingredientsSteps', {
+															ingredients:
+																localDraft.data.ingredients?.length || 0,
+															steps: localDraft.data.steps?.length || 0,
+														})}
+													</p>
+												</div>
+											</div>
+											<div className='mt-4 flex gap-3'>
+												<motion.button
+													type='button'
+													onClick={handleResumeLocalDraft}
+													whileHover={BUTTON_HOVER}
+													whileTap={BUTTON_TAP}
+													className='flex-1 rounded-xl bg-streak py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													{t('resumeEditing')}
+												</motion.button>
+												<motion.button
+													type='button'
+													onClick={() => setShowDiscardDialog(true)}
+													whileHover={BUTTON_HOVER}
+													whileTap={BUTTON_TAP}
+													className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													<Trash2 className='size-4' />
+												</motion.button>
+											</div>
+										</motion.div>
+									)}
 
-							{/* Drafts List with New Recipe CTA */}
-							<DraftsList
-								onSelectDraft={handleSelectDraft}
-								onNewRecipe={handleNewRecipe}
-							/>
+									<DraftsList
+										onSelectDraft={handleSelectDraft}
+										onNewRecipe={handleNewRecipe}
+									/>
 
-							{/* Loading skeleton when fetching full draft data — content-shaped, not a spinner */}
-							<AnimatePresence>
-								{isLoadingDraft && (
-									<motion.div
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										exit={{ opacity: 0 }}
-										className='mx-auto max-w-3xl space-y-5 p-5'
-									>
-										{/* Header skeleton */}
-										<div className='flex items-center gap-4'>
-											<Skeleton className='size-10 rounded-xl' />
-											<Skeleton className='h-8 w-48' />
-										</div>
-										{/* Method cards skeleton */}
-										<div className='grid gap-4 md:grid-cols-2'>
-											<Skeleton className='h-24 rounded-2xl' />
-											<Skeleton className='h-24 rounded-2xl' />
-										</div>
-										{/* Content area skeleton */}
-										<div className='rounded-2xl bg-bg-card p-6 space-y-4'>
-											<Skeleton className='h-6 w-40' />
-											<Skeleton className='h-4 w-64' />
-											<Skeleton className='h-40 w-full rounded-xl' />
-											<Skeleton className='h-12 w-full rounded-xl' />
-										</div>
-									</motion.div>
-								)}
-							</AnimatePresence>
+									<AnimatePresence>
+										{isLoadingDraft && (
+											<motion.div
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												exit={{ opacity: 0 }}
+												className='mx-auto max-w-3xl space-y-5 p-5'
+											>
+												<div className='flex items-center gap-4'>
+													<Skeleton className='size-10 rounded-xl' />
+													<Skeleton className='h-8 w-48' />
+												</div>
+												<div className='grid gap-4 md:grid-cols-2'>
+													<Skeleton className='h-24 rounded-2xl' />
+													<Skeleton className='h-24 rounded-2xl' />
+												</div>
+												<div className='rounded-2xl bg-bg-card p-6 space-y-4'>
+													<Skeleton className='h-6 w-40' />
+													<Skeleton className='h-4 w-64' />
+													<Skeleton className='h-40 w-full rounded-xl' />
+													<Skeleton className='h-12 w-full rounded-xl' />
+												</div>
+											</motion.div>
+										)}
+									</AnimatePresence>
+								</div>
+
+								<CreateContextRail
+									hasLocalDraft={Boolean(localDraft)}
+									isLoadingDraft={isLoadingDraft}
+								/>
+							</div>
 						</motion.div>
 					) : (
 						<motion.div
@@ -354,7 +369,7 @@ function CreateRecipeContent() {
 							<div className='mx-auto mb-2 flex size-14 items-center justify-center rounded-full bg-destructive/10'>
 								<Trash2 className='size-7 text-destructive' />
 							</div>
-							<AlertDialogTitle className='text-lg font-bold text-text'>
+							<AlertDialogTitle className='text-lg font-bold text-text-primary'>
 								{t('discardDraftTitle')}
 							</AlertDialogTitle>
 							<AlertDialogDescription className='text-sm text-text-secondary'>

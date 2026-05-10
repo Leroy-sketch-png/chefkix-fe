@@ -208,7 +208,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 						<p
 							className={cn(
 								'text-sm font-bold',
-								isEarned ? 'text-text' : 'text-text-muted',
+								isEarned ? 'text-text-primary' : 'text-text-muted',
 							)}
 						>
 							{badge.name}
@@ -386,7 +386,7 @@ export default function BadgeCatalogPage() {
 									type='button'
 									onClick={() => router.back()}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 									aria-label={t('ariaGoBack')}
 								>
 									<ArrowLeft className='size-5' />
@@ -436,7 +436,7 @@ export default function BadgeCatalogPage() {
 										placeholder={t('searchPlaceholder')}
 										value={searchQuery}
 										onChange={e => setSearchQuery(e.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
+										className='w-full rounded-xl border border-border-subtle bg-bg-input py-2 pl-9 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20'
 									/>
 								</div>
 
@@ -450,14 +450,17 @@ export default function BadgeCatalogPage() {
 												e.target.value as BadgeCategory | 'ALL',
 											)
 										}
-										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
 									>
-										<option className='bg-bg-card text-text' value='ALL'>
+										<option
+											className='bg-bg-card text-text-primary'
+											value='ALL'
+										>
 											{t('allCategories')}
 										</option>
 										{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
 											<option
-												className='bg-bg-card text-text'
+												className='bg-bg-card text-text-primary'
 												key={key}
 												value={key}
 											>
@@ -473,14 +476,17 @@ export default function BadgeCatalogPage() {
 										onChange={e =>
 											setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
 										}
-										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
 									>
-										<option className='bg-bg-card text-text' value='ALL'>
+										<option
+											className='bg-bg-card text-text-primary'
+											value='ALL'
+										>
 											{t('allRarities')}
 										</option>
 										{RARITY_ORDER.map(rarity => (
 											<option
-												className='bg-bg-card text-text'
+												className='bg-bg-card text-text-primary'
 												key={rarity}
 												value={rarity}
 											>
@@ -497,7 +503,7 @@ export default function BadgeCatalogPage() {
 											'flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors',
 											showEarnedOnly
 												? 'border-success bg-success/10 text-success'
-												: 'border-border-subtle bg-bg-input text-text-muted hover:text-text',
+												: 'border-border-subtle bg-bg-input text-text-muted hover:text-text-primary',
 										)}
 									>
 										<CheckCircle2 className='size-4' />
@@ -527,7 +533,7 @@ export default function BadgeCatalogPage() {
 									<div className='grid size-16 place-items-center rounded-2xl bg-bg-hover'>
 										<Search className='size-8 text-text-muted' />
 									</div>
-									<p className='mt-4 font-semibold text-text'>
+									<p className='mt-4 font-semibold text-text-primary'>
 										{t('noBadgesFound')}
 									</p>
 									<p className='mt-1 text-sm text-text-muted'>
@@ -580,7 +586,7 @@ export default function BadgeCatalogPage() {
 						className='p-3 md:p-4'
 					>
 						<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
-							<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text'>
+							<h3 className='mb-3 flex items-center gap-2 text-sm font-bold text-text-primary'>
 								<Star className='size-4 text-xp' />
 								{t('rarityGuide')}
 							</h3>

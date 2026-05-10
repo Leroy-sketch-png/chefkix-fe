@@ -19,6 +19,8 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { ShoppingListsCommandDeck } from '@/components/shopping-lists/ShoppingListsCommandDeck'
+import { ShoppingListsContextRail } from '@/components/shopping-lists/ShoppingListsContextRail'
 import { Portal } from '@/components/ui/portal'
 import { ErrorState } from '@/components/ui/error-state'
 import { ShoppingListItemRow } from './ShoppingListItemRow'
@@ -436,15 +438,35 @@ export default function ShoppingListsPage() {
 	if (selectedList) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
-					<div className='space-y-6 py-6'>
-						<PremiumSurface
-							eyebrow='List Detail'
-							chipText={`${selectedList.totalItems} items`}
-							className='p-3 md:p-4'
-							tone='blue'
-						>
-							<div className='flex items-center justify-between'>
+				<PageContainer maxWidth='2xl'>
+					<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+						<div className='space-y-6'>
+							<PageHeader
+								icon={ShoppingCart}
+								title={selectedList.name}
+								subtitle={t('itemsChecked', {
+									checked: selectedList.items.filter(i => i.checked).length,
+									total: selectedList.totalItems,
+								})}
+								gradient='blue'
+								marginBottom='sm'
+							/>
+
+							<ShoppingListsCommandDeck
+								variant='detail'
+								counts={{
+									lists: lists.length,
+									totalItems: selectedList.totalItems,
+									checkedItems: selectedList.checkedItems,
+									progress,
+								}}
+								onPrimaryAction={() => setShowAddItem(true)}
+								primaryActionLabel={t('addCustomItem')}
+								onSecondaryAction={handleCopyList}
+								secondaryActionLabel={copySuccess ? t('copied') : t('copy')}
+							/>
+
+							<div className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-card px-4 py-3 shadow-card'>
 								<div className='flex items-center gap-3'>
 									<button
 										type='button'
@@ -452,263 +474,250 @@ export default function ShoppingListsPage() {
 											setSelectedList(null)
 											fetchLists()
 										}}
-										className='rounded-xl p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='rounded-xl p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 										aria-label={t('backToLists')}
 									>
 										<ArrowLeft className='size-5' />
 									</button>
-									<div>
-										<h1 className='text-xl font-bold text-text'>
-											{selectedList.name}
-										</h1>
-										<p className='text-sm text-text-muted'>
-											{t('itemsChecked', {
-												checked: selectedList.items.filter(i => i.checked)
-													.length,
-												total: selectedList.totalItems,
-											})}
-										</p>
-									</div>
-								</div>
-								<div className='flex items-center gap-2'>
-									<button
-										type='button'
-										onClick={handleCopyList}
-										className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-										title={t('copyList')}
-									>
-										{copySuccess ? (
-											<Check className='size-4 text-success' />
-										) : (
-											<Copy className='size-4' />
-										)}
-										{copySuccess ? t('copied') : t('copy')}
-									</button>
-									<button
-										type='button'
-										onClick={handleShare}
-										className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
-										title={t('shareList')}
-									>
-										{shareSuccess ? (
-											<Check className='size-4 text-success' />
-										) : (
-											<Share2 className='size-4' />
-										)}
-										{shareSuccess ? t('linkCopied') : t('share')}
-									</button>
-								</div>
-							</div>
-						</PremiumSurface>
-
-						{/* Grocery checkout CTA */}
-						{uncheckedItems.length > 0 && (
-							<motion.div
-								initial={{ opacity: 0, y: -8 }}
-								animate={{ opacity: 1, y: 0 }}
-								className='flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3'
-							>
-								<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
-								<div className='flex-1 min-w-0'>
-									<p className='text-sm font-semibold text-text'>
-										{t('shopInstacart')}
-									</p>
-									<p className='text-xs text-text-muted'>
-										{t('remainingItems', { count: uncheckedItems.length })}
+									<p className='text-sm text-text-secondary'>
+										{t('backToLists')}
 									</p>
 								</div>
 								<button
 									type='button'
-									disabled={isCheckingOut}
-									onClick={async () => {
-										if (!selectedList) return
-										setIsCheckingOut(true)
-										try {
-											const result = await checkoutShoppingList(
-												selectedList.id,
-												'affiliate',
-											)
-											if (result?.checkoutUrl) {
-												window.open(
-													result.checkoutUrl,
-													'_blank',
-													'noopener,noreferrer',
-												)
-												toast.success(
-													t('checkoutStarted', { count: result.itemCount }),
-												)
-											} else {
-												toast.success(t('checkoutPrepared'))
-											}
-										} catch {
-											toast.error(t('checkoutFailed'))
-										} finally {
-											setIsCheckingOut(false)
-										}
-									}}
-									className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
+									onClick={handleShare}
+									className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
+									title={t('shareList')}
 								>
-									{isCheckingOut ? t('processing') : t('shopNow')}
+									{shareSuccess ? (
+										<Check className='size-4 text-success' />
+									) : (
+										<Share2 className='size-4' />
+									)}
+									{shareSuccess ? t('linkCopied') : t('share')}
 								</button>
-							</motion.div>
-						)}
-
-						{/* Progress bar */}
-						{selectedList.totalItems > 0 && (
-							<div className='overflow-hidden rounded-full bg-bg-elevated'>
-								<motion.div
-									className='h-2 rounded-full bg-gradient-primary'
-									initial={{ width: 0 }}
-									animate={{ width: `${progress}%` }}
-									transition={TRANSITION_SPRING}
-								/>
 							</div>
-						)}
 
-						{/* {t('addCustomItem')} */}
-						<AnimatePresence>
-							{showAddItem ? (
+							{/* Grocery checkout CTA */}
+							{uncheckedItems.length > 0 && (
 								<motion.div
-									initial={{ opacity: 0, height: 0 }}
-									animate={{ opacity: 1, height: 'auto' }}
-									exit={{ opacity: 0, height: 0 }}
-									className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+									initial={{ opacity: 0, y: -8 }}
+									animate={{ opacity: 1, y: 0 }}
+									className='flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3'
 								>
-									<div className='flex items-end gap-3'>
-										<div className='flex-1 space-y-2'>
-											<label
-												htmlFor='shopping-item-name'
-												className='text-xs font-medium text-text-muted'
-											>
-												{t('itemName')}
-											</label>
-											<AsyncCombobox
-												id='shopping-item-name'
-												value={newItemForm.ingredient}
-												onChange={val =>
-													setNewItemForm(prev => ({
-														...prev,
-														ingredient: val,
-													}))
-												}
-												onSelect={option =>
-													setNewItemForm(prev => ({
-														...prev,
-														ingredient: option.label,
-													}))
-												}
-												fetchOptions={fetchIngredientOptions}
-												minChars={1}
-												placeholder={t('ingredientPlaceholder')}
-												onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-											/>
-										</div>
-										<div className='w-24 space-y-2'>
-											<label
-												htmlFor='shopping-quantity'
-												className='text-xs font-medium text-text-muted'
-											>
-												{t('quantity')}
-											</label>
-											<input
-												id='shopping-quantity'
-												value={newItemForm.quantity || ''}
-												onChange={e =>
-													setNewItemForm(prev => ({
-														...prev,
-														quantity: e.target.value,
-													}))
-												}
-												placeholder={t('quantityPlaceholder')}
-												className='w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-											/>
-										</div>
-										<button
-											type='button'
-											onClick={handleAddItem}
-											disabled={!newItemForm.ingredient.trim()}
-											className='rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
-										>
-											{t('add')}
-										</button>
-										<button
-											type='button'
-											onClick={() => {
-												setShowAddItem(false)
-												setNewItemForm({ ingredient: '' })
-											}}
-											className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated'
-										>
-											<X className='size-4' />
-										</button>
+									<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
+									<div className='flex-1 min-w-0'>
+										<p className='text-sm font-semibold text-text-primary'>
+											{t('shopInstacart')}
+										</p>
+										<p className='text-xs text-text-muted'>
+											{t('remainingItems', { count: uncheckedItems.length })}
+										</p>
 									</div>
+									<button
+										type='button'
+										disabled={isCheckingOut}
+										onClick={async () => {
+											if (!selectedList) return
+											setIsCheckingOut(true)
+											try {
+												const result = await checkoutShoppingList(
+													selectedList.id,
+													'affiliate',
+												)
+												if (result?.checkoutUrl) {
+													window.open(
+														result.checkoutUrl,
+														'_blank',
+														'noopener,noreferrer',
+													)
+													toast.success(
+														t('checkoutStarted', { count: result.itemCount }),
+													)
+												} else {
+													toast.success(t('checkoutPrepared'))
+												}
+											} catch {
+												toast.error(t('checkoutFailed'))
+											} finally {
+												setIsCheckingOut(false)
+											}
+										}}
+										className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
+									>
+										{isCheckingOut ? t('processing') : t('shopNow')}
+									</button>
 								</motion.div>
-							) : (
-								<motion.button
-									type='button'
-									onClick={() => setShowAddItem(true)}
-									className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
-									whileHover={CARD_FEATURED_HOVER}
-									whileTap={LIST_ITEM_TAP}
-								>
-									<Plus className='size-4' />
-									{t('addCustomItem')}
-								</motion.button>
 							)}
-						</AnimatePresence>
 
-						<PremiumSurface
-							eyebrow='Categorized Items'
-							chipText={`${Object.keys(groupedItems).length} sections`}
-							className='p-3 md:p-4'
-						>
-							<SurfaceSectionHeader
-								eyebrow='Smart Grouping'
-								chipText={`${selectedList.checkedItems}/${selectedList.totalItems} checked`}
-								className='mb-3'
-							/>
-							{selectedList.items.length === 0 ? (
-								<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
-									<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
-									<p className='text-text-muted'>{t('emptyList')}</p>
-								</div>
-							) : (
-								<div className='space-y-4'>
-									{Object.entries(groupedItems).map(([category, items]) => {
-										const config =
-											CATEGORY_CONFIG[category] || CATEGORY_CONFIG.Other
-										return (
-											<motion.div
-												key={category}
-												layout
-												className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
-											>
-												<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
-													<span className='text-lg'>{config.icon}</span>
-													<span className='text-sm font-semibold text-text'>
-														{category}
-													</span>
-													<span className='ml-auto text-xs text-text-muted'>
-														{items.filter(i => i.checked).length}/{items.length}
-													</span>
-												</div>
-												<ul className='divide-y divide-border-subtle'>
-													{items.map(item => (
-														<ShoppingListItemRow
-															key={item.itemId}
-															item={item}
-															onToggle={handleToggleItem}
-															onRemove={handleRemoveItem}
-															removeAriaLabel={t('ariaRemoveItem')}
-														/>
-													))}
-												</ul>
-											</motion.div>
-										)
-									})}
+							{/* Progress bar */}
+							{selectedList.totalItems > 0 && (
+								<div className='overflow-hidden rounded-full bg-bg-elevated'>
+									<motion.div
+										className='h-2 rounded-full bg-gradient-primary'
+										initial={{ width: 0 }}
+										animate={{ width: `${progress}%` }}
+										transition={TRANSITION_SPRING}
+									/>
 								</div>
 							)}
-						</PremiumSurface>
+
+							{/* {t('addCustomItem')} */}
+							<AnimatePresence>
+								{showAddItem ? (
+									<motion.div
+										initial={{ opacity: 0, height: 0 }}
+										animate={{ opacity: 1, height: 'auto' }}
+										exit={{ opacity: 0, height: 0 }}
+										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+									>
+										<div className='flex items-end gap-3'>
+											<div className='flex-1 space-y-2'>
+												<label
+													htmlFor='shopping-item-name'
+													className='text-xs font-medium text-text-muted'
+												>
+													{t('itemName')}
+												</label>
+												<AsyncCombobox
+													id='shopping-item-name'
+													value={newItemForm.ingredient}
+													onChange={val =>
+														setNewItemForm(prev => ({
+															...prev,
+															ingredient: val,
+														}))
+													}
+													onSelect={option =>
+														setNewItemForm(prev => ({
+															...prev,
+															ingredient: option.label,
+														}))
+													}
+													fetchOptions={fetchIngredientOptions}
+													minChars={1}
+													placeholder={t('ingredientPlaceholder')}
+													onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+												/>
+											</div>
+											<div className='w-24 space-y-2'>
+												<label
+													htmlFor='shopping-quantity'
+													className='text-xs font-medium text-text-muted'
+												>
+													{t('quantity')}
+												</label>
+												<input
+													id='shopping-quantity'
+													value={newItemForm.quantity || ''}
+													onChange={e =>
+														setNewItemForm(prev => ({
+															...prev,
+															quantity: e.target.value,
+														}))
+													}
+													placeholder={t('quantityPlaceholder')}
+													className='w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+												/>
+											</div>
+											<button
+												type='button'
+												onClick={handleAddItem}
+												disabled={!newItemForm.ingredient.trim()}
+												className='rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
+											>
+												{t('add')}
+											</button>
+											<button
+												type='button'
+												onClick={() => {
+													setShowAddItem(false)
+													setNewItemForm({ ingredient: '' })
+												}}
+												className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated'
+											>
+												<X className='size-4' />
+											</button>
+										</div>
+									</motion.div>
+								) : (
+									<motion.button
+										type='button'
+										onClick={() => setShowAddItem(true)}
+										className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+										whileHover={CARD_FEATURED_HOVER}
+										whileTap={LIST_ITEM_TAP}
+									>
+										<Plus className='size-4' />
+										{t('addCustomItem')}
+									</motion.button>
+								)}
+							</AnimatePresence>
+
+							<PremiumSurface
+								eyebrow='Categorized Items'
+								chipText={`${Object.keys(groupedItems).length} sections`}
+								className='p-3 md:p-4'
+							>
+								<SurfaceSectionHeader
+									eyebrow='Smart Grouping'
+									chipText={`${selectedList.checkedItems}/${selectedList.totalItems} checked`}
+									className='mb-3'
+								/>
+								{selectedList.items.length === 0 ? (
+									<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
+										<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
+										<p className='text-text-muted'>{t('emptyList')}</p>
+									</div>
+								) : (
+									<div className='space-y-4'>
+										{Object.entries(groupedItems).map(([category, items]) => {
+											const config =
+												CATEGORY_CONFIG[category] || CATEGORY_CONFIG.Other
+											return (
+												<motion.div
+													key={category}
+													layout
+													className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
+												>
+													<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
+														<span className='text-lg'>{config.icon}</span>
+														<span className='text-sm font-semibold text-text-primary'>
+															{category}
+														</span>
+														<span className='ml-auto text-xs text-text-muted'>
+															{items.filter(i => i.checked).length}/
+															{items.length}
+														</span>
+													</div>
+													<ul className='divide-y divide-border-subtle'>
+														{items.map(item => (
+															<ShoppingListItemRow
+																key={item.itemId}
+																item={item}
+																onToggle={handleToggleItem}
+																onRemove={handleRemoveItem}
+																removeAriaLabel={t('ariaRemoveItem')}
+															/>
+														))}
+													</ul>
+												</motion.div>
+											)
+										})}
+									</div>
+								)}
+							</PremiumSurface>
+						</div>
+
+						<ShoppingListsContextRail
+							variant='detail'
+							counts={{
+								lists: lists.length,
+								totalItems: selectedList.totalItems,
+								checkedItems: selectedList.checkedItems,
+								progress,
+							}}
+						/>
 					</div>
 				</PageContainer>
 			</PageTransition>
@@ -719,212 +728,245 @@ export default function ShoppingListsPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
-				<div className='space-y-6 py-6'>
-					<PremiumSurface
-						eyebrow='Pantry Operations'
-						chipText={`${lists.length} lists`}
-						tone='blue'
-						className='p-3 md:p-4'
-					>
+			<PageContainer maxWidth='2xl'>
+				<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+					<div className='space-y-6'>
 						<PageHeader
 							icon={ShoppingCart}
 							title={t('title')}
 							subtitle={t('subtitle', { count: lists.length })}
 							gradient='blue'
 							marginBottom='sm'
-							rightAction={
-								<div className='relative'>
-									<motion.button
-										type='button'
-										onClick={() => setShowCreateMenu(!showCreateMenu)}
-										className='flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
-										whileHover={BUTTON_SUBTLE_HOVER}
-										whileTap={BUTTON_SUBTLE_TAP}
-									>
-										<Plus className='size-4' />
-										{t('newList')}
-									</motion.button>
-
-									{/* Create dropdown */}
-									<AnimatePresence>
-										{showCreateMenu && (
-											<>
-												<div
-													className='fixed inset-0 z-dropdown'
-													onClick={() => {
-														setShowCreateMenu(false)
-														setShowCustomNameInput(false)
-														setCustomListName('')
-													}}
-												/>
-												<motion.div
-													initial={{ opacity: 0, y: -8, scale: 0.95 }}
-													animate={{ opacity: 1, y: 0, scale: 1 }}
-													exit={{ opacity: 0, y: -8, scale: 0.95 }}
-													transition={{ duration: DURATION_S.fast }}
-													className='absolute right-0 top-full z-dropdown mt-2 w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
-												>
-													<button
-														type='button'
-														onClick={handleCreateFromMealPlan}
-														disabled={isCreating}
-														className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
-													>
-														<CalendarDays className='size-4 text-info' />
-														<div>
-															<div className='font-medium'>
-																{t('fromMealPlan')}
-															</div>
-															<div className='text-xs text-text-muted'>
-																{t('mealPlanDesc')}
-															</div>
-														</div>
-													</button>
-													<button
-														type='button'
-														onClick={() => setShowCustomNameInput(true)}
-														disabled={isCreating}
-														className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text transition-colors hover:bg-bg-elevated disabled:opacity-50'
-													>
-														<FileText className='size-4 text-success' />
-														<div>
-															<div className='font-medium'>
-																{t('customList')}
-															</div>
-															<div className='text-xs text-text-muted'>
-																{t('customListDesc')}
-															</div>
-														</div>
-													</button>
-													{showCustomNameInput && (
-														<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
-															<input
-																value={customListName}
-																onChange={e =>
-																	setCustomListName(e.target.value)
-																}
-																placeholder={t('listNamePlaceholder')}
-																aria-label={t('listNamePlaceholder')}
-																className='flex-1 rounded-xl border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-																onKeyDown={e =>
-																	e.key === 'Enter' && handleCreateCustom()
-																}
-																autoFocus
-															/>
-															<button
-																type='button'
-																onClick={handleCreateCustom}
-																disabled={!customListName.trim() || isCreating}
-																className='rounded-xl bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
-															>
-																Create
-															</button>
-														</div>
-													)}
-												</motion.div>
-											</>
-										)}
-									</AnimatePresence>
-								</div>
-							}
 						/>
-					</PremiumSurface>
 
-					{/* Empty state */}
-					{lists.length === 0 ? (
-						<div className='rounded-xl border border-border-subtle bg-bg-card py-20 text-center shadow-card'>
-							<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30' />
-							<h2 className='mb-2 text-lg font-semibold text-text'>
-								{t('noListsYet')}
-							</h2>
-							<p className='mb-6 text-sm text-text-muted'>{t('noListsDesc')}</p>
-							<button
-								type='button'
-								onClick={() => setShowCreateMenu(true)}
-								className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
-							>
-								{t('createFirst')}
-							</button>
-						</div>
-					) : (
-						<PremiumSurface
-							eyebrow='Active Lists'
-							chipText='Tap to open'
-							className='p-3 md:p-4'
-						>
-							<div className='grid gap-4 sm:grid-cols-2'>
-								{lists.map(list => {
-									const sourceConf =
-										SOURCE_CONFIG[list.source] || SOURCE_CONFIG.Custom
-									const SourceIcon = sourceConf.icon
-									const listProgress =
-										list.totalItems > 0
-											? Math.round((list.checkedItems / list.totalItems) * 100)
-											: 0
-									return (
+						<ShoppingListsCommandDeck
+							variant='list'
+							counts={{
+								lists: lists.length,
+								totalItems: lists.reduce(
+									(sum, list) => sum + list.totalItems,
+									0,
+								),
+								checkedItems: lists.reduce(
+									(sum, list) => sum + list.checkedItems,
+									0,
+								),
+								progress:
+									lists.reduce((sum, list) => sum + list.totalItems, 0) > 0
+										? Math.round(
+												(lists.reduce(
+													(sum, list) => sum + list.checkedItems,
+													0,
+												) /
+													lists.reduce(
+														(sum, list) => sum + list.totalItems,
+														0,
+													)) *
+													100,
+											)
+										: 0,
+							}}
+							onPrimaryAction={() => setShowCreateMenu(!showCreateMenu)}
+							primaryActionLabel={t('newList')}
+							onSecondaryAction={handleCreateFromMealPlan}
+							secondaryActionLabel={t('fromMealPlan')}
+						/>
+
+						<div className='relative'>
+							<AnimatePresence>
+								{showCreateMenu && (
+									<>
+										<div
+											className='fixed inset-0 z-dropdown'
+											onClick={() => {
+												setShowCreateMenu(false)
+												setShowCustomNameInput(false)
+												setCustomListName('')
+											}}
+										/>
 										<motion.div
-											key={list.id}
-											className='group relative cursor-pointer rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-5'
-											whileHover={CARD_HOVER}
-											transition={TRANSITION_SPRING}
-											onClick={() => handleOpenList(list.id)}
+											initial={{ opacity: 0, y: -8, scale: 0.95 }}
+											animate={{ opacity: 1, y: 0, scale: 1 }}
+											exit={{ opacity: 0, y: -8, scale: 0.95 }}
+											transition={{ duration: DURATION_S.fast }}
+											className='absolute right-0 top-0 z-dropdown w-64 rounded-xl border border-border-subtle bg-bg-card p-2 shadow-warm'
 										>
-											{/* Source badge */}
-											<div className='mb-3 flex items-center justify-between'>
-												<span
-													className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
-												>
-													<SourceIcon className='size-3' />
-													{list.source}
-												</span>
-												<button
-													type='button'
-													onClick={e => {
-														e.stopPropagation()
-														setConfirmingDeleteId(list.id)
-													}}
-													className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
-													aria-label={t('ariaDeleteList')}
-												>
-													<Trash2 className='size-4' />
-												</button>
-											</div>
-
-											{/* Title */}
-											<h3 className='mb-1 text-base font-semibold text-text'>
-												{list.name}
-											</h3>
-
-											{/* Stats */}
-											<p className='mb-3 text-xs text-text-muted'>
-												{list.checkedItems}/{list.totalItems} items ·{' '}
-												{new Date(list.createdAt).toLocaleDateString()}
-											</p>
-
-											{/* Mini progress bar */}
-											{list.totalItems > 0 && (
-												<div className='overflow-hidden rounded-full bg-bg-elevated'>
-													<div
-														className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
-														style={{ width: `${listProgress}%` }}
-													/>
+											<button
+												type='button'
+												onClick={handleCreateFromMealPlan}
+												disabled={isCreating}
+												className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50'
+											>
+												<CalendarDays className='size-4 text-info' />
+												<div>
+													<div className='font-medium'>{t('fromMealPlan')}</div>
+													<div className='text-xs text-text-muted'>
+														{t('mealPlanDesc')}
+													</div>
 												</div>
-											)}
-
-											{/* Completion indicator */}
-											{listProgress === 100 && list.totalItems > 0 && (
-												<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
-													<Check className='size-3' />
-													{t('complete')}
+											</button>
+											<button
+												type='button'
+												onClick={() => setShowCustomNameInput(true)}
+												disabled={isCreating}
+												className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50'
+											>
+												<FileText className='size-4 text-success' />
+												<div>
+													<div className='font-medium'>{t('customList')}</div>
+													<div className='text-xs text-text-muted'>
+														{t('customListDesc')}
+													</div>
+												</div>
+											</button>
+											{showCustomNameInput && (
+												<div className='mt-2 flex gap-2 border-t border-border-subtle px-3 pt-2'>
+													<input
+														value={customListName}
+														onChange={e => setCustomListName(e.target.value)}
+														placeholder={t('listNamePlaceholder')}
+														aria-label={t('listNamePlaceholder')}
+														className='flex-1 rounded-xl border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+														onKeyDown={e =>
+															e.key === 'Enter' && handleCreateCustom()
+														}
+														autoFocus
+													/>
+													<button
+														type='button'
+														onClick={handleCreateCustom}
+														disabled={!customListName.trim() || isCreating}
+														className='rounded-xl bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
+													>
+														Create
+													</button>
 												</div>
 											)}
 										</motion.div>
-									)
-								})}
+									</>
+								)}
+							</AnimatePresence>
+						</div>
+
+						{/* Empty state */}
+						{lists.length === 0 ? (
+							<div className='rounded-xl border border-border-subtle bg-bg-card py-20 text-center shadow-card'>
+								<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30' />
+								<h2 className='mb-2 text-lg font-semibold text-text-primary'>
+									{t('noListsYet')}
+								</h2>
+								<p className='mb-6 text-sm text-text-muted'>
+									{t('noListsDesc')}
+								</p>
+								<button
+									type='button'
+									onClick={() => setShowCreateMenu(true)}
+									className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+								>
+									{t('createFirst')}
+								</button>
 							</div>
-						</PremiumSurface>
-					)}
+						) : (
+							<PremiumSurface
+								eyebrow='Active Lists'
+								chipText='Tap to open'
+								className='p-3 md:p-4'
+							>
+								<div className='grid gap-4 sm:grid-cols-2'>
+									{lists.map(list => {
+										const sourceConf =
+											SOURCE_CONFIG[list.source] || SOURCE_CONFIG.Custom
+										const SourceIcon = sourceConf.icon
+										const listProgress =
+											list.totalItems > 0
+												? Math.round(
+														(list.checkedItems / list.totalItems) * 100,
+													)
+												: 0
+										return (
+											<motion.div
+												key={list.id}
+												className='group relative cursor-pointer rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-5'
+												whileHover={CARD_HOVER}
+												transition={TRANSITION_SPRING}
+												onClick={() => handleOpenList(list.id)}
+											>
+												{/* Source badge */}
+												<div className='mb-3 flex items-center justify-between'>
+													<span
+														className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
+													>
+														<SourceIcon className='size-3' />
+														{list.source}
+													</span>
+													<button
+														type='button'
+														onClick={e => {
+															e.stopPropagation()
+															setConfirmingDeleteId(list.id)
+														}}
+														className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+														aria-label={t('ariaDeleteList')}
+													>
+														<Trash2 className='size-4' />
+													</button>
+												</div>
+
+												{/* Title */}
+												<h3 className='mb-1 text-base font-semibold text-text-primary'>
+													{list.name}
+												</h3>
+
+												{/* Stats */}
+												<p className='mb-3 text-xs text-text-muted'>
+													{list.checkedItems}/{list.totalItems} items ·{' '}
+													{new Date(list.createdAt).toLocaleDateString()}
+												</p>
+
+												{/* Mini progress bar */}
+												{list.totalItems > 0 && (
+													<div className='overflow-hidden rounded-full bg-bg-elevated'>
+														<div
+															className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
+															style={{ width: `${listProgress}%` }}
+														/>
+													</div>
+												)}
+
+												{/* Completion indicator */}
+												{listProgress === 100 && list.totalItems > 0 && (
+													<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
+														<Check className='size-3' />
+														{t('complete')}
+													</div>
+												)}
+											</motion.div>
+										)
+									})}
+								</div>
+							</PremiumSurface>
+						)}
+					</div>
+
+					<ShoppingListsContextRail
+						variant='list'
+						counts={{
+							lists: lists.length,
+							totalItems: lists.reduce((sum, list) => sum + list.totalItems, 0),
+							checkedItems: lists.reduce(
+								(sum, list) => sum + list.checkedItems,
+								0,
+							),
+							progress:
+								lists.reduce((sum, list) => sum + list.totalItems, 0) > 0
+									? Math.round(
+											(lists.reduce((sum, list) => sum + list.checkedItems, 0) /
+												lists.reduce((sum, list) => sum + list.totalItems, 0)) *
+												100,
+										)
+									: 0,
+						}}
+					/>
 				</div>
 
 				{/* ── Delete Confirmation Dialog ── */}
@@ -950,7 +992,7 @@ export default function ShoppingListsPage() {
 									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
 								>
 									<h3
-										className='mb-2 text-lg font-bold text-text'
+										className='mb-2 text-lg font-bold text-text-primary'
 										id='delete-list-title'
 									>
 										{t('deleteTitle')}

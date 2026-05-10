@@ -5,9 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useState, useEffect, useTransition } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { CreatorDashboard, StepHeatmap, TipHistory } from '@/components/creator'
-import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import {
 	getCreatorStats,
@@ -18,12 +16,20 @@ import {
 	RecentCooksResponse,
 } from '@/services/creator'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, ChefHat, BookOpen, Loader2 } from 'lucide-react'
+import {
+	ArrowLeft,
+	ChefHat,
+	BookOpen,
+	Loader2,
+	Plus,
+	BarChart3,
+} from 'lucide-react'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { formatShortTimeAgo } from '@/lib/utils'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
+import { Button } from '@/components/ui/button'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -49,7 +55,6 @@ const getDateRangeThisWeek = (): string => {
 
 export default function CreatorRoute() {
 	const t = useTranslations('creator')
-	const { user } = useAuth()
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [isLoading, setIsLoading] = useState(true)
@@ -292,32 +297,94 @@ export default function CreatorRoute() {
 					eyebrow='Creator Studio'
 					chipText='Performance Center'
 					tone='xp'
-					className='mb-6 p-3 md:p-4'
+					className='mb-6 p-4 md:p-6'
 				>
-					<div className='flex items-center gap-3'>
-						<motion.button
-							type='button'
-							onClick={() =>
-								startNavigationTransition(() => {
-									router.push('/dashboard')
-								})
-							}
-							disabled={isNavigating}
-							whileTap={BUTTON_SUBTLE_TAP}
-							className='flex size-11 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-							aria-label={t('ariaGoToDashboard')}
-						>
-							<ArrowLeft className='size-5' />
-						</motion.button>
-						<div className='flex-1'>
-							<PageHeader
-								icon={ChefHat}
-								title={t('dashboardTitle')}
-								subtitle={t('dashboardSubtitle')}
-								gradient='purple'
-								marginBottom='sm'
-								className='mb-0'
-							/>
+					<div className='flex flex-col gap-5 md:gap-6'>
+						<div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
+							<div className='min-w-0'>
+								<div className='mb-3 flex items-center gap-3'>
+									<motion.button
+										type='button'
+										onClick={() =>
+											startNavigationTransition(() => {
+												router.push('/dashboard')
+											})
+										}
+										disabled={isNavigating}
+										whileTap={BUTTON_SUBTLE_TAP}
+										className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+										aria-label={t('ariaGoToDashboard')}
+									>
+										<ArrowLeft className='size-5' />
+									</motion.button>
+									<div className='grid size-10 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
+										<ChefHat className='size-5' />
+									</div>
+								</div>
+								<h1 className='text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>
+									{t('dashboardTitle')}
+								</h1>
+								<p className='mt-1 max-w-3xl text-sm text-text-secondary md:text-base'>
+									{t('dashboardSubtitle')}
+								</p>
+							</div>
+
+							<div className='flex flex-col gap-2 sm:flex-row lg:justify-end'>
+								<Button
+									type='button'
+									onClick={() =>
+										startNavigationTransition(() => {
+											router.push('/creator/recipes')
+										})
+									}
+									disabled={isNavigating}
+									variant='outline'
+									className='h-11 w-full gap-2 px-4 font-semibold sm:w-auto'
+								>
+									<BarChart3 className='size-4' />
+									{t('viewAllRecipes')}
+								</Button>
+								<Button
+									type='button'
+									onClick={() =>
+										startNavigationTransition(() => {
+											router.push('/create')
+										})
+									}
+									disabled={isNavigating}
+									className='h-11 w-full gap-2 px-4 font-bold sm:w-auto'
+								>
+									<Plus className='size-4' />
+									{t('createRecipe')}
+								</Button>
+							</div>
+						</div>
+
+						<div className='grid gap-2 sm:grid-cols-3'>
+							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
+								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+									{t('recipesPublished')}
+								</p>
+								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>
+									{lifetimeStats.recipesPublished}
+								</p>
+							</div>
+							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
+								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+									{t('totalCooks')}
+								</p>
+								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>
+									{lifetimeStats.totalCooks}
+								</p>
+							</div>
+							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
+								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+									{t('creatorXpEarned')}
+								</p>
+								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>
+									{lifetimeStats.creatorXpEarned}
+								</p>
+							</div>
 						</div>
 					</div>
 				</PremiumSurface>
@@ -335,11 +402,6 @@ export default function CreatorRoute() {
 							topRecipe={topRecipe}
 							recipePerformance={recipePerformance}
 							recentCooks={recentCooks}
-							onCreateRecipe={() =>
-								startNavigationTransition(() => {
-									router.push('/create')
-								})
-							}
 							onRecipeClick={id =>
 								startNavigationTransition(() => {
 									router.push(`/recipes/${id}`)
@@ -356,7 +418,7 @@ export default function CreatorRoute() {
 						/>
 					</PremiumSurface>
 
-					<div className='space-y-6'>
+					<div className='space-y-6 xl:sticky xl:top-24 xl:self-start'>
 						<PremiumSurface
 							eyebrow='Recipe Intelligence'
 							chipText={heatmapRecipeId ? 'Focused Recipe' : 'Select Recipe'}

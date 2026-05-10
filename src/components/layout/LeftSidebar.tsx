@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
@@ -115,13 +115,9 @@ const adminNavItem: NavItem = {
 
 export const LeftSidebar = () => {
 	const pathname = usePathname()
-	const searchParams = useSearchParams()
 	const { user, isAuthenticated } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 	const t = useTranslations('nav')
-	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
-	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
-	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
@@ -192,7 +188,7 @@ export const LeftSidebar = () => {
 			<Link
 				key={item.labelKey}
 				href={href}
-				className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium leading-tight text-text-secondary transition-all duration-300 hover:text-text data-[active=true]:text-brand'
+				className='group relative flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
 				title={label}
@@ -224,11 +220,11 @@ export const LeftSidebar = () => {
 					whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
 					whileTap={ICON_BUTTON_TAP}
 					transition={TRANSITION_SPRING}
-					className='relative'
+					className='relative grid size-5 place-items-center'
 				>
 					<Icon
 						className={cn(
-							'size-5 transition-all duration-300',
+							'size-4.5 transition-all duration-300',
 							active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
 						)}
 					/>
@@ -238,7 +234,7 @@ export const LeftSidebar = () => {
 						</span>
 					)}
 				</motion.div>
-				<div className='w-full truncate text-center text-2xs leading-tight'>
+				<div className='min-w-0 truncate text-left text-[13px] leading-none'>
 					{label}
 				</div>
 			</Link>
@@ -247,7 +243,7 @@ export const LeftSidebar = () => {
 
 	return (
 		<nav
-			className='relative hidden min-h-0 overflow-hidden bg-bg-card/88 px-3 py-6 backdrop-blur-xl md:flex md:w-nav md:flex-col md:items-center md:gap-4'
+			className='relative hidden min-h-0 overflow-hidden bg-bg-card/88 px-3 py-6 backdrop-blur-xl md:flex md:w-40 md:flex-col md:items-center md:gap-4'
 			aria-label={t('ariaMainNavigation')}
 		>
 			{/* Ambient orbs */}
@@ -278,7 +274,7 @@ export const LeftSidebar = () => {
 					<button
 						type='button'
 						onClick={() => setShowMore(prev => !prev)}
-						className='group relative flex w-full flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium leading-tight text-text-secondary transition-all duration-300 hover:text-text data-[active=true]:text-brand'
+						className='group relative flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand'
 						title={showMore ? t('showLess') : t('more')}
 						aria-expanded={showMore}
 						data-active={showMore}
@@ -303,15 +299,16 @@ export const LeftSidebar = () => {
 							whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
 							whileTap={ICON_BUTTON_TAP}
 							transition={TRANSITION_SPRING}
+							className='grid size-5 place-items-center'
 						>
 							<MoreHorizontal
 								className={cn(
-									'size-5 transition-all duration-300',
+									'size-4.5 transition-all duration-300',
 									showMore && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
 								)}
 							/>
 						</motion.div>
-						<div className='text-2xs leading-tight'>
+						<div className='text-[13px] leading-none'>
 							{showMore ? t('less') : t('more')}
 						</div>
 					</button>
@@ -334,27 +331,7 @@ export const LeftSidebar = () => {
 				</AnimatePresence>
 			</div>
 
-			{/* Guest CTA — sign in / get started at the bottom of sidebar */}
-			{!isAuthenticated && (
-				<div className='relative z-10 w-full flex-shrink-0 pt-4'>
-					<div className='mx-auto mb-2 h-px w-8 bg-gradient-to-r from-transparent via-border-subtle to-transparent' />
-					<div className='flex w-full flex-col items-center gap-2'>
-						<Link
-							href={guestSignInHref}
-							className='flex h-10 w-full items-center justify-center rounded-radius border border-border-subtle/60 text-xs font-semibold text-text-secondary transition-all hover:border-brand/30 hover:bg-brand/5 hover:text-brand'
-						>
-							{t('signIn')}
-						</Link>
-						<Link
-							href={guestSignUpHref}
-							className='relative flex h-10 w-full items-center justify-center overflow-hidden whitespace-nowrap rounded-radius bg-gradient-to-br from-brand to-brand/80 text-xs font-bold text-white shadow-[0_4px_14px_rgba(255,90,54,0.4)] transition-all hover:shadow-[0_6px_20px_rgba(255,90,54,0.5)]'
-						>
-							<span className='pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0 opacity-0 transition-opacity hover:opacity-100' />
-							{t('getStarted')}
-						</Link>
-					</div>
-				</div>
-			)}
+			{/* Guest CTA intentionally omitted here to avoid competing with topbar + right-rail conversion surfaces */}
 		</nav>
 	)
 }

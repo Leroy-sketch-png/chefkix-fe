@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Bell,
-	CheckCheck,
-	Filter,
 	ChefHat,
 	Heart,
 	MessageCircle,
@@ -20,9 +18,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
-import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
@@ -32,7 +28,6 @@ import {
 	TRANSITION_SPRING,
 	staggerContainer,
 	staggerItem,
-	BUTTON_SUBTLE_TAP,
 	LIST_ITEM_HOVER,
 	LIST_ITEM_TAP,
 } from '@/lib/motion'
@@ -44,18 +39,17 @@ import {
 } from '@/services/notification'
 import { useNotificationStore } from '@/store/notificationStore'
 import {
+	NotificationsCommandDeck,
+	NotificationsContextRail,
+	type NotificationFilter,
+} from '@/components/notifications'
+import {
 	NotificationItemGamified,
 	type GamifiedNotification,
 } from '@/components/notifications/NotificationItemsGamified'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
 import { toast } from 'sonner'
-
-// ============================================
-// TYPES
-// ============================================
-
-type NotificationFilter = 'all' | 'gamified' | 'social' | 'unread'
 
 type SocialNotificationType =
 	| 'like'
@@ -382,85 +376,6 @@ const getNotificationIcon = (type: SocialNotificationType) => {
 }
 
 // ============================================
-// FILTER TABS COMPONENT
-// ============================================
-
-interface FilterTabsProps {
-	activeFilter: NotificationFilter
-	onFilterChange: (filter: NotificationFilter) => void
-	counts: {
-		all: number
-		gamified: number
-		social: number
-		unread: number
-	}
-}
-
-const FilterTabs = ({
-	activeFilter,
-	onFilterChange,
-	counts,
-}: FilterTabsProps) => {
-	const t = useTranslations('notifications')
-	const filters: {
-		id: NotificationFilter
-		label: string
-		icon: typeof Bell
-	}[] = [
-		{ id: 'all', label: t('filterAll'), icon: Bell },
-		{ id: 'gamified', label: t('filterActivity'), icon: Sparkles },
-		{ id: 'social', label: t('filterSocial'), icon: Heart },
-		{ id: 'unread', label: t('filterUnread'), icon: Filter },
-	]
-
-	return (
-		<div
-			role='tablist'
-			aria-label={t('filterLabel')}
-			className='grid grid-cols-2 gap-2 pb-2 sm:flex sm:flex-wrap sm:pb-0'
-		>
-			{filters.map(filter => {
-				const count = counts[filter.id]
-				const Icon = filter.icon
-				const isActive = activeFilter === filter.id
-
-				return (
-					<motion.button
-						type='button'
-						key={filter.id}
-						role='tab'
-						aria-selected={isActive}
-						onClick={() => onFilterChange(filter.id)}
-						whileTap={BUTTON_SUBTLE_TAP}
-						className={cn(
-							'flex min-h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-transparent px-3.5 py-2 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-							isActive
-								? 'border border-brand/20 bg-brand/10 text-brand-text shadow-card'
-								: 'bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text',
-						)}
-					>
-						<Icon className='hidden size-4 sm:block' />
-						{filter.label}
-						{count > 0 && (
-							<span
-								className={cn(
-									'min-w-6 tabular-nums rounded-full px-1.5 py-0.5 text-center text-xs font-bold',
-									isActive
-										? 'bg-brand/15 text-brand-text'
-										: 'bg-brand/10 text-brand',
-								)}
-							>
-								{count}
-							</span>
-						)}
-					</motion.button>
-				)
-			})}
-		</div>
-	)
-}
-
-// ============================================
 // SOCIAL NOTIFICATION ITEM
 // ============================================
 
@@ -779,7 +694,7 @@ export default function NotificationsPage() {
 				)}
 			</AnimatePresence>
 
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='2xl'>
 				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
 				<PageHeader
 					icon={Bell}
@@ -788,193 +703,169 @@ export default function NotificationsPage() {
 					showSparkles={false}
 					gradient='blue'
 					marginBottom='sm'
-					rightAction={
-						counts.unread > 0 ? (
-							<Button
-								variant='outline'
-								size='sm'
-								onClick={handleMarkAllRead}
-								disabled={isMarkingAllRead}
-								className='gap-2 rounded-full px-3'
-							>
-								{isMarkingAllRead ? (
-									<Loader2 className='size-4 animate-spin' />
-								) : (
-									<CheckCheck className='size-4' />
-								)}
-								{t('markAllRead')}
-							</Button>
-						) : null
-					}
 				/>
 
-				{/* Filter Tabs */}
-				<div className='sticky top-mobile-header z-sticky -mx-3 mb-3 bg-bg/95 px-3 pb-2 pt-1 backdrop-blur-xl sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:pt-0 sm:pb-0'>
-					<PremiumSurface
-						eyebrow='Notification Streams'
-						chipText={`${counts.unread} unread`}
-						chipClassName='bg-bg-elevated'
-					>
-						<div className='relative'>
-							<FilterTabs
-								activeFilter={activeFilter}
-								onFilterChange={setActiveFilter}
-								counts={counts}
-							/>
-							<div className='pointer-events-none absolute inset-y-0 right-0 hidden w-8 bg-gradient-to-l from-bg to-transparent sm:hidden' />
-						</div>
-					</PremiumSurface>
-				</div>
+				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+					<div className='space-y-4'>
+						<NotificationsCommandDeck
+							counts={counts}
+							activeFilter={activeFilter}
+							onFilterChange={setActiveFilter}
+							onMarkAllRead={handleMarkAllRead}
+							isMarkingAllRead={isMarkingAllRead}
+						/>
 
-				{/* Loading State — content-shaped skeleton */}
-				{isLoading && (
-					<div className='space-y-3'>
-						{Array.from({ length: 6 }).map((_, i) => (
-							<div
-								key={i}
-								className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
-							>
-								<Skeleton className='size-10 shrink-0 rounded-full' />
-								<div className='flex-1 space-y-2'>
-									<Skeleton className='h-4 w-3/4' />
-									<Skeleton className='h-3 w-1/2' />
-								</div>
-								<Skeleton className='h-3 w-12' />
-							</div>
-						))}
-					</div>
-				)}
-
-				{/* Empty State */}
-				{!isLoading && !hasNotifications && (
-					<EmptyState
-						variant='notifications'
-						title={t('noNotificationsYet')}
-						description={
-							activeFilter === 'unread'
-								? t('noUnread')
-								: t('noNotificationsDesc')
-						}
-						primaryAction={
-							activeFilter !== 'all'
-								? {
-										label: t('viewAll'),
-										onClick: () => setActiveFilter('all'),
-									}
-								: {
-										label: t('exploreRecipes'),
-										href: '/explore',
-									}
-						}
-					/>
-				)}
-
-				{/* Notifications List */}
-				{!isLoading && hasNotifications && (
-					<motion.div
-						variants={staggerContainer}
-						initial='hidden'
-						animate='visible'
-						role='log'
-						aria-live='polite'
-						aria-label={t('notificationsList')}
-						className='space-y-2'
-					>
-						{/* Gamified Notifications */}
-						{filtered.gamified.length > 0 && (
-							<>
-								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-1'>
-										<Sparkles className='size-4 text-xp' />
-										<span className='text-sm font-semibold text-text-secondary'>
-											{t('activitySection')}
-										</span>
+						{/* Loading State — content-shaped skeleton */}
+						{isLoading && (
+							<div className='space-y-3'>
+								{Array.from({ length: 6 }).map((_, i) => (
+									<div
+										key={i}
+										className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
+									>
+										<Skeleton className='size-10 shrink-0 rounded-full' />
+										<div className='flex-1 space-y-2'>
+											<Skeleton className='h-4 w-3/4' />
+											<Skeleton className='h-3 w-1/2' />
+										</div>
+										<Skeleton className='h-3 w-12' />
 									</div>
-								)}
-								{filtered.gamified.map(notif => {
-									// Add callbacks based on notification type
-									const extraProps: Record<string, unknown> = {}
-									if (notif.type === 'xp_awarded' && notif.pendingXp > 0) {
-										extraProps.onPost = () =>
-											startNavigationTransition(() => {
-												router.push('/create')
-											})
-									}
-									if (notif.type === 'streak_warning') {
-										extraProps.onFindRecipe = () =>
-											startNavigationTransition(() => {
-												router.push('/explore')
-											})
-									}
-									if (notif.type === 'badge_unlocked') {
-										extraProps.onViewBadge = () =>
-											startNavigationTransition(() => {
-												router.push('/profile/badges')
-											})
-									}
-									if (
-										notif.type === 'post_deadline' ||
-										notif.type === 'post_deadline_urgent'
-									) {
-										extraProps.onPostNow = () =>
-											startNavigationTransition(() => {
-												router.push('/create')
-											})
-									}
-									if (notif.type === 'challenge_reminder') {
-										extraProps.onSeeRecipes = () =>
-											startNavigationTransition(() => {
-												router.push('/challenges')
-											})
-									}
-									if (notif.type === 'weekend_nudge') {
-										extraProps.onExplore = () =>
-											startNavigationTransition(() => {
-												router.push('/explore')
-											})
-									}
-									if (notif.type === 'pantry_expiring') {
-										extraProps.onViewPantry = () =>
-											startNavigationTransition(() => {
-												router.push('/pantry')
-											})
-									}
-									return (
-										<NotificationItemGamified
-											key={notif.id}
-											{...notif}
-											{...extraProps}
-										/>
-									)
-								})}
-							</>
-						)}
-
-						{/* Social Notifications */}
-						{filtered.social.length > 0 && (
-							<>
-								{activeFilter === 'all' && (
-									<div className='flex items-center gap-2 py-1'>
-										<Heart className='size-4 text-error' />
-										<span className='text-sm font-semibold text-text-secondary'>
-											{t('socialSection')}
-										</span>
-									</div>
-								)}
-								{filtered.social.map(notif => (
-									<SocialNotificationItem
-										key={notif.id}
-										{...notif}
-										currentUserId={user?.userId}
-										onMarkRead={handleMarkRead}
-									/>
 								))}
-							</>
+							</div>
 						)}
-					</motion.div>
-				)}
-				{/* Bottom breathing room */}
-				<div className='pb-40 md:pb-8' />
+
+						{/* Empty State */}
+						{!isLoading && !hasNotifications && (
+							<EmptyState
+								variant='notifications'
+								title={t('noNotificationsYet')}
+								description={
+									activeFilter === 'unread'
+										? t('noUnread')
+										: t('noNotificationsDesc')
+								}
+								primaryAction={
+									activeFilter !== 'all'
+										? {
+												label: t('viewAll'),
+												onClick: () => setActiveFilter('all'),
+											}
+										: {
+												label: t('exploreRecipes'),
+												href: '/explore',
+											}
+								}
+							/>
+						)}
+
+						{/* Notifications List */}
+						{!isLoading && hasNotifications && (
+							<motion.div
+								variants={staggerContainer}
+								initial='hidden'
+								animate='visible'
+								role='log'
+								aria-live='polite'
+								aria-label={t('notificationsList')}
+								className='space-y-2'
+							>
+								{/* Gamified Notifications */}
+								{filtered.gamified.length > 0 && (
+									<>
+										{activeFilter === 'all' && (
+											<div className='flex items-center gap-2 py-1'>
+												<Sparkles className='size-4 text-xp' />
+												<span className='text-sm font-semibold text-text-secondary'>
+													{t('activitySection')}
+												</span>
+											</div>
+										)}
+										{filtered.gamified.map(notif => {
+											const extraProps: Record<string, unknown> = {}
+											if (notif.type === 'xp_awarded' && notif.pendingXp > 0) {
+												extraProps.onPost = () =>
+													startNavigationTransition(() => {
+														router.push('/create')
+													})
+											}
+											if (notif.type === 'streak_warning') {
+												extraProps.onFindRecipe = () =>
+													startNavigationTransition(() => {
+														router.push('/explore')
+													})
+											}
+											if (notif.type === 'badge_unlocked') {
+												extraProps.onViewBadge = () =>
+													startNavigationTransition(() => {
+														router.push('/profile/badges')
+													})
+											}
+											if (
+												notif.type === 'post_deadline' ||
+												notif.type === 'post_deadline_urgent'
+											) {
+												extraProps.onPostNow = () =>
+													startNavigationTransition(() => {
+														router.push('/create')
+													})
+											}
+											if (notif.type === 'challenge_reminder') {
+												extraProps.onSeeRecipes = () =>
+													startNavigationTransition(() => {
+														router.push('/challenges')
+													})
+											}
+											if (notif.type === 'weekend_nudge') {
+												extraProps.onExplore = () =>
+													startNavigationTransition(() => {
+														router.push('/explore')
+													})
+											}
+											if (notif.type === 'pantry_expiring') {
+												extraProps.onViewPantry = () =>
+													startNavigationTransition(() => {
+														router.push('/pantry')
+													})
+											}
+											return (
+												<NotificationItemGamified
+													key={notif.id}
+													{...notif}
+													{...extraProps}
+												/>
+											)
+										})}
+									</>
+								)}
+
+								{/* Social Notifications */}
+								{filtered.social.length > 0 && (
+									<>
+										{activeFilter === 'all' && (
+											<div className='flex items-center gap-2 py-1'>
+												<Heart className='size-4 text-error' />
+												<span className='text-sm font-semibold text-text-secondary'>
+													{t('socialSection')}
+												</span>
+											</div>
+										)}
+										{filtered.social.map(notif => (
+											<SocialNotificationItem
+												key={notif.id}
+												{...notif}
+												currentUserId={user?.userId}
+												onMarkRead={handleMarkRead}
+											/>
+										))}
+									</>
+								)}
+							</motion.div>
+						)}
+						<div className='pb-40 md:pb-8' />
+					</div>
+
+					<NotificationsContextRail counts={counts} />
+				</div>
 			</PageContainer>
 		</PageTransition>
 	)

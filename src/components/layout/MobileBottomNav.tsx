@@ -10,6 +10,7 @@ import {
 	PlusSquare,
 	User,
 	Menu,
+	Search,
 	Target,
 	Users,
 	Trophy,
@@ -115,6 +116,7 @@ export const MobileBottomNav = () => {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const [showMore, setShowMore] = useState(false)
+	const [drawerQuery, setDrawerQuery] = useState('')
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
@@ -125,6 +127,14 @@ export const MobileBottomNav = () => {
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === '/dashboard'
+		if (href === '/explore') {
+			return (
+				pathname === '/explore' ||
+				pathname?.startsWith('/explore/') ||
+				pathname === '/search' ||
+				pathname?.startsWith('/search/')
+			)
+		}
 		return pathname === href || pathname?.startsWith(href + '/')
 	}
 
@@ -133,16 +143,49 @@ export const MobileBottomNav = () => {
 		item => pathname === item.href || pathname?.startsWith(item.href + '/'),
 	)
 
+	const groupedMoreMenu = [
+		{
+			headingKey: 'moreGroupSocial',
+			items: moreMenuItems.filter(item =>
+				['/community', '/challenges', PATHS.LEADERBOARD, '/messages'].includes(
+					item.href,
+				),
+			),
+		},
+		{
+			headingKey: 'moreGroupCooking',
+			items: moreMenuItems.filter(item =>
+				[
+					'/cook-together',
+					'/pantry',
+					'/meal-planner',
+					'/shopping-lists',
+				].includes(item.href),
+			),
+		},
+		{
+			headingKey: 'moreGroupAccount',
+			items: moreMenuItems.filter(item => ['/settings'].includes(item.href)),
+		},
+	]
+
+	const normalizedQuery = drawerQuery.trim().toLowerCase()
+	const filteredGroupedMenu = groupedMoreMenu
+		.map(group => ({
+			...group,
+			items: group.items.filter(item => {
+				if (!normalizedQuery) return true
+				return t(item.labelKey).toLowerCase().includes(normalizedQuery)
+			}),
+		}))
+		.filter(group => group.items.length > 0)
+
 	return (
 		<>
 			<nav
-				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle bg-bg-card/88 px-1.5 pb-[calc(6px+env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-10px_40px_rgba(15,10,8,0.08)] backdrop-blur-2xl md:hidden'
+				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
-				<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
-				<div className='pointer-events-none absolute -right-10 -top-14 size-32 rounded-full bg-xp/10 blur-3xl' />
-				<div className='pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-brand/35 to-transparent' />
-
 				{activeNavItems.map(item => {
 					const Icon = item.icon
 					const href =
@@ -220,7 +263,10 @@ export const MobileBottomNav = () => {
 				{isAuthenticated && (
 					<button
 						type='button'
-						onClick={() => setShowMore(true)}
+						onClick={() => {
+							setDrawerQuery('')
+							setShowMore(true)
+						}}
 						className={cn(
 							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 							isMoreActive
@@ -281,44 +327,71 @@ export const MobileBottomNav = () => {
 							<div className='pointer-events-none absolute -right-8 -bottom-14 size-28 rounded-full bg-xp/10 blur-3xl' />
 							{/* Handle */}
 							<div className='relative flex items-center justify-between px-5 py-4'>
-								<span className='text-lg font-bold text-text'>{t('more')}</span>
+								<span className='text-lg font-bold text-text-primary'>
+									{t('more')}
+								</span>
 								<button
 									type='button'
 									onClick={() => setShowMore(false)}
 									aria-label={t('ariaCloseMenu')}
-									className='grid size-8 place-items-center rounded-xl text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='grid size-8 place-items-center rounded-xl text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<X className='size-5' />
 								</button>
 							</div>
-							{/* Menu items grid - 3 cols on small, 4 on wider */}
-							<div className='relative grid grid-cols-3 gap-2 px-4 sm:grid-cols-4'>
-								{moreMenuItems.map(item => {
-									const Icon = item.icon
-									const active = isActive(item.href)
-									return (
-										<button
-											type='button'
-											key={item.href}
-											aria-current={active ? 'page' : undefined}
-											onClick={() => {
-												setShowMore(false)
-												router.push(item.href)
-											}}
-											className={cn(
-												'flex flex-col items-center gap-2 rounded-xl border border-transparent p-3 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-												active
-													? 'border-brand/20 bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
-													: 'text-text-secondary hover:border-border-subtle hover:bg-bg-elevated/70',
-											)}
-										>
-											<Icon className='size-6' />
-											<span className='text-xs font-medium'>
-												{t(item.labelKey)}
-											</span>
-										</button>
-									)
-								})}
+							<div className='px-4 pb-3'>
+								<div className='relative'>
+									<Search className='pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
+									<input
+										type='text'
+										value={drawerQuery}
+										onChange={event => setDrawerQuery(event.target.value)}
+										placeholder={t('moreQuickJumpPlaceholder')}
+										className='h-10 w-full rounded-xl border border-border-medium bg-bg-elevated pl-9 pr-3 text-sm text-text-primary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30'
+									/>
+								</div>
+							</div>
+							<div className='relative max-h-[60vh] space-y-4 overflow-y-auto px-4'>
+								{filteredGroupedMenu.length === 0 && (
+									<div className='rounded-xl border border-border-subtle bg-bg-elevated/60 p-3 text-sm text-text-muted'>
+										{t('moreNoMatches')}
+									</div>
+								)}
+								{filteredGroupedMenu.map(group => (
+									<section key={group.headingKey}>
+										<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
+											{t(group.headingKey)}
+										</p>
+										<div className='grid grid-cols-3 gap-2 sm:grid-cols-4'>
+											{group.items.map(item => {
+												const Icon = item.icon
+												const active = isActive(item.href)
+												return (
+													<button
+														type='button'
+														key={item.href}
+														aria-current={active ? 'page' : undefined}
+														onClick={() => {
+															setShowMore(false)
+															router.push(item.href)
+														}}
+														className={cn(
+															'flex flex-col items-center gap-2 rounded-xl border border-transparent p-3 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+															active
+																? 'border-brand/20 bg-brand/10 text-brand shadow-card'
+																: 'text-text-secondary hover:border-border-subtle hover:bg-bg-elevated/70',
+														)}
+													>
+														<Icon className='size-5' />
+														<span className='text-xs font-medium'>
+															{t(item.labelKey)}
+														</span>
+													</button>
+												)
+											})}
+										</div>
+									</section>
+								))}
 							</div>
 						</motion.div>
 					</Portal>
