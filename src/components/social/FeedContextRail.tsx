@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Compass, MessageSquare, Sparkles, Users } from 'lucide-react'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 
@@ -23,6 +24,7 @@ export function FeedContextRail({
 	feedMode,
 	showFriendsOnline,
 }: FeedContextRailProps) {
+	const t = useTranslations('feed')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -32,24 +34,34 @@ export function FeedContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-					Feed Pulse
+					{t('pulseEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					Stream Snapshot
+					{t('pulseHeading')}
 				</h3>
 				<div className='mt-3'>
-					<MetricRow label='Visible posts' value={postCount.toString()} />
 					<MetricRow
-						label='Mode'
-						value={feedMode === 'latest' ? 'Latest' : 'Trending'}
+						label={t('pulseVisiblePosts')}
+						value={postCount.toString()}
 					/>
-					<MetricRow label='Audience' value='Public' />
+					<MetricRow
+						label={t('pulseMode')}
+						value={
+							feedMode === 'latest'
+								? t('statModeLatest')
+								: t('statModeTrending')
+						}
+					/>
+					<MetricRow
+						label={t('pulseAudience')}
+						value={t('pulseAudiencePublic')}
+					/>
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('quickMovesEyebrow')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -57,28 +69,28 @@ export function FeedContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Users className='size-3.5' />
-						Open community
+						{t('quickMovesCommunity')}
 					</Link>
 					<Link
 						href='/explore'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Compass className='size-3.5' />
-						Explore recipes
+						{t('quickMovesExplore')}
 					</Link>
 					<Link
 						href='/messages'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<MessageSquare className='size-3.5' />
-						Open messages
+						{t('quickMovesMessages')}
 					</Link>
 					<Link
 						href='/challenges'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Sparkles className='size-3.5' />
-						Join challenges
+						{t('quickMovesChallenges')}
 					</Link>
 				</div>
 			</div>

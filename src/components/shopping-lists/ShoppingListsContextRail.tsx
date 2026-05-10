@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { CalendarDays, ChefHat, FileText, ShoppingCart } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface ShoppingListsContextRailProps {
@@ -28,6 +29,7 @@ export function ShoppingListsContextRail({
 	counts,
 	className,
 }: ShoppingListsContextRailProps) {
+	const t = useTranslations('shoppingLists')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -40,22 +42,30 @@ export function ShoppingListsContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-info'>
-					Shopping Pulse
+					{t('pulseEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					{variant === 'detail' ? 'List Status' : 'Collection Status'}
+					{variant === 'detail'
+						? t('pulseHeadingDetail')
+						: t('pulseHeadingList')}
 				</h3>
 				<div className='mt-3'>
-					<MetricRow label='Lists' value={counts.lists.toString()} />
-					<MetricRow label='Items' value={counts.totalItems.toString()} />
-					<MetricRow label='Checked' value={counts.checkedItems.toString()} />
-					<MetricRow label='Progress' value={`${counts.progress}%`} />
+					<MetricRow label={t('statLists')} value={counts.lists.toString()} />
+					<MetricRow
+						label={t('statItems')}
+						value={counts.totalItems.toString()}
+					/>
+					<MetricRow
+						label={t('statChecked')}
+						value={counts.checkedItems.toString()}
+					/>
+					<MetricRow label={t('statProgress')} value={`${counts.progress}%`} />
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('quickMovesEyebrow')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -63,28 +73,28 @@ export function ShoppingListsContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<CalendarDays className='size-3.5' />
-						Meal planner
+						{t('quickMovesMealPlanner')}
 					</Link>
 					<Link
 						href='/pantry'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<ChefHat className='size-3.5' />
-						Pantry
+						{t('quickMovesPantry')}
 					</Link>
 					<Link
 						href='/explore'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<ShoppingCart className='size-3.5' />
-						Explore recipes
+						{t('quickMovesExplore')}
 					</Link>
 					<Link
 						href='/create'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<FileText className='size-3.5' />
-						Create recipe
+						{t('quickMovesCreate')}
 					</Link>
 				</div>
 			</div>

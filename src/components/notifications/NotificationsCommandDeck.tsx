@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Bell, CheckCheck, Filter, Flame, Sparkles, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -69,15 +70,16 @@ export function NotificationsCommandDeck({
 	isMarkingAllRead,
 	className,
 }: NotificationsCommandDeckProps) {
+	const t = useTranslations('notifications')
 	const filters: {
 		id: NotificationFilter
 		label: string
 		icon: typeof Bell
 	}[] = [
-		{ id: 'all', label: 'All streams', icon: Bell },
-		{ id: 'gamified', label: 'Activity', icon: Sparkles },
-		{ id: 'social', label: 'Social', icon: Users },
-		{ id: 'unread', label: 'Unread', icon: Filter },
+		{ id: 'all', label: t('cmdFilterAll'), icon: Bell },
+		{ id: 'gamified', label: t('filterActivity'), icon: Sparkles },
+		{ id: 'social', label: t('filterSocial'), icon: Users },
+		{ id: 'unread', label: t('filterUnread'), icon: Filter },
 	]
 
 	return (
@@ -93,10 +95,10 @@ export function NotificationsCommandDeck({
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-						Notification Command
+						{t('cmdEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Triage Your Attention
+						{t('cmdTitle')}
 					</h2>
 				</div>
 				<Button
@@ -107,36 +109,36 @@ export function NotificationsCommandDeck({
 					className='gap-2'
 				>
 					<CheckCheck className='size-4' />
-					{isMarkingAllRead ? 'Marking...' : 'Mark All Read'}
+					{isMarkingAllRead ? t('markingAllRead') : t('markAllRead')}
 				</Button>
 			</div>
 
 			<div className='mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4'>
 				<DeckCard
-					title='Total'
+					title={t('cmdCardTotal')}
 					value={counts.all.toString()}
-					note='All incoming signals'
+					note={t('cmdCardTotalNote')}
 					icon={Bell}
 					tone='muted'
 				/>
 				<DeckCard
-					title='Unread'
+					title={t('cmdCardUnread')}
 					value={counts.unread.toString()}
-					note='Needs action now'
+					note={t('cmdCardUnreadNote')}
 					icon={Flame}
 					tone={counts.unread > 0 ? 'brand' : 'muted'}
 				/>
 				<DeckCard
-					title='Gamified'
+					title={t('cmdCardGamified')}
 					value={counts.gamified.toString()}
-					note='XP and progression'
+					note={t('cmdCardGamifiedNote')}
 					icon={Sparkles}
 					tone='xp'
 				/>
 				<DeckCard
-					title='Social'
+					title={t('cmdCardSocial')}
 					value={counts.social.toString()}
-					note='Community pulse'
+					note={t('cmdCardSocialNote')}
 					icon={Users}
 					tone='social'
 				/>

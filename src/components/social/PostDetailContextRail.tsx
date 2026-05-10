@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Bookmark, Flag, Share2, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -53,6 +54,7 @@ export function PostDetailContextRail({
 	post,
 	className,
 }: PostDetailContextRailProps) {
+	const t = useTranslations('post')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -65,12 +67,12 @@ export function PostDetailContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Post Engagement
+					{t('postEngagement')}
 				</p>
 				<div className='mt-3 space-y-2 border-t border-border-subtle pt-3'>
 					<div className='flex items-center justify-between'>
 						<span className='text-xs font-medium text-text-secondary'>
-							Reactions
+							{t('reactions')}
 						</span>
 						<span className='text-sm font-black text-text-primary'>
 							{post.likes ?? 0}
@@ -78,7 +80,7 @@ export function PostDetailContextRail({
 					</div>
 					<div className='flex items-center justify-between'>
 						<span className='text-xs font-medium text-text-secondary'>
-							Comments
+							{t('commentsLabel')}
 						</span>
 						<span className='text-sm font-black text-text-primary'>
 							{post.commentCount ?? 0}
@@ -87,7 +89,7 @@ export function PostDetailContextRail({
 					{post.sessionId && (
 						<div className='flex items-center justify-between'>
 							<span className='text-xs font-medium text-text-secondary'>
-								Session XP
+								{t('sessionXp')}
 							</span>
 							<span className='text-sm font-black text-xp'>
 								+{Math.round(post.baseXpAwarded ?? 0) * 0.7}
@@ -99,19 +101,23 @@ export function PostDetailContextRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Actions
+					{t('quickActions')}
 				</p>
 				<div className='mt-3 grid gap-2'>
-					<QuickActionButton icon={Bookmark} label='Save post' />
-					<QuickActionButton icon={Share2} label='Share post' />
+					<QuickActionButton icon={Bookmark} label={t('savePostLabel')} />
+					<QuickActionButton icon={Share2} label={t('sharePost')} />
 					{post.author?.userId && (
 						<QuickActionButton
 							icon={Zap}
-							label='Visit author'
+							label={t('visitAuthor')}
 							href={`/${post.author.userId}`}
 						/>
 					)}
-					<QuickActionButton icon={Flag} label='Report' variant='danger' />
+					<QuickActionButton
+						icon={Flag}
+						label={t('reportLabel')}
+						variant='danger'
+					/>
 				</div>
 			</div>
 		</motion.aside>

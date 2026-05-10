@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle, Package, Search, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface PantryCommandDeckProps {
 	itemCount: number
@@ -67,6 +68,8 @@ export function PantryCommandDeck({
 	className,
 	children,
 }: PantryCommandDeckProps) {
+	const t = useTranslations('pantry')
+
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 10 }}
@@ -80,10 +83,10 @@ export function PantryCommandDeck({
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
-						Pantry Command
+						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Stock. Filter. Rescue Ingredients.
+						{t('commandHeading')}
 					</h2>
 				</div>
 				<div className='flex flex-wrap gap-2'>
@@ -93,7 +96,7 @@ export function PantryCommandDeck({
 						className='inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-brand/20 bg-brand/8 px-4 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/12'
 					>
 						<Sparkles className='size-4' />
-						{hasSuggestionsOpen ? 'Suggestions open' : 'What can I cook?'}
+						{hasSuggestionsOpen ? t('suggestionsOpen') : t('whatCanICook')}
 					</button>
 					{canClearExpired && (
 						<button
@@ -102,7 +105,7 @@ export function PantryCommandDeck({
 							className='inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-warning/20 bg-warning/8 px-4 py-2 text-sm font-semibold text-warning transition-all hover:bg-warning/12'
 						>
 							<AlertTriangle className='size-4' />
-							Clear expired
+							{t('clearExpired', { count: expiredCount })}
 						</button>
 					)}
 				</div>
@@ -110,25 +113,25 @@ export function PantryCommandDeck({
 
 			<div className='mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4'>
 				<StatCard
-					label='Tracked'
+					label={t('tracked')}
 					value={itemCount.toString()}
 					icon={Package}
 					tone='muted'
 				/>
 				<StatCard
-					label='Expiring'
+					label={t('expiring')}
 					value={expiringCount.toString()}
 					icon={AlertTriangle}
 					tone={expiringCount > 0 ? 'warning' : 'muted'}
 				/>
 				<StatCard
-					label='Expired'
+					label={t('expiredStat')}
 					value={expiredCount.toString()}
 					icon={AlertTriangle}
 					tone={expiredCount > 0 ? 'warning' : 'muted'}
 				/>
 				<StatCard
-					label='Filter'
+					label={t('currentFilter')}
 					value={showingCategory}
 					icon={Search}
 					tone='brand'
@@ -140,8 +143,8 @@ export function PantryCommandDeck({
 				<input
 					value={searchQuery}
 					onChange={e => onSearchChange(e.target.value)}
-					placeholder='Search pantry ingredients'
-					aria-label='Search pantry ingredients'
+					placeholder={t('searchPlaceholder')}
+					aria-label={t('searchPlaceholder')}
 					className='h-11 w-full rounded-xl border border-border-subtle bg-bg px-11 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 				/>
 			</div>

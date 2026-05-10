@@ -9,6 +9,7 @@ import {
 	Shield,
 	User,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { SettingsTabId } from '@/components/settings/SettingsCommandDeck'
 
@@ -51,6 +52,7 @@ export function SettingsContextRail({
 	counts,
 	className,
 }: SettingsContextRailProps) {
+	const t = useTranslations('settings')
 	const ActiveIcon = tabIcons[activeTab]
 
 	return (
@@ -65,7 +67,7 @@ export function SettingsContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-					Current Section
+					{t('railCurrentSection')}
 				</p>
 				<div className='mt-3 flex items-start gap-3'>
 					<div className='rounded-xl border border-brand/20 bg-brand/8 p-2 text-brand'>
@@ -84,18 +86,24 @@ export function SettingsContextRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Profile Health
+					{t('railProfileHealth')}
 				</p>
 				<div className='mt-3'>
-					<MetricRow label='Profile' value={counts.profileStrength} />
-					<MetricRow label='Privacy' value={counts.privacyMode} />
-					<MetricRow label='Alerts' value={counts.alertsMode} />
+					<MetricRow
+						label={t('railMetricProfile')}
+						value={counts.profileStrength}
+					/>
+					<MetricRow
+						label={t('railMetricPrivacy')}
+						value={counts.privacyMode}
+					/>
+					<MetricRow label={t('railMetricAlerts')} value={counts.alertsMode} />
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -103,21 +111,21 @@ export function SettingsContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<User className='size-3.5' />
-						Open profile
+						{t('railOpenProfile')}
 					</Link>
 					<Link
 						href='/notifications'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Bell className='size-3.5' />
-						Review notifications
+						{t('railReviewNotifications')}
 					</Link>
 					<Link
 						href='/cooking'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<ChefHat className='size-3.5' />
-						Open cooking mode
+						{t('railOpenCooking')}
 					</Link>
 				</div>
 			</div>

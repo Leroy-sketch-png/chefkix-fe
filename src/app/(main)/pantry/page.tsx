@@ -20,6 +20,8 @@ import {
 	Filter,
 	ShoppingCart,
 	Loader2,
+	ChevronDown,
+	ChevronUp,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -63,6 +65,7 @@ import { autocompleteSearch } from '@/services/search'
 import { suggestCategory } from '@/lib/data/ingredients'
 import { createFromRecipe } from '@/services/shoppingList'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { relativeExpiry } from '@/lib/relative-time'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -114,6 +117,7 @@ export default function PantryPage() {
 	const [quickAddUnit, setQuickAddUnit] = useState('')
 	const [quickAddCategory, setQuickAddCategory] = useState('other')
 	const [quickAddExpiry, setQuickAddExpiry] = useState('')
+	const [showQuickAddDetails, setShowQuickAddDetails] = useState(false)
 	const [isAdding, setIsAdding] = useState(false)
 	const quickAddRef = useRef<AsyncComboboxRef>(null)
 
@@ -216,7 +220,9 @@ export default function PantryPage() {
 			setQuickAddName('')
 			setQuickAddQty('')
 			setQuickAddUnit('')
+			setQuickAddCategory('other')
 			setQuickAddExpiry('')
+			setShowQuickAddDetails(false)
 			quickAddRef.current?.focus()
 			toast.success(t('addedToPantry'))
 		} catch {
@@ -363,6 +369,7 @@ export default function PantryPage() {
 					?.labelKey ?? 'all',
 			)
 		: t('all')
+	const trackedItemsLabel = t('itemCount', { count: items.length })
 	const filtered = items.filter(i =>
 		searchQuery
 			? i.ingredientName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -473,161 +480,252 @@ export default function PantryPage() {
 											setFilterCategory(filterCategory === c.key ? null : c.key)
 										}
 										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+										className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
 											filterCategory === c.key
 												? 'bg-brand text-white'
 												: 'bg-bg-elevated text-text-secondary hover:bg-bg-elevated/80'
 										}`}
 										aria-label={t('filterBy', { category: t(c.labelKey) })}
 									>
-										{c.emoji}
+										<span aria-hidden='true'>{c.emoji}</span>
+										<span>{t(c.labelKey)}</span>
 									</motion.button>
 								))}
 							</div>
 						</PantryCommandDeck>
 
 						<SurfaceSectionHeader
-							eyebrow='Pantry Control Center'
-							chipText={`${items.length} items tracked`}
+							eyebrow={t('controlCenterEyebrow')}
+							chipText={trackedItemsLabel}
 						/>
 
 						{/* ── Expiry Warning Banner ─────────── */}
-						{expiringCount > 0 && (
+						{(expiringCount > 0 || expiredCount > 0) && (
 							<motion.div
 								initial={{ opacity: 0, y: -8 }}
 								animate={{ opacity: 1, y: 0 }}
-								className='flex items-center gap-3 rounded-xl border border-warning/30 bg-warning/10 p-3'
+								className='space-y-2'
 							>
-								<AlertTriangle className='size-5 text-warning' />
-								<p className='text-sm text-warning'>
-									<strong>
-										{t('expiringItems', { count: expiringCount })}
-									</strong>{' '}
-									{t('expiringSoonMessage')}
-									<motion.button
-										type='button'
-										onClick={loadSuggestions}
-										whileTap={BUTTON_TAP}
-										className='ml-1 font-semibold text-brand underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-brand/50'
-									>
-										{t('findRecipesToUse')}
-									</motion.button>
-								</p>
+								{expiredCount > 0 && (
+									<div className='flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3'>
+										<div className='flex items-center gap-2.5'>
+											<AlertTriangle className='size-4 flex-shrink-0 text-destructive' />
+											<p className='text-sm font-semibold text-destructive'>
+												{t('expiringItems', { count: expiredCount })}{' '}
+												{t('expiredLabel')}
+											</p>
+										</div>
+										<motion.button
+											type='button'
+											onClick={() => setShowClearExpiredConfirm(true)}
+											whileTap={BUTTON_TAP}
+											className='flex-shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+										>
+											{t('clearExpiredTitle')}
+										</motion.button>
+									</div>
+								)}
+								{expiringCount > 0 && (
+									<div className='flex items-center justify-between gap-3 rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
+										<div className='flex items-center gap-2.5'>
+											<AlertTriangle className='size-4 flex-shrink-0 text-warning' />
+											<p className='text-sm font-semibold text-warning'>
+												{t('expiringItems', { count: expiringCount })}{' '}
+												{t('expiresLabel')}
+											</p>
+										</div>
+										<motion.button
+											type='button'
+											onClick={loadSuggestions}
+											whileTap={BUTTON_TAP}
+											className='flex-shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning transition-colors hover:bg-warning/20 focus-visible:ring-2 focus-visible:ring-brand/50'
+										>
+											{t('findRecipesToUse')}
+										</motion.button>
+									</div>
+								)}
 							</motion.div>
 						)}
 
 						{/* ── Quick Add Bar ─────────────────── */}
 						<motion.div>
 							<PremiumSurface tone='success' className='bg-bg-card/85 sm:p-4'>
-								<div className='grid grid-cols-[1fr_4.5rem] gap-2 sm:flex sm:flex-wrap sm:items-end sm:gap-3'>
-									<div className='col-span-2 sm:flex-1 sm:min-w-[180px]'>
-										<label
-											htmlFor='pantry-ingredient'
-											className='mb-0.5 block text-xs font-medium text-text-secondary'
+								<div className='space-y-3'>
+									<div className='flex items-center justify-between gap-3'>
+										<div>
+											<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-success'>
+												{t('quickAddEyebrow')}
+											</p>
+											<p className='mt-1 text-sm font-semibold text-text-primary'>
+												{t('quickAddHeading')}
+											</p>
+										</div>
+										<motion.button
+											type='button'
+											onClick={() => setShowQuickAddDetails(prev => !prev)}
+											whileTap={BUTTON_SUBTLE_TAP}
+											className='inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											{t('labelIngredient')}
-										</label>
-										<AsyncCombobox
-											id='pantry-ingredient'
-											ref={quickAddRef}
-											value={quickAddName}
-											onChange={setQuickAddName}
-											onSelect={option => {
-												setQuickAddName(option.label)
-												const cat =
-													option.category || suggestCategory(option.label)
-												if (cat !== 'other') setQuickAddCategory(cat)
-											}}
-											fetchOptions={fetchIngredientOptions}
-											minChars={1}
-											onKeyDown={e => {
-												if (e.key === 'Enter') handleQuickAdd()
-											}}
-											placeholder={t('ingredientPlaceholder')}
-										/>
+											{showQuickAddDetails ? (
+												<ChevronUp className='size-3.5' />
+											) : (
+												<ChevronDown className='size-3.5' />
+											)}
+											{showQuickAddDetails
+												? t('hideDetails')
+												: t('showDetails')}
+										</motion.button>
 									</div>
-									<div className='sm:w-20'>
-										<label
-											htmlFor='pantry-qty'
-											className='mb-0.5 block text-xs font-medium text-text-secondary'
+
+									<div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end'>
+										<div>
+											<label
+												htmlFor='pantry-ingredient'
+												className='mb-0.5 block text-xs font-medium text-text-secondary'
+											>
+												{t('labelIngredient')}
+											</label>
+											<AsyncCombobox
+												id='pantry-ingredient'
+												ref={quickAddRef}
+												value={quickAddName}
+												onChange={setQuickAddName}
+												onSelect={option => {
+													setQuickAddName(option.label)
+													const cat =
+														option.category || suggestCategory(option.label)
+													if (cat !== 'other') setQuickAddCategory(cat)
+												}}
+												fetchOptions={fetchIngredientOptions}
+												minChars={1}
+												onKeyDown={e => {
+													if (e.key === 'Enter') handleQuickAdd()
+												}}
+												placeholder={t('ingredientPlaceholder')}
+											/>
+										</div>
+										<motion.button
+											type='button'
+											onClick={handleQuickAdd}
+											whileTap={BUTTON_TAP}
+											disabled={!quickAddName.trim() || isAdding}
+											className='inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											{t('labelQty')}
-										</label>
-										<input
-											id='pantry-qty'
-											value={quickAddQty}
-											onChange={e => setQuickAddQty(e.target.value)}
-											onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-											placeholder='2'
-											type='number'
-											className='w-full rounded-xl border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-										/>
+											<Plus className='size-4' />
+											{t('addButton')}
+										</motion.button>
 									</div>
-									<div className='sm:w-24'>
-										<label
-											htmlFor='pantry-unit'
-											className='mb-0.5 block text-xs font-medium text-text-secondary'
-										>
-											{t('labelUnit')}
-										</label>
-										<input
-											id='pantry-unit'
-											value={quickAddUnit}
-											onChange={e => setQuickAddUnit(e.target.value)}
-											onKeyDown={e => e.key === 'Enter' && handleQuickAdd()}
-											placeholder={t('unitPlaceholder')}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-										/>
-									</div>
-									<div className='sm:w-32'>
-										<label
-											htmlFor='pantry-category'
-											className='mb-0.5 block text-xs font-medium text-text-secondary'
-										>
-											{t('labelCategory')}
-										</label>
-										<select
-											id='pantry-category'
-											value={quickAddCategory}
-											onChange={e => setQuickAddCategory(e.target.value)}
-											className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-										>
-											{CATEGORIES.map(c => (
-												<option
-													key={c.key}
-													value={c.key}
-													className='bg-bg-card text-text-primary'
-												>
-													{c.emoji} {t(c.labelKey)}
-												</option>
-											))}
-										</select>
-									</div>
-									<div className='sm:w-36'>
-										<label
-											htmlFor='pantry-expiry'
-											className='mb-0.5 block text-xs font-medium text-text-secondary'
-										>
-											{t('labelExpiry')}
-										</label>
-										<input
-											id='pantry-expiry'
-											type='date'
-											value={quickAddExpiry}
-											onChange={e => setQuickAddExpiry(e.target.value)}
-											className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-										/>
-									</div>
-									<motion.button
-										type='button'
-										onClick={handleQuickAdd}
-										whileTap={BUTTON_TAP}
-										disabled={!quickAddName.trim() || isAdding}
-										className='col-span-2 flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-1.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:col-span-1 sm:self-end'
-									>
-										<Plus className='size-4' />
-										{t('addButton')}
-									</motion.button>
+
+									<AnimatePresence initial={false}>
+										{showQuickAddDetails && (
+											<motion.div
+												initial={{ opacity: 0, height: 0 }}
+												animate={{ opacity: 1, height: 'auto' }}
+												exit={{ opacity: 0, height: 0 }}
+												transition={TRANSITION_SPRING}
+												className='space-y-2 overflow-hidden rounded-xl border border-border-subtle bg-bg p-3'
+											>
+												<p className='text-xs text-text-muted'>
+													{t('quickAddDetailsHint')}
+												</p>
+												<div className='grid grid-cols-1 gap-2 sm:grid-cols-4'>
+													<div>
+														<label
+															htmlFor='pantry-qty'
+															className='mb-0.5 block text-xs font-medium text-text-secondary'
+														>
+															{t('labelQty')}
+														</label>
+														<input
+															id='pantry-qty'
+															value={quickAddQty}
+															onChange={e => setQuickAddQty(e.target.value)}
+															onKeyDown={e =>
+																e.key === 'Enter' && handleQuickAdd()
+															}
+															placeholder={t('qtyPlaceholder')}
+															type='number'
+															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+														/>
+													</div>
+													<div>
+														<label
+															htmlFor='pantry-unit'
+															className='mb-0.5 block text-xs font-medium text-text-secondary'
+														>
+															{t('labelUnit')}
+														</label>
+														<input
+															id='pantry-unit'
+															value={quickAddUnit}
+															onChange={e => setQuickAddUnit(e.target.value)}
+															onKeyDown={e =>
+																e.key === 'Enter' && handleQuickAdd()
+															}
+															placeholder={t('unitPlaceholder')}
+															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+														/>
+													</div>
+													<div>
+														<label
+															htmlFor='pantry-category'
+															className='mb-0.5 block text-xs font-medium text-text-secondary'
+														>
+															{t('labelCategory')}
+														</label>
+														<select
+															id='pantry-category'
+															value={quickAddCategory}
+															onChange={e =>
+																setQuickAddCategory(e.target.value)
+															}
+															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+														>
+															{CATEGORIES.map(c => (
+																<option
+																	key={c.key}
+																	value={c.key}
+																	className='bg-bg-card text-text-primary'
+																>
+																	{c.emoji} {t(c.labelKey)}
+																</option>
+															))}
+														</select>
+													</div>
+													<div>
+														<label
+															htmlFor='pantry-expiry'
+															className='mb-0.5 block text-xs font-medium text-text-secondary'
+														>
+															{t('labelExpiry')}
+														</label>
+														<input
+															id='pantry-expiry'
+															type='date'
+															value={quickAddExpiry}
+															onChange={e => setQuickAddExpiry(e.target.value)}
+															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+														/>
+													</div>
+												</div>
+												<div className='flex justify-end'>
+													<motion.button
+														type='button'
+														onClick={() => {
+															setQuickAddQty('')
+															setQuickAddUnit('')
+															setQuickAddCategory('other')
+															setQuickAddExpiry('')
+														}}
+														whileTap={BUTTON_SUBTLE_TAP}
+														className='inline-flex h-8 items-center rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{t('resetDetails')}
+													</motion.button>
+												</div>
+											</motion.div>
+										)}
+									</AnimatePresence>
 								</div>
 							</PremiumSurface>
 						</motion.div>
@@ -642,10 +740,7 @@ export default function PantryPage() {
 								primaryAction={{
 									label: t('addFirstIngredient'),
 									onClick: () => {
-										const input = document.querySelector<HTMLInputElement>(
-											'[data-pantry-input]',
-										)
-										input?.focus()
+										quickAddRef.current?.focus()
 									},
 									icon: <Plus className='size-4' />,
 								}}
@@ -749,36 +844,39 @@ export default function PantryPage() {
 													) : (
 														/* ── Normal Row ─────── */
 														<>
-															<div className='flex-1'>
-																<span className='font-medium text-text-primary'>
-																	{item.ingredientName}
-																</span>
-																{(item.quantity || item.unit) && (
-																	<span className='ml-2 text-sm text-text-secondary'>
-																		{item.quantity}
-																		{item.unit ? ` ${item.unit}` : ''}
+															<div className='min-w-0 flex-1'>
+																<div className='flex items-start justify-between gap-2'>
+																	<span className='truncate font-medium text-text-primary'>
+																		{item.ingredientName}
 																	</span>
-																)}
-															</div>
-															{item.expiryDate && (
-																<div className='flex items-center gap-1.5'>
-																	<Clock className='size-3.5 text-text-muted' />
-																	<span className='text-xs text-text-muted'>
-																		{new Date(
-																			item.expiryDate,
-																		).toLocaleDateString()}
+																	<span
+																		className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+																			FRESHNESS_KEYS[item.freshness]?.bg
+																		} ${FRESHNESS_KEYS[item.freshness]?.text}`}
+																	>
+																		{FRESHNESS_KEYS[item.freshness]?.labelKey
+																			? t(
+																					FRESHNESS_KEYS[item.freshness]
+																						.labelKey,
+																				)
+																			: item.freshness}
 																	</span>
 																</div>
-															)}
-															<span
-																className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-																	FRESHNESS_KEYS[item.freshness]?.bg
-																} ${FRESHNESS_KEYS[item.freshness]?.text}`}
-															>
-																{FRESHNESS_KEYS[item.freshness]?.labelKey
-																	? t(FRESHNESS_KEYS[item.freshness].labelKey)
-																	: item.freshness}
-															</span>
+																<div className='mt-1 flex flex-wrap items-center gap-2 text-xs text-text-secondary'>
+																	{(item.quantity || item.unit) && (
+																		<span className='rounded-md bg-bg-elevated px-2 py-0.5 font-medium'>
+																			{item.quantity}
+																			{item.unit ? ` ${item.unit}` : ''}
+																		</span>
+																	)}
+																	{item.expiryDate && (
+																		<span className='inline-flex items-center gap-1 text-text-muted'>
+																			<Clock className='size-3.5 flex-shrink-0' />
+																			{relativeExpiry(item.expiryDate)}
+																		</span>
+																	)}
+																</div>
+															</div>
 															<div className='flex items-center gap-0.5 opacity-50 transition-opacity group-hover:opacity-100 focus-within:opacity-100'>
 																<motion.button
 																	type='button'

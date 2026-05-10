@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CalendarDays, ChefHat, ShoppingCart, Sparkles } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface MealPlannerCommandDeckProps {
@@ -65,6 +66,7 @@ export function MealPlannerCommandDeck({
 	canShowShopping,
 	className,
 }: MealPlannerCommandDeckProps) {
+	const t = useTranslations('mealPlanner')
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 10 }}
@@ -78,40 +80,40 @@ export function MealPlannerCommandDeck({
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
-						Meal Plan Command
+						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Build A Week With Intent
+						{t('subtitle')}
 					</h2>
 				</div>
 				<div className='inline-flex items-center gap-1 rounded-full border border-success/20 bg-success/8 px-3 py-1.5 text-xs font-semibold text-success'>
 					<CalendarDays className='size-3.5' />
-					Planner active
+					{t('commandChip')}
 				</div>
 			</div>
 
 			<div className='mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4'>
 				<StatCard
-					label='Days'
+					label={t('statDays')}
 					value={plannedDays.toString()}
 					icon={CalendarDays}
 					tone={hasPlan ? 'success' : 'muted'}
 				/>
 				<StatCard
-					label='Meals'
+					label={t('statMeals')}
 					value={totalMealsPlanned.toString()}
 					icon={ChefHat}
 					tone={hasPlan ? 'brand' : 'muted'}
 				/>
 				<StatCard
-					label='Generator'
-					value={useAI ? 'AI' : 'Quick'}
+					label={t('statGenerator')}
+					value={useAI ? t('statGeneratorAI') : t('statGeneratorQuick')}
 					icon={Sparkles}
 					tone='brand'
 				/>
 				<StatCard
-					label='State'
-					value={hasPlan ? 'Live' : 'Empty'}
+					label={t('statState')}
+					value={hasPlan ? t('statStateLive') : t('statStateEmpty')}
 					icon={ShoppingCart}
 					tone={hasPlan ? 'success' : 'muted'}
 				/>
@@ -125,7 +127,7 @@ export function MealPlannerCommandDeck({
 						className='inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-4 py-2 text-sm font-semibold text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
 					>
 						<ShoppingCart className='size-4' />
-						Shopping list
+						{t('shoppingList')}
 					</button>
 				)}
 				{hasPlan && (
@@ -134,7 +136,7 @@ export function MealPlannerCommandDeck({
 						onClick={onClearPlan}
 						className='inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/8 px-4 py-2 text-sm font-semibold text-destructive transition-all hover:bg-destructive/12'
 					>
-						Clear plan
+						{t('clear')}
 					</button>
 				)}
 				<button
@@ -148,7 +150,7 @@ export function MealPlannerCommandDeck({
 					)}
 				>
 					<Sparkles className='size-4' />
-					{useAI ? 'AI mode' : 'Quick mode'}
+					{useAI ? t('aiMode') : t('quickMode')}
 				</button>
 				<button
 					type='button'
@@ -157,10 +159,10 @@ export function MealPlannerCommandDeck({
 					className='inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-brand/90 disabled:opacity-50'
 				>
 					{generating
-						? 'Generating...'
+						? t('generating')
 						: hasPlan
-							? 'Regenerate plan'
-							: 'Generate plan'}
+							? t('regenerate')
+							: t('generatePlan')}
 				</button>
 			</div>
 		</motion.section>

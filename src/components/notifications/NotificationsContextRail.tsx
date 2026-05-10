@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Bell, Compass, Flame, Sparkles, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface NotificationsContextRailProps {
@@ -54,6 +55,7 @@ export function NotificationsContextRail({
 	counts,
 	className,
 }: NotificationsContextRailProps) {
+	const t = useTranslations('notifications')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -66,32 +68,32 @@ export function NotificationsContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-					Attention Rail
+					{t('railEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					Notification Health
+					{t('railHeading')}
 				</h3>
 				<div className='mt-3 grid gap-2'>
 					<RailStat
-						label='Unread'
+						label={t('cmdCardUnread')}
 						value={counts.unread.toString()}
 						icon={Flame}
 						tone={counts.unread > 0 ? 'brand' : 'muted'}
 					/>
 					<RailStat
-						label='Gamified'
+						label={t('cmdCardGamified')}
 						value={counts.gamified.toString()}
 						icon={Sparkles}
 						tone='xp'
 					/>
 					<RailStat
-						label='Social'
+						label={t('cmdCardSocial')}
 						value={counts.social.toString()}
 						icon={Users}
 						tone='social'
 					/>
 					<RailStat
-						label='Total'
+						label={t('cmdCardTotal')}
 						value={counts.all.toString()}
 						icon={Bell}
 						tone='muted'
@@ -101,7 +103,7 @@ export function NotificationsContextRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -109,21 +111,21 @@ export function NotificationsContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Compass className='size-3.5' />
-						Explore recipes
+						{t('railExploreRecipes')}
 					</Link>
 					<Link
 						href='/challenges'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Sparkles className='size-3.5' />
-						Open challenges
+						{t('railOpenChallenges')}
 					</Link>
 					<Link
 						href='/community'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Users className='size-3.5' />
-						Visit community
+						{t('railVisitCommunity')}
 					</Link>
 				</div>
 			</div>

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Flame, MessageSquare, Sparkles, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -54,6 +55,7 @@ export function FeedCommandDeck({
 	hasMore,
 	className,
 }: FeedCommandDeckProps) {
+	const t = useTranslations('feed')
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 10 }}
@@ -67,38 +69,45 @@ export function FeedCommandDeck({
 			<div className='mb-4 flex items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-						Feed Command
+						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Control The Public Pulse
+						{t('commandHeading')}
 					</h2>
 				</div>
 				<div className='inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand'>
 					<MessageSquare className='size-3.5' />
-					Live stream
+					{t('commandChip')}
 				</div>
 			</div>
 
 			<div className='mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4'>
 				<StatCard
-					label='Posts'
+					label={t('statPosts')}
 					value={postCount.toString()}
 					icon={MessageSquare}
 					tone='muted'
 				/>
 				<StatCard
-					label='Mode'
-					value={feedMode === 'latest' ? 'Latest' : 'Trending'}
+					label={t('statMode')}
+					value={
+						feedMode === 'latest' ? t('statModeLatest') : t('statModeTrending')
+					}
 					icon={feedMode === 'latest' ? Sparkles : Flame}
 					tone={feedMode === 'latest' ? 'brand' : 'xp'}
 				/>
 				<StatCard
-					label='Stream'
-					value={hasMore ? 'Open' : 'End'}
+					label={t('statStream')}
+					value={hasMore ? t('statStreamOpen') : t('statStreamEnd')}
 					icon={Users}
 					tone={hasMore ? 'social' : 'muted'}
 				/>
-				<StatCard label='Refresh' value='Live' icon={Sparkles} tone='brand' />
+				<StatCard
+					label={t('statRefresh')}
+					value={t('statRefreshLive')}
+					icon={Sparkles}
+					tone='brand'
+				/>
 			</div>
 
 			<div className='flex flex-wrap gap-2'>

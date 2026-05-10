@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { CalendarDays, FileText, ShoppingCart, Sparkles } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface ShoppingListsCommandDeckProps {
@@ -62,6 +63,7 @@ export function ShoppingListsCommandDeck({
 	secondaryActionLabel,
 	className,
 }: ShoppingListsCommandDeckProps) {
+	const t = useTranslations('shoppingLists')
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 10 }}
@@ -75,12 +77,12 @@ export function ShoppingListsCommandDeck({
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-info'>
-						Shopping Command
+						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
 						{variant === 'detail'
-							? 'Complete The Run'
-							: 'Build Your Grocery System'}
+							? t('commandHeadingDetail')
+							: t('commandHeadingList')}
 					</h2>
 				</div>
 				<div className='flex flex-wrap gap-2'>
@@ -107,25 +109,25 @@ export function ShoppingListsCommandDeck({
 
 			<div className='grid grid-cols-2 gap-2 lg:grid-cols-4'>
 				<StatCard
-					label='Lists'
+					label={t('statLists')}
 					value={counts.lists.toString()}
 					icon={ShoppingCart}
 					tone='info'
 				/>
 				<StatCard
-					label='Items'
+					label={t('statItems')}
 					value={counts.totalItems.toString()}
 					icon={FileText}
 					tone='muted'
 				/>
 				<StatCard
-					label='Checked'
+					label={t('statChecked')}
 					value={counts.checkedItems.toString()}
 					icon={CalendarDays}
 					tone='brand'
 				/>
 				<StatCard
-					label='Progress'
+					label={t('statProgress')}
 					value={`${counts.progress}%`}
 					icon={Sparkles}
 					tone={counts.progress > 0 ? 'brand' : 'muted'}

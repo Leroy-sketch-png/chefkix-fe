@@ -9,6 +9,7 @@ import {
 	Shield,
 	User,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 export type SettingsTabId =
@@ -89,6 +90,7 @@ export function SettingsCommandDeck({
 	counts,
 	className,
 }: SettingsCommandDeckProps) {
+	const t = useTranslations('settings')
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 10 }}
@@ -102,40 +104,42 @@ export function SettingsCommandDeck({
 			<div className='mb-4 flex items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-						Settings Command
+						{t('cmdEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Shape Your Control Surface
+						{t('cmdTitle')}
 					</h2>
 				</div>
 				<div className='inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand'>
 					<Settings className='size-3.5' />
-					Live preferences
+					{t('cmdChip')}
 				</div>
 			</div>
 
 			<div className='mb-4 grid grid-cols-2 gap-2 xl:grid-cols-4'>
 				<StatCard
-					label='Sections'
+					label={t('cmdStatSections')}
 					value={counts.tabs.toString()}
 					icon={Settings}
 					tone='muted'
 				/>
 				<StatCard
-					label='Profile'
-					value={counts.hasDisplayName ? 'Ready' : 'Thin'}
+					label={t('cmdStatProfile')}
+					value={counts.hasDisplayName ? t('cmdStatReady') : t('cmdStatThin')}
 					icon={User}
 					tone={counts.hasDisplayName ? 'brand' : 'muted'}
 				/>
 				<StatCard
-					label='Alerts'
-					value={counts.notificationsEnabled ? 'On' : 'Off'}
+					label={t('cmdStatAlerts')}
+					value={counts.notificationsEnabled ? t('cmdStatOn') : t('cmdStatOff')}
 					icon={Bell}
 					tone={counts.notificationsEnabled ? 'social' : 'muted'}
 				/>
 				<StatCard
-					label='Verification'
-					value={counts.verificationReady ? 'Active' : 'Pending'}
+					label={t('cmdStatVerification')}
+					value={
+						counts.verificationReady ? t('cmdStatActive') : t('cmdStatPending')
+					}
 					icon={BadgeCheck}
 					tone={counts.verificationReady ? 'xp' : 'muted'}
 				/>
@@ -181,7 +185,7 @@ export function SettingsCommandDeck({
 					disabled={isSigningOut}
 					className='inline-flex min-h-10 items-center justify-center rounded-xl border border-error/20 bg-error/8 px-4 py-2 text-sm font-semibold text-error transition-all hover:bg-error/12 disabled:opacity-50'
 				>
-					{isSigningOut ? 'Signing out...' : 'Sign out'}
+					{isSigningOut ? t('cmdSigningOut') : t('cmdSignOut')}
 				</button>
 			</div>
 		</motion.section>

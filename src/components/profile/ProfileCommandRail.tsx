@@ -10,6 +10,7 @@ import {
 	Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface RailTab {
@@ -65,6 +66,7 @@ export function ProfileCommandRail({
 	onTabChange,
 	className,
 }: ProfileCommandRailProps) {
+	const t = useTranslations('profile')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 12 }}
@@ -77,23 +79,23 @@ export function ProfileCommandRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-					Profile Command
+					{t('railEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
 					{displayName}
 				</h3>
 				<p className='text-xs text-text-muted'>@{username}</p>
 				<div className='mt-3 grid grid-cols-2 gap-2'>
-					<StatChip label='Level' value={`Lv.${level}`} />
-					<StatChip label='XP' value={`${xp}/${xpGoal}`} />
-					<StatChip label='Streak' value={`${streakCount}d`} />
-					<StatChip label='Followers' value={followers.toString()} />
+					<StatChip label={t('levelLabel')} value={`Lv.${level}`} />
+					<StatChip label={t('railStatXp')} value={`${xp}/${xpGoal}`} />
+					<StatChip label={t('railStatStreak')} value={`${streakCount}d`} />
+					<StatChip label={t('followersLabel')} value={followers.toString()} />
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Jump To Section
+					{t('railJumpToSection')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					{tabs.map(tab => {
@@ -128,54 +130,54 @@ export function ProfileCommandRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Intensity Signals
+					{t('railIntensitySignals')}
 				</p>
 				<div className='mt-3 grid gap-2 text-xs text-text-secondary'>
 					<div className='flex items-center gap-2 rounded-lg bg-bg-elevated px-3 py-2'>
 						<ChefHat className='size-3.5 text-brand' />
-						<span>{recipesCooked} recipes cooked</span>
+						<span>{t('railRecipesCooked', { count: recipesCooked })}</span>
 					</div>
 					<div className='flex items-center gap-2 rounded-lg bg-bg-elevated px-3 py-2'>
 						<Activity className='size-3.5 text-xp' />
-						<span>{postCount} posts published</span>
+						<span>{t('railPostsPublished', { count: postCount })}</span>
 					</div>
 					<div className='flex items-center gap-2 rounded-lg bg-bg-elevated px-3 py-2'>
 						<Flame className='size-3.5 text-streak' />
-						<span>{pendingPosts} pending story loops</span>
+						<span>{t('railPendingLoops', { count: pendingPosts })}</span>
 					</div>
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick moves
+					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Button asChild variant='brand' className='justify-start gap-2'>
 						<Link href='/explore'>
 							<Compass className='size-4' />
-							Explore recipes
+							{t('railExploreRecipes')}
 						</Link>
 					</Button>
 					{isOwnProfile ? (
 						<Button asChild variant='outline' className='justify-start gap-2'>
 							<Link href='/create'>
 								<Sparkles className='size-4' />
-								Create content
+								{t('railCreateContent')}
 							</Link>
 						</Button>
 					) : (
 						<Button asChild variant='outline' className='justify-start gap-2'>
 							<Link href='/community'>
 								<Layers className='size-4' />
-								Find creators
+								{t('railFindCreators')}
 							</Link>
 						</Button>
 					)}
 					<Button asChild variant='outline' className='justify-start gap-2'>
 						<Link href='/profile/badges'>
 							<Medal className='size-4' />
-							Badge catalog
+							{t('railBadgeCatalog')}
 						</Link>
 					</Button>
 				</div>

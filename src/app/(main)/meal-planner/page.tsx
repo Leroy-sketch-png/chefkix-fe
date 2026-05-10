@@ -407,8 +407,8 @@ export default function MealPlannerPage() {
 							/* ── 7-Day Grid ──────────────────── */
 							<div>
 								<PremiumSurface
-									eyebrow='Week Matrix'
-									chipText={`${plannedDays.length} days`}
+									eyebrow={t('weekMatrix')}
+									chipText={t('daysCount', { count: plannedDays.length })}
 									tone='success'
 									className='p-4'
 								>
@@ -719,7 +719,9 @@ export default function MealPlannerPage() {
 																	<Clock className='size-3' />
 																	{formatCookingTime(getTotalTime(recipe))}
 																</span>
-																<span>{recipe.servings} servings</span>
+																<span>
+																	{t('servings', { count: recipe.servings })}
+																</span>
 															</div>
 														</div>
 														{isSwapping && (

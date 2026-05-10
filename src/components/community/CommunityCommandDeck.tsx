@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Compass, Trophy, UserPlus, Users, UsersRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -61,6 +62,7 @@ export function CommunityCommandDeck({
 	counts,
 	className,
 }: CommunityCommandDeckProps) {
+	const t = useTranslations('community')
 	const hasMeaningfulStats =
 		counts.friends > 0 ||
 		counts.followers > 0 ||
@@ -74,18 +76,23 @@ export function CommunityCommandDeck({
 		show: boolean
 		count?: number
 	}[] = [
-		{ id: 'discover', label: 'Discover', icon: Compass, show: true },
+		{ id: 'discover', label: t('discover'), icon: Compass, show: true },
 		{
 			id: 'friends',
-			label: 'Friends',
+			label: t('friends'),
 			icon: Users,
 			show: isAuthenticated,
 			count: counts.friends,
 		},
-		{ id: 'groups', label: 'Groups', icon: UsersRound, show: isAuthenticated },
+		{
+			id: 'groups',
+			label: t('groups'),
+			icon: UsersRound,
+			show: isAuthenticated,
+		},
 		{
 			id: 'leaderboard',
-			label: 'Leaderboard',
+			label: t('leaderboard'),
 			icon: Trophy,
 			show: true,
 			count: counts.leaderboard,
@@ -110,32 +117,31 @@ export function CommunityCommandDeck({
 			<div className='mb-4 flex items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-						People Discovery
+						{t('cmdEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Find chefs, friends, and groups fast.
+						{t('cmdHeading')}
 					</h2>
 				</div>
 				<div className='hidden shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
 					<UserPlus className='size-3.5' />
-					Discover first
+					{t('cmdChip')}
 				</div>
 			</div>
 
 			<div className='mb-3 rounded-xl border border-brand/15 bg-brand/6 px-3 py-2.5 sm:mb-4 sm:p-3'>
 				{activeTab === 'discover' ? (
 					<p className='text-sm font-semibold text-text-primary'>
-						Discover mode is active. Search people first.
+						{t('discoverModeHint')}
 					</p>
 				) : (
 					<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
 						<div>
 							<p className='text-sm font-semibold text-text-primary'>
-								Search people before you scroll metrics.
+								{t('searchFirstHint')}
 							</p>
 							<p className='mt-0.5 text-xs text-text-secondary'>
-								Jump straight to the discover feed, then come back for friends
-								and leaderboard context.
+								{t('searchFirstHintDesc')}
 							</p>
 						</div>
 						<button
@@ -144,7 +150,7 @@ export function CommunityCommandDeck({
 							className='inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-brand/25 bg-bg-card px-4 py-2 text-sm font-semibold text-brand shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:bg-brand/8'
 						>
 							<Compass className='size-4' />
-							Open discover
+							{t('openDiscover')}
 						</button>
 					</div>
 				)}
@@ -153,25 +159,25 @@ export function CommunityCommandDeck({
 			{hasMeaningfulStats && (
 				<div className='mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4'>
 					<StatCard
-						label='Friends'
+						label={t('friends')}
 						value={counts.friends.toString()}
 						icon={Users}
 						tone='social'
 					/>
 					<StatCard
-						label='Follow Backs'
+						label={t('statFollowBacks')}
 						value={counts.followers.toString()}
 						icon={UserPlus}
 						tone={counts.followers > 0 ? 'brand' : 'muted'}
 					/>
 					<StatCard
-						label='Suggested'
+						label={t('statSuggested')}
 						value={counts.suggested.toString()}
 						icon={Compass}
 						tone='muted'
 					/>
 					<StatCard
-						label='Leaderboard'
+						label={t('leaderboard')}
 						value={counts.leaderboard.toString()}
 						icon={Trophy}
 						tone='xp'

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Compass, History, Sparkles, Swords, Trophy } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ChallengesContextRailProps {
 	counts: {
@@ -23,6 +24,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
+	const t = useTranslations('challenges')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -32,25 +34,28 @@ export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-xp'>
-					Challenge Pulse
+					{t('pulseEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					Competition Health
+					{t('pulseHeading')}
 				</h3>
 				<div className='mt-3'>
-					<InfoRow label='Daily live' value={counts.hasDaily ? 'Yes' : 'No'} />
 					<InfoRow
-						label='Weekly live'
-						value={counts.hasWeekly ? 'Yes' : 'No'}
+						label={t('pulseDailyLive')}
+						value={counts.hasDaily ? t('pulseYes') : t('pulseNo')}
 					/>
-					<InfoRow label='Community' value={counts.community.toString()} />
-					<InfoRow label='Seasonal' value={counts.seasonal.toString()} />
+					<InfoRow
+						label={t('pulseWeeklyLive')}
+						value={counts.hasWeekly ? t('pulseYes') : t('pulseNo')}
+					/>
+					<InfoRow label={t('community')} value={counts.community.toString()} />
+					<InfoRow label={t('seasonal')} value={counts.seasonal.toString()} />
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('quickMovesEyebrow')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -58,35 +63,35 @@ export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Compass className='size-3.5' />
-						Find recipes to cook
+						{t('quickMovesFind')}
 					</Link>
 					<Link
 						href='/cook-together'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Swords className='size-3.5' />
-						Start a duel
+						{t('quickMovesDuel')}
 					</Link>
 					<Link
 						href='/leaderboard'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Trophy className='size-3.5' />
-						See leaderboard
+						{t('quickMovesLeaderboard')}
 					</Link>
 					<Link
 						href='/challenges/history'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<History className='size-3.5' />
-						View challenge history
+						{t('quickMovesHistory')}
 					</Link>
 					<Link
 						href='/community'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Sparkles className='size-3.5' />
-						Open community hub
+						{t('quickMovesCommunity')}
 					</Link>
 				</div>
 			</div>

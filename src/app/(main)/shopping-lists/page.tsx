@@ -63,6 +63,7 @@ import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { relativeTime } from '@/lib/relative-time'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -655,13 +656,18 @@ export default function ShoppingListsPage() {
 							</AnimatePresence>
 
 							<PremiumSurface
-								eyebrow='Categorized Items'
-								chipText={`${Object.keys(groupedItems).length} sections`}
+								eyebrow={t('categorizedItems')}
+								chipText={t('sectionsCount', {
+									count: Object.keys(groupedItems).length,
+								})}
 								className='p-3 md:p-4'
 							>
 								<SurfaceSectionHeader
-									eyebrow='Smart Grouping'
-									chipText={`${selectedList.checkedItems}/${selectedList.totalItems} checked`}
+									eyebrow={t('smartGrouping')}
+									chipText={t('checkedProgress', {
+										checked: selectedList.checkedItems,
+										total: selectedList.totalItems,
+									})}
 									className='mb-3'
 								/>
 								{selectedList.items.length === 0 ? (
@@ -838,7 +844,7 @@ export default function ShoppingListsPage() {
 														disabled={!customListName.trim() || isCreating}
 														className='rounded-xl bg-brand px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50'
 													>
-														Create
+														{t('create')}
 													</button>
 												</div>
 											)}
@@ -919,8 +925,11 @@ export default function ShoppingListsPage() {
 
 												{/* Stats */}
 												<p className='mb-3 text-xs text-text-muted'>
-													{list.checkedItems}/{list.totalItems} items ·{' '}
-													{new Date(list.createdAt).toLocaleDateString()}
+													{t('itemsStats', {
+														checked: list.checkedItems,
+														total: list.totalItems,
+													})}{' '}
+													&middot; {relativeTime(list.createdAt)}
 												</p>
 
 												{/* Mini progress bar */}

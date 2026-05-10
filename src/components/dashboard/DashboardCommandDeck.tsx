@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
 	Users2,
 	BookOpen,
@@ -29,25 +30,26 @@ export function DashboardCommandDeck({
 	pendingSessionCount,
 	className,
 }: DashboardCommandDeckProps) {
+	const t = useTranslations('dashboard')
 	const level = stats?.currentLevel ?? 1
 	const xp = stats?.currentXP ?? 0
 	const xpGoal = Math.max(stats?.currentXPGoal ?? 100, 100)
 	const streak = stats?.streakCount ?? 0
 
 	const statCards: StatCardProps[] = [
-		{ label: 'Level', value: `Lv.${level}`, tone: 'brand' },
+		{ label: t('cmdStatLevel'), value: `Lv.${level}`, tone: 'brand' },
 		{
-			label: 'Current XP',
+			label: t('cmdStatXp'),
 			value: `${xp.toLocaleString()} / ${xpGoal.toLocaleString()}`,
 			tone: 'xp',
 		},
 		{
-			label: 'Cooking streak',
-			value: `${streak} day${streak === 1 ? '' : 's'}`,
+			label: t('cmdStatStreak'),
+			value: t('cmdStreakValue', { count: streak }),
 			tone: hasStreakAtRisk ? 'error' : 'streak',
 		},
 		{
-			label: 'Pending sessions',
+			label: t('cmdStatPending'),
 			value: pendingSessionCount.toString(),
 			tone: pendingSessionCount > 0 ? 'brand' : 'muted',
 		},
@@ -61,12 +63,10 @@ export function DashboardCommandDeck({
 			className={className}
 		>
 			<CommandDeckBase
-				eyebrow='Command Center'
-				title='Cook. Post. Grow. Repeat.'
+				eyebrow={t('cmdEyebrow')}
+				title={t('cmdTitle')}
 				subtitle={
-					hasStreakAtRisk
-						? 'Your streak is at risk today. Ship one cook story now.'
-						: 'Keep your growth flywheel running with one cook and one post.'
+					hasStreakAtRisk ? t('cmdStreakRiskSubtitle') : t('cmdSubtitle')
 				}
 				gradient='brand'
 				stats={statCards}
@@ -75,13 +75,13 @@ export function DashboardCommandDeck({
 					<Button asChild variant='brand' className='h-10 justify-start gap-2'>
 						<Link href='/explore'>
 							<BookOpen className='size-4' />
-							Explore recipes
+							{t('cmdBtnExplore')}
 						</Link>
 					</Button>
 					<Button asChild variant='gaming' className='h-10 justify-start gap-2'>
 						<Link href='/explore?difficulty=Beginner'>
 							<ChefHat className='size-4' />
-							Quick cook now
+							{t('cmdBtnQuickCook')}
 						</Link>
 					</Button>
 					<Button
@@ -91,7 +91,7 @@ export function DashboardCommandDeck({
 					>
 						<Link href='/create'>
 							<PenSquare className='size-4' />
-							Create post
+							{t('cmdBtnCreatePost')}
 						</Link>
 					</Button>
 					<Button
@@ -101,7 +101,7 @@ export function DashboardCommandDeck({
 					>
 						<Link href='/community'>
 							<Users2 className='size-4' />
-							Join community
+							{t('cmdBtnCommunity')}
 						</Link>
 					</Button>
 				</div>
@@ -114,10 +114,10 @@ export function DashboardCommandDeck({
 				>
 					<div>
 						<p className='text-sm font-semibold text-text-primary'>
-							Daily rhythm check
+							{t('cmdRhythmTitle')}
 						</p>
 						<p className='mt-1 text-xs text-text-secondary'>
-							One complete cook + one post keeps your growth loop honest.
+							{t('cmdRhythmDesc')}
 						</p>
 					</div>
 					<div className='inline-flex shrink-0 items-center gap-2 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary'>
@@ -126,9 +126,7 @@ export function DashboardCommandDeck({
 						) : (
 							<Clock className='size-3.5 text-streak' />
 						)}
-						{hasStreakAtRisk
-							? 'Streak at risk today'
-							: 'Ship one cook story today'}
+						{hasStreakAtRisk ? t('cmdStreakRisk') : t('cmdStreakGoal')}
 					</div>
 				</motion.div>
 			</CommandDeckBase>

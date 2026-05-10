@@ -49,3 +49,34 @@ export function relativeTimeCompact(date: Date | string | number): string {
 	if (absDiff < YEAR) return `${Math.floor(absDiff / MONTH)}mo`
 	return `${Math.floor(absDiff / YEAR)}y`
 }
+
+/**
+ * Pantry-specific expiry label with action-oriented language.
+ * e.g., "expires today", "in 2 days", "expired today", "expired 3 days ago"
+ */
+export function relativeExpiry(date: Date | string | number): string {
+	const now = Date.now()
+	const target = new Date(date).getTime()
+	const diffSec = Math.round((target - now) / 1000)
+	const diffDays = Math.floor(Math.abs(diffSec) / DAY)
+	const isFuture = diffSec > 0
+
+	if (isFuture) {
+		if (diffSec < DAY) return 'expires today'
+		if (diffDays === 1) return 'expires tomorrow'
+		if (diffDays < 7) return `in ${diffDays} days`
+		if (diffDays < 30) {
+			const weeks = Math.floor(diffDays / 7)
+			return `in ${weeks} week${weeks !== 1 ? 's' : ''}`
+		}
+		return new Date(date).toLocaleDateString(undefined, {
+			month: 'short',
+			day: 'numeric',
+		})
+	} else {
+		if (Math.abs(diffSec) < DAY) return 'expired today'
+		if (diffDays === 1) return 'expired yesterday'
+		if (diffDays < 30) return `expired ${diffDays} days ago`
+		return 'expired'
+	}
+}

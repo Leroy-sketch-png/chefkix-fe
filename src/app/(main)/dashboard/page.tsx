@@ -730,8 +730,8 @@ export default function DashboardPage() {
 							>
 								<PremiumSurface
 									className='px-4 py-3'
-									eyebrow='Profile Boost'
-									chipText='Action Needed'
+									eyebrow={t('profileBoost')}
+									chipText={t('actionNeeded')}
 									showOrbs={false}
 								>
 									<div className='flex flex-wrap items-center gap-3'>
@@ -818,8 +818,12 @@ export default function DashboardPage() {
 							)}
 							<PremiumSurface
 								className='p-3 md:p-4'
-								eyebrow='Feed Controls'
-								chipText={feedMode === 'following' ? 'Following' : 'For You'}
+								eyebrow={t('feedControls')}
+								chipText={
+									feedMode === 'following'
+										? t('feedModeFollowing')
+										: t('feedModeForYou')
+								}
 								showOrbs={false}
 							>
 								<FeedModeTabBar
@@ -829,8 +833,8 @@ export default function DashboardPage() {
 							</PremiumSurface>
 							<PremiumSurface
 								className='p-3 md:p-4'
-								eyebrow='Creator Composer'
-								chipText='Ready to post'
+								eyebrow={t('creatorComposer')}
+								chipText={t('readyToPost')}
 							>
 								<CreatePostForm
 									onPostCreated={handlePostCreated}

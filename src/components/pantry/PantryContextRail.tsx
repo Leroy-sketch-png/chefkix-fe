@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChefHat, Package, ShoppingCart, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface PantryContextRailProps {
 	itemCount: number
@@ -29,6 +30,8 @@ export function PantryContextRail({
 	showSuggestions,
 	className,
 }: PantryContextRailProps) {
+	const t = useTranslations('pantry')
+
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -41,29 +44,35 @@ export function PantryContextRail({
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
-					Pantry Pulse
+					{t('railPulseEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					Kitchen Readiness
+					{t('railPulseHeading')}
 				</h3>
 				<div className='mt-3'>
-					<MetricRow label='Stocked items' value={itemCount.toString()} />
-					<MetricRow label='Expiring soon' value={expiringCount.toString()} />
-					<MetricRow label='Expired' value={expiredCount.toString()} />
 					<MetricRow
-						label='Recipe matches'
+						label={t('railStockedItems')}
+						value={itemCount.toString()}
+					/>
+					<MetricRow
+						label={t('railExpiringSoon')}
+						value={expiringCount.toString()}
+					/>
+					<MetricRow label={t('railExpired')} value={expiredCount.toString()} />
+					<MetricRow
+						label={t('railRecipeMatches')}
 						value={matchedRecipesCount.toString()}
 					/>
 					<MetricRow
-						label='Suggestion panel'
-						value={showSuggestions ? 'Open' : 'Closed'}
+						label={t('railSuggestionPanel')}
+						value={showSuggestions ? t('railOpen') : t('railClosed')}
 					/>
 				</div>
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -71,28 +80,28 @@ export function PantryContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<ChefHat className='size-3.5' />
-						Explore recipes
+						{t('railExploreRecipes')}
 					</Link>
 					<Link
 						href='/shopping-lists'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<ShoppingCart className='size-3.5' />
-						Open shopping lists
+						{t('railOpenShoppingLists')}
 					</Link>
 					<Link
 						href='/meal-planner'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Sparkles className='size-3.5' />
-						Plan meals
+						{t('railPlanMeals')}
 					</Link>
 					<Link
 						href='/create'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Package className='size-3.5' />
-						Create recipe
+						{t('railCreateRecipe')}
 					</Link>
 				</div>
 			</div>

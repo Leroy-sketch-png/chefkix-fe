@@ -384,7 +384,9 @@ export default function ChallengesPage() {
 											<SurfaceSectionHeader
 												className='mb-4'
 												eyebrow={t('communityChallenges')}
-												chipText={`${communityChallenges.length} live`}
+												chipText={t('liveCount', {
+													count: communityChallenges.length,
+												})}
 											/>
 											<div className='space-y-4'>
 												{communityChallenges.map((ch, i) => (
@@ -493,7 +495,9 @@ export default function ChallengesPage() {
 											<SurfaceSectionHeader
 												className='mb-4'
 												eyebrow={t('seasonalEvents')}
-												chipText={`${seasonalChallenges.length} seasons`}
+												chipText={t('seasonsCount', {
+													count: seasonalChallenges.length,
+												})}
 											/>
 											<div className='space-y-4'>
 												{seasonalChallenges.map((ev, i) => (

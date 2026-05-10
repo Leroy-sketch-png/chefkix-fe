@@ -4,7 +4,7 @@ import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
-interface StatCardProps {
+export interface StatCardProps {
 	label: string
 	value: string | number
 	icon?: ReactNode

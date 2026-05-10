@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Clock, Leaf, Sparkles, Trophy, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
 interface ChallengesCommandDeckProps {
@@ -53,6 +54,7 @@ export function ChallengesCommandDeck({
 	counts,
 	className,
 }: ChallengesCommandDeckProps) {
+	const t = useTranslations('challenges')
 	const activeStreams =
 		(counts.hasDaily ? 1 : 0) +
 		(counts.hasWeekly ? 1 : 0) +
@@ -72,45 +74,45 @@ export function ChallengesCommandDeck({
 			<div className='mb-4 flex items-center justify-between gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-xp'>
-						Challenge Command
+						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						Compete With Intent
+						{t('commandHeading')}
 					</h2>
 				</div>
 				<div className='inline-flex items-center gap-1 rounded-full border border-xp/20 bg-xp/8 px-3 py-1.5 text-xs font-semibold text-xp'>
 					<Sparkles className='size-3.5' />
-					Live modes
+					{t('commandChip')}
 				</div>
 			</div>
 
 			<div className='grid grid-cols-2 gap-2 lg:grid-cols-5'>
 				<DeckStat
-					label='Active Streams'
+					label={t('statActiveStreams')}
 					value={activeStreams.toString()}
 					icon={Trophy}
 					tone='xp'
 				/>
 				<DeckStat
-					label='Daily'
+					label={t('daily')}
 					value={counts.hasDaily ? '1' : '0'}
 					icon={Clock}
 					tone={counts.hasDaily ? 'brand' : 'muted'}
 				/>
 				<DeckStat
-					label='Weekly'
+					label={t('weekly')}
 					value={counts.hasWeekly ? '1' : '0'}
 					icon={Sparkles}
 					tone={counts.hasWeekly ? 'brand' : 'muted'}
 				/>
 				<DeckStat
-					label='Community'
+					label={t('community')}
 					value={counts.community.toString()}
 					icon={Users}
 					tone='social'
 				/>
 				<DeckStat
-					label='Seasonal'
+					label={t('seasonal')}
 					value={counts.seasonal.toString()}
 					icon={Leaf}
 					tone='muted'

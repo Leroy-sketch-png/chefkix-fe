@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -23,6 +24,7 @@ type FeedMode = 'latest' | 'trending'
 
 export default function FeedPage() {
 	const { user } = useAuth()
+	const t = useTranslations('feed')
 	const [feedMode, setFeedMode] = useState<FeedMode>('latest')
 	const [posts, setPosts] = useState<import('@/lib/types/post').Post[]>([])
 	const [currentPage, setCurrentPage] = useState(0)
@@ -120,8 +122,8 @@ export default function FeedPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<ErrorState
-						title='Feed unavailable'
-						message='We could not load the public feed right now. Try again in a moment.'
+						title={t('unavailable')}
+						message={t('unavailableDesc')}
 						showHomeButton={false}
 						onRetry={() => setRetryKey(key => key + 1)}
 					/>
@@ -142,7 +144,7 @@ export default function FeedPage() {
 					>
 						<div className='flex items-center gap-2 rounded-full bg-bg-card px-4 py-2 text-sm font-semibold text-brand-text shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
-							Loading more posts
+							{t('loadingMore')}
 						</div>
 					</motion.div>
 				)}
@@ -151,7 +153,7 @@ export default function FeedPage() {
 			<PageContainer maxWidth='2xl'>
 				<PageHeader
 					icon={MessageSquare}
-					title='Feed'
+					title={t('title')}
 					subtitle=''
 					gradient='pink'
 					marginBottom='sm'
@@ -180,7 +182,7 @@ export default function FeedPage() {
 									<MessageSquare className='size-6' />
 								</div>
 								<h2 className='mb-2 text-lg font-bold text-text-primary'>
-									No posts yet
+									{t('empty')}
 								</h2>
 								<p className='text-sm text-text-secondary'>
 									The public feed is quiet right now. Check back soon for fresh
@@ -191,8 +193,8 @@ export default function FeedPage() {
 							<>
 								<SurfaceSectionHeader
 									className='mb-3'
-									eyebrow='Live Feed'
-									chipText={`${posts.length} posts`}
+									eyebrow={t('liveFeed')}
+									chipText={t('postsCount', { count: posts.length })}
 								/>
 								<div className='space-y-4'>
 									{posts.map(post => (
@@ -216,7 +218,7 @@ export default function FeedPage() {
 											{isLoadingMore ? (
 												<Loader2 className='size-4 animate-spin' />
 											) : null}
-											Load more
+											{t('loadMore')}
 										</Button>
 									</div>
 								)}
