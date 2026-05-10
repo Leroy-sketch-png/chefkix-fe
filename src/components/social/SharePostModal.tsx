@@ -232,7 +232,7 @@ export const SharePostModal = ({
 									<div className='min-w-0'>
 										<h2
 											id='share-modal-title'
-											className='text-lg font-bold text-text sm:text-xl'
+											className='text-lg font-bold text-text-primary sm:text-xl'
 										>
 											Share Recipe
 										</h2>
@@ -244,7 +244,7 @@ export const SharePostModal = ({
 								<motion.button
 									type='button'
 									onClick={onClose}
-									className='grid size-8 flex-shrink-0 place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-hover hover:text-text sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='grid size-8 flex-shrink-0 place-items-center rounded-xl text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary sm:size-9 focus-visible:ring-2 focus-visible:ring-brand/50'
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									aria-label={t('shareCloseLabel')}
@@ -278,7 +278,7 @@ export const SharePostModal = ({
 										)}
 										<div className='min-w-0 flex-1'>
 											{postTitle && (
-												<p className='mb-1 text-sm font-bold text-text line-clamp-1 sm:text-base'>
+												<p className='mb-1 text-sm font-bold text-text-primary line-clamp-1 sm:text-base'>
 													{postTitle}
 												</p>
 											)}
@@ -328,7 +328,7 @@ export const SharePostModal = ({
 											<MessageCircle className='size-7 text-brand/40 sm:size-8' />
 										</div>
 										<div>
-											<p className='text-sm font-semibold text-text sm:text-base'>
+											<p className='text-sm font-semibold text-text-primary sm:text-base'>
 												{searchQuery
 													? t('shareNoMatches')
 													: t('shareNoRecentChats')}
@@ -425,7 +425,7 @@ export const SharePostModal = ({
 														<p
 															className={cn(
 																'truncate text-sm font-semibold transition-colors sm:text-base',
-																isSelected ? 'text-brand' : 'text-text',
+																isSelected ? 'text-brand' : 'text-text-primary',
 															)}
 														>
 															{conv.displayName}
@@ -518,7 +518,7 @@ export const SharePostModal = ({
 													{selectedConversations.size}
 												</span>
 											</div>
-											<p className='text-xs font-medium text-text sm:text-sm'>
+											<p className='text-xs font-medium text-text-primary sm:text-sm'>
 												{selectedConversations.size === 1
 													? t('shareConversationSelected')
 													: t('shareConversationsSelected')}

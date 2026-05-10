@@ -150,7 +150,7 @@ export const RecipeFiltersSheet = ({
 							<div className='flex-1'>
 								<div className='flex items-center gap-2'>
 									<Shield className='size-4 text-warning' />
-									<span className='font-semibold text-text'>
+									<span className='font-semibold text-text-primary'>
 										{t('rfFirstTimer')}
 									</span>
 								</div>

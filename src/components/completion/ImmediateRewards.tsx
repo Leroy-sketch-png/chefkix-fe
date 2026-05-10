@@ -345,7 +345,7 @@ export const ImmediateRewards = ({
 								type='button'
 								onClick={onClose}
 								aria-label={t('ariaClose')}
-								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
 							>
 								<X className='size-5' />
 							</button>
@@ -462,7 +462,7 @@ export const ImmediateRewards = ({
 												<span className='font-medium text-text-muted'>
 													{t('totalRecipeXp')}
 												</span>
-												<span className='font-bold text-text'>
+												<span className='font-bold text-text-primary'>
 													{xpBreakdown.total}
 												</span>
 											</motion.div>
@@ -569,7 +569,7 @@ export const ImmediateRewards = ({
 							{/* Photo Capture Section */}
 							<div className='mb-4'>
 								<div className='mb-2 flex items-center justify-between'>
-									<span className='text-sm font-medium text-text'>
+									<span className='text-sm font-medium text-text-primary'>
 										📸 Capture your dish
 									</span>
 									<span className='text-xs text-text-muted'>
@@ -709,7 +709,7 @@ export const ImmediateRewards = ({
 									onClick={onPostLater}
 									whileHover={BUTTON_SUBTLE_HOVER}
 									whileTap={BUTTON_SUBTLE_TAP}
-									className='w-full py-3 text-text-muted transition-colors hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='w-full py-3 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{t('postLater')}
 								</motion.button>

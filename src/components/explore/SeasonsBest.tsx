@@ -88,7 +88,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 			<div className='mb-3 flex items-center justify-between'>
 				<div className='flex items-center gap-2'>
 					<Sparkles className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text'>
+					<h2 className='text-lg font-bold text-text-primary'>
 						{t('seasonsBestTitle')}
 					</h2>
 				</div>
@@ -224,4 +224,3 @@ function formatSeasonTag(tag: string): string {
 		.map(word => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ')
 }
-

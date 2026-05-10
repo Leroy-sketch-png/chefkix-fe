@@ -9,7 +9,12 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
 import Image from 'next/image'
 import { UserHoverCard } from '@/components/social/UserHoverCard'
-import { TRANSITION_SPRING, CARD_FEED_HOVER } from '@/lib/motion'
+import { CARD_FEED_HOVER } from '@/lib/motion'
+import {
+	socialCardSurface,
+	socialCardTopAccent,
+	socialCardHeaderPadding,
+} from '@/components/social/socialCardStyles'
 
 interface RecentCookCardProps {
 	post: Post
@@ -26,9 +31,11 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 	return (
 		<motion.div
 			layout
-			className='group -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 transition-all duration-300 hover:shadow-warm'
+			whileHover={CARD_FEED_HOVER}
+			className={socialCardSurface({ tone: 'recentCook' })}
 		>
-			<div className='flex items-center gap-3 p-3 md:p-4'>
+			<div className={socialCardTopAccent} />
+			<div className={`flex items-center gap-3 ${socialCardHeaderPadding}`}>
 				{/* Cover image thumbnail */}
 				{coverImage && (
 					<Link
@@ -67,7 +74,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 										{post.displayName?.charAt(0) ?? '?'}
 									</AvatarFallback>
 								</Avatar>
-								<span className='text-sm font-medium text-text hover:underline'>
+								<span className='text-sm font-medium text-text-primary hover:underline'>
 									{post.displayName}
 								</span>
 							</Link>
@@ -84,7 +91,7 @@ export const RecentCookCard = ({ post }: RecentCookCardProps) => {
 					<div className='flex items-center gap-2'>
 						<Link
 							href={`/recipes/${post.recipeId}`}
-							className='truncate text-sm font-semibold text-text hover:text-brand'
+							className='truncate text-sm font-semibold text-text-primary hover:text-brand'
 						>
 							{post.recipeTitle ?? t('unknownRecipe')}
 						</Link>

@@ -43,10 +43,6 @@ export function FriendsCookingNow({
 			])
 			if (roomsRes.success && roomsRes.data) setRooms(roomsRes.data)
 			if (soloRes.success && soloRes.data) {
-				// Filter out friends who are already in rooms to avoid duplicates
-				const roomUserIds = new Set(
-					(roomsRes.data ?? []).flatMap(r => r.participantNames.map(n => n)),
-				)
 				// Solo friends: those not in a room (roomCode is null)
 				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
 			}
@@ -86,157 +82,169 @@ export function FriendsCookingNow({
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
 			className={cn(
-				'rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-5',
+				'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-5',
 				className,
 			)}
 		>
-			<div className='mb-3 flex items-center gap-2'>
-				<div className='flex size-8 items-center justify-center rounded-xl bg-success/20'>
-					<ChefHat className='size-4 text-success' />
+			<div className='pointer-events-none absolute -left-10 -top-12 size-32 rounded-full bg-brand/10 blur-3xl' />
+			<div className='pointer-events-none absolute -bottom-14 -right-12 size-40 rounded-full bg-success/10 blur-3xl' />
+
+			<div className='relative z-10'>
+				<div className='mb-3 flex items-center gap-2'>
+					<div className='grid size-8 place-items-center rounded-xl bg-success/20'>
+						<ChefHat className='size-4 text-success' />
+					</div>
+					<h3 className='text-sm font-bold text-text-primary'>
+						{t('friendsCookingNow')}
+					</h3>
+					<span className='ml-auto inline-flex h-6 items-center rounded-full border border-brand/20 bg-brand/10 px-2 text-xs font-bold tabular-nums text-brand'>
+						{totalActive}
+					</span>
 				</div>
-				<h3 className='text-sm font-bold text-text'>
-					{t('friendsCookingNow')}
-				</h3>
-				<span className='ml-auto flex size-5 items-center justify-center rounded-full bg-brand/15 text-2xs font-bold text-brand'>
-					{totalActive}
-				</span>
-			</div>
 
-			<div className='space-y-2'>
-				<AnimatePresence mode='popLayout'>
-					{rooms.map(room => (
-						<motion.div
-							key={room.roomCode}
-							initial={{ opacity: 0, x: -10 }}
-							animate={{ opacity: 1, x: 0 }}
-							exit={{ opacity: 0, x: 10 }}
-							transition={TRANSITION_SPRING}
-							className='group flex items-center gap-3 rounded-xl bg-bg-elevated/50 p-3 transition-colors hover:bg-bg-elevated'
-						>
-							<div className='flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10'>
-								<span className='relative flex size-2'>
-									<span className='absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75' />
-									<span className='relative inline-flex size-2 rounded-full bg-success' />
-								</span>
-							</div>
-
-							<div className='min-w-0 flex-1'>
-								<p className='truncate text-sm font-semibold text-text'>
-									{formatParticipantNames(room.participantNames)}
-								</p>
-								<p className='truncate text-xs text-text-secondary'>
-									{t('friendCooking', { recipe: room.recipeTitle })}
-								</p>
-								<p className='text-2xs text-text-muted'>
-									Started {formatMinutesAgo(room.startedMinutesAgo, t)} ago
-									{' · '}
-									<Users className='mb-0.5 inline size-3' />{' '}
-									{room.participantCount}
-								</p>
-							</div>
-
-							<div className='flex shrink-0 gap-1'>
-								<button
-									type='button'
-									onClick={() =>
-										router.push(
-											`/cook-together?roomCode=${room.roomCode}&role=SPECTATOR`,
-										)
-									}
-									className='flex items-center gap-1 rounded-xl bg-bg-elevated px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80 hover:text-text'
-									title={t('friendWatch')}
-									aria-label={t('friendWatchAria', {
-										names: formatParticipantNames(room.participantNames),
-									})}
+				{rooms.length > 0 && (
+					<div className='mb-2 space-y-2'>
+						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+							Live Rooms
+						</p>
+						<AnimatePresence mode='popLayout'>
+							{rooms.map(room => (
+								<motion.div
+									key={room.roomCode}
+									initial={{ opacity: 0, x: -10 }}
+									animate={{ opacity: 1, x: 0 }}
+									exit={{ opacity: 0, x: 10 }}
+									transition={TRANSITION_SPRING}
+									className='group rounded-xl border border-border-subtle bg-bg-elevated/60 p-3 transition-all hover:border-border-medium hover:bg-bg-elevated'
 								>
-									<Eye className='size-3' />
-									{t('friendWatch')}
-								</button>
-								<button
-									type='button'
-									onClick={() =>
-										router.push(`/cook-together?roomCode=${room.roomCode}`)
-									}
-									className='flex items-center gap-1 rounded-xl bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20'
-									title={t('friendJoin')}
-									aria-label={t('friendJoinAria', {
-										names: formatParticipantNames(room.participantNames),
-										recipe: room.recipeTitle,
-									})}
-								>
-									<ArrowRight className='size-3' />
-									{t('friendJoin')}
-								</button>
-							</div>
-						</motion.div>
-					))}
-				</AnimatePresence>
-			</div>
-
-			{/* Solo cooking sessions */}
-			{soloFriends.length > 0 && (
-				<div className={cn('space-y-2', rooms.length > 0 && 'mt-2')}>
-					<AnimatePresence mode='popLayout'>
-						{soloFriends.map(friend => (
-							<motion.div
-								key={friend.userId}
-								initial={{ opacity: 0, x: -10 }}
-								animate={{ opacity: 1, x: 0 }}
-								exit={{ opacity: 0, x: 10 }}
-								transition={TRANSITION_SPRING}
-								onClick={() => router.push(`/recipes/${friend.recipeId}`)}
-								className='group flex cursor-pointer items-center gap-3 rounded-xl bg-bg-elevated/50 p-3 transition-colors hover:bg-bg-elevated'
-							>
-								<Avatar size='sm'>
-									{friend.avatarUrl && (
-										<AvatarImage
-											src={friend.avatarUrl}
-											alt={
-												friend.displayName ??
-												friend.username ??
-												t('friendNameFallback')
-											}
-										/>
-									)}
-									<AvatarFallback className='text-xs'>
-										{(friend.displayName ?? friend.username ?? '?')
-											.slice(0, 2)
-											.toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
-
-								<div className='min-w-0 flex-1'>
-									<p className='truncate text-sm font-semibold text-text'>
-										{friend.displayName ??
-											friend.username ??
-											t('friendNameFallback')}
-									</p>
-									<p className='truncate text-xs text-text-secondary'>
-										{t('friendCooking', { recipe: friend.recipeTitle })}
-									</p>
-									<div className='mt-1 flex items-center gap-2'>
-										{/* Step progress bar */}
-										<div className='h-1.5 flex-1 rounded-full bg-border-subtle'>
-											<div
-												className='h-full rounded-full bg-success transition-all'
-												style={{
-													width: `${friend.totalSteps > 0 ? (friend.currentStep / friend.totalSteps) * 100 : 0}%`,
-												}}
-											/>
+									<div className='flex items-start gap-3'>
+										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-success/10'>
+											<span className='relative flex size-2'>
+												<span className='absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75' />
+												<span className='relative inline-flex size-2 rounded-full bg-success' />
+											</span>
 										</div>
-										<span className='text-2xs text-text-muted'>
-											{t('friendStep', {
-												current: friend.currentStep,
-												total: friend.totalSteps,
-											})}
-										</span>
+
+										<div className='min-w-0 flex-1'>
+											<p className='truncate text-sm font-semibold text-text-primary'>
+												{formatParticipantNames(room.participantNames)}
+											</p>
+											<p className='truncate text-xs text-text-secondary'>
+												{t('friendCooking', { recipe: room.recipeTitle })}
+											</p>
+											<p className='mt-1 text-2xs text-text-muted'>
+												{formatMinutesAgo(room.startedMinutesAgo, t)} {' · '}
+												<Users className='mb-0.5 inline size-3' />{' '}
+												{room.participantCount}
+											</p>
+										</div>
 									</div>
-								</div>
-							</motion.div>
-						))}
-					</AnimatePresence>
-				</div>
-			)}
+
+									<div className='mt-2 flex gap-1.5'>
+										<button
+											type='button'
+											onClick={() =>
+												router.push(
+													`/cook-together?roomCode=${room.roomCode}&role=SPECTATOR`,
+												)
+											}
+											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
+											title={t('friendWatch')}
+											aria-label={t('friendWatchAria', {
+												names: formatParticipantNames(room.participantNames),
+											})}
+										>
+											<Eye className='size-3' />
+											{t('friendWatch')}
+										</button>
+										<button
+											type='button'
+											onClick={() =>
+												router.push(`/cook-together?roomCode=${room.roomCode}`)
+											}
+											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.4)]'
+											title={t('friendJoin')}
+											aria-label={t('friendJoinAria', {
+												names: formatParticipantNames(room.participantNames),
+												recipe: room.recipeTitle,
+											})}
+										>
+											<ArrowRight className='size-3' />
+											{t('friendJoin')}
+										</button>
+									</div>
+								</motion.div>
+							))}
+						</AnimatePresence>
+					</div>
+				)}
+
+				{soloFriends.length > 0 && (
+					<div className='space-y-2'>
+						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+							Solo Sessions
+						</p>
+						<AnimatePresence mode='popLayout'>
+							{soloFriends.map(friend => (
+								<motion.div
+									key={friend.userId}
+									initial={{ opacity: 0, x: -10 }}
+									animate={{ opacity: 1, x: 0 }}
+									exit={{ opacity: 0, x: 10 }}
+									transition={TRANSITION_SPRING}
+									onClick={() => router.push(`/recipes/${friend.recipeId}`)}
+									className='group flex cursor-pointer items-center gap-3 rounded-xl border border-border-subtle bg-bg-elevated/60 p-3 transition-all hover:border-border-medium hover:bg-bg-elevated'
+								>
+									<Avatar size='sm'>
+										{friend.avatarUrl && (
+											<AvatarImage
+												src={friend.avatarUrl}
+												alt={
+													friend.displayName ??
+													friend.username ??
+													t('friendNameFallback')
+												}
+											/>
+										)}
+										<AvatarFallback className='text-xs'>
+											{(friend.displayName ?? friend.username ?? '?')
+												.slice(0, 2)
+												.toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+
+									<div className='min-w-0 flex-1'>
+										<p className='truncate text-sm font-semibold text-text-primary'>
+											{friend.displayName ??
+												friend.username ??
+												t('friendNameFallback')}
+										</p>
+										<p className='truncate text-xs text-text-secondary'>
+											{t('friendCooking', { recipe: friend.recipeTitle })}
+										</p>
+										<div className='mt-1 flex items-center gap-2'>
+											<div className='h-1.5 flex-1 rounded-full bg-border-subtle'>
+												<div
+													className='h-full rounded-full bg-success transition-all'
+													style={{
+														width: `${friend.totalSteps > 0 ? (friend.currentStep / friend.totalSteps) * 100 : 0}%`,
+													}}
+												/>
+											</div>
+											<span className='text-2xs text-text-muted'>
+												{t('friendStep', {
+													current: friend.currentStep,
+													total: friend.totalSteps,
+												})}
+											</span>
+										</div>
+									</div>
+								</motion.div>
+							))}
+						</AnimatePresence>
+					</div>
+				)}
+			</div>
 		</motion.div>
 	)
 }
@@ -258,5 +266,5 @@ function formatMinutesAgo(
 	const remaining = minutes % 60
 	return remaining > 0
 		? t('hoursMinutesShort', { hours, minutes: remaining })
-		: t('hoursShort', { hours })
+		: t('hoursShort', { count: hours })
 }

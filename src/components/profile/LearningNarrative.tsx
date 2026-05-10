@@ -32,10 +32,16 @@ function buildNarrative(
 	if (memberSince) {
 		const joined = new Date(memberSince)
 		const now = new Date()
-		const months = Math.max(1, Math.floor((now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24 * 30)))
-		const timeText = months >= 12
-			? `${Math.floor(months / 12)} year${months >= 24 ? 's' : ''}`
-			: `${months} month${months > 1 ? 's' : ''}`
+		const months = Math.max(
+			1,
+			Math.floor(
+				(now.getTime() - joined.getTime()) / (1000 * 60 * 60 * 24 * 30),
+			),
+		)
+		const timeText =
+			months >= 12
+				? `${Math.floor(months / 12)} year${months >= 24 ? 's' : ''}`
+				: `${months} month${months > 1 ? 's' : ''}`
 		steps.push({
 			icon: <BookOpen className='size-4' />,
 			text: t('narrativeJoined', { name, time: timeText }),
@@ -58,13 +64,14 @@ function buildNarrative(
 
 	// 3. Volume
 	if (stats.completionCount > 0) {
-		const adj = stats.completionCount >= 50
-			? t('sessionsAdjIncredible')
-			: stats.completionCount >= 20
-				? t('sessionsAdjImpressive')
-				: stats.completionCount >= 5
-					? t('sessionsAdjSolid')
-					: t('sessionsAdjGrowing')
+		const adj =
+			stats.completionCount >= 50
+				? t('sessionsAdjIncredible')
+				: stats.completionCount >= 20
+					? t('sessionsAdjImpressive')
+					: stats.completionCount >= 5
+						? t('sessionsAdjSolid')
+						: t('sessionsAdjGrowing')
 		steps.push({
 			icon: <TrendingUp className='size-4' />,
 			text: t('narrativeSessions', { adj, count: stats.completionCount }),
@@ -76,20 +83,24 @@ function buildNarrative(
 	if (stats.currentLevel > 1) {
 		steps.push({
 			icon: <Zap className='size-4' />,
-			text: t('narrativeLevel', { level: stats.currentLevel, xp: stats.currentXP.toLocaleString() }),
+			text: t('narrativeLevel', {
+				level: stats.currentLevel,
+				xp: stats.currentXP.toLocaleString(),
+			}),
 			highlight: `Level ${stats.currentLevel}`,
 		})
 	}
 
 	// 5. Streak story
 	if (stats.streakCount > 0) {
-		const streakAdj = stats.streakCount >= 30
-			? t('streakLegendary')
-			: stats.streakCount >= 14
-				? t('streakRemarkable')
-				: stats.streakCount >= 7
-					? t('streakImpressive')
-					: t('streakGrowing')
+		const streakAdj =
+			stats.streakCount >= 30
+				? t('streakLegendary')
+				: stats.streakCount >= 14
+					? t('streakRemarkable')
+					: stats.streakCount >= 7
+						? t('streakImpressive')
+						: t('streakGrowing')
 		steps.push({
 			icon: <Flame className='size-4' />,
 			text: t('narrativeStreak', { adj: streakAdj, count: stats.streakCount }),
@@ -118,7 +129,11 @@ function buildNarrative(
 	return steps
 }
 
-export function LearningNarrative({ statistics, displayName, memberSince }: LearningNarrativeProps) {
+export function LearningNarrative({
+	statistics,
+	displayName,
+	memberSince,
+}: LearningNarrativeProps) {
 	const t = useTranslations('profile')
 	const steps = useMemo(
 		() => buildNarrative(statistics, displayName, t, memberSince),
@@ -135,7 +150,7 @@ export function LearningNarrative({ statistics, displayName, memberSince }: Lear
 			transition={TRANSITION_SPRING}
 			className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 		>
-			<h3 className='mb-4 flex items-center gap-2 font-semibold text-text'>
+			<h3 className='mb-4 flex items-center gap-2 font-semibold text-text-primary'>
 				<BookOpen className='size-5 text-gaming-xp' />
 				{t('cookingJourney')}
 			</h3>
@@ -167,7 +182,9 @@ export function LearningNarrative({ statistics, displayName, memberSince }: Lear
 										j < arr.length - 1 ? (
 											<span key={j}>
 												{part}
-												<span className='font-semibold text-text tabular-nums'>{step.highlight}</span>
+												<span className='font-semibold text-text-primary tabular-nums'>
+													{step.highlight}
+												</span>
 											</span>
 										) : (
 											<span key={j}>{part}</span>

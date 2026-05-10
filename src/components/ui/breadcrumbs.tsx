@@ -48,13 +48,16 @@ export function Breadcrumbs({
 							)}
 
 							{isLast ? (
-								<span className='font-medium text-text' aria-current='page'>
+								<span
+									className='font-medium text-text-primary'
+									aria-current='page'
+								>
 									{item.label}
 								</span>
 							) : item.href ? (
 								<Link
 									href={item.href}
-									className='flex items-center gap-1 text-text-secondary transition-colors hover:text-text'
+									className='flex items-center gap-1 text-text-secondary transition-colors hover:text-text-primary'
 								>
 									{isFirst && showHomeIcon && <Home className='size-3.5' />}
 									<span>{item.label}</span>

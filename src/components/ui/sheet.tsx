@@ -48,7 +48,7 @@ import { Portal } from '@/components/ui/portal'
  */
 
 const sheetVariants = cva(
-	'fixed z-modal bg-bg-card border border-border-medium text-text transition-transform duration-300 ease-in-out',
+	'fixed z-modal bg-bg-card border border-border-medium text-text-primary transition-transform duration-300 ease-in-out',
 	{
 		variants: {
 			side: {

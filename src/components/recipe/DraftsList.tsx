@@ -194,7 +194,9 @@ export function DraftsList({
 						<Edit3 className='size-5' />
 					</div>
 					<div>
-						<div className='font-bold text-text'>{t('createNewRecipe')}</div>
+						<div className='font-bold text-text-primary'>
+							{t('createNewRecipe')}
+						</div>
 						<div className='text-sm text-text-muted'>
 							{t('startFreshSubtitle')}
 						</div>

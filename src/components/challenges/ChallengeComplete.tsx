@@ -279,7 +279,7 @@ export const ChallengeComplete = ({
 								onClick={onShare}
 								whileHover={BUTTON_SUBTLE_HOVER}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+								className='flex items-center gap-1.5 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold text-text-muted transition-colors hover:bg-border hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 							>
 								<Share2 className='size-icon-sm' />
 								{t('share')}

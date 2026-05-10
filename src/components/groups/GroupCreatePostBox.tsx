@@ -117,7 +117,7 @@ export function GroupCreatePostBox({
 			className='bg-bg-card rounded-xl p-6 border border-border mb-6 shadow-card'
 		>
 			<div className='mb-4'>
-				<p className='text-sm font-medium text-text mb-3'>
+				<p className='text-sm font-medium text-text-primary mb-3'>
 					{t('gpPostTo', { groupName })}
 				</p>
 				<Textarea

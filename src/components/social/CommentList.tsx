@@ -232,7 +232,7 @@ export const CommentList = ({
 				<button
 					type='button'
 					onClick={fetchComments}
-					className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
+					className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
 				>
 					<RefreshCw className='size-3.5' />
 					{t('retryComments')}

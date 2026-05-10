@@ -147,7 +147,7 @@ const SinglePendingPost = ({
 			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-2'>
 					<span className='text-lg'>📸</span>
-					<h3 className='text-base font-bold text-text'>
+					<h3 className='text-base font-bold text-text-primary'>
 						{hasClaimableXp ? t('pdPostToUnlock') : t('pdPostToShare')}
 					</h3>
 				</div>
@@ -177,7 +177,7 @@ const SinglePendingPost = ({
 				/>
 
 				<div className='flex-1 min-w-0'>
-					<span className='block text-base font-bold text-text mb-1'>
+					<span className='block text-base font-bold text-text-primary mb-1'>
 						{session.recipeName}
 					</span>
 					<span className='block text-sm text-text-secondary mb-2'>
@@ -265,7 +265,7 @@ const MultiplePendingPosts = ({
 					>
 						📸
 					</motion.span>
-					<h3 className='text-base font-bold text-text'>
+					<h3 className='text-base font-bold text-text-primary'>
 						{t('pdRecipesWaiting', { count: sessions.length })}
 					</h3>
 					{hasClaimableXp ? (
@@ -316,7 +316,7 @@ const MultiplePendingPosts = ({
 								className='size-11 rounded-xl object-cover'
 							/>
 							<div className='flex-1 min-w-0'>
-								<span className='block text-sm font-semibold text-text'>
+								<span className='block text-sm font-semibold text-text-primary'>
 									{session.recipeName}
 								</span>
 								<span
@@ -347,7 +347,7 @@ const MultiplePendingPosts = ({
 										? 'bg-error text-white'
 										: hasSessionClaimableXp
 											? 'bg-brand text-white'
-											: 'bg-bg-elevated text-text',
+											: 'bg-bg-elevated text-text-primary',
 								)}
 								onClick={() => onPost(session.id)}
 								whileHover={BUTTON_SUBTLE_HOVER}
@@ -570,7 +570,7 @@ export const PendingExpandedModal = ({
 						>
 							{/* Header */}
 							<div className='flex items-center gap-3 px-6 py-5 border-b border-border'>
-								<h2 className='text-xl font-bold text-text'>
+								<h2 className='text-xl font-bold text-text-primary'>
 									{t('pdPendingPosts')}
 								</h2>
 								<span className='text-sm text-text-secondary'>
@@ -652,7 +652,7 @@ export const PendingExpandedModal = ({
 												className='size-16 rounded-xl object-cover'
 											/>
 											<div className='flex-1 min-w-0'>
-												<span className='block text-base font-bold text-text'>
+												<span className='block text-base font-bold text-text-primary'>
 													{session.recipeName}
 												</span>
 												<span className='block text-sm text-text-secondary'>

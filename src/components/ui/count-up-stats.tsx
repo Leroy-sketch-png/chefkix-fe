@@ -106,7 +106,7 @@ function StatItem({
 			transition={{ duration: 0.4 }}
 			className='space-y-1'
 		>
-			<p className='text-3xl font-bold tracking-tight text-text md:text-4xl'>
+			<p className='text-3xl font-bold tracking-tight text-text-primary md:text-4xl'>
 				{stat.prefix}
 				{display}
 				{stat.suffix}

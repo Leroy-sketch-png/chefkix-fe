@@ -232,7 +232,7 @@ function HintOverlay() {
 								<button
 									type='button'
 									onClick={dismissHint}
-									className='absolute right-3 top-3 flex size-7 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted transition-colors hover:bg-bg-hover hover:text-text'
+									className='absolute right-3 top-3 flex size-7 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
 									aria-label={t('ariaCloseHint')}
 								>
 									<X className='size-4' />
@@ -247,7 +247,7 @@ function HintOverlay() {
 									</span>
 								</div>
 
-								<h3 className='mt-2 text-lg font-bold text-text'>
+								<h3 className='mt-2 text-lg font-bold text-text-primary'>
 									{t(`hint_${activeHint.id.replace(/-/g, '_')}_title`)}
 								</h3>
 							</div>

@@ -521,7 +521,7 @@ const ProfileTabs = ({
 							'flex items-center gap-1.5 whitespace-nowrap border-b-3 px-2.5 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 md:px-4 md:py-4',
 							activeTab === tab.id
 								? 'border-brand text-brand'
-								: 'border-transparent text-text-muted hover:text-text',
+								: 'border-transparent text-text-muted hover:text-text-primary',
 						)}
 					>
 						{tab.icon}

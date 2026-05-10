@@ -57,7 +57,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 			{/* Header */}
 			<div className='mb-4 flex items-center gap-2'>
 				<TrendingUp className='size-5 text-brand' />
-				<h3 className='text-lg font-bold text-text'>
+				<h3 className='text-lg font-bold text-text-primary'>
 					{t('communityActivity')}
 				</h3>
 			</div>
@@ -70,7 +70,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<ChefHat className='size-4 text-success' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
+							<p className='text-lg font-bold leading-tight text-text-primary tabular-nums'>
 								{data.cookCount}
 							</p>
 							<p className='text-xs text-text-muted'>
@@ -87,7 +87,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<MessageSquare className='size-4 text-brand' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
+							<p className='text-lg font-bold leading-tight text-text-primary tabular-nums'>
 								{data.postCount}
 							</p>
 							<p className='text-xs text-text-muted'>
@@ -104,7 +104,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<Star className='size-4 text-xp' />
 						</div>
 						<div>
-							<p className='text-lg font-bold leading-tight text-text tabular-nums'>
+							<p className='text-lg font-bold leading-tight text-text-primary tabular-nums'>
 								{data.averageRating.toFixed(1)}
 							</p>
 							<p className='text-xs text-text-muted'>{t('avgRating')}</p>
@@ -177,7 +177,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 						)}
 					</div>
 					<p className='text-sm text-text-secondary'>
-						<span className='font-medium text-text'>
+						<span className='font-medium text-text-primary'>
 							{visibleCookers[0]?.displayName ??
 								visibleCookers[0]?.username ??
 								t('someoneFallback')}

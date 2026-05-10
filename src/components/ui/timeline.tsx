@@ -60,7 +60,9 @@ export function Timeline({ items, className }: TimelineProps) {
 					</div>
 					<div className='pb-8'>
 						<div className='flex items-baseline gap-2'>
-							<h4 className='text-sm font-semibold text-text'>{item.title}</h4>
+							<h4 className='text-sm font-semibold text-text-primary'>
+								{item.title}
+							</h4>
 							{item.date && (
 								<time className='text-xs text-text-muted'>{item.date}</time>
 							)}

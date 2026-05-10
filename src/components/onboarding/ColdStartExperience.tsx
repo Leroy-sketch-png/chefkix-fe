@@ -235,7 +235,7 @@ export const ColdStartExperience = ({
 							>
 								<Sparkles className='size-8 text-brand' />
 							</motion.div>
-							<h3 className='mb-2 text-lg font-bold text-text'>
+							<h3 className='mb-2 text-lg font-bold text-text-primary'>
 								{t('csTasteProfileReady')}
 							</h3>
 							<p className='text-sm text-text-secondary'>
@@ -270,7 +270,7 @@ export const ColdStartExperience = ({
 
 					{/* Curated categories */}
 					<div className='space-y-3'>
-						<h3 className='flex items-center gap-2 text-sm font-bold text-text'>
+						<h3 className='flex items-center gap-2 text-sm font-bold text-text-primary'>
 							<Sparkles className='size-4 text-brand' />
 							{t('csStartHere')}
 						</h3>
@@ -293,7 +293,7 @@ export const ColdStartExperience = ({
 										>
 											<category.icon className='size-5' />
 										</div>
-										<h4 className='mb-1 font-bold text-text transition-colors group-hover:text-brand'>
+										<h4 className='mb-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
 											{t(category.titleKey)}
 										</h4>
 										<p className='text-xs text-text-secondary'>

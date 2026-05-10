@@ -127,7 +127,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 					<button
 						type='button'
 						onClick={handleDismiss}
-						className='absolute right-2 top-2 flex size-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50 sm:right-3 sm:top-3'
+						className='absolute right-2 top-2 flex size-10 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50 sm:right-3 sm:top-3'
 						aria-label={tc('ariaDismissSeasonalBanner')}
 					>
 						<X className='size-4' />
@@ -152,7 +152,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 								</span>
 							</div>
 
-							<h3 className='mt-1.5 text-sm font-bold text-text sm:text-base'>
+							<h3 className='mt-1.5 text-sm font-bold text-text-primary sm:text-base'>
 								{challenge.title}
 							</h3>
 							<p

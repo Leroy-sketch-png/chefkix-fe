@@ -3,7 +3,6 @@
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { UserMinus, MessageCircle, Loader2, Trophy, Book } from 'lucide-react'
 import { useState } from 'react'
 import { toggleFollow } from '@/services/social'
@@ -11,7 +10,12 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 
 interface FriendCardProps {
@@ -127,31 +131,34 @@ export const FriendCard = ({ profile, onUnfollow }: FriendCardProps) => {
 						</div>
 					</Link>
 
-					<div className='flex gap-sm'>
-						<Button
-							variant='ghost'
-							size='sm'
-							asChild
-							className='hover:bg-brand/10 hover:text-brand'
+					<div className='flex items-center gap-2'>
+						<motion.div
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
 						>
-							<Link href={`/messages?userId=${profile.userId}`}>
+							<Link
+								href={`/messages?userId=${profile.userId}`}
+								className='flex size-9 items-center justify-center rounded-xl border border-border-subtle text-text-muted transition-colors hover:border-brand/30 hover:bg-brand/10 hover:text-brand'
+								aria-label={t('sendMessage')}
+							>
 								<MessageCircle className='size-4' />
 							</Link>
-						</Button>
-						<Button
-							variant='ghost'
-							size='sm'
+						</motion.div>
+						<motion.button
+							type='button'
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
 							onClick={handleUnfollow}
 							disabled={isUnfollowing}
-							className='hover:bg-destructive/10 hover:text-destructive'
 							aria-label={t('unfollowUser')}
+							className='flex size-9 items-center justify-center rounded-xl border border-border-subtle text-text-muted transition-colors hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive disabled:opacity-50'
 						>
 							{isUnfollowing ? (
 								<Loader2 className='size-4 animate-spin' />
 							) : (
 								<UserMinus className='size-4' />
 							)}
-						</Button>
+						</motion.button>
 					</div>
 				</motion.div>
 			</motion.div>

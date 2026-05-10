@@ -1,8 +1,7 @@
 'use client'
 
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
-import { Button } from '@/components/ui/button'
-import { Heart, Clock, Bookmark } from 'lucide-react'
+import { Bookmark, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -131,7 +130,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			<motion.div whileHover={CARD_GRID_HOVER} transition={TRANSITION_SPRING}>
 				<Link
 					href={`/recipes/${recipe.id}`}
-					className='group block overflow-hidden rounded-radius border border-border-subtle bg-bg-card transition-all duration-300 hover:border-brand/50 hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+					className='group relative block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-brand/40 hover:bg-bg-elevated hover:shadow-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 				>
 					{/* Gradient overlay on hover */}
 					<div className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-br from-brand/10 to-accent-purple/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
@@ -168,10 +167,10 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 							onClick={handleSaveClick}
 							disabled={isSaveLoading}
 							aria-label={isSaved ? t('unsaveRecipe') : t('saveRecipe')}
-							className={`absolute right-2 top-2 grid size-11 place-items-center rounded-sm border-none transition-all duration-300 ${
+							className={`absolute right-2 top-2 z-20 grid size-11 place-items-center rounded-xl border border-white/35 backdrop-blur-sm transition-all duration-300 ${
 								isSaved
-									? 'bg-gold/10 text-gold'
-									: 'bg-bg-card text-text-secondary hover:bg-brand/10 hover:text-brand'
+									? 'bg-gold/15 text-gold shadow-[0_4px_14px_rgba(245,158,11,0.18)]'
+									: 'bg-bg-card/92 text-text-secondary shadow-[0_4px_14px_rgba(44,36,32,0.12)] hover:border-brand/35 hover:bg-brand/10 hover:text-brand'
 							}`}
 						>
 							<Bookmark className={`size-5 ${isSaved ? 'fill-gold' : ''}`} />
@@ -205,8 +204,9 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 									name: recipe.author?.displayName || 'Unknown',
 								})}
 							</span>
-							<span className='tabular-nums'>
-								â­ {t('likesCount', { count: likeCount })}
+							<span className='inline-flex items-center gap-1.5 tabular-nums text-text-primary'>
+								<Heart className='size-4 text-brand' />
+								{t('likesCount', { count: likeCount })}
 							</span>
 						</div>
 						<div className='flex gap-4'>
@@ -217,7 +217,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 									e.stopPropagation()
 									router.push(`/recipes/${recipe.id}?cook=true`)
 								}}
-								className='relative h-11 flex-1 overflow-hidden rounded-radius border-none bg-gradient-to-br from-accent-purple to-accent-purple-hover font-bold text-white transition-all duration-300 hover:opacity-90 before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-card/30 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
+								className='relative h-11 flex-1 overflow-hidden rounded-xl border-none bg-brand font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all duration-300 hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] before:absolute before:left-[-100%] before:top-0 before:h-full before:w-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:transition-[left] before:duration-500 hover:before:left-[100%]'
 							>
 								{t('cookRecipe')}
 							</button>

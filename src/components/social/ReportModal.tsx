@@ -208,7 +208,7 @@ export function CollectionBuilder({
 			<div className='flex items-center justify-between'>
 				<div className='flex items-center gap-3'>
 					<BookOpen className='size-6 text-brand' />
-					<h1 className='text-xl font-bold text-text'>
+					<h1 className='text-xl font-bold text-text-primary'>
 						{initialName ? t('editLearningPath') : t('createLearningPath')}
 					</h1>
 				</div>
@@ -216,7 +216,7 @@ export function CollectionBuilder({
 					type='button'
 					onClick={onCancel}
 					aria-label={t('builderClose')}
-					className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+					className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 				>
 					<X className='size-5' />
 				</button>
@@ -234,7 +234,7 @@ export function CollectionBuilder({
 						onChange={e => setName(e.target.value)}
 						placeholder={t('builderNamePlaceholder')}
 						maxLength={80}
-						className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 					/>
 				</div>
 				<div>
@@ -247,7 +247,7 @@ export function CollectionBuilder({
 						placeholder={t('builderDescriptionPlaceholder')}
 						maxLength={500}
 						rows={3}
-						className='w-full resize-none rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='w-full resize-none rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 					/>
 				</div>
 				<label className='flex cursor-pointer items-center gap-3'>
@@ -257,7 +257,9 @@ export function CollectionBuilder({
 						onChange={e => setIsPublic(e.target.checked)}
 						className='size-4 rounded border-border-subtle accent-brand'
 					/>
-					<span className='text-sm text-text'>{t('builderMakePublic')}</span>
+					<span className='text-sm text-text-primary'>
+						{t('builderMakePublic')}
+					</span>
 				</label>
 			</div>
 
@@ -265,12 +267,12 @@ export function CollectionBuilder({
 			<div className='grid grid-cols-3 gap-4'>
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
 					<ChefHat className='mx-auto mb-1.5 size-5 text-text-muted' />
-					<p className='text-xl font-bold text-text'>{totalRecipes}</p>
+					<p className='text-xl font-bold text-text-primary'>{totalRecipes}</p>
 					<p className='text-xs text-text-muted'>{t('builderRecipes')}</p>
 				</div>
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
 					<Clock className='mx-auto mb-1.5 size-5 text-text-muted' />
-					<p className='text-xl font-bold text-text'>{stages.length}</p>
+					<p className='text-xl font-bold text-text-primary'>{stages.length}</p>
 					<p className='text-xs text-text-muted'>{t('builderStages')}</p>
 				</div>
 				<div className='rounded-xl border border-border-subtle bg-bg-card p-4 text-center shadow-card'>
@@ -283,7 +285,7 @@ export function CollectionBuilder({
 			{/* Stages (Reorderable) */}
 			<div className='space-y-3'>
 				<div className='flex items-center justify-between'>
-					<h2 className='text-lg font-semibold text-text'>
+					<h2 className='text-lg font-semibold text-text-primary'>
 						{t('builderLearningStages')}
 					</h2>
 					<button
@@ -343,7 +345,7 @@ export function CollectionBuilder({
 					>
 						<h3
 							id='add-stage-title'
-							className='mb-4 text-lg font-bold text-text'
+							className='mb-4 text-lg font-bold text-text-primary'
 						>
 							{t('builderAddStageTitle')}
 						</h3>
@@ -357,7 +359,7 @@ export function CollectionBuilder({
 									value={newStageName}
 									onChange={e => setNewStageName(e.target.value)}
 									placeholder={t('builderStageNamePlaceholder')}
-									className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									autoFocus
 								/>
 							</div>
@@ -370,7 +372,7 @@ export function CollectionBuilder({
 									onChange={e =>
 										setNewStageDifficulty(e.target.value as DifficultyLevel)
 									}
-									className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{DIFFICULTY_LEVELS.map(level => (
 										<option key={level} value={level}>
@@ -478,14 +480,14 @@ function StageItem({
 							onChange={e => onUpdateLabel(stageIndex, e.target.value)}
 							onBlur={() => setIsEditing(false)}
 							onKeyDown={e => e.key === 'Enter' && setIsEditing(false)}
-							className='w-full rounded-xl border border-border-subtle bg-bg px-2 py-1 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='w-full rounded-xl border border-border-subtle bg-bg px-2 py-1 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 							autoFocus
 						/>
 					) : (
 						<button
 							type='button'
 							onClick={() => setIsEditing(true)}
-							className='text-left font-semibold text-text hover:text-brand'
+							className='text-left font-semibold text-text-primary hover:text-brand'
 						>
 							{stage.label}
 						</button>
@@ -525,7 +527,7 @@ function StageItem({
 								key={recipeId}
 								className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
 							>
-								<span className='text-sm text-text'>
+								<span className='text-sm text-text-primary'>
 									Recipe {idx + 1}: {recipeId.slice(0, 8)}...
 								</span>
 								<button

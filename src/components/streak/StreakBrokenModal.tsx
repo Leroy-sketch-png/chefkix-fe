@@ -65,7 +65,7 @@ export function StreakBrokenModal({
 							</div>
 
 							{/* Title */}
-							<h2 className='text-2xl font-bold tracking-tight text-text mb-2'>
+							<h2 className='text-2xl font-bold tracking-tight text-text-primary mb-2'>
 								{t('sbTitle')}
 							</h2>
 							<p className='text-sm text-text-secondary mb-6'>
@@ -78,7 +78,7 @@ export function StreakBrokenModal({
 									<span className='text-xs text-text-secondary'>
 										{t('sbStreakLength')}
 									</span>
-									<span className='text-lg font-bold text-text'>
+									<span className='text-lg font-bold text-text-primary'>
 										{t('sbDays', { count: lostStreak })}
 									</span>
 								</div>
@@ -86,7 +86,7 @@ export function StreakBrokenModal({
 									<span className='text-xs text-text-secondary'>
 										{t('sbBonusesEarned')}
 									</span>
-									<span className='text-lg font-bold text-text'>
+									<span className='text-lg font-bold text-text-primary'>
 										{t('sbBonusXp', { count: totalBonusXpEarned })}
 									</span>
 								</div>
@@ -133,7 +133,7 @@ export function StreakBrokenModal({
 								<button
 									type='button'
 									onClick={onDismiss}
-									className='py-3.5 text-sm text-text-secondary hover:text-text transition-colors'
+									className='py-3.5 text-sm text-text-secondary hover:text-text-primary transition-colors'
 								>
 									{t('sbMaybeLater')}
 								</button>

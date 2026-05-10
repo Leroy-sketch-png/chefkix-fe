@@ -269,13 +269,13 @@ function PodiumSpot({
 			</div>
 
 			{/* Name */}
-			<span className='mb-1 max-w-thumbnail-lg truncate text-sm font-bold text-text'>
+			<span className='mb-1 max-w-thumbnail-lg truncate text-sm font-bold text-text-primary'>
 				{entry.displayName}
 			</span>
 
 			{/* XP */}
 			<div className='mb-3 flex flex-col items-center'>
-				<span className='text-lg font-bold tracking-tight tabular-nums text-text'>
+				<span className='text-lg font-bold tracking-tight tabular-nums text-text-primary'>
 					<AnimatedNumber
 						value={entry.xp}
 						format={n => n.toLocaleString()}

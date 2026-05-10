@@ -70,7 +70,7 @@ export function ExpandableCard({
 							>
 								<button
 									onClick={() => setIsExpanded(false)}
-									className='absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-bg-elevated text-text-muted hover:text-text'
+									className='absolute right-4 top-4 flex size-8 items-center justify-center rounded-full bg-bg-elevated text-text-muted hover:text-text-primary'
 									aria-label='Close'
 								>
 									&times;

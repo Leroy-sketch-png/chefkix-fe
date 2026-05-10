@@ -166,7 +166,13 @@ function generateCanvas(
 	const radarCenterX = W / 2
 	const radarCenterY = 280
 	const radarRadius = 130
-	drawRadarToCanvas(ctx, props.dimensions, radarCenterX, radarCenterY, radarRadius)
+	drawRadarToCanvas(
+		ctx,
+		props.dimensions,
+		radarCenterX,
+		radarCenterY,
+		radarRadius,
+	)
 
 	// Top trait highlight
 	ctx.textAlign = 'center'
@@ -203,12 +209,23 @@ function generateCanvas(
 		ctx.fill()
 
 		// Bar fill
-		const barGradient = ctx.createLinearGradient(barLeft, 0, barLeft + barWidth, 0)
+		const barGradient = ctx.createLinearGradient(
+			barLeft,
+			0,
+			barLeft + barWidth,
+			0,
+		)
 		barGradient.addColorStop(0, BRAND)
 		barGradient.addColorStop(1, `${BRAND}99`)
 		ctx.fillStyle = barGradient
 		ctx.beginPath()
-		ctx.roundRect(barLeft, y, barWidth * (dim.value / 100), barHeight, barHeight / 2)
+		ctx.roundRect(
+			barLeft,
+			y,
+			barWidth * (dim.value / 100),
+			barHeight,
+			barHeight / 2,
+		)
 		ctx.fill()
 	})
 
@@ -226,11 +243,14 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 	const [isCopied, setIsCopied] = useState(false)
 	const t = useTranslations('profile')
 
-	const canvasLabels: CanvasLabels = useMemo(() => ({
-		tasteDnaTitle: t('tasteDnaTitle'),
-		tasteDnaStrongest: t('tasteDnaStrongest', { trait: props.topTrait }),
-		tasteDnaFooter: t('tasteDnaFooter'),
-	}), [t, props.topTrait])
+	const canvasLabels: CanvasLabels = useMemo(
+		() => ({
+			tasteDnaTitle: t('tasteDnaTitle'),
+			tasteDnaStrongest: t('tasteDnaStrongest', { trait: props.topTrait }),
+			tasteDnaFooter: t('tasteDnaFooter'),
+		}),
+		[t, props.topTrait],
+	)
 
 	const generate = useCallback(() => {
 		if (!canvasRef.current) return
@@ -271,11 +291,18 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 			)
 			if (!blob) throw new Error('Failed to generate image')
 
-			if (navigator.share && navigator.canShare?.({ files: [new File([blob], 'taste-dna.png', { type: 'image/png' })] })) {
+			if (
+				navigator.share &&
+				navigator.canShare?.({
+					files: [new File([blob], 'taste-dna.png', { type: 'image/png' })],
+				})
+			) {
 				await navigator.share({
 					title: t('tasteDnaTitle'),
 					text: t('tasteDnaShareText', { trait: props.topTrait }),
-					files: [new File([blob], 'chefkix-taste-dna.png', { type: 'image/png' })],
+					files: [
+						new File([blob], 'chefkix-taste-dna.png', { type: 'image/png' }),
+					],
 				})
 			} else {
 				// Fallback: copy to clipboard
@@ -309,10 +336,10 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 			>
 				{/* Use the SVG radar from the page as visual preview */}
 				<div className='border-b border-border-subtle bg-gradient-to-r from-brand to-accent-purple p-4'>
-					<h3 className='text-lg font-bold text-white'>🧬 {t('tasteDnaShareTitle')}</h3>
-					<p className='text-sm text-white/70'>
-						{t('tasteDnaShareDesc')}
-					</p>
+					<h3 className='text-lg font-bold text-white'>
+						🧬 {t('tasteDnaShareTitle')}
+					</h3>
+					<p className='text-sm text-white/70'>{t('tasteDnaShareDesc')}</p>
 				</div>
 
 				<div className='flex gap-3 p-4'>
@@ -336,7 +363,7 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						onClick={handleShare}
 						disabled={isGenerating}
 						whileTap={BUTTON_SUBTLE_TAP}
-						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-3 font-semibold text-text transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-3 font-semibold text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isCopied ? (
 							<>

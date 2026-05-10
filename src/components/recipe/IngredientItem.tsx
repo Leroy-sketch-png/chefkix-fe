@@ -56,7 +56,7 @@ export const IngredientItem = ({
 				fetchOptions={fetchIngredientOptions}
 				placeholder={t('ingredientNamePlaceholder')}
 				minChars={1}
-				className='flex-1 bg-transparent text-sm text-text outline-none placeholder:text-text-secondary/50 focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
+				className='flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary/50 focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
 			/>
 			<button
 				type='button'

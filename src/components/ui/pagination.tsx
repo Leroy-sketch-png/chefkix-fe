@@ -164,10 +164,14 @@ export function PageSizeSelector({
 			<select
 				value={pageSize}
 				onChange={e => onPageSizeChange(Number(e.target.value))}
-				className='h-8 rounded-md border border-border-subtle bg-bg-card px-2 text-sm text-text'
+				className='h-8 rounded-md border border-border-subtle bg-bg-card px-2 text-sm text-text-primary'
 			>
 				{options.map(opt => (
-					<option key={opt} value={opt} className='bg-bg-card text-text'>
+					<option
+						key={opt}
+						value={opt}
+						className='bg-bg-card text-text-primary'
+					>
 						{opt}
 					</option>
 				))}

@@ -95,7 +95,7 @@ const CollapsibleSection = ({
 			>
 				<div className='flex items-center gap-2'>
 					<Icon className={cn('size-4', iconColors[variant])} />
-					<span className='text-sm font-medium text-text'>{title}</span>
+					<span className='text-sm font-medium text-text-primary'>{title}</span>
 				</div>
 				{isOpen ? (
 					<ChevronUp className='size-4 text-text-muted' />
@@ -195,7 +195,7 @@ const FullModeRenderer = ({
 				initial={{ opacity: 0, y: 10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ delay: 0.15 }}
-				className='text-center text-xl font-bold text-text md:text-2xl'
+				className='text-center text-xl font-bold text-text-primary md:text-2xl'
 			>
 				{t('step', { stepNum: step.stepNumber })}:{' '}
 				{step.title ?? t('ttsTitleFallback')}
@@ -214,7 +214,7 @@ const FullModeRenderer = ({
 						<p className='text-xs font-semibold uppercase tracking-wide text-brand'>
 							{t('stepGoalLabel')}
 						</p>
-						<p className='text-text'>{step.goal}</p>
+						<p className='text-text-primary'>{step.goal}</p>
 					</div>
 				</motion.div>
 			)}
@@ -239,7 +239,7 @@ const FullModeRenderer = ({
 				>
 					<div className='mb-3 flex items-center gap-2'>
 						<ListChecks className='size-4 text-text-muted' />
-						<span className='text-sm font-semibold text-text'>
+						<span className='text-sm font-semibold text-text-primary'>
 							{t('stepByStepLabel')}
 						</span>
 					</div>
@@ -386,7 +386,7 @@ const QuickModeRenderer = ({
 				<span className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
 					{t('step', { stepNum: step.stepNumber })}
 				</span>
-				<h3 className='text-lg font-bold text-text'>
+				<h3 className='text-lg font-bold text-text-primary'>
 					{step.title ?? t('ttsTitleFallback')}
 				</h3>
 			</div>
@@ -460,7 +460,7 @@ const KitchenModeRenderer = ({
 			)}
 
 			{/* Main instruction - LARGE */}
-			<p className='mx-auto max-w-2xl text-center text-2xl font-medium leading-relaxed text-text md:text-3xl'>
+			<p className='mx-auto max-w-2xl text-center text-2xl font-medium leading-relaxed text-text-primary md:text-3xl'>
 				{step.description}
 			</p>
 

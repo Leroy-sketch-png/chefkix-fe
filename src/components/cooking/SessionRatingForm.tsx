@@ -179,7 +179,7 @@ export function SessionRatingForm({
 			</motion.div>
 
 			{/* Title */}
-			<h2 className='mb-1 text-2xl font-bold text-text'>
+			<h2 className='mb-1 text-2xl font-bold text-text-primary'>
 				{t('recipeComplete')}
 			</h2>
 			<p className='mb-4 text-sm text-text-secondary'>{recipeTitle}</p>
@@ -240,7 +240,7 @@ export function SessionRatingForm({
 						exit={{ opacity: 0 }}
 						type='button'
 						onClick={() => setShowNotes(true)}
-						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text transition-colors focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='mb-4 flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageSquare className='size-4' />
 						{t('addNote')}
@@ -261,7 +261,7 @@ export function SessionRatingForm({
 							value={notes}
 							onChange={e => setNotes(e.target.value)}
 							placeholder={t('notePlaceholder')}
-							className='w-full resize-none rounded-xl border border-border-subtle/80 bg-bg-elevated p-3 text-sm text-text placeholder:text-text-muted focus:border-brand/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
+							className='w-full resize-none rounded-xl border border-border-subtle/80 bg-bg-elevated p-3 text-sm text-text-primary placeholder:text-text-muted focus:border-brand/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20'
 							rows={2}
 							maxLength={500}
 						/>
@@ -284,7 +284,7 @@ export function SessionRatingForm({
 				className={cn(
 					'w-full rounded-full py-3 font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 					rating > 0
-						? 'bg-gradient-hero shadow-card hover:shadow-warm'
+						? 'bg-brand shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
 				)}

@@ -1452,7 +1452,7 @@ export const CookingPlayer = () => {
 							className='max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.2)] ring-1 ring-white/10'
 						>
 							<AlertCircle className='mx-auto mb-4 size-12 text-error' />
-							<h2 className='mb-2 text-xl font-bold text-text'>
+							<h2 className='mb-2 text-xl font-bold text-text-primary'>
 								{error || t('noActiveSession')}
 							</h2>
 							<p className='mb-6 text-text-secondary'>
@@ -1463,7 +1463,7 @@ export const CookingPlayer = () => {
 								onClick={closeCookingPanel}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='rounded-full bg-gradient-hero px-8 py-3 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='rounded-full bg-brand px-8 py-3 font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{t('close')}
 							</motion.button>
@@ -1541,7 +1541,7 @@ export const CookingPlayer = () => {
 							</AnimatePresence>
 
 							{/* Header */}
-							<div className='relative overflow-hidden bg-gradient-hero p-6 text-white'>
+							<div className='relative overflow-hidden bg-brand p-6 text-white'>
 								{/* Animated background shimmer - pointer-events-none to not block buttons */}
 								<motion.div
 									className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent'
@@ -1868,7 +1868,7 @@ export const CookingPlayer = () => {
 															transition={{ delay: 0.35 }}
 															className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'
 														>
-															<h4 className='mb-3 flex items-center gap-2 font-semibold text-text'>
+															<h4 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
 																<span className='text-lg'>🧾</span>{' '}
 																{t('ingredientsForStep')}
 															</h4>
@@ -1977,7 +1977,7 @@ export const CookingPlayer = () => {
 											: 'px-6 py-3',
 										currentStepNumber === 1 || isNavigating
 											? 'cursor-not-allowed bg-border/50 text-text-muted'
-											: 'bg-border text-text hover:bg-border-medium',
+											: 'bg-border text-text-primary hover:bg-border-medium',
 									)}
 									title={t('previousStepShortcut')}
 								>
@@ -2030,7 +2030,7 @@ export const CookingPlayer = () => {
 									whileHover={isNavigating ? undefined : BUTTON_HOVER}
 									whileTap={isNavigating ? undefined : BUTTON_TAP}
 									className={cn(
-										'flex items-center gap-2 rounded-full bg-gradient-hero font-bold text-white shadow-warm shadow-brand/30 transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
+										'flex items-center gap-2 rounded-full bg-brand font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 										kitchenMode || interactionMode === 'MESSY_HANDS'
 											? 'min-h-16 px-10 py-4 text-lg'
 											: 'px-8 py-3',
@@ -2136,7 +2136,7 @@ export const CookingPlayer = () => {
 								</div>
 								<h3
 									id='abandon-title'
-									className='mb-2 text-xl font-bold text-text'
+									className='mb-2 text-xl font-bold text-text-primary'
 								>
 									{t('abandonTitle')}
 								</h3>
@@ -2152,7 +2152,7 @@ export const CookingPlayer = () => {
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
 										onClick={() => setShowAbandonConfirm(false)}
-										className='flex-1 rounded-full border border-border-subtle bg-bg-elevated px-6 py-3 font-semibold text-text transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex-1 rounded-full border border-border-subtle bg-bg-elevated px-6 py-3 font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										{t('keepCooking')}
 									</motion.button>

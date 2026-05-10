@@ -193,7 +193,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 						<Trophy className='size-6' />
 					</div>
 					<div>
-						<p className='text-2xl font-bold tracking-tight text-text'>
+						<p className='text-2xl font-bold tracking-tight text-text-primary'>
 							{data.totalUnlocked}
 							<span className='text-base font-normal text-text-muted'>
 								{' '}
@@ -330,7 +330,7 @@ function SkillPathCard({
 				{/* Name & Progress */}
 				<div className='min-w-0 flex-1'>
 					<div className='flex items-center gap-2'>
-						<h4 className='truncate text-sm font-bold text-text'>
+						<h4 className='truncate text-sm font-bold text-text-primary'>
 							{path.pathName}
 						</h4>
 						{isComplete && (
@@ -481,10 +481,10 @@ function AchievementNodeCard({
 						className={cn(
 							'truncate text-sm font-semibold',
 							node.unlocked
-								? 'text-text'
+								? 'text-text-primary'
 								: isLocked
 									? 'text-text-muted'
-									: 'text-text',
+									: 'text-text-primary',
 						)}
 					>
 						{node.name}

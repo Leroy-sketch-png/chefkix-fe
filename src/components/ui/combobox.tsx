@@ -202,7 +202,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 						placeholder={resolvedPlaceholder}
 						disabled={disabled}
 						className={cn(
-							'w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
+							'w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
 							icon && 'pl-9',
 							className,
 						)}
@@ -258,7 +258,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 														'flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors',
 														index === selectedIndex
 															? 'bg-brand/10 text-brand'
-															: 'text-text hover:bg-bg-hover',
+															: 'text-text-primary hover:bg-bg-hover',
 													)}
 												>
 													<div className='min-w-0 flex-1'>

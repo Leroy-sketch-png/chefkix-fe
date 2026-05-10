@@ -3,14 +3,20 @@
 import { Profile, getProfileDisplayName } from '@/lib/types'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { UserPlus, X, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { staggerItemVariants } from '@/components/ui/stagger-animation'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
+import {
+	TRANSITION_SPRING,
+	CARD_HOVER,
+	BUTTON_HOVER,
+	BUTTON_TAP,
+	ICON_BUTTON_HOVER,
+	ICON_BUTTON_TAP,
+} from '@/lib/motion'
 import { triggerLikeConfetti } from '@/lib/confetti'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import Link from 'next/link'
@@ -119,35 +125,39 @@ export const FollowSuggestionCard = ({
 					</div>
 				</Link>
 
-				<div className='flex gap-sm'>
-					<Button
-						variant='default'
-						size='sm'
+				<div className='flex items-center gap-2'>
+					<motion.button
+						type='button'
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
 						onClick={handleFollowBack}
 						disabled={isFollowing || isDismissing}
+						className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50 disabled:cursor-not-allowed'
 					>
 						{isFollowing ? (
 							<Loader2 className='size-4 animate-spin' />
 						) : (
 							<>
-								<UserPlus className='mr-1 size-4' />
+								<UserPlus className='size-4' />
 								{variant === 'follow-back' ? t('followBack') : t('follow')}
 							</>
 						)}
-					</Button>
-					<Button
-						variant='ghost'
-						size='sm'
+					</motion.button>
+					<motion.button
+						type='button'
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
 						onClick={handleDismiss}
 						disabled={isFollowing || isDismissing}
 						aria-label={t('dismissSuggestion')}
+						className='flex size-9 items-center justify-center rounded-xl border border-border-subtle text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:opacity-50'
 					>
 						{isDismissing ? (
 							<Loader2 className='size-4 animate-spin' />
 						) : (
 							<X className='size-4' />
 						)}
-					</Button>
+					</motion.button>
 				</div>
 			</motion.div>
 		</motion.div>

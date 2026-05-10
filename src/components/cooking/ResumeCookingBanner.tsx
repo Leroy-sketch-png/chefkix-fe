@@ -155,7 +155,7 @@ export const ResumeCookingBanner = ({
 				<button
 					type='button'
 					onClick={handleDismiss}
-					className='absolute right-3 top-3 z-10 rounded-full p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text transition-colors'
+					className='absolute right-3 top-3 z-10 rounded-full p-1.5 text-text-muted hover:bg-bg-elevated hover:text-text-primary transition-colors'
 					aria-label={tc('ariaDismiss')}
 				>
 					<X className='size-4' />
@@ -189,7 +189,7 @@ export const ResumeCookingBanner = ({
 							) : (
 								<ChefHat className='size-4 text-brand' />
 							)}
-							<h3 className='text-base font-semibold text-text'>
+							<h3 className='text-base font-semibold text-text-primary'>
 								{isPaused ? t('pausedSession') : t('resumeCooking')}
 							</h3>
 						</div>

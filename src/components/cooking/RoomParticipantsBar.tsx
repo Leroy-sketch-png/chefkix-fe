@@ -173,7 +173,7 @@ function ParticipantAvatar({
 			)}
 
 			{/* Step indicator */}
-			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-2xs font-bold text-text'>
+			<div className='absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-bg-card/90 px-1 text-2xs font-bold text-text-primary'>
 				{participant.currentStep}
 			</div>
 		</motion.div>

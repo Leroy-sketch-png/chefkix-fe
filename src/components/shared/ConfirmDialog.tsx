@@ -57,7 +57,9 @@ export function ConfirmDialog({
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
 			<AlertDialogContent className='rounded-2xl border-border bg-bg-card'>
 				<AlertDialogHeader>
-					<AlertDialogTitle className='text-text'>{title}</AlertDialogTitle>
+					<AlertDialogTitle className='text-text-primary'>
+						{title}
+					</AlertDialogTitle>
 					<AlertDialogDescription className='text-text-secondary'>
 						{description}
 					</AlertDialogDescription>

@@ -176,7 +176,9 @@ export function LearningPathView({
 								Learning Path
 							</span>
 						</div>
-						<h1 className='text-2xl font-bold text-text'>{collection.name}</h1>
+						<h1 className='text-2xl font-bold text-text-primary'>
+							{collection.name}
+						</h1>
 						{collection.description && (
 							<p className='mt-1 text-sm text-text-muted'>
 								{collection.description}
@@ -233,7 +235,7 @@ export function LearningPathView({
 						{collection.averageRating && (
 							<div className='flex items-center gap-1.5'>
 								<Star className='size-4 fill-warning text-warning' />
-								<span className='text-sm font-medium text-text'>
+								<span className='text-sm font-medium text-text-primary'>
 									{collection.averageRating.toFixed(1)}
 								</span>
 							</div>
@@ -255,7 +257,7 @@ export function LearningPathView({
 				) : isEnrolled ? (
 					<div className='rounded-xl bg-bg-elevated p-4'>
 						<div className='mb-3 flex items-center justify-between'>
-							<span className='text-sm font-medium text-text'>
+							<span className='text-sm font-medium text-text-primary'>
 								{t('yourProgress')}
 							</span>
 							<span className='text-sm tabular-nums text-text-muted'>
@@ -308,7 +310,7 @@ export function LearningPathView({
 			{collection.difficultyProgression &&
 				collection.difficultyProgression.length > 0 && (
 					<div className='space-y-3'>
-						<h2 className='text-lg font-semibold text-text'>
+						<h2 className='text-lg font-semibold text-text-primary'>
 							{t('learningStages')}
 						</h2>
 						<div className='space-y-3'>
@@ -340,7 +342,7 @@ export function LearningPathView({
 				collection.recipeIds &&
 				collection.recipeIds.length > 0 && (
 					<div className='space-y-3'>
-						<h2 className='text-lg font-semibold text-text'>
+						<h2 className='text-lg font-semibold text-text-primary'>
 							{t('recipesLabel')}
 						</h2>
 						<div className='space-y-2'>
@@ -420,7 +422,7 @@ function StageCard({
 						)}
 					</div>
 					<div>
-						<h3 className='font-semibold text-text'>{stage.label}</h3>
+						<h3 className='font-semibold text-text-primary'>{stage.label}</h3>
 						<div className='flex items-center gap-2'>
 							<span
 								className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getDifficultyColor(stage.difficulty)}`}
@@ -511,7 +513,7 @@ function RecipeRow({
 							? 'text-text-muted line-through'
 							: isLocked
 								? 'text-text-muted'
-								: 'text-text'
+								: 'text-text-primary'
 					}`}
 				>
 					{displayName}

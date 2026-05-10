@@ -135,7 +135,7 @@ export function AuthRequiredModal({
 
 								<h2
 									id='auth-modal-title'
-									className='text-lg font-semibold text-text'
+									className='text-lg font-semibold text-text-primary'
 								>
 									{t(config.titleKey)}
 								</h2>
@@ -168,7 +168,7 @@ export function AuthRequiredModal({
 								<button
 									type='button'
 									onClick={onClose}
-									className='mt-4 text-sm text-text-muted transition-colors hover:text-text'
+									className='mt-4 text-sm text-text-muted transition-colors hover:text-text-primary'
 								>
 									Maybe later
 								</button>
@@ -180,4 +180,3 @@ export function AuthRequiredModal({
 		</AnimatePresence>
 	)
 }
-

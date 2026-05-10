@@ -746,6 +746,7 @@ export function EmptyState({
 }: EmptyStateProps) {
 	const defaultIllustration =
 		variant !== 'custom' ? illustrationMap[variant] : null
+	const isSearchVariant = variant === 'search'
 	const displayIllustration =
 		illustration ??
 		(emoji ? (
@@ -760,19 +761,29 @@ export function EmptyState({
 			animate={{ opacity: 1, y: 0 }}
 			className={cn(
 				'my-6 rounded-2xl border border-border-subtle bg-bg-card px-6 py-12 text-center shadow-card',
+				isSearchVariant && 'px-5 py-8 md:px-6 md:py-10',
 				isPositive &&
 					'border-success/20 bg-gradient-to-b from-success/5 to-brand/2',
 				className,
 			)}
 		>
 			{/* Illustration */}
-			{displayIllustration && <div className='mb-6'>{displayIllustration}</div>}
+			{displayIllustration && (
+				<div className={cn('mb-6', isSearchVariant && 'mb-4')}>
+					{displayIllustration}
+				</div>
+			)}
 
 			{/* Title & Description */}
 			<h3 className='mb-2 text-xl font-bold tracking-tight text-text-primary'>
 				{title}
 			</h3>
-			<p className='mx-auto mb-6 max-w-xs text-[15px] leading-relaxed text-text-secondary'>
+			<p
+				className={cn(
+					'mx-auto mb-6 max-w-xs text-[15px] leading-relaxed text-text-secondary',
+					isSearchVariant && 'mb-5',
+				)}
+			>
 				{description}
 			</p>
 

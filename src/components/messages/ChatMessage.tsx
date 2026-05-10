@@ -235,7 +235,7 @@ const MessageActions = ({
 			<motion.button
 				type='button'
 				onClick={onReply}
-				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
@@ -246,7 +246,7 @@ const MessageActions = ({
 			<motion.button
 				type='button'
 				onClick={onCopy}
-				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
@@ -375,7 +375,7 @@ const ChatMessageContent = ({
 										: 'border-border bg-bg-elevated',
 								)}
 							>
-								<span className='font-semibold text-text'>
+								<span className='font-semibold text-text-primary'>
 									{message.replyTo.senderName}
 								</span>
 								<p
@@ -450,7 +450,7 @@ const ChatMessageContent = ({
 											{/* Title */}
 											{message.sharedPostTitle && (
 												<p
-													className='mb-1 line-clamp-1 text-sm font-bold text-text'
+													className='mb-1 line-clamp-1 text-sm font-bold text-text-primary'
 													title={message.sharedPostTitle}
 												>
 													{message.sharedPostTitle}
@@ -508,7 +508,7 @@ const ChatMessageContent = ({
 										'rounded-2xl px-4 py-2.5 shadow-sm',
 										message.isOwn
 											? 'rounded-br-md bg-brand text-white'
-											: 'rounded-bl-md bg-bg-elevated text-text ring-1 ring-border/50',
+											: 'rounded-bl-md bg-bg-elevated text-text-primary ring-1 ring-border/50',
 									)}
 								>
 									<p className='text-label leading-relaxed whitespace-pre-wrap break-words'>

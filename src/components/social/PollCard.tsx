@@ -20,6 +20,12 @@ import {
 } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
+import {
+	socialCardSurface,
+	socialCardTopAccent,
+	socialCardHeaderPadding,
+	socialCardBodyPadding,
+} from '@/components/social/socialCardStyles'
 
 interface PollCardProps {
 	post: Post
@@ -91,10 +97,13 @@ export const PollCard = ({
 		<motion.div
 			layout
 			whileHover={CARD_FEED_HOVER}
-			className='group -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/50 p-4 transition-all duration-300 hover:shadow-warm md:p-6'
+			className={socialCardSurface({ tone: 'poll' })}
 		>
+			<div className={socialCardTopAccent} />
 			{/* Header */}
-			<div className='mb-3 flex items-center gap-3'>
+			<div
+				className={`mb-3 flex items-center gap-3 ${socialCardHeaderPadding}`}
+			>
 				<UserHoverCard userId={post.userId}>
 					<Link href={`/${post.userId}`}>
 						<Avatar className='size-10 ring-2 ring-border-subtle'>
@@ -109,7 +118,7 @@ export const PollCard = ({
 					<UserHoverCard userId={post.userId}>
 						<Link
 							href={`/${post.userId}`}
-							className='font-medium text-text hover:text-brand transition-colors'
+							className='font-medium text-text-primary hover:text-brand transition-colors'
 						>
 							{post.displayName || 'Chef'}
 						</Link>
@@ -122,41 +131,43 @@ export const PollCard = ({
 				</div>
 			</div>
 
-			{/* Question */}
-			<p className='mb-4 text-lg font-semibold text-text'>
-				{poll.question || post.content}
-			</p>
+			<div className={socialCardBodyPadding}>
+				{/* Question */}
+				<p className='mb-4 text-lg font-semibold text-text-primary'>
+					{poll.question || post.content}
+				</p>
 
-			{/* Options */}
-			<div className='space-y-3'>
-				<PollOption
-					label={poll.optionA}
-					percent={percentA}
-					votes={poll.votesA}
-					isSelected={post.userVote === 'A'}
-					hasVoted={hasVoted}
-					disabled={isVoting || isOwner}
-					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
-					onClick={() => handleVote('A')}
-				/>
-				<PollOption
-					label={poll.optionB}
-					percent={percentB}
-					votes={poll.votesB}
-					isSelected={post.userVote === 'B'}
-					hasVoted={hasVoted}
-					disabled={isVoting || isOwner}
-					title={isOwner ? t('cannotVoteOwnPoll') : undefined}
-					onClick={() => handleVote('B')}
-				/>
-			</div>
+				{/* Options */}
+				<div className='space-y-3'>
+					<PollOption
+						label={poll.optionA}
+						percent={percentA}
+						votes={poll.votesA}
+						isSelected={post.userVote === 'A'}
+						hasVoted={hasVoted}
+						disabled={isVoting || isOwner}
+						title={isOwner ? t('cannotVoteOwnPoll') : undefined}
+						onClick={() => handleVote('A')}
+					/>
+					<PollOption
+						label={poll.optionB}
+						percent={percentB}
+						votes={poll.votesB}
+						isSelected={post.userVote === 'B'}
+						hasVoted={hasVoted}
+						disabled={isVoting || isOwner}
+						title={isOwner ? t('cannotVoteOwnPoll') : undefined}
+						onClick={() => handleVote('B')}
+					/>
+				</div>
 
-			{/* Footer */}
-			<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
-				<span className='tabular-nums'>
-					{t('voteCount', { count: totalVotes })}
-				</span>
-				{isOwner && <span className='italic'>{t('yourPoll')}</span>}
+				{/* Footer */}
+				<div className='mt-3 flex items-center justify-between text-xs text-text-muted'>
+					<span className='tabular-nums'>
+						{t('voteCount', { count: totalVotes })}
+					</span>
+					{isOwner && <span className='italic'>{t('yourPoll')}</span>}
+				</div>
 			</div>
 		</motion.div>
 	)
@@ -213,7 +224,10 @@ function PollOption({
 			{/* Content */}
 			<div className='relative flex items-center justify-between'>
 				<span
-					className={cn('font-medium', isSelected ? 'text-brand' : 'text-text')}
+					className={cn(
+						'font-medium',
+						isSelected ? 'text-brand' : 'text-text-primary',
+					)}
 				>
 					{label}
 				</span>

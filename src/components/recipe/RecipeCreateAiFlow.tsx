@@ -1289,12 +1289,12 @@ export const RecipeCreateAiFlow = ({
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex size-10 items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex size-10 items-center justify-center rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 text-text-primary shadow-card focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<ArrowLeft className='size-5' />
 					</motion.button>
 				)}
-				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text'>
+				<h1 className='flex-1 text-2xl font-bold tracking-tight text-text-primary'>
 					{step === 'preview'
 						? t('aiFlowReviewRecipe')
 						: t('aiFlowCreateRecipe')}
@@ -1385,7 +1385,7 @@ export const RecipeCreateAiFlow = ({
 									className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 								>
 									<div className='mb-4'>
-										<h3 className='text-lg font-bold text-text'>
+										<h3 className='text-lg font-bold text-text-primary'>
 											{t('aiFlowPasteYourRecipe')}
 										</h3>
 										<p className='text-sm text-text-secondary'>
@@ -1411,7 +1411,7 @@ export const RecipeCreateAiFlow = ({
 										className={cn(
 											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
-												? 'bg-gradient-hero text-white shadow-warm hover:shadow-warm'
+												? 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
 												: 'cursor-not-allowed bg-muted/50 text-text-muted',
 										)}
 									>
@@ -1662,7 +1662,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, title: e.target.value })
 									}
-									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='w-full rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-xl font-bold text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 							</div>
 
@@ -1680,7 +1680,7 @@ export const RecipeCreateAiFlow = ({
 									onChange={e =>
 										setRecipe({ ...recipe, description: e.target.value })
 									}
-									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='min-h-20 w-full resize-y rounded-xl border-2 border-transparent bg-bg px-4 py-3 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 							</div>
 
@@ -1694,7 +1694,7 @@ export const RecipeCreateAiFlow = ({
 										onChange={e =>
 											setRecipe({ ...recipe, cookTime: e.target.value })
 										}
-										className='w-20 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
+										className='w-20 border-none bg-transparent text-xs font-semibold text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
 										placeholder='30 min'
 									/>
 								</div>
@@ -1703,7 +1703,7 @@ export const RecipeCreateAiFlow = ({
 									title={t('aiFlowDifficultyTitle')}
 								>
 									<Signal className='size-4 text-text-secondary' />
-									<span className='text-xs font-semibold text-text'>
+									<span className='text-xs font-semibold text-text-primary'>
 										{recipe.difficulty}
 									</span>
 									<Lock className='size-3 text-text-secondary/50' />
@@ -1721,7 +1721,7 @@ export const RecipeCreateAiFlow = ({
 												servings: parseInt(e.target.value) || 1,
 											})
 										}
-										className='w-12 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+										className='w-12 border-none bg-transparent text-xs font-semibold text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 									/>
 									<span className='text-xs text-text-secondary'>
 										{t('aiFlowServings')}
@@ -1737,7 +1737,7 @@ export const RecipeCreateAiFlow = ({
 										}
 										options={CUISINE_OPTIONS}
 										placeholder={t('aiFlowCuisine')}
-										className='w-24 border-none bg-transparent text-xs font-semibold text-text focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
+										className='w-24 border-none bg-transparent text-xs font-semibold text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
 									/>
 								</div>
 							</div>
@@ -1765,7 +1765,7 @@ export const RecipeCreateAiFlow = ({
 						{/* Ingredients Section */}
 						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 							<div className='mb-4 flex items-center justify-between'>
-								<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
+								<h3 className='flex items-center gap-2.5 text-lg font-bold text-text-primary'>
 									<ShoppingBasket className='size-5 text-brand' />
 									{t('aiFlowIngredients')}
 								</h3>
@@ -1805,7 +1805,7 @@ export const RecipeCreateAiFlow = ({
 						<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
 							<div className='mb-4 flex items-center justify-between'>
 								<div className='flex items-center gap-4'>
-									<h3 className='flex items-center gap-2.5 text-lg font-bold text-text'>
+									<h3 className='flex items-center gap-2.5 text-lg font-bold text-text-primary'>
 										<ListOrdered className='size-5 text-brand' />
 										{t('aiFlowInstructions')}
 									</h3>
@@ -1873,7 +1873,7 @@ export const RecipeCreateAiFlow = ({
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}
 								whileTap={isCalculatingXp ? {} : BUTTON_TAP}
-								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-hero py-4.5 shadow-warm disabled:opacity-70 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-brand py-4.5 shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{isCalculatingXp ? (
 									<>

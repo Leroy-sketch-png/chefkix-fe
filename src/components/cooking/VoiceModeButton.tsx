@@ -79,7 +79,7 @@ export function VoiceModeButton({
 					? voice.isContinuous
 						? 'bg-success text-white shadow-glow'
 						: 'bg-brand text-white shadow-glow'
-					: 'bg-bg-elevated text-text-secondary hover:bg-bg-card hover:text-text',
+					: 'bg-bg-elevated text-text-secondary hover:bg-bg-card hover:text-text-primary',
 				className,
 			)}
 			title={

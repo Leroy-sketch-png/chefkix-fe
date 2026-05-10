@@ -113,7 +113,7 @@ function LeaderboardSummary({
 		return (
 			<>
 				Competing with{' '}
-				<strong className='text-text'>
+				<strong className='font-bold text-text-primary'>
 					{totalFriends} {totalFriends === 1 ? 'friend' : 'friends'}
 				</strong>{' '}
 				this week
@@ -127,14 +127,10 @@ function LeaderboardSummary({
 			{onInviteFriends && (
 				<motion.button
 					type='button'
-					whileHover={LIST_ITEM_HOVER}
-					whileTap={LIST_ITEM_TAP}
+					whileHover={{ scale: 1.05, y: -2 }}
+					whileTap={{ scale: 0.98 }}
 					onClick={onInviteFriends}
-					className={cn(
-						'flex items-center gap-1.5 py-2 px-3.5 focus-visible:ring-2 focus-visible:ring-brand/50',
-						'bg-gradient-xp',
-						'rounded-xl text-sm font-semibold text-white',
-					)}
+					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<UserPlus className='size-4' />
 					{totalFriends === 0 ? t('inviteRivals') : t('invite')}
@@ -175,7 +171,7 @@ function CatchingUpAlert({
 						size={32}
 					/>
 				</div>
-				<span className='text-sm text-text'>
+				<span className='text-sm font-medium text-text-primary'>
 					{t('xpBehind', { name: competitor.displayName, xp: xpBehind })}
 				</span>
 			</div>
@@ -269,7 +265,7 @@ export function FriendsLeaderboard({
 					>
 						<span className='text-3xl'>👑</span>
 					</motion.div>
-					<h3 className='mb-1 text-xl font-bold text-text'>
+					<h3 className='mb-1 text-xl font-bold tracking-tight text-text-primary'>
 						{entries.length === 1 ? t('soloChampion') : t('dynamicDuo')}
 					</h3>
 					<p className='mb-4 text-sm text-text-secondary'>
@@ -337,11 +333,11 @@ export function FriendsLeaderboard({
 						initial={{ scale: 0 }}
 						animate={{ scale: 1 }}
 						transition={TRANSITION_SPRING}
-						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-xp shadow-warm'
+						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand shadow-[0_4px_16px_rgba(255,90,54,0.3)]'
 					>
 						<ChefHat className='size-8 text-white' />
 					</motion.div>
-					<h3 className='mb-2 text-lg font-bold text-text'>
+					<h3 className='mb-2 text-lg font-bold tracking-tight text-text-primary'>
 						Ready to Compete? 🔥
 					</h3>
 					<p className='mb-4 max-w-xs text-sm text-text-secondary'>
@@ -354,11 +350,7 @@ export function FriendsLeaderboard({
 							whileHover={LIST_ITEM_HOVER}
 							whileTap={LIST_ITEM_TAP}
 							onClick={onInviteFriends}
-							className={cn(
-								'flex items-center gap-2 py-2.5 px-5 focus-visible:ring-2 focus-visible:ring-brand/50',
-								'bg-gradient-xp',
-								'rounded-xl text-sm font-semibold text-white',
-							)}
+							className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<UserPlus className='size-4' />
 							{t('inviteFriends')}

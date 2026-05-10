@@ -23,7 +23,12 @@ export function AppShell({
 	mainClassName,
 }: AppShellProps) {
 	return (
-		<div className={cn('flex h-screen w-full flex-col overflow-hidden bg-background', className)}>
+		<div
+			className={cn(
+				'flex h-screen w-full flex-col overflow-hidden bg-background',
+				className,
+			)}
+		>
 			{header}
 
 			<div className='flex flex-1 overflow-hidden'>
@@ -32,7 +37,7 @@ export function AppShell({
 				<main
 					id='main-content'
 					className={cn(
-						'flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-28 md:pb-4 lg:gap-6 lg:p-6 lg:pb-6',
+						'flex flex-1 flex-col gap-4 overflow-y-auto scroll-smooth p-4 pb-[calc(var(--h-mobile-nav)+var(--space-8)+env(safe-area-inset-bottom))] md:pb-4 lg:gap-6 lg:p-6 lg:pb-6',
 						mainClassName,
 					)}
 				>

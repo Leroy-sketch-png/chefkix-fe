@@ -146,7 +146,7 @@ export function TipJarButton({
 								<button
 									type='button'
 									onClick={() => setShowModal(false)}
-									className='absolute right-4 top-4 text-text-muted hover:text-text'
+									className='absolute right-4 top-4 text-text-muted hover:text-text-primary'
 									aria-label={t('ariaClose')}
 								>
 									<X className='size-5' />
@@ -159,7 +159,7 @@ export function TipJarButton({
 									</div>
 									<h3
 										id='tip-jar-title'
-										className='text-lg font-bold text-text'
+										className='text-lg font-bold text-text-primary'
 									>
 										Support {creatorName}
 									</h3>
@@ -184,7 +184,7 @@ export function TipJarButton({
 												'rounded-xl px-5 py-3 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 												selectedAmount === amt
 													? 'bg-brand text-white shadow-glow'
-													: 'border border-border bg-bg-elevated text-text hover:border-brand/50',
+													: 'border border-border bg-bg-elevated text-text-primary hover:border-brand/50',
 											)}
 										>
 											${amt}
@@ -204,7 +204,7 @@ export function TipJarButton({
 											setCustomAmount(e.target.value)
 											setSelectedAmount(null)
 										}}
-										className='w-full rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+										className='w-full rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 									/>
 								</div>
 
@@ -216,7 +216,7 @@ export function TipJarButton({
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
 										rows={2}
-										className='w-full resize-none rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='w-full resize-none rounded-xl border border-border bg-bg-elevated px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 									/>
 								</div>
 

@@ -251,7 +251,9 @@ export const PostDeadlineCard = ({
 					>
 						{config.label}
 					</span>
-					<p className='truncate text-sm font-bold text-text'>{recipeName}</p>
+					<p className='truncate text-sm font-bold text-text-primary'>
+						{recipeName}
+					</p>
 					{state !== 'expired' && (
 						<div
 							className={cn(
@@ -317,7 +319,7 @@ export const PostDeadlineCard = ({
 						type='button'
 						onClick={onDismiss}
 						aria-label={t('dismiss')}
-						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
+						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
 					>
 						<X className='size-4' />
 					</button>

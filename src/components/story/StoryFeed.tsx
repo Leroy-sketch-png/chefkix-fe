@@ -66,7 +66,7 @@ const CreateStoryCard = ({
 				) : null}
 			</div>
 			<div className='min-w-0 space-y-0.5'>
-				<p className='text-sm font-semibold leading-tight text-text'>
+				<p className='text-sm font-semibold leading-tight text-text-primary'>
 					{hasStories ? 'Add to your story' : 'Start your story'}
 				</p>
 				<p className='line-clamp-1 text-xs leading-4 text-text-secondary'>

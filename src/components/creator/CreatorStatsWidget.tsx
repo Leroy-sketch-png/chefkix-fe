@@ -51,12 +51,12 @@ export function CreatorStatsWidget({
 			{/* Header */}
 			<div className='flex items-center gap-2 mb-4'>
 				<span className='text-xl'>??</span>
-				<span className='flex-1 text-base font-bold text-text'>
+				<span className='flex-1 text-base font-bold text-text-primary'>
 					Creator Stats
 				</span>
 				<Link
 					href={dashboardUrl}
-					className='size-7 flex items-center justify-center bg-bg rounded-xl text-text-secondary hover:text-text transition-colors'
+					className='size-7 flex items-center justify-center bg-bg rounded-xl text-text-secondary hover:text-text-primary transition-colors'
 				>
 					<ArrowRight className='size-4' />
 				</Link>
@@ -65,7 +65,7 @@ export function CreatorStatsWidget({
 			{/* Stats Row */}
 			<div className='flex gap-3 mb-4'>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-xl'>
-					<span className='text-lg font-bold tracking-tight text-text'>
+					<span className='text-lg font-bold tracking-tight text-text-primary'>
 						<AnimatedNumber value={recipesCount} className='tabular-nums' />
 					</span>
 					<span className='text-2xs text-text-secondary'>
@@ -73,7 +73,7 @@ export function CreatorStatsWidget({
 					</span>
 				</div>
 				<div className='flex-1 flex flex-col items-center py-3 px-2 bg-bg rounded-xl'>
-					<span className='text-lg font-bold tracking-tight text-text'>
+					<span className='text-lg font-bold tracking-tight text-text-primary'>
 						<AnimatedNumber
 							value={totalCooks}
 							format={n => n.toLocaleString()}
@@ -111,7 +111,7 @@ export function CreatorStatsWidget({
 						<span className='text-2xs text-text-secondary'>
 							{t('topRecipe')}
 						</span>
-						<span className='text-sm font-bold text-text truncate'>
+						<span className='text-sm font-bold text-text-primary truncate'>
 							{topRecipe.title}
 						</span>
 					</div>
@@ -185,7 +185,7 @@ export function CreatorXPNotification({
 
 			{/* Content */}
 			<div className='flex-1 flex flex-col'>
-				<span className='text-sm font-semibold text-text'>
+				<span className='text-sm font-semibold text-text-primary'>
 					{cookersCount} people cooked your recipes today!
 				</span>
 				<span className='text-sm font-bold text-success'>

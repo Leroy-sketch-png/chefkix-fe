@@ -74,6 +74,11 @@ import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPick
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
+import {
+	socialCardSurface,
+	socialCardTopAccent,
+	socialCardHeaderPadding,
+} from '@/components/social/socialCardStyles'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -676,12 +681,14 @@ const PostCardContent = ({
 			>
 				<motion.div
 					whileHover={CARD_FEED_HOVER}
-					className='group relative overflow-hidden -mx-4 sm:mx-0 sm:rounded-2xl border-y sm:border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/40 shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
+					className={socialCardSurface()}
 				>
 					{/* Warm top-edge accent — barely visible but adds depth */}
-					<div className='pointer-events-none absolute inset-x-0 top-0 hidden h-px bg-gradient-to-r from-transparent via-border-medium/50 to-transparent sm:block' />
+					<div className={socialCardTopAccent} />
 					{/* Header */}
-					<div className='flex items-center justify-between px-4 py-3.5 md:px-5 md:py-4'>
+					<div
+						className={`flex items-center justify-between ${socialCardHeaderPadding}`}
+					>
 						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
 							<Link
 								href={post.userId ? `/${post.userId}` : '/dashboard'}
@@ -1145,7 +1152,7 @@ const PostCardContent = ({
 													})
 												: t('ariaViewRecipe', { title: post.recipeTitle })
 										}
-										className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text transition-all hover:from-brand/20 hover:to-bonus/20'
+										className='inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand/10 to-bonus/10 px-3 py-2 text-sm font-medium text-text-primary transition-all hover:from-brand/20 hover:to-bonus/20'
 									>
 										<ChefHat className='size-4 text-brand' />
 										<span>

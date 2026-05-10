@@ -64,7 +64,7 @@ export const MyGroupsSidebar = ({
 			transition={{ duration: DURATION_S.smooth }}
 		>
 			<div className='flex items-center justify-between'>
-				<h3 className='font-bold text-text flex items-center gap-2'>
+				<h3 className='font-bold text-text-primary flex items-center gap-2'>
 					<Users className='size-4 text-brand' />
 					{t('msMyGroups')}
 				</h3>

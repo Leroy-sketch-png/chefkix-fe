@@ -123,7 +123,9 @@ export const GroupsExploreGrid = ({
 			<div className='bg-gradient-to-r from-brand/10 to-brand/5 rounded-xl border border-brand/20 p-6'>
 				<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div>
-						<h1 className='text-4xl font-bold text-text'>{t('geTitle')}</h1>
+						<h1 className='text-4xl font-bold text-text-primary'>
+							{t('geTitle')}
+						</h1>
 						<p className='text-text-secondary mt-2 text-lg'>
 							{t('geDescription')}
 						</p>

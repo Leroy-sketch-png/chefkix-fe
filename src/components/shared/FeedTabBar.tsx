@@ -114,14 +114,14 @@ export function FeedTabBar<T extends string = string>({
 								'rounded-radius',
 								isActive
 									? 'text-white'
-									: 'text-text-secondary hover:bg-bg-elevated hover:text-text',
+									: 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary',
 							],
 							// Underline variant styles
 							!isPill && [
 								'-mb-[2px] whitespace-nowrap border-b-[3px]',
 								isActive
 									? 'border-transparent text-brand'
-									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text',
+									: 'border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-primary',
 							],
 						)}
 					>

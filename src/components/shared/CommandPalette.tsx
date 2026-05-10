@@ -456,7 +456,7 @@ export function CommandPalette() {
 							onValueChange={setQuery}
 							placeholder={t('cpPlaceholder')}
 							aria-label={t('cpPlaceholder')}
-							className='flex-1 bg-transparent py-4 text-base text-text outline-none focus-visible:ring-2 focus-visible:ring-brand/50 placeholder:text-text-muted'
+							className='flex-1 bg-transparent py-4 text-base text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-brand/50 placeholder:text-text-muted'
 						/>
 						<kbd className='hidden rounded-md border border-border-subtle bg-bg-elevated px-2 py-0.5 text-xs text-text-muted sm:inline-block'>
 							{isMac ? '⌘' : 'Ctrl'}+K
@@ -592,7 +592,7 @@ function CommandRow({
 		<Command.Item
 			value={item.id}
 			onSelect={onSelect}
-			className='flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-text transition-colors data-[selected=true]:bg-brand/10 data-[selected=true]:text-brand'
+			className='flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-text-primary transition-colors data-[selected=true]:bg-brand/10 data-[selected=true]:text-brand'
 		>
 			<span className='flex size-8 flex-shrink-0 items-center justify-center rounded-xl bg-bg-elevated text-text-secondary'>
 				{item.icon}

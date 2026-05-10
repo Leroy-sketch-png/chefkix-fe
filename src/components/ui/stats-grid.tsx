@@ -73,7 +73,7 @@ export function StatsGrid({ stats, columns = 4, className }: StatsGridProps) {
 								{stat.label}
 							</p>
 							<div className='mt-2 flex items-end gap-2'>
-								<span className='text-2xl font-bold text-text tabular-nums'>
+								<span className='text-2xl font-bold text-text-primary tabular-nums'>
 									{stat.value}
 									{stat.suffix && (
 										<span className='ml-0.5 text-sm font-normal text-text-secondary'>

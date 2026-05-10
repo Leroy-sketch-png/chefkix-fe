@@ -670,7 +670,7 @@ export const CookingHistoryTab = ({
 					<div className='flex gap-2'>
 						<select
 							aria-label={t('filterTimeRange')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text cursor-pointer'
+							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
 							value={filter.timeRange}
 							onChange={e =>
 								handleFilterChange({
@@ -685,7 +685,7 @@ export const CookingHistoryTab = ({
 						</select>
 						<select
 							aria-label={t('filterSortBy')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text cursor-pointer'
+							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
 							value={filter.sortBy}
 							onChange={e =>
 								handleFilterChange({

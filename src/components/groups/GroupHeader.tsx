@@ -164,7 +164,9 @@ export const GroupHeader = ({
 			<div className='p-6'>
 				<div className='flex items-start justify-between gap-4'>
 					<div className='flex-1'>
-						<h1 className='text-3xl font-bold text-text'>{group.name}</h1>
+						<h1 className='text-3xl font-bold text-text-primary'>
+							{group.name}
+						</h1>
 
 						<div className='flex items-center gap-4 mt-3 flex-wrap'>
 							<div className='flex items-center gap-1 text-text-secondary'>

@@ -138,7 +138,7 @@ export function StepHeatmap({
 			<div className='border-b border-border-subtle p-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h3 className='text-sm font-semibold text-text'>
+						<h3 className='text-sm font-semibold text-text-primary'>
 							{t('stepHeatmap')}
 						</h3>
 						<p className='text-xs text-text-muted'>
@@ -192,7 +192,7 @@ export function StepHeatmap({
 						{/* Bar + title */}
 						<div className='min-w-0 flex-1'>
 							<div className='mb-1 flex items-center justify-between'>
-								<span className='truncate text-xs font-medium text-text'>
+								<span className='truncate text-xs font-medium text-text-primary'>
 									{step.title}
 								</span>
 								<span
@@ -262,7 +262,7 @@ export function StepHeatmap({
 				<button
 					type='button'
 					onClick={() => setExpanded(!expanded)}
-					className='flex w-full items-center justify-center gap-1 border-t border-border-subtle py-2.5 text-xs font-medium text-text-secondary transition-colors hover:text-text'
+					className='flex w-full items-center justify-center gap-1 border-t border-border-subtle py-2.5 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary'
 				>
 					{expanded ? (
 						<>

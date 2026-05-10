@@ -161,7 +161,7 @@ export default function ReferralCard() {
 					<div className='flex size-8 items-center justify-center rounded-xl bg-brand/10'>
 						<Gift className='size-4 text-brand' />
 					</div>
-					<h3 className='text-lg font-semibold text-text'>
+					<h3 className='text-lg font-semibold text-text-primary'>
 						Your Referral Code
 					</h3>
 				</div>
@@ -234,14 +234,14 @@ export default function ReferralCard() {
 						<div className='flex size-8 items-center justify-center rounded-xl bg-xp/10'>
 							<Trophy className='size-4 text-xp' />
 						</div>
-						<h3 className='text-lg font-semibold text-text'>
+						<h3 className='text-lg font-semibold text-text-primary'>
 							{t('referralStats')}
 						</h3>
 					</div>
 
 					<div className='mb-4 grid grid-cols-2 gap-3'>
 						<div className='rounded-xl bg-bg-elevated p-3 text-center'>
-							<p className='text-2xl font-bold text-text'>
+							<p className='text-2xl font-bold text-text-primary'>
 								{stats.totalReferrals}
 							</p>
 							<p className='text-xs text-text-secondary'>
@@ -288,7 +288,7 @@ export default function ReferralCard() {
 												{getInitials(r.referredUsername, 1)}
 											</div>
 										)}
-										<span className='text-sm font-medium text-text'>
+										<span className='text-sm font-medium text-text-primary'>
 											{r.referredUsername}
 										</span>
 									</div>
@@ -308,7 +308,7 @@ export default function ReferralCard() {
 					<div className='flex size-8 items-center justify-center rounded-xl bg-streak/10'>
 						<Sparkles className='size-4 text-streak' />
 					</div>
-					<h3 className='text-lg font-semibold text-text'>
+					<h3 className='text-lg font-semibold text-text-primary'>
 						Have a Referral Code?
 					</h3>
 				</div>
@@ -324,7 +324,7 @@ export default function ReferralCard() {
 						}
 						className={cn(
 							'flex-1 font-mono uppercase tracking-wider',
-							'bg-bg-elevated text-text placeholder:text-text-muted',
+							'bg-bg-elevated text-text-primary placeholder:text-text-muted',
 						)}
 						maxLength={8}
 						onKeyDown={e => {

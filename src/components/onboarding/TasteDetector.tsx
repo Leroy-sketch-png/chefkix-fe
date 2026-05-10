@@ -258,7 +258,7 @@ export const TasteDetector = ({
 					)}
 				</div>
 				<div>
-					<h4 className='text-sm font-bold text-text'>
+					<h4 className='text-sm font-bold text-text-primary'>
 						{isFormed ? tc('tasteYourProfile') : tc('tasteBuildingProfile')}
 					</h4>
 					<p className='text-xs text-text-muted'>

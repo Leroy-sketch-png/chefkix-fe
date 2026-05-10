@@ -98,7 +98,7 @@ export function GroupSettingsModal({
 				<div className='space-y-4'>
 					{/* Group Name */}
 					<div>
-						<label className='block text-sm font-medium text-text mb-2'>
+						<label className='block text-sm font-medium text-text-primary mb-2'>
 							{t('gsNameLabel')}
 						</label>
 						<Input
@@ -112,7 +112,7 @@ export function GroupSettingsModal({
 
 					{/* Description */}
 					<div>
-						<label className='block text-sm font-medium text-text mb-2'>
+						<label className='block text-sm font-medium text-text-primary mb-2'>
 							{t('gsDescLabel')}
 						</label>
 						<Textarea
@@ -124,7 +124,9 @@ export function GroupSettingsModal({
 							maxLength={500}
 						/>
 						{description.length > 0 && (
-						<p className={`mt-1 text-right text-xs ${description.length > 400 ? (description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}>
+							<p
+								className={`mt-1 text-right text-xs ${description.length > 400 ? (description.length >= 500 ? 'text-error font-semibold' : 'text-warning') : 'text-text-muted'}`}
+							>
 								{description.length}/500
 							</p>
 						)}
@@ -132,7 +134,7 @@ export function GroupSettingsModal({
 
 					{/* Privacy */}
 					<div>
-						<label className='block text-sm font-medium text-text mb-2'>
+						<label className='block text-sm font-medium text-text-primary mb-2'>
 							{t('gsPrivacyLabel')}
 						</label>
 						<Select
@@ -143,9 +145,7 @@ export function GroupSettingsModal({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value='PUBLIC'>
-									{t('gsPublicOption')}
-								</SelectItem>
+								<SelectItem value='PUBLIC'>{t('gsPublicOption')}</SelectItem>
 								<SelectItem value='PRIVATE'>{t('gsPrivateOption')}</SelectItem>
 							</SelectContent>
 						</Select>

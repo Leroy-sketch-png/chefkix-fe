@@ -56,7 +56,7 @@ export const StoryAvatar = ({
 			<span
 				className={cn(
 					'w-full truncate px-1 text-center text-xs font-medium',
-					isCurrentUser ? 'text-text' : 'text-text-secondary',
+					isCurrentUser ? 'text-text-primary' : 'text-text-secondary',
 				)}
 			>
 				{label}

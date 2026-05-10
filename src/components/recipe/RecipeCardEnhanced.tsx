@@ -855,7 +855,7 @@ const FeaturedCard = ({
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
 							transition={TRANSITION_SPRING}
-							className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-warm shadow-brand/40 md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Play className='size-5 md:size-6' />
 							{t('startCooking')}

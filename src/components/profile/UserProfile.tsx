@@ -50,6 +50,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyStateGamified } from '@/components/shared'
 import { TasteCompatibility } from '@/components/profile/TasteCompatibility'
+import { ProfileCommandRail } from '@/components/profile/ProfileCommandRail'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
@@ -648,8 +649,51 @@ export const UserProfile = ({
 		}
 	}
 
+	const commandTabs = [
+		{
+			id: 'recipes',
+			label: t('recipesTab'),
+			icon: ChefHat,
+			count: userRecipes.length,
+		},
+		{
+			id: 'posts',
+			label: t('postsTab'),
+			icon: MessageCircle,
+			count: userPosts.length,
+		},
+		...(isOwnProfile
+			? [
+					{
+						id: 'cooking',
+						label: t('cookingTab'),
+						icon: Clock,
+						count: cookingSessions.length,
+					},
+					{
+						id: 'saved',
+						label: t('savedTab'),
+						icon: Bookmark,
+						count: savedRecipes.length + savedPosts.length,
+					},
+					{
+						id: 'liked',
+						label: t('likedTab'),
+						icon: Heart,
+						count: likedRecipes.length,
+					},
+				]
+			: []),
+		{
+			id: 'achievements',
+			label: t('achievementsTab'),
+			icon: Trophy,
+			count: profileUser.badges.length,
+		},
+	]
+
 	return (
-		<div className='mx-auto w-full max-w-xl'>
+		<div className='mx-auto w-full max-w-container-xl'>
 			{/* Block confirmation dialog */}
 			<ConfirmDialog
 				open={showBlockConfirm}
@@ -662,497 +706,537 @@ export const UserProfile = ({
 				onConfirm={handleConfirmBlock}
 			/>
 
-			{/* Gamified Profile Header */}
-			{isOwnProfile ? (
-				<ProfileHeaderGamified
-					variant='own'
-					user={profileUser}
-					onEditProfile={handleEditProfile}
-					onShareProfile={handleShareProfile}
-					activeTab={activeTab}
-					onTabChange={setActiveTab}
-				/>
-			) : (
-				<>
-					<ProfileHeaderGamified
-						variant='other'
-						user={profileUser}
-						isFollowing={profile.isFollowing}
-						isMutualFollow={profile.relationshipStatus === 'FRIENDS'}
-						isBlocked={isBlocked}
-						isFollowLoading={isFollowLoading}
-						isBlockLoading={isBlockLoading}
-						onFollow={handleFollow}
-						onMessage={handleMessage}
-						onBlock={handleBlock}
-						activeTab={activeTab}
-						onTabChange={setActiveTab}
-					/>
-					{/* Taste Compatibility — only on other user's profile when logged in */}
-					{currentUserProfile && (
-						<div className='mx-auto mt-3 max-w-md'>
-							<TasteCompatibility
-								myProfile={currentUserProfile}
-								theirProfile={profile}
+			<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+				<div>
+					{/* Gamified Profile Header */}
+					{isOwnProfile ? (
+						<ProfileHeaderGamified
+							variant='own'
+							user={profileUser}
+							onEditProfile={handleEditProfile}
+							onShareProfile={handleShareProfile}
+							activeTab={activeTab}
+							onTabChange={setActiveTab}
+						/>
+					) : (
+						<>
+							<ProfileHeaderGamified
+								variant='other'
+								user={profileUser}
+								isFollowing={profile.isFollowing}
+								isMutualFollow={profile.relationshipStatus === 'FRIENDS'}
+								isBlocked={isBlocked}
+								isFollowLoading={isFollowLoading}
+								isBlockLoading={isBlockLoading}
+								onFollow={handleFollow}
+								onMessage={handleMessage}
+								onBlock={handleBlock}
+								activeTab={activeTab}
+								onTabChange={setActiveTab}
 							/>
-						</div>
-					)}
-				</>
-			)}
-
-			{/* Profile Content Grid - Tab Content */}
-			<div className='mt-8'>
-				{activeTab === 'recipes' && (
-					<>
-						{isLoadingRecipes ? (
-							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-								{[1, 2, 3].map(i => (
-									<div
-										key={i}
-										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
-									>
-										<Skeleton className='h-48 w-full' />
-										<div className='space-y-3 p-4'>
-											<Skeleton className='h-5 w-3/4' />
-											<Skeleton className='h-4 w-1/2' />
-											<Skeleton className='h-11 w-full rounded-radius' />
-										</div>
-									</div>
-								))}
-							</div>
-						) : userRecipes.length === 0 ? (
-							<EmptyStateGamified
-								variant='cooking'
-								title={isOwnProfile ? t('noRecipesOwn') : t('noRecipesOther')}
-								description={
-									isOwnProfile ? t('noRecipesOwnDesc') : t('noRecipesOtherDesc')
-								}
-								emoji='👨‍🍳'
-								primaryAction={
-									isOwnProfile
-										? { label: t('createFirstRecipe'), href: '/create' }
-										: undefined
-								}
-							/>
-						) : (
-							<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-								{userRecipes.map(recipe => (
-									<div
-										key={recipe.id}
-										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
-									>
-										<div className='relative h-48 w-full'>
-											<Image
-												src={
-													getRecipeImage(recipe) || '/placeholder-recipe.svg'
-												}
-												alt={recipe.title}
-												fill
-												sizes='(max-width: 768px) 100vw, 50vw'
-												className='object-cover'
-											/>
-										</div>
-										<div className='p-4'>
-											<h3 className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary'>
-												{recipe.title}
-											</h3>
-											<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
-												<span className='flex items-center gap-1 tabular-nums'>
-													<Clock className='size-4' />{' '}
-													{formatCookingTime(getTotalTime(recipe))}
-												</span>
-												<span className='flex items-center gap-1 tabular-nums'>
-													<Heart className='size-4' />{' '}
-													{recipe.likeCount >= 1000
-														? `${(recipe.likeCount / 1000).toFixed(1)}k`
-														: recipe.likeCount}
-												</span>
-											</div>
-											<Button
-												className='h-11 w-full'
-												onClick={() => router.push(`/recipes/${recipe.id}`)}
-											>
-												{t('cookNow')}
-											</Button>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-					</>
-				)}
-
-				{activeTab === 'posts' && (
-					<>
-						{isLoadingPosts ? (
-							<div className='space-y-4'>
-								{[1, 2, 3].map(i => (
-									<div
-										key={i}
-										className='rounded-xl border border-border-subtle bg-bg-card p-4'
-									>
-										<div className='flex items-center gap-3'>
-											<Skeleton className='size-10 rounded-full' />
-											<div className='flex-1'>
-												<Skeleton className='h-4 w-32' />
-												<Skeleton className='mt-1 h-3 w-24' />
-											</div>
-										</div>
-										<Skeleton className='mt-4 h-20 w-full' />
-									</div>
-								))}
-							</div>
-						) : userPosts.length === 0 ? (
-							<EmptyStateGamified
-								variant='feed'
-								title={isOwnProfile ? t('noPostsOwn') : t('noPostsOther')}
-								description={
-									isOwnProfile ? t('noPostsOwnDesc') : t('noPostsOtherDesc')
-								}
-								emoji='📸'
-								primaryAction={
-									isOwnProfile
-										? { label: t('findRecipes'), href: '/explore' }
-										: undefined
-								}
-							/>
-						) : (
-							<div className='space-y-4'>
-								{userPosts.map(post => (
-									<PostCard
-										key={post.id}
-										post={post}
-										currentUserId={currentUserId}
+							{/* Taste Compatibility — only on other user's profile when logged in */}
+							{currentUserProfile && (
+								<div className='mt-3'>
+									<TasteCompatibility
+										myProfile={currentUserProfile}
+										theirProfile={profile}
 									/>
-								))}
-							</div>
-						)}
-					</>
-				)}
-
-				{activeTab === 'cooking' && (
-					<CookingHistoryTab
-						sessions={cookingSessions}
-						stats={cookingStats}
-						onPost={sessionId => {
-							router.push(`/post/new?session=${sessionId}`)
-						}}
-						onViewPost={postId => {
-							router.push(`/post/${postId}`)
-						}}
-						onRetry={sessionId => {
-							// Navigate to retry cooking this recipe
-							const session = cookingSessions.find(s => s.id === sessionId)
-							if (session) {
-								router.push(`/recipes/${session.recipeId}?cook=true`)
-							}
-						}}
-						onCookAgain={recipeId => {
-							// Navigate to recipe with auto-start cooking
-							router.push(`/recipes/${recipeId}?cook=true`)
-						}}
-					/>
-				)}
-
-				{activeTab === 'saved' && (
-					<>
-						{!isOwnProfile ? (
-							<div className='flex h-48 items-center justify-center rounded-xl border border-dashed border-border-subtle'>
-								<p className='text-text-muted'>{t('savedPrivate')}</p>
-							</div>
-						) : (
-							<div className='space-y-4'>
-								{/* Sub-tabs for Recipes/Posts */}
-								<div className='flex gap-2'>
-									<motion.button
-										type='button'
-										onClick={() => setSavedSubTab('recipes')}
-										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
-											savedSubTab === 'recipes'
-												? 'bg-brand text-white'
-												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
-										}`}
-									>
-										{t('recipesTab')}
-										{savedRecipes.length > 0 ? ` (${savedRecipes.length})` : ''}
-									</motion.button>
-									<motion.button
-										type='button'
-										onClick={() => setSavedSubTab('posts')}
-										whileTap={BUTTON_SUBTLE_TAP}
-										className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
-											savedSubTab === 'posts'
-												? 'bg-brand text-white'
-												: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
-										}`}
-									>
-										{t('postsTab')}
-										{savedSubTab === 'posts' && savedPosts.length > 0
-											? ` (${savedPosts.length})`
-											: ''}
-									</motion.button>
-								</div>
-
-								{/* Saved Recipes */}
-								{savedSubTab === 'recipes' && (
-									<>
-										{isLoadingSaved ? (
-											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-												{[1, 2, 3, 4].map(i => (
-													<div
-														key={i}
-														className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
-													>
-														<Skeleton className='h-40 w-full' />
-														<div className='p-4'>
-															<Skeleton className='h-5 w-3/4' />
-															<Skeleton className='mt-2 h-4 w-1/2' />
-														</div>
-													</div>
-												))}
-											</div>
-										) : savedRecipes.length === 0 ? (
-											<EmptyStateGamified
-												variant='saved'
-												title={t('noSavedRecipes')}
-												description={t('saveRecipesDesc')}
-												emoji='🔖'
-												primaryAction={{
-													label: t('exploreRecipes'),
-													href: '/explore',
-												}}
-											/>
-										) : (
-											<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-												{savedRecipes.map(recipe => (
-													<div
-														key={recipe.id}
-														className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
-														onClick={() => router.push(`/recipes/${recipe.id}`)}
-													>
-														<div className='relative h-40 overflow-hidden'>
-															<Image
-																src={
-																	getRecipeImage(recipe) ||
-																	'/placeholder-recipe.svg'
-																}
-																alt={recipe.title}
-																fill
-																sizes='(max-width: 768px) 100vw, 50vw'
-																className='object-cover transition-transform group-hover:scale-105'
-															/>
-														</div>
-														<div className='p-4'>
-															<h3 className='font-semibold text-text line-clamp-1'>
-																{recipe.title}
-															</h3>
-															<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
-																<span className='flex items-center gap-1 tabular-nums'>
-																	<Clock className='size-4' />
-																	{formatCookingTime(getTotalTime(recipe))}
-																</span>
-																<span className='flex items-center gap-1 tabular-nums'>
-																	<Heart className='size-4' />
-																	{recipe.likeCount}
-																</span>
-															</div>
-														</div>
-													</div>
-												))}
-											</div>
-										)}
-									</>
-								)}
-
-								{/* Saved Posts */}
-								{savedSubTab === 'posts' && (
-									<>
-										{isLoadingSavedPosts ? (
-											<div className='space-y-4'>
-												{[1, 2, 3].map(i => (
-													<div
-														key={i}
-														className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-4'
-													>
-														<div className='flex items-center gap-3'>
-															<Skeleton className='size-10 rounded-full' />
-															<div className='flex-1'>
-																<Skeleton className='h-4 w-1/3' />
-																<Skeleton className='mt-1 h-3 w-1/4' />
-															</div>
-														</div>
-														<Skeleton className='mt-3 h-20 w-full' />
-													</div>
-												))}
-											</div>
-										) : savedPosts.length === 0 ? (
-											<EmptyStateGamified
-												variant='saved'
-												title={t('noSavedPosts')}
-												description={t('savePostsDesc')}
-												emoji='💾'
-												primaryAction={{ label: t('exploreFeed'), href: '/' }}
-											/>
-										) : (
-											<div className='space-y-4'>
-												{savedPosts.map(post => (
-													<PostCard
-														key={post.id}
-														post={post}
-														currentUserId={currentUserId}
-														onDelete={handleSavedPostDelete}
-													/>
-												))}
-											</div>
-										)}
-									</>
-								)}
-							</div>
-						)}
-					</>
-				)}
-
-				{activeTab === 'liked' && (
-					<>
-						{isLoadingLiked ? (
-							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-								{[1, 2, 3, 4].map(i => (
-									<div
-										key={i}
-										className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
-									>
-										<Skeleton className='h-40 w-full' />
-										<div className='p-4'>
-											<Skeleton className='h-5 w-3/4' />
-											<Skeleton className='mt-2 h-4 w-1/2' />
-										</div>
-									</div>
-								))}
-							</div>
-						) : likedRecipes.length === 0 ? (
-							<EmptyStateGamified
-								variant='liked'
-								title={t('noLikedRecipes')}
-								description={t('likeRecipesDesc')}
-								emoji='❤️'
-								primaryAction={{ label: t('exploreRecipes'), href: '/explore' }}
-							/>
-						) : (
-							<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-								{likedRecipes.map(recipe => (
-									<div
-										key={recipe.id}
-										className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
-										onClick={() => router.push(`/recipes/${recipe.id}`)}
-									>
-										<div className='relative h-40 overflow-hidden'>
-											<Image
-												src={
-													getRecipeImage(recipe) || '/placeholder-recipe.svg'
-												}
-												alt={recipe.title}
-												fill
-												sizes='(max-width: 768px) 100vw, 50vw'
-												className='object-cover transition-transform group-hover:scale-105'
-											/>
-										</div>
-										<div className='p-4'>
-											<h3 className='font-semibold text-text line-clamp-1'>
-												{recipe.title}
-											</h3>
-											<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
-												<span className='flex items-center gap-1 tabular-nums'>
-													<Clock className='size-4' />
-													{formatCookingTime(getTotalTime(recipe))}
-												</span>
-												<span className='flex items-center gap-1 tabular-nums'>
-													<Heart className='size-4' />
-													{recipe.likeCount}
-												</span>
-											</div>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-					</>
-				)}
-
-				{activeTab === 'achievements' && (
-					<div className='space-y-8'>
-						{/* Skill Tree */}
-						<SkillTree userId={profile.userId} isOwnProfile={isOwnProfile} />
-
-						{/* Earned Badges */}
-						<div>
-							<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text-primary'>
-								<Trophy className='size-5 text-xp' />
-								{t('earnedBadges', { count: profileUser.badges.length })}
-							</h3>
-							{profileUser.badges.length === 0 ? (
-								<div className='flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
-									<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
-										<Award className='size-7 text-xp' />
-									</div>
-									<p className='font-medium text-text-secondary'>
-										{isOwnProfile ? t('noBadgesOwn') : t('noBadgesOther')}
-									</p>
-									{isOwnProfile && (
-										<Link href='/explore'>
-											<Button variant='outline' size='sm' className='mt-1'>
-												<ChefHat className='mr-1.5 size-4' />
-												{t('exploreRecipes')}
-											</Button>
-										</Link>
-									)}
-								</div>
-							) : (
-								<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
-									{profileUser.badges.map((badge, index) => (
-										<div
-											key={badge.id || `badge-${index}`}
-											className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-card'
-										>
-											<span className='text-3xl'>{badge.icon}</span>
-											<span className='text-center text-xs font-semibold text-text line-clamp-1'>
-												{badge.name}
-											</span>
-											<span
-												className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
-													badge.rarity === 'LEGENDARY'
-														? 'bg-warning/15 text-warning'
-														: badge.rarity === 'EPIC'
-															? 'bg-accent-purple/15 text-accent-purple'
-															: badge.rarity === 'RARE'
-																? 'bg-info/15 text-info'
-																: badge.rarity === 'UNCOMMON'
-																	? 'bg-success/15 text-success'
-																	: 'bg-text-secondary/15 text-text-secondary'
-												}`}
-											>
-												{badge.rarity}
-											</span>
-										</div>
-									))}
 								</div>
 							)}
-						</div>
+						</>
+					)}
 
-						{/* View All Badges Link */}
-						{isOwnProfile && (
-							<div className='flex justify-center'>
-								<Link
-									href='/profile/badges'
-									className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
-								>
-									<Trophy className='size-5' />
-									{t('viewBadgeCatalog', { count: getAllBadges().length })}
-								</Link>
+					{/* Profile Content Grid - Tab Content */}
+					<div className='mt-8'>
+						{activeTab === 'recipes' && (
+							<>
+								{isLoadingRecipes ? (
+									<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+										{[1, 2, 3].map(i => (
+											<div
+												key={i}
+												className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
+											>
+												<Skeleton className='h-48 w-full' />
+												<div className='space-y-3 p-4'>
+													<Skeleton className='h-5 w-3/4' />
+													<Skeleton className='h-4 w-1/2' />
+													<Skeleton className='h-11 w-full rounded-radius' />
+												</div>
+											</div>
+										))}
+									</div>
+								) : userRecipes.length === 0 ? (
+									<EmptyStateGamified
+										variant='cooking'
+										title={
+											isOwnProfile ? t('noRecipesOwn') : t('noRecipesOther')
+										}
+										description={
+											isOwnProfile
+												? t('noRecipesOwnDesc')
+												: t('noRecipesOtherDesc')
+										}
+										emoji='👨‍🍳'
+										primaryAction={
+											isOwnProfile
+												? { label: t('createFirstRecipe'), href: '/create' }
+												: undefined
+										}
+									/>
+								) : (
+									<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+										{userRecipes.map(recipe => (
+											<div
+												key={recipe.id}
+												className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
+											>
+												<div className='relative h-48 w-full'>
+													<Image
+														src={
+															getRecipeImage(recipe) ||
+															'/placeholder-recipe.svg'
+														}
+														alt={recipe.title}
+														fill
+														sizes='(max-width: 768px) 100vw, 50vw'
+														className='object-cover'
+													/>
+												</div>
+												<div className='p-4'>
+													<h3 className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary'>
+														{recipe.title}
+													</h3>
+													<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
+														<span className='flex items-center gap-1 tabular-nums'>
+															<Clock className='size-4' />{' '}
+															{formatCookingTime(getTotalTime(recipe))}
+														</span>
+														<span className='flex items-center gap-1 tabular-nums'>
+															<Heart className='size-4' />{' '}
+															{recipe.likeCount >= 1000
+																? `${(recipe.likeCount / 1000).toFixed(1)}k`
+																: recipe.likeCount}
+														</span>
+													</div>
+													<Button
+														className='h-11 w-full'
+														onClick={() => router.push(`/recipes/${recipe.id}`)}
+													>
+														{t('cookNow')}
+													</Button>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{activeTab === 'posts' && (
+							<>
+								{isLoadingPosts ? (
+									<div className='space-y-4'>
+										{[1, 2, 3].map(i => (
+											<div
+												key={i}
+												className='rounded-xl border border-border-subtle bg-bg-card p-4'
+											>
+												<div className='flex items-center gap-3'>
+													<Skeleton className='size-10 rounded-full' />
+													<div className='flex-1'>
+														<Skeleton className='h-4 w-32' />
+														<Skeleton className='mt-1 h-3 w-24' />
+													</div>
+												</div>
+												<Skeleton className='mt-4 h-20 w-full' />
+											</div>
+										))}
+									</div>
+								) : userPosts.length === 0 ? (
+									<EmptyStateGamified
+										variant='feed'
+										title={isOwnProfile ? t('noPostsOwn') : t('noPostsOther')}
+										description={
+											isOwnProfile ? t('noPostsOwnDesc') : t('noPostsOtherDesc')
+										}
+										emoji='📸'
+										primaryAction={
+											isOwnProfile
+												? { label: t('findRecipes'), href: '/explore' }
+												: undefined
+										}
+									/>
+								) : (
+									<div className='space-y-4'>
+										{userPosts.map(post => (
+											<PostCard
+												key={post.id}
+												post={post}
+												currentUserId={currentUserId}
+											/>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{activeTab === 'cooking' && (
+							<CookingHistoryTab
+								sessions={cookingSessions}
+								stats={cookingStats}
+								onPost={sessionId => {
+									router.push(`/post/new?session=${sessionId}`)
+								}}
+								onViewPost={postId => {
+									router.push(`/post/${postId}`)
+								}}
+								onRetry={sessionId => {
+									// Navigate to retry cooking this recipe
+									const session = cookingSessions.find(s => s.id === sessionId)
+									if (session) {
+										router.push(`/recipes/${session.recipeId}?cook=true`)
+									}
+								}}
+								onCookAgain={recipeId => {
+									// Navigate to recipe with auto-start cooking
+									router.push(`/recipes/${recipeId}?cook=true`)
+								}}
+							/>
+						)}
+
+						{activeTab === 'saved' && (
+							<>
+								{!isOwnProfile ? (
+									<div className='flex h-48 items-center justify-center rounded-xl border border-dashed border-border-subtle'>
+										<p className='text-text-muted'>{t('savedPrivate')}</p>
+									</div>
+								) : (
+									<div className='space-y-4'>
+										{/* Sub-tabs for Recipes/Posts */}
+										<div className='flex gap-2'>
+											<motion.button
+												type='button'
+												onClick={() => setSavedSubTab('recipes')}
+												whileTap={BUTTON_SUBTLE_TAP}
+												className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+													savedSubTab === 'recipes'
+														? 'bg-brand text-white'
+														: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
+												}`}
+											>
+												{t('recipesTab')}
+												{savedRecipes.length > 0
+													? ` (${savedRecipes.length})`
+													: ''}
+											</motion.button>
+											<motion.button
+												type='button'
+												onClick={() => setSavedSubTab('posts')}
+												whileTap={BUTTON_SUBTLE_TAP}
+												className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/50 ${
+													savedSubTab === 'posts'
+														? 'bg-brand text-white'
+														: 'bg-bg-elevated text-text-secondary hover:bg-bg-card'
+												}`}
+											>
+												{t('postsTab')}
+												{savedSubTab === 'posts' && savedPosts.length > 0
+													? ` (${savedPosts.length})`
+													: ''}
+											</motion.button>
+										</div>
+
+										{/* Saved Recipes */}
+										{savedSubTab === 'recipes' && (
+											<>
+												{isLoadingSaved ? (
+													<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+														{[1, 2, 3, 4].map(i => (
+															<div
+																key={i}
+																className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
+															>
+																<Skeleton className='h-40 w-full' />
+																<div className='p-4'>
+																	<Skeleton className='h-5 w-3/4' />
+																	<Skeleton className='mt-2 h-4 w-1/2' />
+																</div>
+															</div>
+														))}
+													</div>
+												) : savedRecipes.length === 0 ? (
+													<EmptyStateGamified
+														variant='saved'
+														title={t('noSavedRecipes')}
+														description={t('saveRecipesDesc')}
+														emoji='🔖'
+														primaryAction={{
+															label: t('exploreRecipes'),
+															href: '/explore',
+														}}
+													/>
+												) : (
+													<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+														{savedRecipes.map(recipe => (
+															<div
+																key={recipe.id}
+																className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+																onClick={() =>
+																	router.push(`/recipes/${recipe.id}`)
+																}
+															>
+																<div className='relative h-40 overflow-hidden'>
+																	<Image
+																		src={
+																			getRecipeImage(recipe) ||
+																			'/placeholder-recipe.svg'
+																		}
+																		alt={recipe.title}
+																		fill
+																		sizes='(max-width: 768px) 100vw, 50vw'
+																		className='object-cover transition-transform group-hover:scale-105'
+																	/>
+																</div>
+																<div className='p-4'>
+																	<h3 className='font-semibold text-text-primary line-clamp-1'>
+																		{recipe.title}
+																	</h3>
+																	<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
+																		<span className='flex items-center gap-1 tabular-nums'>
+																			<Clock className='size-4' />
+																			{formatCookingTime(getTotalTime(recipe))}
+																		</span>
+																		<span className='flex items-center gap-1 tabular-nums'>
+																			<Heart className='size-4' />
+																			{recipe.likeCount}
+																		</span>
+																	</div>
+																</div>
+															</div>
+														))}
+													</div>
+												)}
+											</>
+										)}
+
+										{/* Saved Posts */}
+										{savedSubTab === 'posts' && (
+											<>
+												{isLoadingSavedPosts ? (
+													<div className='space-y-4'>
+														{[1, 2, 3].map(i => (
+															<div
+																key={i}
+																className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card p-4'
+															>
+																<div className='flex items-center gap-3'>
+																	<Skeleton className='size-10 rounded-full' />
+																	<div className='flex-1'>
+																		<Skeleton className='h-4 w-1/3' />
+																		<Skeleton className='mt-1 h-3 w-1/4' />
+																	</div>
+																</div>
+																<Skeleton className='mt-3 h-20 w-full' />
+															</div>
+														))}
+													</div>
+												) : savedPosts.length === 0 ? (
+													<EmptyStateGamified
+														variant='saved'
+														title={t('noSavedPosts')}
+														description={t('savePostsDesc')}
+														emoji='💾'
+														primaryAction={{
+															label: t('exploreFeed'),
+															href: '/',
+														}}
+													/>
+												) : (
+													<div className='space-y-4'>
+														{savedPosts.map(post => (
+															<PostCard
+																key={post.id}
+																post={post}
+																currentUserId={currentUserId}
+																onDelete={handleSavedPostDelete}
+															/>
+														))}
+													</div>
+												)}
+											</>
+										)}
+									</div>
+								)}
+							</>
+						)}
+
+						{activeTab === 'liked' && (
+							<>
+								{isLoadingLiked ? (
+									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+										{[1, 2, 3, 4].map(i => (
+											<div
+												key={i}
+												className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card'
+											>
+												<Skeleton className='h-40 w-full' />
+												<div className='p-4'>
+													<Skeleton className='h-5 w-3/4' />
+													<Skeleton className='mt-2 h-4 w-1/2' />
+												</div>
+											</div>
+										))}
+									</div>
+								) : likedRecipes.length === 0 ? (
+									<EmptyStateGamified
+										variant='liked'
+										title={t('noLikedRecipes')}
+										description={t('likeRecipesDesc')}
+										emoji='❤️'
+										primaryAction={{
+											label: t('exploreRecipes'),
+											href: '/explore',
+										}}
+									/>
+								) : (
+									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+										{likedRecipes.map(recipe => (
+											<div
+												key={recipe.id}
+												className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+												onClick={() => router.push(`/recipes/${recipe.id}`)}
+											>
+												<div className='relative h-40 overflow-hidden'>
+													<Image
+														src={
+															getRecipeImage(recipe) ||
+															'/placeholder-recipe.svg'
+														}
+														alt={recipe.title}
+														fill
+														sizes='(max-width: 768px) 100vw, 50vw'
+														className='object-cover transition-transform group-hover:scale-105'
+													/>
+												</div>
+												<div className='p-4'>
+													<h3 className='font-semibold text-text-primary line-clamp-1'>
+														{recipe.title}
+													</h3>
+													<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
+														<span className='flex items-center gap-1 tabular-nums'>
+															<Clock className='size-4' />
+															{formatCookingTime(getTotalTime(recipe))}
+														</span>
+														<span className='flex items-center gap-1 tabular-nums'>
+															<Heart className='size-4' />
+															{recipe.likeCount}
+														</span>
+													</div>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{activeTab === 'achievements' && (
+							<div className='space-y-8'>
+								{/* Skill Tree */}
+								<SkillTree
+									userId={profile.userId}
+									isOwnProfile={isOwnProfile}
+								/>
+
+								{/* Earned Badges */}
+								<div>
+									<h3 className='mb-4 flex items-center gap-2 text-lg font-bold text-text-primary'>
+										<Trophy className='size-5 text-xp' />
+										{t('earnedBadges', { count: profileUser.badges.length })}
+									</h3>
+									{profileUser.badges.length === 0 ? (
+										<div className='flex h-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-6 text-center'>
+											<div className='grid size-14 place-items-center rounded-2xl bg-bg-elevated'>
+												<Award className='size-7 text-xp' />
+											</div>
+											<p className='font-medium text-text-secondary'>
+												{isOwnProfile ? t('noBadgesOwn') : t('noBadgesOther')}
+											</p>
+											{isOwnProfile && (
+												<Link href='/explore'>
+													<Button variant='outline' size='sm' className='mt-1'>
+														<ChefHat className='mr-1.5 size-4' />
+														{t('exploreRecipes')}
+													</Button>
+												</Link>
+											)}
+										</div>
+									) : (
+										<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
+											{profileUser.badges.map((badge, index) => (
+												<div
+													key={badge.id || `badge-${index}`}
+													className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-card'
+												>
+													<span className='text-3xl'>{badge.icon}</span>
+													<span className='text-center text-xs font-semibold text-text-primary line-clamp-1'>
+														{badge.name}
+													</span>
+													<span
+														className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${
+															badge.rarity === 'LEGENDARY'
+																? 'bg-warning/15 text-warning'
+																: badge.rarity === 'EPIC'
+																	? 'bg-accent-purple/15 text-accent-purple'
+																	: badge.rarity === 'RARE'
+																		? 'bg-info/15 text-info'
+																		: badge.rarity === 'UNCOMMON'
+																			? 'bg-success/15 text-success'
+																			: 'bg-text-secondary/15 text-text-secondary'
+														}`}
+													>
+														{badge.rarity}
+													</span>
+												</div>
+											))}
+										</div>
+									)}
+								</div>
+
+								{/* View All Badges Link */}
+								{isOwnProfile && (
+									<div className='flex justify-center'>
+										<Link
+											href='/profile/badges'
+											className='flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-white transition-all hover:bg-brand/90 hover:shadow-card'
+										>
+											<Trophy className='size-5' />
+											{t('viewBadgeCatalog', { count: getAllBadges().length })}
+										</Link>
+									</div>
+								)}
 							</div>
 						)}
 					</div>
-				)}
+				</div>
+
+				<ProfileCommandRail
+					displayName={profileUser.displayName}
+					username={profileUser.username}
+					level={profileUser.gamification.currentLevel}
+					xp={profileUser.gamification.currentXP}
+					xpGoal={profileUser.gamification.currentXPGoal}
+					streakCount={profileUser.gamification.streakCount}
+					followers={profileUser.stats.followers}
+					recipesCooked={profileUser.stats.recipesCooked}
+					postCount={profile.statistics.postCount ?? 0}
+					pendingPosts={cookingStats.pendingPosts}
+					isOwnProfile={isOwnProfile}
+					activeTab={activeTab}
+					tabs={commandTabs}
+					onTabChange={setActiveTab}
+				/>
 			</div>
 		</div>
 	)

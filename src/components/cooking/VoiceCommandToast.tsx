@@ -34,7 +34,7 @@ export function VoiceCommandToast({ event }: { event: VoiceEvent | null }) {
 					className='pointer-events-none absolute bottom-16 left-1/2 z-notification flex -translate-x-1/2 items-center gap-2 rounded-full bg-bg-elevated/95 px-4 py-2 shadow-warm backdrop-blur-sm'
 				>
 					{current.icon && <span className='text-lg'>{current.icon}</span>}
-					<span className='text-sm font-medium text-text'>
+					<span className='text-sm font-medium text-text-primary'>
 						{current.message}
 					</span>
 					{current.transcript && current.type !== 'command' && (

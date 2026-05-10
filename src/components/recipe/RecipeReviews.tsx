@@ -158,7 +158,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 		>
 			{/* Header with aggregate stats */}
 			<div className='mb-6 flex items-center justify-between'>
-				<h2 className='flex items-center gap-2 text-xl font-bold text-text'>
+				<h2 className='flex items-center gap-2 text-xl font-bold text-text-primary'>
 					<Star className='size-5 text-warning' />
 					{t('reviewsHeading')}
 				</h2>
@@ -215,7 +215,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 														.slice(0, 2) || '??'}
 												</AvatarFallback>
 											</Avatar>
-											<span className='text-sm font-semibold text-text'>
+											<span className='text-sm font-semibold text-text-primary'>
 												{review.displayName || t('reviewUserFallback')}
 											</span>
 										</Link>
@@ -260,7 +260,7 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 					disabled={isLoadingMore}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_TAP}
-					className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle py-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{isLoadingMore ? (
 						<Loader2 className='size-4 animate-spin' />

@@ -374,7 +374,7 @@ const HistoryItem = ({
 		<div className='flex gap-4 border-b border-border py-4 last:border-b-0'>
 			{/* Date */}
 			<div className='flex min-w-thumbnail-sm flex-col items-center'>
-				<span className='text-xl font-bold tracking-tight leading-none text-text'>
+				<span className='text-xl font-bold tracking-tight leading-none text-text-primary'>
 					{day.date.getDate()}
 				</span>
 				<span className='text-xs text-text-secondary'>
@@ -403,7 +403,7 @@ const HistoryItem = ({
 				</div>
 
 				<div className='flex flex-1 flex-col gap-1'>
-					<span className='text-sm font-bold text-text'>
+					<span className='text-sm font-bold text-text-primary'>
 						{day.challenge?.title ?? t('noChallenge')}
 					</span>
 					<span className='text-xs text-text-secondary'>

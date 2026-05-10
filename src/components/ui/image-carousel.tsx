@@ -230,7 +230,7 @@ export function ImageCarousel({
 						className={cn(
 							'absolute left-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
-							'bg-bg-card border border-border-subtle text-text',
+							'bg-bg-card border border-border-subtle text-text-primary',
 							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
@@ -244,7 +244,7 @@ export function ImageCarousel({
 						className={cn(
 							'absolute right-2 top-1/2 z-10 -translate-y-1/2',
 							'flex size-8 items-center justify-center rounded-full',
-							'bg-bg-card border border-border-subtle text-text',
+							'bg-bg-card border border-border-subtle text-text-primary',
 							'opacity-70 transition-opacity duration-200 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100',
 							'hover:bg-bg-card focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand',
 						)}
@@ -289,7 +289,7 @@ export function ImageCarousel({
 				<div
 					className={cn(
 						'absolute right-3 top-3 z-10',
-						'rounded-full bg-bg-card border border-border-subtle px-2 py-0.5 text-xs font-medium text-text',
+						'rounded-full bg-bg-card border border-border-subtle px-2 py-0.5 text-xs font-medium text-text-primary',
 					)}
 				>
 					{currentIndex + 1}/{images.length}

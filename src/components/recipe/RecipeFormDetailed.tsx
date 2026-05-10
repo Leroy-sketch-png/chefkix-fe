@@ -263,7 +263,7 @@ const ImageUpload = ({
 						<Upload className='size-6 text-text-secondary' />
 					</div>
 					<div className='text-center'>
-						<p className='font-semibold text-text'>{label}</p>
+						<p className='font-semibold text-text-primary'>{label}</p>
 						<p className='text-sm text-text-secondary'>{t('formImageHint')}</p>
 					</div>
 					<input
@@ -317,7 +317,7 @@ const IngredientRow = ({
 					placeholder={t('formAmountPlaceholder')}
 					aria-label={t('formAmountPlaceholder')}
 					maxLength={20}
-					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 				<select
 					value={ingredient.unit}
@@ -325,10 +325,14 @@ const IngredientRow = ({
 					onChange={e =>
 						onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
 					}
-					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					{MEASUREMENT_UNITS.map(unit => (
-						<option key={unit} value={unit} className='bg-bg-card text-text'>
+						<option
+							key={unit}
+							value={unit}
+							className='bg-bg-card text-text-primary'
+						>
 							{unit}
 						</option>
 					))}
@@ -340,7 +344,7 @@ const IngredientRow = ({
 					fetchOptions={fetchIngredientOptions}
 					placeholder={t('formIngredientPlaceholder')}
 					minChars={1}
-					className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex-1 rounded-xl border-2 border-border bg-bg px-4 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 			</div>
 			<button
@@ -424,7 +428,7 @@ const StepRow = ({
 					aria-label={`${t('formStepPlaceholder')} ${index + 1}`}
 					rows={3}
 					maxLength={2000}
-					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 				{/* Step Image Preview */}
 				{step.imageUrl && (
@@ -620,7 +624,7 @@ const TagInput = ({
 					aria-label={t('formTagPlaceholder')}
 					maxLength={30}
 					disabled={tags.length >= 15}
-					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50'
+					className='min-w-search flex-1 bg-transparent py-1.5 text-sm text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50'
 				/>
 			</div>
 			<div className='flex flex-wrap gap-2'>
@@ -928,7 +932,7 @@ export const RecipeFormDetailed = ({
 		<div className={cn('mx-auto max-w-form p-6 md:p-10', className)}>
 			{/* Header */}
 			<div className='mb-10'>
-				<h1 className='text-3xl font-bold tracking-tight text-text md:text-4xl'>
+				<h1 className='text-3xl font-bold tracking-tight text-text-primary md:text-4xl'>
 					{t('formCreateTitle')}
 				</h1>
 				<p className='mt-2 text-text-secondary'>{t('formCreateSubtitle')}</p>
@@ -941,7 +945,7 @@ export const RecipeFormDetailed = ({
 			>
 				{/* Basic Info Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
-					<h2 className='mb-6 text-xl font-bold text-text'>
+					<h2 className='mb-6 text-xl font-bold text-text-primary'>
 						{t('formBasicInfo')}
 					</h2>
 
@@ -949,7 +953,7 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6' data-error={!!errors.title}>
 						<label
 							htmlFor='recipe-title'
-							className='mb-2 block text-sm font-semibold text-text'
+							className='mb-2 block text-sm font-semibold text-text-primary'
 						>
 							{t('formRecipeTitle')} <span className='text-error'>*</span>
 						</label>
@@ -961,7 +965,7 @@ export const RecipeFormDetailed = ({
 							placeholder={t('formTitlePlaceholder')}
 							maxLength={100}
 							className={cn(
-								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+								'w-full rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 								errors.title
 									? 'border-error focus:border-error'
 									: 'border-border focus:border-brand',
@@ -987,7 +991,7 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6' data-error={!!errors.description}>
 						<label
 							htmlFor='recipe-description'
-							className='mb-2 block text-sm font-semibold text-text'
+							className='mb-2 block text-sm font-semibold text-text-primary'
 						>
 							{t('formDescription')} <span className='text-error'>*</span>
 						</label>
@@ -1001,7 +1005,7 @@ export const RecipeFormDetailed = ({
 							rows={4}
 							maxLength={500}
 							className={cn(
-								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+								'w-full resize-y rounded-xl border-2 bg-bg px-4 py-3 text-sm text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 								errors.description
 									? 'border-error focus:border-error'
 									: 'border-border focus:border-brand',
@@ -1022,7 +1026,7 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6' data-error={!!errors.coverImage}>
 						<label
 							id='recipe-cover-image-label'
-							className='mb-2 block text-sm font-semibold text-text'
+							className='mb-2 block text-sm font-semibold text-text-primary'
 						>
 							{t('formCoverImage')} <span className='text-error'>*</span>
 						</label>
@@ -1053,7 +1057,7 @@ export const RecipeFormDetailed = ({
 						<div>
 							<label
 								htmlFor='recipe-prep-time'
-								className='mb-2 block text-sm font-semibold text-text'
+								className='mb-2 block text-sm font-semibold text-text-primary'
 							>
 								{t('formPrepTime')}
 							</label>
@@ -1071,7 +1075,7 @@ export const RecipeFormDetailed = ({
 									placeholder='15'
 									min={0}
 									max={1440}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									{t('formMinUnit')}
@@ -1081,7 +1085,7 @@ export const RecipeFormDetailed = ({
 						<div>
 							<label
 								htmlFor='recipe-cook-time'
-								className='mb-2 block text-sm font-semibold text-text'
+								className='mb-2 block text-sm font-semibold text-text-primary'
 							>
 								{t('formCookTime')}
 							</label>
@@ -1099,7 +1103,7 @@ export const RecipeFormDetailed = ({
 									placeholder='30'
 									min={0}
 									max={1440}
-									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+									className='w-full rounded-xl border-2 border-border bg-bg py-3 pl-4 pr-12 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								/>
 								<span className='pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-text-secondary'>
 									{t('formMinUnit')}
@@ -1109,7 +1113,7 @@ export const RecipeFormDetailed = ({
 						<div>
 							<label
 								htmlFor='recipe-servings'
-								className='mb-2 block text-sm font-semibold text-text'
+								className='mb-2 block text-sm font-semibold text-text-primary'
 							>
 								{t('formServings')}
 							</label>
@@ -1123,7 +1127,7 @@ export const RecipeFormDetailed = ({
 								placeholder='4'
 								min={1}
 								max={100}
-								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+								className='w-full rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 							/>
 						</div>
 					</div>
@@ -1133,7 +1137,7 @@ export const RecipeFormDetailed = ({
 						<div>
 							<label
 								id='recipe-difficulty-label'
-								className='mb-2 block text-sm font-semibold text-text'
+								className='mb-2 block text-sm font-semibold text-text-primary'
 							>
 								{t('formDifficulty')}
 							</label>
@@ -1152,7 +1156,7 @@ export const RecipeFormDetailed = ({
 									className={cn(
 										'flex-1 text-sm',
 										predictedDifficulty
-											? 'font-medium text-text'
+											? 'font-medium text-text-primary'
 											: 'text-text-secondary',
 									)}
 								>
@@ -1174,7 +1178,7 @@ export const RecipeFormDetailed = ({
 						<div data-error={!!errors.category}>
 							<label
 								htmlFor='recipe-category'
-								className='mb-2 block text-sm font-semibold text-text'
+								className='mb-2 block text-sm font-semibold text-text-primary'
 							>
 								{t('formCategory')} <span className='text-error'>*</span>
 							</label>
@@ -1188,7 +1192,7 @@ export const RecipeFormDetailed = ({
 								options={categoryOptions}
 								placeholder={t('formSelectCategory')}
 								className={cn(
-									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+									'w-full rounded-xl border-2 bg-bg-card px-4 py-3 text-sm text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 									errors.category
 										? 'border-error focus:border-error'
 										: 'border-border focus:border-brand',
@@ -1208,7 +1212,7 @@ export const RecipeFormDetailed = ({
 				>
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
-							<h2 className='text-xl font-bold text-text'>
+							<h2 className='text-xl font-bold text-text-primary'>
 								{t('formIngredientsSection')}
 							</h2>
 							{errors.ingredients && (
@@ -1263,7 +1267,7 @@ export const RecipeFormDetailed = ({
 					<div className='mb-6 flex items-center justify-between'>
 						<div>
 							<div className='flex items-center gap-4'>
-								<h2 className='text-xl font-bold text-text'>
+								<h2 className='text-xl font-bold text-text-primary'>
 									{t('formInstructionsSection')}
 								</h2>
 								{formData.steps.length > 0 && (
@@ -1330,7 +1334,7 @@ export const RecipeFormDetailed = ({
 
 				{/* Tips Section */}
 				<section className='mb-12 border-b-2 border-border pb-12'>
-					<h2 className='mb-6 text-xl font-bold text-text'>
+					<h2 className='mb-6 text-xl font-bold text-text-primary'>
 						{t('formTipsSection')}
 					</h2>
 					<textarea
@@ -1340,13 +1344,13 @@ export const RecipeFormDetailed = ({
 						aria-label={t('formTipsSection')}
 						rows={4}
 						maxLength={1000}
-						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 					/>
 				</section>
 
 				{/* Tags Section */}
 				<section className='mb-8'>
-					<h2 className='mb-6 text-xl font-bold text-text'>
+					<h2 className='mb-6 text-xl font-bold text-text-primary'>
 						{t('formTagsSection')}
 					</h2>
 					<p className='mb-3 text-sm text-text-secondary'>

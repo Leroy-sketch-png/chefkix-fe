@@ -424,7 +424,7 @@ export const CookingPanel = () => {
 	return (
 		<aside className='hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle bg-bg-card xl:flex xl:flex-col'>
 			{/* Header */}
-			<div className='bg-gradient-hero p-4 text-white'>
+			<div className='bg-brand p-4 text-white'>
 				{/* Controls */}
 				<div className='mb-3 flex justify-end gap-1'>
 					<button
@@ -562,7 +562,7 @@ export const CookingPanel = () => {
 
 				<h4
 					className={cn(
-						'mb-2 font-bold text-text',
+						'mb-2 font-bold text-text-primary',
 						kitchenMode ? 'text-xl' : 'text-lg',
 					)}
 				>
@@ -713,7 +713,7 @@ export const CookingPanel = () => {
 							type='button'
 							onClick={handleComplete}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3 font-bold text-white shadow-warm shadow-brand/30 focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Check className='size-5' />
 							{t('cpCompleteCooking')}
@@ -748,7 +748,7 @@ export const CookingPanel = () => {
 							whileHover={isNavigating ? undefined : BUTTON_HOVER}
 							whileTap={isNavigating ? undefined : BUTTON_TAP}
 							className={cn(
-								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-hero font-bold text-white transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
+								'flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand font-bold text-white transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 								kitchenMode ? 'py-4 text-base' : 'py-3',
 								isNavigating && 'cursor-wait opacity-80',
 							)}
@@ -799,7 +799,7 @@ export const CookingPanel = () => {
 						<button
 							type='button'
 							onClick={() => setShowExitConfirm(false)}
-							className='w-full rounded-xl border border-border-subtle bg-bg-elevated py-3 font-semibold text-text transition-colors hover:bg-bg-hover'
+							className='w-full rounded-xl border border-border-subtle bg-bg-elevated py-3 font-semibold text-text-primary transition-colors hover:bg-bg-hover'
 						>
 							{t('cpContinueCooking')}
 						</button>

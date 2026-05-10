@@ -20,16 +20,25 @@ function computeDimensions(profile: Profile): number[] {
 	const prefs = profile.preferences ?? []
 
 	// Adventurousness — diversity of interests / cuisines
-	const adventurousness = Math.min(100, prefs.length * 12 + (stats.completionCount ?? 0) * 2)
+	const adventurousness = Math.min(
+		100,
+		prefs.length * 12 + (stats.completionCount ?? 0) * 2,
+	)
 
 	// Dedication — consistency & volume
-	const dedication = Math.min(100, (stats.streakCount ?? 0) * 8 + (stats.completionCount ?? 0) * 3)
+	const dedication = Math.min(
+		100,
+		(stats.streakCount ?? 0) * 8 + (stats.completionCount ?? 0) * 3,
+	)
 
 	// Skill Level — level-based
 	const skill = Math.min(100, (stats.currentLevel ?? 1) * 10)
 
 	// Social Chef — posts & followers
-	const social = Math.min(100, (stats.postCount ?? 0) * 5 + (stats.followerCount ?? 0) * 2)
+	const social = Math.min(
+		100,
+		(stats.postCount ?? 0) * 5 + (stats.followerCount ?? 0) * 2,
+	)
 
 	// Recipe Creator — recipes created
 	const creator = Math.min(100, (stats.recipeCount ?? 0) * 12)
@@ -56,8 +65,8 @@ function cosineSimilarity(a: number[], b: number[]): number {
 function preferenceOverlap(a: string[], b: string[]): number {
 	if (a.length === 0 && b.length === 0) return 1
 	if (a.length === 0 || b.length === 0) return 0
-	const setA = new Set(a.map((s) => s.toLowerCase()))
-	const setB = new Set(b.map((s) => s.toLowerCase()))
+	const setA = new Set(a.map(s => s.toLowerCase()))
+	const setB = new Set(b.map(s => s.toLowerCase()))
 	let overlap = 0
 	for (const item of setA) {
 		if (setB.has(item)) overlap++
@@ -66,15 +75,29 @@ function preferenceOverlap(a: string[], b: string[]): number {
 	return union > 0 ? overlap / union : 0
 }
 
-function getCompatibilityLabel(score: number, t: (key: string) => string): { text: string; emoji: string; color: string } {
-	if (score >= 85) return { text: t('kitchenSoulmates'), emoji: '💕', color: 'text-brand' }
-	if (score >= 70) return { text: t('greatMatch'), emoji: '🔥', color: 'text-brand' }
-	if (score >= 50) return { text: t('compatible'), emoji: '👍', color: 'text-success' }
-	if (score >= 30) return { text: t('differentStyles'), emoji: '🌶️', color: 'text-warning' }
-	return { text: t('oppositesAttract'), emoji: '🎭', color: 'text-accent-purple' }
+function getCompatibilityLabel(
+	score: number,
+	t: (key: string) => string,
+): { text: string; emoji: string; color: string } {
+	if (score >= 85)
+		return { text: t('kitchenSoulmates'), emoji: '💕', color: 'text-brand' }
+	if (score >= 70)
+		return { text: t('greatMatch'), emoji: '🔥', color: 'text-brand' }
+	if (score >= 50)
+		return { text: t('compatible'), emoji: '👍', color: 'text-success' }
+	if (score >= 30)
+		return { text: t('differentStyles'), emoji: '🌶️', color: 'text-warning' }
+	return {
+		text: t('oppositesAttract'),
+		emoji: '🎭',
+		color: 'text-accent-purple',
+	}
 }
 
-export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibilityProps) {
+export function TasteCompatibility({
+	myProfile,
+	theirProfile,
+}: TasteCompatibilityProps) {
 	const t = useTranslations('profile')
 	const { score, label } = useMemo(() => {
 		const myDims = computeDimensions(myProfile)
@@ -96,8 +119,12 @@ export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibili
 	const myStats = myProfile.statistics
 	const theirStats = theirProfile.statistics
 	if (
-		(!myStats || (myStats.completionCount === 0 && (myProfile.preferences?.length ?? 0) === 0)) ||
-		(!theirStats || (theirStats.completionCount === 0 && (theirProfile.preferences?.length ?? 0) === 0))
+		!myStats ||
+		(myStats.completionCount === 0 &&
+			(myProfile.preferences?.length ?? 0) === 0) ||
+		!theirStats ||
+		(theirStats.completionCount === 0 &&
+			(theirProfile.preferences?.length ?? 0) === 0)
 	) {
 		return null
 	}
@@ -134,17 +161,25 @@ export function TasteCompatibility({ myProfile, theirProfile }: TasteCompatibili
 							strokeDasharray={`${(score / 100) * 125.6} 125.6`}
 							initial={{ strokeDashoffset: 125.6 }}
 							animate={{ strokeDashoffset: 0 }}
-						transition={{ duration: DURATION_S.dramatic, delay: 0.3, ease: 'easeOut' }}
+							transition={{
+								duration: DURATION_S.dramatic,
+								delay: 0.3,
+								ease: 'easeOut',
+							}}
 							transform='rotate(-90 24 24)'
 						/>
 					</svg>
-					<span className='text-xs font-display font-bold text-text tabular-nums'>{score}%</span>
+					<span className='text-xs font-display font-bold text-text-primary tabular-nums'>
+						{score}%
+					</span>
 				</div>
 
 				<div className='flex-1'>
 					<div className='flex items-center gap-1.5'>
 						<Sparkles className='size-3.5 text-gaming-xp' />
-						<span className='text-sm font-semibold text-text'>{t('tasteCompatibility')}</span>
+						<span className='text-sm font-semibold text-text-primary'>
+							{t('tasteCompatibility')}
+						</span>
 					</div>
 					<p className={`text-sm font-medium ${label.color}`}>
 						{label.emoji} {label.text}

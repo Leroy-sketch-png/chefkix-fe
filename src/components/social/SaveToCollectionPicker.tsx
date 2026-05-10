@@ -160,7 +160,7 @@ export const SaveToCollectionPicker = ({
 					{/* Header */}
 					<div className='flex items-center justify-between border-b border-border-subtle px-3 py-2'>
 						<span
-							className='text-sm font-semibold text-text'
+							className='text-sm font-semibold text-text-primary'
 							id='save-collection-title'
 						>
 							{t('saveToCollection')}
@@ -169,7 +169,7 @@ export const SaveToCollectionPicker = ({
 							type='button'
 							onClick={onClose}
 							aria-label={t('close')}
-							className='rounded p-0.5 text-text-muted hover:bg-bg-hover hover:text-text'
+							className='rounded p-0.5 text-text-muted hover:bg-bg-hover hover:text-text-primary'
 						>
 							<X className='size-4' />
 						</button>
@@ -197,7 +197,7 @@ export const SaveToCollectionPicker = ({
 										className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm transition-colors ${
 											saved
 												? 'cursor-default bg-success/5 text-success'
-												: 'text-text hover:bg-bg-hover'
+												: 'text-text-primary hover:bg-bg-hover'
 										}`}
 									>
 										{addingToId === col.id ? (
@@ -236,7 +236,7 @@ export const SaveToCollectionPicker = ({
 									}}
 									placeholder={t('collectionNamePlaceholder')}
 									maxLength={60}
-									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex-1 rounded border border-border-subtle bg-bg px-2 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								/>
 								<button
 									type='button'

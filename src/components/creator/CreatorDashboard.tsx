@@ -4,12 +4,10 @@ import { useTranslations } from 'next-intl'
 
 import { motion } from 'framer-motion'
 import {
-	ArrowLeft,
 	TrendingUp,
 	TrendingDown,
 	ArrowRight,
 	Lock,
-	Plus,
 	Clock,
 	Signal,
 	ArrowUpDown,
@@ -100,10 +98,8 @@ export interface CreatorDashboardProps {
 	topRecipe: TopRecipe | null
 	recipePerformance: RecipePerformance[]
 	recentCooks: RecentCook[]
-	onBack?: () => void
 	onViewAllRecipes?: () => void
 	onViewAllCooks?: () => void
-	onCreateRecipe?: () => void
 	onImproveRecipe?: (recipeId: string) => void
 	onRecipeClick?: (recipeId: string) => void
 	onViewStepAnalytics?: (recipeId: string) => void
@@ -167,7 +163,7 @@ function WeekHighlightSection({ data }: { data: WeekHighlight }) {
 				<div className='flex items-center gap-3 p-3.5 bg-gradient-to-br from-bg-card/60 to-bg-elevated/40 rounded-xl border border-border-subtle/60'>
 					<span className='text-icon-lg'>⚡</span>
 					<div className='flex-1 flex flex-col'>
-						<span className='text-2xl font-bold tracking-tight text-text'>
+						<span className='text-2xl font-bold tracking-tight text-text-primary'>
 							+<AnimatedNumber value={data.xpEarned} className='tabular-nums' />
 						</span>
 						<span className='text-xs text-text-secondary'>{t('xpEarned')}</span>
@@ -202,7 +198,9 @@ function LifetimeStatsSection({ stats }: { stats: LifetimeStats }) {
 	const t = useTranslations('creator')
 	return (
 		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
-			<h3 className='text-lg font-bold text-text mb-4'>{t('lifetimeStats')}</h3>
+			<h3 className='text-lg font-bold text-text-primary mb-4'>
+				{t('lifetimeStats')}
+			</h3>
 			<div className='grid grid-cols-2 sm:grid-cols-4 gap-3'>
 				{/* Recipes Published - Large */}
 				<div className='col-span-2 sm:col-span-1 flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-gradient-to-br from-bg-elevated/80 to-bg/80 rounded-xl text-center'>
@@ -252,7 +250,7 @@ function StatCard({
 		<div className='flex items-center gap-2.5 p-4 bg-bg rounded-xl'>
 			<span className='text-2xl'>{icon}</span>
 			<div className='flex flex-col'>
-				<span className='text-xl font-bold tracking-tight tabular-nums text-text'>
+				<span className='text-xl font-bold tracking-tight tabular-nums text-text-primary'>
 					{children}
 				</span>
 				<span className='text-xs text-text-secondary'>{label}</span>
@@ -272,7 +270,9 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 	return (
 		<div className='mb-6'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>{t('creatorBadges')}</h3>
+				<h3 className='text-lg font-bold text-text-primary'>
+					{t('creatorBadges')}
+				</h3>
 				<span className='text-sm text-text-secondary'>
 					{earnedCount} earned
 				</span>
@@ -296,13 +296,15 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 						)}
 					>
 						<span className='text-icon-xl'>{badge.icon}</span>
-						<span className='text-xs font-bold text-text'>{badge.name}</span>
+						<span className='text-xs font-bold text-text-primary'>
+							{badge.name}
+						</span>
 						<span className='text-2xs text-text-secondary line-clamp-2'>
 							{badge.description}
 						</span>
 
 						{!badge.isEarned && (
-							<div className='absolute inset-0 flex items-center justify-center bg-black/40 rounded-radius'>
+							<div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40'>
 								<Lock className='size-6 text-white' />
 							</div>
 						)}
@@ -330,7 +332,7 @@ function TopRecipeSection({
 	return (
 		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>🏆 Top Recipe</h3>
+				<h3 className='text-lg font-bold text-text-primary'>🏆 Top Recipe</h3>
 				{onViewAllRecipes && (
 					<button
 						type='button'
@@ -356,7 +358,7 @@ function TopRecipeSection({
 					className='w-full sm:size-thumbnail-2xl rounded-2xl object-cover mx-auto sm:mx-0'
 				/>{' '}
 				<div className='flex-1 flex flex-col gap-2 items-center sm:items-start text-center sm:text-left'>
-					<h4 className='text-xl font-bold tracking-tight text-text'>
+					<h4 className='text-xl font-bold tracking-tight text-text-primary'>
 						{recipe.title}
 					</h4>
 					<div className='flex gap-3'>
@@ -427,12 +429,12 @@ function RecipePerformanceSection({
 	return (
 		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>
+				<h3 className='text-lg font-bold text-text-primary'>
 					{t('recipePerformance')}
 				</h3>
 				<button
 					type='button'
-					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-xl text-sm text-text'
+					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-xl text-sm text-text-primary'
 				>
 					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
 					{t('mostCooked')}
@@ -442,12 +444,11 @@ function RecipePerformanceSection({
 			{recipes.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
 					<span className='text-4xl'>📊</span>
-					<p className='text-base font-semibold text-text'>
+					<p className='text-base font-semibold text-text-primary'>
 						{t('noPerformance')}
 					</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{t('noPerformanceSubtitle')}
-						appear here.
 					</p>
 				</div>
 			) : (
@@ -479,7 +480,7 @@ function RecipePerformanceSection({
 								className='size-14 rounded-xl object-cover'
 							/>
 							<div className='flex-1 flex flex-col gap-1.5'>
-								<span className='text-base font-bold text-text'>
+								<span className='text-base font-bold text-text-primary'>
 									{recipe.title}
 								</span>
 								{recipe.badge && (
@@ -500,7 +501,7 @@ function RecipePerformanceSection({
 							</div>
 							<div className='flex flex-col sm:flex-row gap-1 sm:gap-5 text-right'>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-bold tracking-tight text-text'>
+									<span className='text-base font-bold tracking-tight text-text-primary'>
 										<AnimatedNumber
 											value={recipe.cookCount}
 											className='tabular-nums'
@@ -511,7 +512,7 @@ function RecipePerformanceSection({
 									</span>
 								</div>
 								<div className='flex flex-row sm:flex-col items-center sm:items-end gap-1'>
-									<span className='text-base font-bold tracking-tight text-text'>
+									<span className='text-base font-bold tracking-tight text-text-primary'>
 										+
 										<AnimatedNumber
 											value={recipe.xpGenerated}
@@ -546,7 +547,7 @@ function RecipePerformanceSection({
 										e.stopPropagation()
 										onImproveRecipe(recipe.id)
 									}}
-									className='size-9 flex items-center justify-center border border-border-subtle rounded-xl text-text-secondary hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='size-9 flex items-center justify-center border border-border-subtle rounded-xl text-text-secondary hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 									aria-label={t('ariaImproveRecipe')}
 								>
 									<Edit3 className='size-4' />
@@ -575,7 +576,9 @@ function RecentCooksSection({
 	return (
 		<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 mb-6 border border-border-subtle/80 shadow-card'>
 			<div className='flex items-center justify-between mb-4'>
-				<h3 className='text-lg font-bold text-text'>{t('recentCooks')}</h3>
+				<h3 className='text-lg font-bold text-text-primary'>
+					{t('recentCooks')}
+				</h3>
 				{onViewAll && (
 					<button
 						type='button'
@@ -590,10 +593,11 @@ function RecentCooksSection({
 			{cooks.length === 0 ? (
 				<div className='flex flex-col items-center gap-3 py-10 text-center'>
 					<span className='text-4xl'>👨‍🍳</span>
-					<p className='text-base font-semibold text-text'>{t('noCooks')}</p>
+					<p className='text-base font-semibold text-text-primary'>
+						{t('noCooks')}
+					</p>
 					<p className='text-sm text-text-secondary max-w-xs'>
 						{t('noCooksSubtitle')}
-						cooks them.
 					</p>
 				</div>
 			) : (
@@ -617,7 +621,7 @@ function RecentCooksSection({
 								className='size-10 rounded-full object-cover'
 							/>
 							<div className='flex-1 flex flex-col'>
-								<span className='text-sm text-text'>
+								<span className='text-sm text-text-primary'>
 									<strong className='font-bold'>{cook.userName}</strong> cooked
 									your <strong className='font-bold'>{cook.recipeTitle}</strong>
 								</span>
@@ -644,51 +648,6 @@ function RecentCooksSection({
 }
 
 // ============================================================================
-// CREATE CTA
-// ============================================================================
-
-function CreateCTA({ onCreateRecipe }: { onCreateRecipe?: () => void }) {
-	const t = useTranslations('creator')
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
-			className={cn(
-				'flex flex-col sm:flex-row items-center justify-between gap-4 p-5',
-				'bg-xp/10',
-				'border-2 border-xp/20 rounded-xl',
-			)}
-		>
-			<div className='flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left'>
-				<span className='text-icon-xl'>✨</span>
-				<div className='flex flex-col'>
-					<strong className='text-base text-text'>{t('createCtaTitle')}</strong>
-					<span className='text-sm text-text-secondary'>
-						Every cook of your recipe earns you 4% XP
-					</span>
-				</div>
-			</div>
-
-			<motion.button
-				type='button'
-				whileHover={STAT_ITEM_HOVER}
-				whileTap={LIST_ITEM_TAP}
-				onClick={onCreateRecipe}
-				className={cn(
-					'flex items-center justify-center gap-2 py-3 px-5 focus-visible:ring-2 focus-visible:ring-brand/50',
-					'bg-gradient-hero',
-					'rounded-xl text-sm font-bold text-white w-full sm:w-auto',
-					'shadow-card shadow-brand/20',
-				)}
-			>
-				<Plus className='size-icon-sm' />
-				{t('createRecipe')}
-			</motion.button>
-		</motion.div>
-	)
-}
-
-// ============================================================================
 // CREATOR DASHBOARD COMPONENT
 // ============================================================================
 
@@ -699,10 +658,8 @@ export function CreatorDashboard({
 	topRecipe,
 	recipePerformance,
 	recentCooks,
-	onBack,
 	onViewAllRecipes,
 	onViewAllCooks,
-	onCreateRecipe,
 	onImproveRecipe,
 	onRecipeClick,
 	onViewStepAnalytics,
@@ -710,28 +667,7 @@ export function CreatorDashboard({
 }: CreatorDashboardProps) {
 	const t = useTranslations('creator')
 	return (
-		<div className={cn('max-w-lg mx-auto p-5', className)}>
-			{/* Header */}
-			<div className='flex items-center gap-4 mb-6'>
-				{onBack && (
-					<motion.button
-						type='button'
-						whileHover={BUTTON_SUBTLE_HOVER}
-						whileTap={BUTTON_SUBTLE_TAP}
-						onClick={onBack}
-						className='size-10 flex items-center justify-center bg-bg-card border border-border-subtle rounded-xl text-text focus-visible:ring-2 focus-visible:ring-brand/50'
-						aria-label={t('ariaGoBack')}
-					>
-						<ArrowLeft className='size-5' />
-					</motion.button>
-				)}
-				<div className='flex-1 flex items-center gap-3 flex-wrap'>
-					<span className='py-1 px-2.5 bg-xp/20 border border-xp/30 rounded-xl text-xs font-semibold text-xp'>
-						📝 Recipe Creator
-					</span>
-				</div>
-			</div>
-
+		<div className={cn('w-full max-w-none p-4 md:p-6', className)}>
 			{/* Week Highlight */}
 			<WeekHighlightSection data={weekHighlight} />
 
@@ -760,9 +696,6 @@ export function CreatorDashboard({
 
 			{/* Recent Cooks */}
 			<RecentCooksSection cooks={recentCooks} onViewAll={onViewAllCooks} />
-
-			{/* Create CTA */}
-			<CreateCTA onCreateRecipe={onCreateRecipe} />
 		</div>
 	)
 }

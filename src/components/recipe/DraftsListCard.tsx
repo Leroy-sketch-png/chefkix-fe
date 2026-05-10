@@ -93,7 +93,7 @@ function DraftsListCardContent({
 				onClick={() => onSelectDraft(draft.id)}
 				className='flex flex-1 flex-col items-start text-left'
 			>
-				<div className='font-semibold text-text'>
+				<div className='font-semibold text-text-primary'>
 					{draft.title || t('untitledRecipe')}
 				</div>
 				<div className='flex items-center gap-2 text-xs text-text-muted'>

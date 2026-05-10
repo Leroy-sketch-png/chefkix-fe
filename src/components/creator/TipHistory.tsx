@@ -178,7 +178,9 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 						<DollarSign className='size-5 text-gaming-xp' />
 					</div>
 					<div>
-						<h3 className='font-semibold text-text'>{t('tipHistory')}</h3>
+						<h3 className='font-semibold text-text-primary'>
+							{t('tipHistory')}
+						</h3>
 						<p className='text-sm text-text-muted'>
 							{receivedTips.length > 0
 								? `${formatCents(totalReceived)} received · ${formatCents(totalSent)} sent`
@@ -196,7 +198,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 							onClick={() => setActiveTab(tab)}
 							className={`relative flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
 								activeTab === tab
-									? 'text-text'
+									? 'text-text-primary'
 									: 'text-text-muted hover:text-text-secondary'
 							}`}
 						>
@@ -259,7 +261,7 @@ export function TipHistory({ className = '' }: TipHistoryProps) {
 						<span className='text-3xl'>
 							{activeTab === 'received' ? '💰' : '🎁'}
 						</span>
-						<p className='font-medium text-text'>
+						<p className='font-medium text-text-primary'>
 							{activeTab === 'received' ? t('noTipsReceived') : t('noTipsSent')}
 						</p>
 						<p className='text-sm text-text-muted'>
@@ -329,7 +331,7 @@ function TipListItem({
 				<div className='flex items-center gap-2'>
 					<Link
 						href={`/${userId}`}
-						className='truncate text-sm font-semibold text-text transition-colors hover:text-brand'
+						className='truncate text-sm font-semibold text-text-primary transition-colors hover:text-brand'
 					>
 						{tip.displayName}
 					</Link>

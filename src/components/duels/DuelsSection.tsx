@@ -231,7 +231,7 @@ function DuelCard({
 						)}
 					</div>
 					<div>
-						<p className='font-semibold text-text'>
+						<p className='font-semibold text-text-primary'>
 							{isChallenger
 								? t('vsOpponent', { name: opponentName })
 								: t('challengedYou', { name: duel.challengerName })}
@@ -254,7 +254,7 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>{t('youLabel')}</p>
 							<p
-								className={`tabular-nums text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text'}`}
+								className={`tabular-nums text-2xl font-bold ${isWinner ? 'text-medal-gold' : 'text-text-primary'}`}
 							>
 								{myScore}
 							</p>
@@ -277,7 +277,7 @@ function DuelCard({
 						<div className='text-center'>
 							<p className='text-xs text-text-muted'>{opponentName}</p>
 							<p
-								className={`tabular-nums text-2xl font-bold ${!isWinner && !isDraw ? 'text-medal-gold' : 'text-text'}`}
+								className={`tabular-nums text-2xl font-bold ${!isWinner && !isDraw ? 'text-medal-gold' : 'text-text-primary'}`}
 							>
 								{theirScore}
 							</p>
@@ -534,7 +534,7 @@ function CreateDuelModal({
 							<Swords className='size-5 text-brand' />
 							<h2
 								id='create-duel-title'
-								className='text-lg font-bold text-text'
+								className='text-lg font-bold text-text-primary'
 							>
 								{step === 'friend'
 									? t('stepPickFriend')
@@ -578,7 +578,7 @@ function CreateDuelModal({
 										placeholder={t('searchFriends')}
 										value={friendSearch}
 										onChange={e => setFriendSearch(e.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 								{loading ? (
@@ -626,7 +626,7 @@ function CreateDuelModal({
 													</div>
 												)}
 												<div>
-													<p className='font-medium text-text'>
+													<p className='font-medium text-text-primary'>
 														{getProfileDisplayName(friend)}
 													</p>
 													<p className='text-xs text-text-secondary'>
@@ -651,7 +651,7 @@ function CreateDuelModal({
 										placeholder={t('searchRecipes')}
 										value={recipeSearch}
 										onChange={e => setRecipeSearch(e.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 								{loading ? (
@@ -700,7 +700,7 @@ function CreateDuelModal({
 													</div>
 												)}
 												<div className='min-w-0 flex-1'>
-													<p className='truncate font-medium text-text'>
+													<p className='truncate font-medium text-text-primary'>
 														{recipe.title}
 													</p>
 													<p className='text-xs text-text-secondary'>
@@ -732,7 +732,7 @@ function CreateDuelModal({
 								<div className='rounded-xl bg-bg-elevated p-4'>
 									<div className='mb-3 flex items-center gap-3'>
 										<Swords className='size-5 text-brand' />
-										<span className='font-semibold text-text'>
+										<span className='font-semibold text-text-primary'>
 											{t('challengeSummary')}
 										</span>
 									</div>
@@ -741,13 +741,13 @@ function CreateDuelModal({
 											<span className='text-text-secondary'>
 												{t('opponent')}
 											</span>
-											<span className='font-medium text-text'>
+											<span className='font-medium text-text-primary'>
 												{getProfileDisplayName(selectedFriend)}
 											</span>
 										</div>
 										<div className='flex items-center justify-between'>
 											<span className='text-text-secondary'>{t('recipe')}</span>
-											<span className='font-medium text-text'>
+											<span className='font-medium text-text-primary'>
 												{selectedRecipe.title}
 											</span>
 										</div>
@@ -773,7 +773,7 @@ function CreateDuelModal({
 										value={message}
 										onChange={e => setMessage(e.target.value)}
 										maxLength={200}
-										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+										className='w-full rounded-xl border border-border-subtle bg-bg py-2.5 px-4 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
 									/>
 								</div>
 
@@ -860,7 +860,7 @@ export function DuelsSection() {
 			<div className='mb-4 flex items-center justify-between'>
 				<div className='flex items-center gap-2'>
 					<Swords className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text'>{t('title')}</h2>
+					<h2 className='text-lg font-bold text-text-primary'>{t('title')}</h2>
 					{invites.length > 0 && (
 						<span className='flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
 							{invites.length}
@@ -889,7 +889,7 @@ export function DuelsSection() {
 			  history.length === 0 ? (
 				<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-8 text-center shadow-card'>
 					<Swords className='mx-auto mb-3 size-10 text-text-muted' />
-					<p className='mb-1 font-semibold text-text'>{t('noDuels')}</p>
+					<p className='mb-1 font-semibold text-text-primary'>{t('noDuels')}</p>
 					<p className='mb-4 text-sm text-text-secondary'>
 						{t('noDuelsSubtitle')}
 					</p>
@@ -950,7 +950,7 @@ export function DuelsSection() {
 							<button
 								type='button'
 								onClick={() => setShowHistory(v => !v)}
-								className='mb-2 flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text'
+								className='mb-2 flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text-primary'
 							>
 								<Trophy className='size-4' />
 								{t('pastDuels', { n: history.length })}

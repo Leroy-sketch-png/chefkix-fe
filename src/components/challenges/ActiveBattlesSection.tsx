@@ -71,7 +71,7 @@ function BattleCard({ battle, index }: { battle: Post; index: number }) {
 						</div>
 						<div>
 							<p
-								className='text-sm font-semibold text-text line-clamp-1'
+								className='text-sm font-semibold text-text-primary line-clamp-1'
 								title={battle.content || t('recipeBattle')}
 							>
 								{battle.content || t('recipeBattle')}
@@ -229,7 +229,9 @@ export function ActiveBattlesSection() {
 		<section className='mb-8'>
 			<div className='mb-4 flex items-center gap-2'>
 				<Swords className='size-5 text-brand' />
-				<h2 className='text-lg font-bold text-text'>{t('recipeBattles')}</h2>
+				<h2 className='text-lg font-bold text-text-primary'>
+					{t('recipeBattles')}
+				</h2>
 			</div>
 
 			<AnimatePresence mode='wait'>

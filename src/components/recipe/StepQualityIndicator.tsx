@@ -311,7 +311,7 @@ const StepQualityIndicatorComponent = ({
 									<div key={check.field} className='flex items-start gap-2'>
 										<CheckIcon className='mt-0.5 size-4 shrink-0 text-text-muted' />
 										<div className='flex-1'>
-											<p className='text-xs text-text'>
+											<p className='text-xs text-text-primary'>
 												{t(
 													QUALITY_CHECK_SUGGESTION_KEYS[check.field] ||
 														check.field,

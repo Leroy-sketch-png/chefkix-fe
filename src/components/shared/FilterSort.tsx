@@ -266,12 +266,14 @@ export const FilterPanel = ({
 		>
 			{/* Header */}
 			<div className='flex items-center justify-between border-b border-border p-5'>
-				<h3 className='text-lg font-bold text-text'>{t('fsFilters')}</h3>
+				<h3 className='text-lg font-bold text-text-primary'>
+					{t('fsFilters')}
+				</h3>
 				<button
 					type='button'
 					onClick={onClose}
 					aria-label={t('fsCloseFilters')}
-					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text'
+					className='rounded-md p-1.5 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
 				>
 					<X className='size-5' />
 				</button>
@@ -310,7 +312,7 @@ export const FilterSection = ({
 }: FilterSectionProps) => {
 	return (
 		<div className={cn('mb-8', className)}>
-			<h4 className='mb-3 text-sm font-bold uppercase tracking-wide text-text'>
+			<h4 className='mb-3 text-sm font-bold uppercase tracking-wide text-text-primary'>
 				{title}
 			</h4>
 			{children}
@@ -346,7 +348,7 @@ export const CheckboxFilter = ({
 			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-md border-2 border-border transition-all peer-checked:border-brand peer-checked:bg-brand'>
 				<div className='h-2.5 w-2.5 scale-0 rounded-sm bg-card transition-transform peer-checked:scale-100' />
 			</div>
-			<span className='flex-1 text-sm text-text'>{label}</span>
+			<span className='flex-1 text-sm text-text-primary'>{label}</span>
 			{count !== undefined && (
 				<span className='text-xs text-text-secondary'>({count})</span>
 			)}
@@ -383,7 +385,7 @@ export const RadioFilter = ({
 			<div className='grid size-4.5 flex-shrink-0 place-items-center rounded-full border-2 border-border transition-all peer-checked:border-brand'>
 				<div className='h-2.5 w-2.5 scale-0 rounded-full bg-brand transition-transform peer-checked:scale-100' />
 			</div>
-			<span className='text-sm text-text'>{label}</span>
+			<span className='text-sm text-text-primary'>{label}</span>
 		</label>
 	)
 }
@@ -477,7 +479,7 @@ export const CuisinePill = ({
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',
 				active
 					? 'border-brand bg-brand text-white'
-					: 'border-border bg-muted/20 text-text hover:border-brand hover:bg-brand/5',
+					: 'border-border bg-muted/20 text-text-primary hover:border-brand hover:bg-brand/5',
 			)}
 		>
 			{label}

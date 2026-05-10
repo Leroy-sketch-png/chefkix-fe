@@ -259,7 +259,7 @@ export function InterestPicker({
 								<div className='flex size-10 items-center justify-center rounded-full bg-warning/10'>
 									<AlertTriangle className='size-5 text-warning' />
 								</div>
-								<h3 className='text-lg font-semibold text-text'>
+								<h3 className='text-lg font-semibold text-text-primary'>
 									{t('ipSkipConfirmTitle')}
 								</h3>
 							</div>
@@ -274,7 +274,7 @@ export function InterestPicker({
 								<button
 									type='button'
 									onClick={() => setShowSkipConfirm(false)}
-									className='flex-1 rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+									className='flex-1 rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 								>
 									{t('ipGoBack')}
 								</button>
@@ -311,7 +311,7 @@ export function InterestPicker({
 						<button
 							type='button'
 							onClick={handleDismiss}
-							className='absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted backdrop-blur-sm transition-colors hover:bg-bg-hover hover:text-text focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+							className='absolute right-4 top-4 z-10 flex size-8 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted backdrop-blur-sm transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 							aria-label={t('ipDismiss')}
 						>
 							<X className='size-4' />
@@ -328,7 +328,7 @@ export function InterestPicker({
 						>
 							<Sparkles className='size-8 text-brand' />
 						</motion.div>
-						<h2 className='text-2xl font-bold text-text'>
+						<h2 className='text-2xl font-bold text-text-primary'>
 							{editMode ? t('ipTitleEdit') : t('ipTitleNew')}
 						</h2>
 						<p className='mt-2 text-sm text-text-secondary'>

@@ -332,16 +332,22 @@ export const StepItem = ({
 								onChange={e => setTimerUnit(e.target.value as TimeUnit)}
 								className='bg-bg-card text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer rounded px-1 py-0.5'
 							>
-								<option value='seconds' className='bg-bg-card text-text'>
+								<option
+									value='seconds'
+									className='bg-bg-card text-text-primary'
+								>
 									sec
 								</option>
-								<option value='minutes' className='bg-bg-card text-text'>
+								<option
+									value='minutes'
+									className='bg-bg-card text-text-primary'
+								>
 									min
 								</option>
-								<option value='hours' className='bg-bg-card text-text'>
+								<option value='hours' className='bg-bg-card text-text-primary'>
 									hours
 								</option>
-								<option value='days' className='bg-bg-card text-text'>
+								<option value='days' className='bg-bg-card text-text-primary'>
 									days
 								</option>
 							</select>

@@ -168,7 +168,7 @@ export function DevQuickLogin() {
 								>
 									<span className='text-base'>{account.emoji}</span>
 									<div className='min-w-0 flex-1'>
-										<div className='truncate text-sm font-medium text-text'>
+										<div className='truncate text-sm font-medium text-text-primary'>
 											{account.label}
 										</div>
 										<div className='truncate text-xs text-text-muted'>

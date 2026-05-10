@@ -5,28 +5,31 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-	'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-radius-sm text-sm font-medium ring-offset-bg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+	'inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-bg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
 	{
 		variants: {
 			variant: {
-				default: 'bg-brand text-white hover:bg-brand-hover',
+				default:
+					'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 				destructive: 'bg-error text-white hover:bg-error/90',
 				outline:
-					'border border-border-medium bg-bg-card hover:bg-bg-elevated hover:text-text',
+					'border border-border-medium bg-bg-card hover:bg-bg-elevated hover:text-text-primary',
 				secondary: 'bg-bg-elevated text-text-primary hover:bg-bg-hover',
-				ghost: 'hover:bg-bg-elevated hover:text-text',
+				ghost: 'hover:bg-bg-elevated hover:text-text-primary',
 				link: 'text-brand underline-offset-4 hover:underline',
-				// Brand gradient button - primary CTA, coral tones
-				brand: 'bg-gradient-brand text-white hover:opacity-90',
+				// Brand button - primary CTA, coral tones
+				brand:
+					'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
 				// Gaming/XP button - purple tones for gamification actions
-				gaming: 'bg-gradient-xp text-white hover:opacity-90',
+				gaming:
+					'bg-xp text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:bg-xp/90 hover:shadow-[0_4px_16px_rgba(99,102,241,0.4)]',
 				// Success button - green tones for confirmations
 				success: 'bg-success text-white hover:bg-success/90',
 			},
 			size: {
 				default: 'h-10 px-4 py-2',
-				sm: 'h-9 rounded-md px-3',
-				lg: 'h-11 rounded-md px-8',
+				sm: 'h-9 px-3',
+				lg: 'h-11 px-8',
 				xl: 'h-12 px-10 text-base',
 				icon: 'size-10',
 			},

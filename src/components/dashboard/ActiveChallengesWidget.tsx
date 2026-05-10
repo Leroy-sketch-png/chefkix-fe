@@ -180,7 +180,7 @@ export function ActiveChallengesWidget({
 			)}
 		>
 			<div className='mb-3 flex items-center justify-between'>
-				<h3 className='flex items-center gap-2 text-sm font-bold text-text'>
+				<h3 className='flex items-center gap-2 text-sm font-bold text-text-primary'>
 					<Trophy className='size-4 text-brand' />
 					{t('activeChallenges')}
 				</h3>
@@ -204,7 +204,7 @@ export function ActiveChallengesWidget({
 							{daily.icon || <Flame className='size-4 text-streak' />}
 						</div>
 						<div className='min-w-0 flex-1'>
-							<p className='truncate text-sm font-semibold text-text'>
+							<p className='truncate text-sm font-semibold text-text-primary'>
 								{daily.title}
 							</p>
 							<p className='flex items-center gap-1 text-xs text-text-muted'>
@@ -236,7 +236,7 @@ export function ActiveChallengesWidget({
 							<Trophy className='size-4 text-xp' />
 						</div>
 						<div className='min-w-0 flex-1'>
-							<p className='truncate text-sm font-semibold text-text'>
+							<p className='truncate text-sm font-semibold text-text-primary'>
 								{weekly.title}
 							</p>
 							<div className='mt-1 flex items-center gap-2'>

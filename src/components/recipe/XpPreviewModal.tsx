@@ -90,7 +90,7 @@ export const XpPreviewModal = ({
 				>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
-						<h2 className='text-xl font-bold tracking-tight text-text'>
+						<h2 className='text-xl font-bold tracking-tight text-text-primary'>
 							{t('xpPreview')}
 						</h2>
 						<button
@@ -119,7 +119,9 @@ export const XpPreviewModal = ({
 							</div>
 						)}
 						<div className='flex-1'>
-							<h3 className='text-lg font-bold text-text'>{recipe.title}</h3>
+							<h3 className='text-lg font-bold text-text-primary'>
+								{recipe.title}
+							</h3>
 							<p className='text-xs text-text-secondary'>
 								{recipe.cookTime} • {recipe.difficulty} •{' '}
 								{t('servingsLabel', { count: recipe.servings })}
@@ -142,7 +144,7 @@ export const XpPreviewModal = ({
 
 						<div className='mb-4 space-y-3'>
 							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
+								<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 									<span className='text-lg'>??</span>
 									{t('baseDifficulty', { difficulty: recipe.difficulty })}
 								</div>
@@ -151,7 +153,7 @@ export const XpPreviewModal = ({
 								</span>
 							</div>
 							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
+								<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 									<span className='text-lg'>??</span>
 									{t('stepsCount', { count: recipe.steps.length })}
 								</div>
@@ -160,7 +162,7 @@ export const XpPreviewModal = ({
 								</span>
 							</div>
 							<div className='flex items-center justify-between'>
-								<div className='flex items-center gap-2.5 text-sm text-text'>
+								<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 									<span className='text-lg'>??</span>
 									{t('timeCookTime', { cookTime: recipe.cookTime })}
 								</div>
@@ -173,7 +175,7 @@ export const XpPreviewModal = ({
 									key={i}
 									className='flex items-center justify-between rounded-xl bg-streak/10 px-3.5 py-2.5'
 								>
-									<div className='flex items-center gap-2.5 text-sm text-text'>
+									<div className='flex items-center gap-2.5 text-sm text-text-primary'>
 										<span className='text-lg'>??</span>
 										{t('technique', { name: tech.name })}
 									</div>
@@ -213,7 +215,7 @@ export const XpPreviewModal = ({
 									className='flex items-center gap-2 rounded-xl bg-bg px-4 py-2.5'
 								>
 									<span className='text-xl'>{badge.emoji}</span>
-									<span className='text-xs font-semibold text-text'>
+									<span className='text-xs font-semibold text-text-primary'>
 										{badge.name}
 									</span>
 								</motion.div>
@@ -226,7 +228,7 @@ export const XpPreviewModal = ({
 						<span className='text-3xl'>?</span>
 						<div>
 							<strong className='text-sm text-xp'>{t('creatorXpEarn')}</strong>{' '}
-							<span className='text-sm text-text'>
+							<span className='text-sm text-text-primary'>
 								{t('creatorXpWhenOthersCook')}
 							</span>
 							<span className='block text-xs text-text-secondary'>
@@ -254,7 +256,7 @@ export const XpPreviewModal = ({
 							onClick={() => setShowConfirm(true)}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-gradient-hero py-3.5 text-sm font-bold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-sm font-bold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Send className='size-4' />
 							{t('publishRecipe')}
@@ -271,10 +273,10 @@ export const XpPreviewModal = ({
 					>
 						<AlertDialogContent className='max-w-sm rounded-2xl border-border bg-bg-card'>
 							<AlertDialogHeader className='text-center'>
-								<div className='mx-auto mb-2 flex size-14 items-center justify-center rounded-full bg-gradient-hero'>
+								<div className='mx-auto mb-2 flex size-14 items-center justify-center rounded-full bg-brand'>
 									<Rocket className='size-7 text-white' />
 								</div>
-								<AlertDialogTitle className='text-lg font-bold text-text'>
+								<AlertDialogTitle className='text-lg font-bold text-text-primary'>
 									{t('readyToGoLive')}
 								</AlertDialogTitle>
 								<AlertDialogDescription className='text-sm text-text-secondary'>
@@ -295,7 +297,7 @@ export const XpPreviewModal = ({
 									type='button'
 									onClick={handleConfirmPublish}
 									disabled={isPublishing}
-									className='flex-1 inline-flex items-center justify-center rounded-xl bg-gradient-hero px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
+									className='flex-1 inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none'
 								>
 									{isPublishing ? (
 										<>

@@ -187,13 +187,20 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 				</div>
 				<EmptyStateGamified
 					variant='custom'
-					emoji='⚠️'
 					title={t('errorLoadUsers')}
 					description={t('errorLoadUsersDesc')}
+					className='my-2 py-6 md:py-8'
 					primaryAction={{
 						label: t('tryAgain'),
 						onClick: handleRetry,
 					}}
+					quickActions={[
+						{
+							label: 'Open leaderboard',
+							href: '/leaderboard',
+							emoji: '🏆',
+						},
+					]}
 				/>
 			</div>
 		)
@@ -215,21 +222,24 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 						/>
 					</InputGroup>
 				</div>
-				<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-					{Array.from({ length: 8 }).map((_, i) => (
+				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4'>
+					{Array.from({ length: 4 }).map((_, i) => (
 						<div
 							key={i}
-							className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'
+							className='rounded-radius border border-border-subtle bg-bg-card p-3.5 shadow-card sm:p-4'
 						>
-							<div className='flex items-center gap-3'>
-								<Skeleton className='size-10 rounded-full' />
+							<div className='flex items-center gap-2.5'>
+								<Skeleton className='size-9 rounded-full' />
 								<div className='flex-1 space-y-1.5'>
-									<Skeleton className='h-4 w-24' />
-									<Skeleton className='h-3 w-16' />
+									<Skeleton className='h-3.5 w-24' />
+									<Skeleton className='h-3 w-14' />
 								</div>
 							</div>
-							<Skeleton className='h-3 w-full' />
-							<Skeleton className='h-8 w-full rounded-md' />
+							<div className='space-y-2'>
+								<Skeleton className='h-3 w-full' />
+								<Skeleton className='h-3 w-5/6' />
+							</div>
+							<Skeleton className='h-7 w-28 rounded-md' />
 						</div>
 					))}
 				</div>
@@ -255,7 +265,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 							<button
 								type='button'
 								onClick={handleClearSearch}
-								className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+								className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 								aria-label={t('ariaClearSearch')}
 							>
 								<X className='size-4' />
@@ -304,21 +314,24 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 					{/* Loading indicator */}
 					{isLoadingMore && (
-						<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 py-6'>
+						<div className='grid grid-cols-1 gap-3 py-6 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4'>
 							{Array.from({ length: 4 }).map((_, i) => (
 								<div
 									key={i}
-									className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card space-y-3'
+									className='rounded-radius border border-border-subtle bg-bg-card p-3.5 shadow-card sm:p-4'
 								>
-									<div className='flex items-center gap-3'>
-										<Skeleton className='size-10 rounded-full' />
+									<div className='flex items-center gap-2.5'>
+										<Skeleton className='size-9 rounded-full' />
 										<div className='flex-1 space-y-1.5'>
-											<Skeleton className='h-4 w-24' />
-											<Skeleton className='h-3 w-16' />
+											<Skeleton className='h-3.5 w-24' />
+											<Skeleton className='h-3 w-14' />
 										</div>
 									</div>
-									<Skeleton className='h-3 w-full' />
-									<Skeleton className='h-8 w-full rounded-md' />
+									<div className='space-y-2'>
+										<Skeleton className='h-3 w-full' />
+										<Skeleton className='h-3 w-5/6' />
+									</div>
+									<Skeleton className='h-7 w-28 rounded-md' />
 								</div>
 							))}
 						</div>

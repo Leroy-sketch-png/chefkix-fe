@@ -58,7 +58,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 								</AvatarFallback>
 							</Avatar>
 							<div className='overflow-hidden'>
-								<h3 className='truncate text-lg font-bold leading-tight text-text'>
+								<h3 className='truncate text-lg font-bold leading-tight text-text-primary'>
 									{profile.displayName || t('unknownUser')}
 								</h3>
 								<p className='truncate text-sm leading-normal text-text-secondary'>
@@ -68,7 +68,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 						</div>
 						<div className='mt-4 flex justify-around text-center text-sm'>
 							<div>
-								<span className='font-bold text-text'>
+								<span className='font-bold text-text-primary'>
 									{profile.statistics?.followerCount ?? 0}
 								</span>
 								<span className='ml-1 text-text-secondary'>
@@ -76,7 +76,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 								</span>
 							</div>
 							<div>
-								<span className='font-bold text-text'>
+								<span className='font-bold text-text-primary'>
 									{profile.statistics?.currentLevel || 1}
 								</span>
 								<span className='ml-1 text-text-secondary'>{t('level')}</span>

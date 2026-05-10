@@ -99,7 +99,7 @@ export const GroupCard = ({
 							</div>
 						)}
 						<div className='flex-1 min-w-0'>
-							<h3 className='font-semibold text-sm text-text truncate'>
+							<h3 className='font-semibold text-sm text-text-primary truncate'>
 								{group.name}
 							</h3>
 							<p className='text-xs tabular-nums text-text-secondary'>
@@ -136,7 +136,9 @@ export const GroupCard = ({
 				)}
 
 				<div className='flex-1 min-w-0'>
-					<h3 className='font-semibold text-text truncate'>{group.name}</h3>
+					<h3 className='font-semibold text-text-primary truncate'>
+						{group.name}
+					</h3>
 					<div className='flex items-center gap-2 mt-1'>
 						{group.privacyType === 'PRIVATE' ? (
 							<Lock className='size-3 text-text-muted' />
@@ -234,7 +236,7 @@ export const GroupCard = ({
 					href={PATHS.GROUPS.DETAIL(group.id)}
 					className='hover:no-underline'
 				>
-					<h3 className='font-bold text-lg text-text line-clamp-2 hover:text-brand transition-colors'>
+					<h3 className='font-bold text-lg text-text-primary line-clamp-2 hover:text-brand transition-colors'>
 						{group.name}
 					</h3>
 				</Link>
@@ -312,4 +314,3 @@ export const GroupCard = ({
 		</motion.div>
 	)
 }
-

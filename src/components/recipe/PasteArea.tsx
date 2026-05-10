@@ -30,7 +30,7 @@ export const PasteArea = ({
 				onChange={e => onChange(e.target.value)}
 				maxLength={maxChars}
 				placeholder={t('pasteAreaPlaceholder')}
-				className='min-h-textarea-lg w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text placeholder:text-text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-inset'
+				className='min-h-textarea-lg w-full resize-y bg-transparent p-5 text-sm leading-relaxed text-text-primary placeholder:text-text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-inset'
 			/>
 			<div className='flex items-center justify-between border-t border-border bg-bg-card px-5 py-3'>
 				<button

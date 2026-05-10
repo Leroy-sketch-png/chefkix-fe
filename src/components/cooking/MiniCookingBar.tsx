@@ -107,7 +107,7 @@ export const MiniCookingBar = () => {
 										<ChefHat className='size-5' />
 									</div>
 									<div className='min-w-0 flex-1 text-left'>
-										<h4 className='truncate text-sm font-bold text-text'>
+										<h4 className='truncate text-sm font-bold text-text-primary'>
 											{recipe.title}
 										</h4>
 										<p className='text-xs text-text-secondary'>
@@ -131,7 +131,9 @@ export const MiniCookingBar = () => {
 										type='button'
 										onClick={handlePlayPause}
 										title={isPaused ? t('resumeCooking') : t('pauseSession')}
-										aria-label={isPaused ? t('resumeCooking') : t('pauseSession')}
+										aria-label={
+											isPaused ? t('resumeCooking') : t('pauseSession')
+										}
 										className={cn(
 											'grid size-10 place-items-center rounded-full transition-all',
 											isPaused
@@ -195,7 +197,7 @@ export const MiniCookingBar = () => {
 					<DialogHeader>
 						<DialogTitle>{t('leaveSession')}</DialogTitle>
 						<DialogDescription>
-						{t('leaveDescription', { title: recipe?.title || '' })}
+							{t('leaveDescription', { title: recipe?.title || '' })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className='flex flex-col gap-2 sm:flex-row'>

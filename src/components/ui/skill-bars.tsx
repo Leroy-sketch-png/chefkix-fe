@@ -49,7 +49,9 @@ export function SkillBars({
 			{skills.map((skill, i) => (
 				<div key={skill.name}>
 					<div className='mb-1.5 flex items-center justify-between'>
-						<span className='text-sm font-medium text-text'>{skill.name}</span>
+						<span className='text-sm font-medium text-text-primary'>
+							{skill.name}
+						</span>
 						{showPercentage && (
 							<span className='text-xs text-text-muted'>{skill.level}%</span>
 						)}

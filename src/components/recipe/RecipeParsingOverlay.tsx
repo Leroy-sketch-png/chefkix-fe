@@ -74,7 +74,7 @@ export const RecipeParsingOverlay = ({
 						</motion.span>
 					</div>
 
-					<h3 className='mb-6 text-xl font-bold text-text'>
+					<h3 className='mb-6 text-xl font-bold text-text-primary'>
 						{t('parsingYourRecipe')}
 					</h3>
 
@@ -85,7 +85,7 @@ export const RecipeParsingOverlay = ({
 								className={cn(
 									'flex items-center gap-3 text-sm',
 									i < currentStep && 'text-success',
-									i === currentStep && 'font-semibold text-text',
+									i === currentStep && 'font-semibold text-text-primary',
 									i > currentStep && 'text-text-secondary',
 								)}
 							>

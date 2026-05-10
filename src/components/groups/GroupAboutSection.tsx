@@ -40,7 +40,7 @@ export function GroupAboutSection({
 			{/* Description */}
 			{group.description && (
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
-					<h3 className='font-bold text-lg text-text mb-3'>
+					<h3 className='font-bold text-lg text-text-primary mb-3'>
 						{t('gaDescription')}
 					</h3>
 					<p className='text-text-secondary leading-relaxed'>
@@ -67,7 +67,7 @@ export function GroupAboutSection({
 							<p className='text-sm text-text-secondary mb-1'>
 								{t('gaMembers')}
 							</p>
-							<p className='text-2xl font-bold tabular-nums text-text'>
+							<p className='text-2xl font-bold tabular-nums text-text-primary'>
 								{group.memberCount.toLocaleString()}
 							</p>
 							<p className='text-xs text-brand mt-2'>{t('gaViewMembers')}</p>
@@ -85,7 +85,7 @@ export function GroupAboutSection({
 							<p className='text-sm text-text-secondary mb-1'>
 								{t('gaCreated')}
 							</p>
-							<p className='font-semibold text-text'>{formattedDate}</p>
+							<p className='font-semibold text-text-primary'>{formattedDate}</p>
 						</div>
 					</div>
 				</div>
@@ -105,7 +105,7 @@ export function GroupAboutSection({
 						<p className='text-sm text-text-secondary mb-1'>
 							{t('privacyLabel')}
 						</p>
-						<p className='font-semibold text-text'>
+						<p className='font-semibold text-text-primary'>
 							{group.privacyType === 'PRIVATE'
 								? t('gaPrivateGroup')
 								: t('gaPublicGroup')}
@@ -122,7 +122,7 @@ export function GroupAboutSection({
 			{/* Tags */}
 			{group.tags && group.tags.length > 0 && (
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
-					<h3 className='font-bold text-text mb-4'>{t('gaTags')}</h3>
+					<h3 className='font-bold text-text-primary mb-4'>{t('gaTags')}</h3>
 					<div className='flex flex-wrap gap-2'>
 						{group.tags.map(tag => (
 							<span
@@ -139,7 +139,7 @@ export function GroupAboutSection({
 			{/* Rules Section - Will be populated from backend later */}
 			{group.rules && group.rules.length > 0 && (
 				<div className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-6 border border-border-subtle/80 shadow-card'>
-					<h3 className='font-bold text-lg text-text mb-4'>
+					<h3 className='font-bold text-lg text-text-primary mb-4'>
 						{t('gaGroupRules')}
 					</h3>
 					<div className='space-y-3'>

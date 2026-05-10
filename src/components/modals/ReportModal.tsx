@@ -249,7 +249,7 @@ export const ReportModal = ({
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-8 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='flex size-8 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('rmCloseAriaLabel')}
 										>
 											<X className='size-4' />
@@ -439,7 +439,7 @@ export const ReportLimitModal = ({
 								<Clock className='size-icon-sm' />
 								<span>
 									{t('rlResetIn')}{' '}
-									<strong className='text-text'>
+									<strong className='text-text-primary'>
 										{t('rlHours', { count: hoursUntilReset })}
 									</strong>
 								</span>
@@ -709,7 +709,9 @@ export const AppealModal = ({
 											<Clock className='size-4' />
 											<span>
 												{t('apEstimated')}{' '}
-												<strong className='text-text'>{t('ap48Hours')}</strong>
+												<strong className='text-text-primary'>
+													{t('ap48Hours')}
+												</strong>
 											</span>
 										</div>
 									</div>
@@ -736,7 +738,7 @@ export const AppealModal = ({
 											whileHover={ICON_BUTTON_HOVER}
 											whileTap={ICON_BUTTON_TAP}
 											onClick={handleClose}
-											className='flex size-9 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text focus-visible:ring-2 focus-visible:ring-brand/50'
+											className='flex size-9 items-center justify-center rounded-xl bg-bg-elevated text-text-muted hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 											aria-label={t('apCloseAriaLabel')}
 										>
 											<X className='size-5' />

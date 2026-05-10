@@ -12,12 +12,12 @@ const Avatar = React.forwardRef<
 >(({ className, size = 'sm', ...props }, ref) => {
 	// Matches DESIGN_SYSTEM.md avatar token scale exactly
 	const sizeClasses = {
-		xs: 'size-avatar-xs',   // 32px - tiny contexts, inline mentions
-		sm: 'size-avatar-sm',   // 42px - comments, chat, sidebar items
-		md: 'size-avatar-md',   // 72px - cards, medium displays
-		lg: 'size-avatar-lg',   // 100px - profile headers, featured
-		xl: 'size-avatar-xl',   // 120px - profile hero, cover overlap
-		'2xl': 'size-40',       // 160px - hero/celebration contexts
+		xs: 'size-avatar-xs', // 32px - tiny contexts, inline mentions
+		sm: 'size-avatar-sm', // 42px - comments, chat, sidebar items
+		md: 'size-avatar-md', // 72px - cards, medium displays
+		lg: 'size-avatar-lg', // 100px - profile headers, featured
+		xl: 'size-avatar-xl', // 120px - profile hero, cover overlap
+		'2xl': 'size-40', // 160px - hero/celebration contexts
 	}
 
 	return (
@@ -53,7 +53,7 @@ const AvatarFallback = React.forwardRef<
 	<AvatarPrimitive.Fallback
 		ref={ref}
 		className={cn(
-			'flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-brand/20 to-xp/20 font-semibold text-text',
+			'flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-brand/20 to-xp/20 font-semibold text-text-primary',
 			className,
 		)}
 		{...props}

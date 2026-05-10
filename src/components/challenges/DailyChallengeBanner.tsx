@@ -169,7 +169,7 @@ const ActiveChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-accent-purple'>
 							{t('dailyChallenge')}
 						</span>
-						<h3 className='text-xl font-bold tracking-tight'>
+						<h3 className='text-xl font-bold tracking-tight text-text-primary'>
 							{challenge.title}
 						</h3>
 					</div>
@@ -191,7 +191,9 @@ const ActiveChallengeBanner = ({
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-text-muted'>
 						<Clock className='size-4' />
-						<span className='font-semibold text-text'>{timeRemaining}</span>
+						<span className='font-semibold text-text-primary'>
+							{timeRemaining}
+						</span>
 						{timeRemaining !== t('expired') && <span>{t('remaining')}</span>}
 					</div>
 				</div>
@@ -235,9 +237,9 @@ const ActiveChallengeBanner = ({
 				<motion.button
 					type='button'
 					onClick={onFindRecipe}
-					whileHover={STAT_ITEM_HOVER}
-					whileTap={LIST_ITEM_TAP}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-xp py-3.5 text-base font-bold text-white shadow-warm shadow-xp/40 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					whileHover={{ scale: 1.05, y: -2 }}
+					whileTap={{ scale: 0.98 }}
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<ChefHat className='size-5' />
 					{t('findRecipe')}
@@ -300,7 +302,7 @@ const CompletedChallengeBanner = ({
 						<span className='text-xs font-bold uppercase tracking-wide text-success'>
 							{t('challengeComplete')}
 						</span>
-						<h3 className='text-xl font-bold tracking-tight'>
+						<h3 className='text-xl font-bold tracking-tight text-text-primary'>
 							{challenge.title}
 						</h3>
 					</div>
@@ -320,7 +322,7 @@ const CompletedChallengeBanner = ({
 							<span className='text-xs text-text-muted'>
 								{t('completedWith')}
 							</span>
-							<span className='text-sm font-semibold'>
+							<span className='text-sm font-semibold text-text-primary'>
 								{completedWith.recipeTitle}
 							</span>
 						</div>
@@ -348,7 +350,7 @@ const CompletedChallengeBanner = ({
 			<button
 				type='button'
 				onClick={onViewHistory}
-				className='absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-border px-3.5 py-2 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text'
+				className='absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-border-subtle px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
 			>
 				{t('viewHistory')}
 				<ChevronRight className='size-4' />
@@ -377,7 +379,7 @@ const CompactChallengeBanner = ({
 			<div className='flex items-center gap-3'>
 				<span className='text-2xl'>{challenge.icon}</span>
 				<div className='flex flex-col'>
-					<span className='text-sm font-semibold'>
+					<span className='text-sm font-semibold text-text-primary'>
 						{t('dailyCompact', { title: challenge.title })}
 					</span>
 					<span className='text-xs font-semibold text-xp'>
@@ -496,9 +498,9 @@ const FeaturedChallengeBanner = ({
 				<motion.button
 					type='button'
 					onClick={onBrowseRecipes}
-					whileHover={LIST_ITEM_HOVER}
-					whileTap={LIST_ITEM_TAP}
-					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-accent-purple shadow-warm focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					whileHover={{ scale: 1.05, y: -2 }}
+					whileTap={{ scale: 0.98 }}
+					className='inline-flex w-fit items-center gap-2 rounded-xl bg-bg-card px-7 py-4 text-base font-bold text-brand shadow-warm focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<ChefHat className='size-5' />
 					{t('browseRecipes', { category: challenge.title })}

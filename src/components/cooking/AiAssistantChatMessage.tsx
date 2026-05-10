@@ -95,7 +95,7 @@ function AiAssistantChatMessageContent({
 			<div
 				className={cn(
 					'max-w-[80%] rounded-2xl px-4 py-2.5',
-					isUser ? 'bg-brand text-white' : 'bg-bg-elevated text-text',
+					isUser ? 'bg-brand text-white' : 'bg-bg-elevated text-text-primary',
 					message.type === 'warning' &&
 						!isUser &&
 						'border border-warning/30 bg-warning/10',

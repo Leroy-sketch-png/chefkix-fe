@@ -116,7 +116,7 @@ export function SubstitutionButton({
 							>
 								{/* Header */}
 								<div className='mb-3 flex items-center justify-between'>
-									<h4 className='text-sm font-semibold text-text'>
+									<h4 className='text-sm font-semibold text-text-primary'>
 										{t('swapIngredient', { ingredient: ingredientName })}
 									</h4>
 									<button
@@ -167,7 +167,7 @@ export function SubstitutionButton({
 												className='rounded-xl bg-bg-elevated p-2.5'
 											>
 												<div className='flex items-center justify-between'>
-													<span className='text-sm font-medium text-text'>
+													<span className='text-sm font-medium text-text-primary'>
 														{sub.name}
 													</span>
 													<span

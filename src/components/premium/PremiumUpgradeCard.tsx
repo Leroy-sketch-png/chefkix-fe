@@ -284,7 +284,7 @@ export default function PremiumUpgradeCard() {
 							<div>
 								<div className='flex items-center gap-2'>
 									<Crown className='size-6 text-level' />
-									<h3 className='text-lg font-bold text-text'>
+									<h3 className='text-lg font-bold text-text-primary'>
 										<AnimatedGradientText>{t('title')}</AnimatedGradientText>
 									</h3>
 								</div>
@@ -321,7 +321,7 @@ export default function PremiumUpgradeCard() {
 						<div>
 							<div className='flex items-center gap-2'>
 								<Sparkles className='size-6 text-text-muted' />
-								<h3 className='text-lg font-bold text-text'>
+								<h3 className='text-lg font-bold text-text-primary'>
 									{t('titleFree')}
 								</h3>
 							</div>
@@ -376,7 +376,7 @@ export default function PremiumUpgradeCard() {
 									<Icon className='size-3.5' />
 								</div>
 								<div className='min-w-0 flex-1'>
-									<p className='text-sm font-medium text-text'>
+									<p className='text-sm font-medium text-text-primary'>
 										{t(`feature${feature.labelKey}Label`)}
 									</p>
 								</div>
@@ -426,7 +426,7 @@ export default function PremiumUpgradeCard() {
 						) : (
 							<div className='rounded-xl border border-level/25 bg-level/5 p-5 text-center space-y-2'>
 								<Crown className='mx-auto size-7 text-level/70' />
-								<p className='font-semibold text-sm text-text'>
+								<p className='font-semibold text-sm text-text-primary'>
 									{t('comingSoonTitle')}
 								</p>
 								<p className='text-xs text-text-secondary leading-relaxed'>

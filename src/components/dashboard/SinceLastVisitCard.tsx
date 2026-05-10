@@ -194,7 +194,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					<button
 						type='button'
 						onClick={handleDismiss}
-						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-card hover:text-text'
+						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary'
 						aria-label={t('slDismissLabel')}
 					>
 						<X className='size-4' />
@@ -202,7 +202,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 					{/* Content */}
 					<div className='relative'>
-						<h3 className='mb-1 text-sm font-semibold text-text'>
+						<h3 className='mb-1 text-sm font-semibold text-text-primary'>
 							{t('slWelcomeBack')}
 						</h3>
 						<p className='mb-3 text-xs text-text-muted'>
@@ -224,7 +224,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 									className='flex items-center gap-1.5 rounded-xl bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									<Icon className={cn('size-4', color)} />
-									<span className='text-sm font-semibold text-text tabular-nums'>
+									<span className='text-sm font-semibold text-text-primary tabular-nums'>
 										<AnimatedNumber value={value} />
 									</span>
 									<span className='text-xs text-text-muted'>{label}</span>

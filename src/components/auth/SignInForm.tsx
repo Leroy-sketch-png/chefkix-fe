@@ -258,7 +258,7 @@ export function SignInForm() {
 											autoCorrect='off'
 											spellCheck={false}
 											{...field}
-											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />
@@ -280,7 +280,7 @@ export function SignInForm() {
 											placeholder={t('passwordPlaceholder')}
 											autoComplete='current-password'
 											{...field}
-											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
+											className='h-12 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
 										/>
 									</FormControl>
 									<FormMessage />

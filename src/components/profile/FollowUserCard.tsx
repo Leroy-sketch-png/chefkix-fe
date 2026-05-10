@@ -89,7 +89,7 @@ export function FollowUserCard({
 
 			<div className='min-w-0 flex-1'>
 				<div className='flex items-center gap-2'>
-					<p className='truncate text-sm font-semibold text-text'>
+					<p className='truncate text-sm font-semibold text-text-primary'>
 						{displayName}
 					</p>
 					{isMutual && (

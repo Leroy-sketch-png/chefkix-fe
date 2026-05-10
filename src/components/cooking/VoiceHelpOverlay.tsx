@@ -57,7 +57,7 @@ export function VoiceHelpOverlay({
 							<div className='mb-4 flex items-center justify-between'>
 								<h3
 									id='voice-help-title'
-									className='text-lg font-bold text-text'
+									className='text-lg font-bold text-text-primary'
 								>
 									{t('voiceCommands')}
 								</h3>
@@ -76,7 +76,7 @@ export function VoiceHelpOverlay({
 									<div key={cmd.action} className='flex items-start gap-3'>
 										<span className='mt-0.5 text-lg'>{cmd.icon}</span>
 										<div>
-											<p className='text-sm font-semibold text-text'>
+											<p className='text-sm font-semibold text-text-primary'>
 												{cmd.label}
 											</p>
 											<p className='text-xs text-text-muted'>
@@ -99,4 +99,3 @@ export function VoiceHelpOverlay({
 		</AnimatePresence>
 	)
 }
-

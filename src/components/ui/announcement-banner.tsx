@@ -71,7 +71,7 @@ export function AnnouncementBanner({
 				variant === 'gradient' &&
 					'bg-gradient-to-r from-brand via-brand/85 to-brand text-white',
 				variant === 'subtle' &&
-					'border-b border-border-subtle bg-bg-elevated text-text',
+					'border-b border-border-subtle bg-bg-elevated text-text-primary',
 				className,
 			)}
 			role='banner'
