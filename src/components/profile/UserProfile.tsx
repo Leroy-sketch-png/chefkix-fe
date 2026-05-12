@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -36,25 +37,85 @@ import {
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
-import { ProfileHeaderGamified } from './ProfileHeaderGamified'
-import { CookingHistoryTab, type PendingSession } from '@/components/pending'
+import type { PendingSession } from '@/components/pending'
 import type { Badge as GamificationBadge } from '@/lib/types/gamification'
 import {
 	resolveBadgesWithFallback,
 	getAllBadges,
 } from '@/lib/data/badgeRegistry'
-import { PostCard } from '@/components/social/PostCard'
-import { RecipeCard } from '@/components/recipe/RecipeCard'
-import { SkillTree } from '@/components/achievements/SkillTree'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyStateGamified } from '@/components/shared'
-import { TasteCompatibility } from '@/components/profile/TasteCompatibility'
-import { ProfileCommandRail } from '@/components/profile/ProfileCommandRail'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
+
+const CookingHistoryTab = dynamic(
+	() => import('@/components/pending').then(module => module.CookingHistoryTab),
+	{ ssr: false, loading: () => null },
+)
+
+const ProfileHeaderGamified = dynamic(
+	() =>
+		import('./ProfileHeaderGamified').then(
+			module => module.ProfileHeaderGamified,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'>
+				<Skeleton className='h-48 w-full md:h-56' />
+				<div className='space-y-4 p-6'>
+					<Skeleton className='h-8 w-56' />
+					<Skeleton className='h-5 w-40' />
+					<div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
+						<Skeleton className='h-16 w-full' />
+						<Skeleton className='h-16 w-full' />
+						<Skeleton className='h-16 w-full' />
+						<Skeleton className='h-16 w-full' />
+					</div>
+				</div>
+			</div>
+		),
+	},
+)
+
+const PostCard = dynamic(
+	() => import('@/components/social/PostCard').then(module => module.PostCard),
+	{ ssr: false, loading: () => null },
+)
+
+const SkillTree = dynamic(
+	() =>
+		import('@/components/achievements/SkillTree').then(
+			module => module.SkillTree,
+		),
+	{ ssr: false, loading: () => null },
+)
+
+const ConfirmDialog = dynamic(
+	() =>
+		import('@/components/shared/ConfirmDialog').then(
+			module => module.ConfirmDialog,
+		),
+	{ ssr: false, loading: () => null },
+)
+
+const TasteCompatibility = dynamic(
+	() =>
+		import('@/components/profile/TasteCompatibility').then(
+			module => module.TasteCompatibility,
+		),
+	{ ssr: false, loading: () => null },
+)
+
+const ProfileCommandRail = dynamic(
+	() =>
+		import('@/components/profile/ProfileCommandRail').then(
+			module => module.ProfileCommandRail,
+		),
+	{ ssr: false, loading: () => null },
+)
 
 // ============================================
 // ADAPTER: Profile → ProfileUser
@@ -300,7 +361,8 @@ export const UserProfile = ({
 	const { user: currentUserProfile } = useAuth()
 	const { requireAuth } = useAuthGate()
 	const router = useRouter()
-	const isOwnProfile = profile.userId === currentUserId
+	const effectiveCurrentUserId = currentUserId ?? currentUserProfile?.userId
+	const isOwnProfile = profile.userId === effectiveCurrentUserId
 	const t = useTranslations('profile')
 
 	// Fetch user's recipes when recipes tab is active

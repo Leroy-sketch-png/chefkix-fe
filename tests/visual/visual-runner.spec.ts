@@ -913,7 +913,9 @@ test.describe('Visual Truth Machine', () => {
 				}
 
 				const gotoTimeout = parseInt(
-					process.env.VISUAL_GOTO_TIMEOUT || '30000',
+					// Playwright reuses the active 3000 dev server in local workflows.
+					// When that server is Turbopack, cold route compilation can exceed 30s.
+					process.env.VISUAL_GOTO_TIMEOUT || '90000',
 					10,
 				)
 				await page.goto(url.toString(), {

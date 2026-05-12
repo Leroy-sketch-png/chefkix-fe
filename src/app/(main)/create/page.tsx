@@ -221,7 +221,7 @@ function CreateRecipeContent() {
 									/>
 
 									<SurfaceSectionHeader
-										className='mb-4'
+										className='mb-4 hidden sm:flex'
 										eyebrow='Creation Studio'
 										chipText='Draft-ready'
 									/>

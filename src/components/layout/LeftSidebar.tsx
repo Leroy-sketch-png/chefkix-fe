@@ -24,7 +24,7 @@ import {
 	FolderHeart,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { PATHS } from '@/constants'
+import { PATHS, isUserProfileRoutePath } from '@/constants'
 import {
 	TRANSITION_SPRING,
 	ICON_BUTTON_HOVER,
@@ -138,7 +138,7 @@ export const LeftSidebar = () => {
 				typeof item.href === 'function' ? item.href(user?.userId) : item.href
 			return pathname.startsWith(href)
 		})
-	}, [pathname, user?.accountType, user?.userId])
+	}, [pathname, user?.accountType, user?.userId, isAuthenticated])
 
 	// Initialize showMore based on whether a secondary route is already active (avoids layout shift)
 	const [showMore, setShowMore] = useState(isSecondaryActive)
@@ -186,6 +186,9 @@ export const LeftSidebar = () => {
 	const isActive = (item: NavItem) => {
 		const href = getHref(item)
 		if (href === '/dashboard') return pathname === href || pathname === '/'
+		if (href === '/profile') {
+			return pathname.startsWith(href) || isUserProfileRoutePath(pathname)
+		}
 		return pathname.startsWith(href)
 	}
 

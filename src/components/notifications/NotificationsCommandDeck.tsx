@@ -92,16 +92,16 @@ export function NotificationsCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-2.5 shadow-card sm:p-4 md:p-5',
+				'rounded-[1.75rem] border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-3 shadow-card sm:p-4 md:p-5',
 				className,
 			)}
 		>
-			<div className='mb-2 flex flex-wrap items-center justify-between gap-3'>
-				<div>
+			<div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+				<div className='min-w-0'>
 					<p className='hidden text-[11px] font-bold uppercase tracking-[0.16em] text-brand sm:block'>
 						{t('cmdEyebrow')}
 					</p>
-					<h2 className='mt-0 text-sm font-black text-text-primary sm:mt-1 sm:text-lg'>
+					<h2 className='text-base font-black text-text-primary sm:mt-1 sm:text-lg'>
 						{t('cmdTitle')}
 					</h2>
 				</div>
@@ -110,42 +110,40 @@ export function NotificationsCommandDeck({
 					size='sm'
 					onClick={onMarkAllRead}
 					disabled={isMarkingAllRead || counts.unread === 0}
-					className='h-8 gap-2 px-2.5 text-[11px] sm:h-10 sm:px-4 sm:text-sm'
+					className='h-9 self-start rounded-full gap-2 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm'
 				>
 					<CheckCheck className='size-3.5 sm:size-4' />
 					{isMarkingAllRead ? t('markingAllRead') : t('markAllRead')}
 				</Button>
 			</div>
 
-			<div className='mt-2 sm:mt-0'>
-				<div className='flex flex-wrap gap-2'>
-					{filters.map(filter => {
-						const Icon = filter.icon
-						const isActive = activeFilter === filter.id
-						const count = counts[filter.id]
-						return (
-							<button
-								type='button'
-								key={filter.id}
-								onClick={() => onFilterChange(filter.id)}
-								className={cn(
-									'inline-flex min-h-9 items-center justify-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-all sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',
-									isActive
-										? 'border-brand/25 bg-brand/10 text-brand shadow-sm'
-										: 'border-border-subtle bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text-primary',
-								)}
-							>
-								<Icon className='size-3.5' />
-								{filter.label}
-								{count > 0 && (
-									<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-text-muted sm:text-[10px]'>
-										{count}
-									</span>
-								)}
-							</button>
-						)
-					})}
-				</div>
+			<div className='mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:flex sm:flex-wrap'>
+				{filters.map(filter => {
+					const Icon = filter.icon
+					const isActive = activeFilter === filter.id
+					const count = counts[filter.id]
+					return (
+						<button
+							type='button'
+							key={filter.id}
+							onClick={() => onFilterChange(filter.id)}
+							className={cn(
+								'inline-flex min-h-11 w-full items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold transition-all sm:min-h-10 sm:w-auto sm:justify-center sm:rounded-full sm:px-3.5 sm:text-sm',
+								isActive
+									? 'border-brand/25 bg-brand/10 text-brand shadow-sm'
+									: 'border-border-subtle bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text-primary',
+							)}
+						>
+							<Icon className='size-3.5' />
+							{filter.label}
+							{count > 0 && (
+								<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-text-muted sm:text-[10px]'>
+									{count}
+								</span>
+							)}
+						</button>
+					)
+				})}
 			</div>
 		</motion.section>
 	)

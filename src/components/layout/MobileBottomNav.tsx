@@ -30,7 +30,7 @@ import {
 	ICON_BUTTON_TAP,
 	BUTTON_SUBTLE_TAP,
 } from '@/lib/motion'
-import { PATHS } from '@/constants'
+import { PATHS, isUserProfileRoutePath } from '@/constants'
 import { Portal } from '@/components/ui/portal'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
@@ -137,6 +137,13 @@ export const MobileBottomNav = () => {
 				pathname?.startsWith('/search/')
 			)
 		}
+		if (href === '/profile') {
+			return (
+				pathname === href ||
+				pathname?.startsWith(href + '/') ||
+				isUserProfileRoutePath(pathname)
+			)
+		}
 		return pathname === href || pathname?.startsWith(href + '/')
 	}
 
@@ -203,17 +210,17 @@ export const MobileBottomNav = () => {
 							<Link
 								key={item.href}
 								href={href}
-								className='relative -mt-3 flex max-w-20 flex-1 flex-col items-center justify-center gap-1 self-start'
+								className='relative -mt-1.5 flex max-w-20 flex-1 flex-col items-center justify-center gap-1 self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='grid size-12 place-items-center rounded-full border border-white/30 bg-gradient-primary text-white shadow-[0_10px_30px_rgba(255,90,54,0.45)]'
+									className='grid size-11 place-items-center rounded-[1.35rem] border border-brand/20 bg-gradient-primary text-white shadow-card ring-1 ring-brand/10'
 								>
-									<Icon className='size-6' />
+									<Icon className='size-5' />
 								</motion.div>
-								<span className='text-xs font-semibold leading-tight text-brand'>
+								<span className='text-[11px] font-semibold leading-tight text-text-secondary'>
 									{label}
 								</span>
 							</Link>
@@ -226,16 +233,16 @@ export const MobileBottomNav = () => {
 							<Link
 								key={item.href}
 								href={href}
-								className='relative -mt-2 flex flex-1 flex-col items-center justify-center gap-1 self-start'
+								className='relative -mt-1 flex flex-1 items-center justify-center self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-white shadow-[0_6px_20px_rgba(255,90,54,0.4)]'
+									className='flex min-h-10 items-center gap-1.5 rounded-2xl border border-brand/20 bg-gradient-primary px-3 py-2 text-white shadow-card ring-1 ring-brand/10'
 								>
-									<Icon className='size-4' />
-									<span className='text-xs font-bold'>{label}</span>
+									<Icon className='size-3.5' />
+									<span className='text-[11px] font-semibold'>{label}</span>
 								</motion.div>
 							</Link>
 						)

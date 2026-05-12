@@ -76,6 +76,11 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
 	'_dev',
 ])
 
+export function isUserProfileRoutePath(pathname: string): boolean {
+	const segments = pathname.split('/').filter(Boolean)
+	return segments.length === 1 && !KNOWN_ROUTE_SEGMENTS.has(segments[0])
+}
+
 /**
  * Check if a given pathname is a public route (exact match or prefix match).
  * Also treats /{userId} dynamic profile pages as public.
@@ -96,8 +101,7 @@ export function isPublicRoutePath(pathname: string): boolean {
 	}
 
 	// Treat /{userId} as public — any single-segment path that isn't a known route
-	const segments = pathname.split('/').filter(Boolean)
-	if (segments.length === 1 && !KNOWN_ROUTE_SEGMENTS.has(segments[0])) {
+	if (isUserProfileRoutePath(pathname)) {
 		return true
 	}
 

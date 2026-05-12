@@ -182,26 +182,28 @@ export function DraftsList({
 				className={cn('space-y-4', className)}
 			>
 				{/* New Recipe CTA */}
-				<motion.button
-					type='button'
-					variants={staggerItem}
-					onClick={onNewRecipe}
-					whileHover={BUTTON_HOVER}
-					whileTap={BUTTON_TAP}
-					className='flex w-full items-center gap-4 rounded-2xl border-2 border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
-				>
-					<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-hero text-white'>
-						<Edit3 className='size-5' />
-					</div>
-					<div>
-						<div className='font-bold text-text-primary'>
-							{t('createNewRecipe')}
+				{drafts.length > 0 && (
+					<motion.button
+						type='button'
+						variants={staggerItem}
+						onClick={onNewRecipe}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						className='flex w-full items-center gap-4 rounded-2xl border-2 border-brand/30 bg-brand/5 p-6 text-left transition-colors hover:border-brand hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
+					>
+						<div className='flex size-12 items-center justify-center rounded-xl bg-gradient-hero text-white'>
+							<Edit3 className='size-5' />
 						</div>
-						<div className='text-sm text-text-muted'>
-							{t('startFreshSubtitle')}
+						<div>
+							<div className='font-bold text-text-primary'>
+								{t('createNewRecipe')}
+							</div>
+							<div className='text-sm text-text-muted'>
+								{t('startFreshSubtitle')}
+							</div>
 						</div>
-					</div>
-				</motion.button>
+					</motion.button>
+				)}
 
 				{/* Drafts List */}
 				{drafts.length > 0 && (

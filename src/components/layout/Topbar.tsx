@@ -99,6 +99,10 @@ export const Topbar = () => {
 	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
 	const brandHref = user ? PATHS.DASHBOARD : PATHS.EXPLORE
 	const routePolicy = useMemo(() => getHeaderRoutePolicy(pathname), [pathname])
+	const headerActionButtonClass =
+		'relative grid size-10 place-items-center rounded-2xl border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-colors hover:border-brand/35 hover:bg-bg-elevated hover:text-brand md:size-11'
+	const counterBadgeClass =
+		'absolute right-1 top-1 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white md:h-5 md:min-w-5 md:px-1.5'
 
 	useEffect(() => {
 		if (user) {
@@ -183,7 +187,7 @@ export const Topbar = () => {
 			{routePolicy.showMobileSearchShortcut && (
 				<Link
 					href='/search'
-					className='grid size-9 place-items-center rounded-xl border border-border-medium bg-bg-input text-text-secondary transition-colors hover:border-brand hover:text-brand md:hidden'
+					className={cn(headerActionButtonClass, 'md:hidden')}
 					aria-label={t('tbSearchLabel')}
 				>
 					<Search className='size-4' />
@@ -221,45 +225,49 @@ export const Topbar = () => {
 				</Link>
 			) : (
 				<>
-					<div className='flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-elevated/60 p-1 md:gap-2 md:rounded-2xl md:p-1.5'>
-						{routePolicy.showNotificationsButton && (
-							<motion.button
-								type='button'
-								onClick={toggleNotificationsPopup}
-								whileHover={ICON_BUTTON_HOVER}
-								whileTap={ICON_BUTTON_TAP}
-								transition={TRANSITION_SPRING}
-								className='relative grid size-8 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-brand md:size-10'
-								aria-label={t('tbNotifications')}
-							>
-								<Bell className='size-4 md:size-5' />
-								{unreadCount > 0 && (
-									<span className='absolute -right-1 -top-1 rounded-full bg-brand px-1.5 py-0.5 text-2xs font-bold text-white'>
-										{unreadCount > 99 ? '99+' : unreadCount}
-									</span>
-								)}
-							</motion.button>
-						)}
+					{routePolicy.showNotificationsButton && (
+						<motion.button
+							type='button'
+							onClick={toggleNotificationsPopup}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+							className={cn(
+								headerActionButtonClass,
+								unreadCount > 0 && 'border-brand/20 bg-brand/6 text-brand',
+							)}
+							aria-label={t('tbNotifications')}
+						>
+							<Bell className='size-4 md:size-5' />
+							{unreadCount > 0 && (
+								<span className={cn(counterBadgeClass, 'bg-brand')}>
+									{unreadCount > 99 ? '99+' : unreadCount}
+								</span>
+							)}
+						</motion.button>
+					)}
 
-						{routePolicy.showMessagesButton && (
-							<motion.button
-								type='button'
-								onClick={toggleMessagesDrawer}
-								whileHover={ICON_BUTTON_HOVER}
-								whileTap={ICON_BUTTON_TAP}
-								transition={TRANSITION_SPRING}
-								className='relative grid size-8 place-items-center rounded-lg text-text-secondary transition-colors hover:bg-bg-card hover:text-xp md:size-10'
-								aria-label={t('tbMessages')}
-							>
-								<MessageCircle className='size-4 md:size-5' />
-								{unreadMessages > 0 && (
-									<span className='absolute -right-1 -top-1 rounded-full bg-xp px-1.5 py-0.5 text-2xs font-bold text-white'>
-										{unreadMessages > 99 ? '99+' : unreadMessages}
-									</span>
-								)}
-							</motion.button>
-						)}
-					</div>
+					{routePolicy.showMessagesButton && (
+						<motion.button
+							type='button'
+							onClick={toggleMessagesDrawer}
+							whileHover={ICON_BUTTON_HOVER}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+							className={cn(
+								headerActionButtonClass,
+								unreadMessages > 0 && 'border-xp/20 bg-xp/8 text-xp',
+							)}
+							aria-label={t('tbMessages')}
+						>
+							<MessageCircle className='size-4 md:size-5' />
+							{unreadMessages > 0 && (
+								<span className={cn(counterBadgeClass, 'bg-xp')}>
+									{unreadMessages > 99 ? '99+' : unreadMessages}
+								</span>
+							)}
+						</motion.button>
+					)}
 
 					<div className='relative'>
 						<motion.button

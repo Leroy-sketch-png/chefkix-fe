@@ -1,6 +1,7 @@
 'use client'
 import { useTranslations } from 'next-intl'
 import { useState, useEffect, useTransition } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -42,13 +43,18 @@ import {
 	NotificationsContextRail,
 	type NotificationFilter,
 } from '@/components/notifications'
-import {
-	NotificationItemGamified,
-	type GamifiedNotification,
-} from '@/components/notifications/NotificationItemsGamified'
+import type { GamifiedNotification } from '@/components/notifications/NotificationItemsGamified'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
 import { toast } from 'sonner'
+
+const NotificationItemGamified = dynamic(
+	() =>
+		import('@/components/notifications/NotificationItemsGamified').then(
+			module => module.NotificationItemGamified,
+		),
+	{ ssr: false, loading: () => null },
+)
 
 type SocialNotificationType =
 	| 'like'
@@ -706,8 +712,8 @@ export default function NotificationsPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-6'>
-					<div className='space-y-4'>
+				<div className='grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-6'>
+					<div className='space-y-3 sm:space-y-4'>
 						<NotificationsCommandDeck
 							counts={counts}
 							activeFilter={activeFilter}
@@ -768,13 +774,13 @@ export default function NotificationsPage() {
 								role='log'
 								aria-live='polite'
 								aria-label={t('notificationsList')}
-								className='space-y-2'
+								className='space-y-2.5'
 							>
 								{/* Gamified Notifications */}
 								{filtered.gamified.length > 0 && (
 									<>
 										{activeFilter === 'all' && (
-											<div className='flex items-center gap-2 py-1'>
+											<div className='flex items-center gap-2 py-0.5'>
 												<Sparkles className='size-4 text-xp' />
 												<span className='text-sm font-semibold text-text-secondary'>
 													{t('activitySection')}
@@ -845,7 +851,7 @@ export default function NotificationsPage() {
 								{filtered.social.length > 0 && (
 									<>
 										{activeFilter === 'all' && (
-											<div className='flex items-center gap-2 py-1'>
+											<div className='flex items-center gap-2 py-0.5'>
 												<Heart className='size-4 text-error' />
 												<span className='text-sm font-semibold text-text-secondary'>
 													{t('socialSection')}
@@ -864,12 +870,10 @@ export default function NotificationsPage() {
 								)}
 							</motion.div>
 						)}
-						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
+						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-20))] md:pb-8' />
 					</div>
 
-					<div className='xl:hidden'>
-						<NotificationsContextRail counts={counts} />
-					</div>
+					<NotificationsContextRail counts={counts} className='xl:w-72' />
 				</div>
 			</PageContainer>
 		</PageTransition>
