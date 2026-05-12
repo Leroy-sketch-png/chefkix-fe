@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation'
-import { PATHS } from '@/constants'
+import { CommunityPageView } from '@/components/community/CommunityPageView'
 
-export default function DiscoverRedirect() {
-	redirect(PATHS.COMMUNITY)
+export default function DiscoverPage() {
+	return <CommunityPageView initialTab='discover' />
 }

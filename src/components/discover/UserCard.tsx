@@ -1,6 +1,7 @@
 'use client'
 
 import { Profile } from '@/lib/types'
+import { getProfileDisplayName } from '@/lib/types/profile'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -19,9 +20,19 @@ interface UserCardProps {
 	profile: Profile
 }
 
+function formatCompactNumber(value: number) {
+	return new Intl.NumberFormat('en', {
+		notation: 'compact',
+		maximumFractionDigits: value >= 1000 ? 1 : 0,
+	}).format(value)
+}
+
 const UserCardComponent = ({ profile }: UserCardProps) => {
 	const { user } = useAuth()
 	const t = useTranslations('discover')
+	const displayName = getProfileDisplayName(profile)
+	const followerCount = profile.statistics?.followerCount ?? 0
+	const currentLevel = profile.statistics?.currentLevel || 1
 
 	return (
 		<motion.div
@@ -38,18 +49,18 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 			<UserHoverCard userId={profile.userId} currentUserId={user?.userId}>
 				<Link href={profile.userId ? `/${profile.userId}` : '/dashboard'}>
 					<motion.div
-						className='cursor-pointer rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all hover:shadow-warm md:p-6'
+						className='cursor-pointer rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-3 shadow-card transition-all hover:shadow-warm sm:p-4'
 						whileHover={CARD_FEED_HOVER}
 						transition={TRANSITION_SPRING}
 					>
-						<div className='flex items-center gap-4'>
-							<Avatar size='xl' className='flex-shrink-0'>
+						<div className='flex items-start gap-3'>
+							<Avatar size='sm' className='flex-shrink-0 sm:size-avatar-xl'>
 								<AvatarImage
 									src={profile.avatarUrl || '/placeholder-avatar.svg'}
-									alt={`${profile.displayName || 'User'}'s avatar`}
+									alt={`${displayName}'s avatar`}
 								/>
 								<AvatarFallback>
-									{profile.displayName
+									{displayName
 										?.split(' ')
 										.map(n => n[0])
 										.join('')
@@ -57,29 +68,31 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 										.slice(0, 2) || 'U'}
 								</AvatarFallback>
 							</Avatar>
-							<div className='overflow-hidden'>
+							<div className='min-w-0 flex-1 overflow-hidden'>
 								<h3 className='truncate text-lg font-bold leading-tight text-text-primary'>
-									{profile.displayName || t('unknownUser')}
+									{displayName || t('unknownUser')}
 								</h3>
 								<p className='truncate text-sm leading-normal text-text-secondary'>
 									@{profile.username || 'user'}
 								</p>
 							</div>
 						</div>
-						<div className='mt-4 flex justify-around text-center text-sm'>
-							<div>
-								<span className='font-bold text-text-primary'>
-									{profile.statistics?.followerCount ?? 0}
-								</span>
-								<span className='ml-1 text-text-secondary'>
+						<div className='mt-3 grid grid-cols-2 gap-2 border-t border-border-subtle/70 pt-3'>
+							<div className='rounded-xl bg-bg-elevated/70 px-3 py-2'>
+								<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
 									{t('followers')}
-								</span>
+								</p>
+								<p className='mt-1 text-base font-black tabular-nums text-text-primary'>
+									{formatCompactNumber(followerCount)}
+								</p>
 							</div>
-							<div>
-								<span className='font-bold text-text-primary'>
-									{profile.statistics?.currentLevel || 1}
-								</span>
-								<span className='ml-1 text-text-secondary'>{t('level')}</span>
+							<div className='rounded-xl bg-bg-elevated/70 px-3 py-2'>
+								<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+									{t('level')}
+								</p>
+								<p className='mt-1 text-base font-black tabular-nums text-text-primary'>
+									{currentLevel}
+								</p>
 							</div>
 						</div>
 					</motion.div>

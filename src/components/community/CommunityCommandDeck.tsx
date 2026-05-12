@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Compass, Trophy, UserPlus, Users, UsersRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SlideTabs } from '@/components/ui/slide-tabs'
 
 type CommunityTab = 'discover' | 'friends' | 'groups' | 'leaderboard'
 
@@ -63,11 +64,14 @@ export function CommunityCommandDeck({
 	className,
 }: CommunityCommandDeckProps) {
 	const t = useTranslations('community')
+	const heading = isAuthenticated ? t('cmdHeading') : t('guestCmdHeading')
+	const chipLabel = isAuthenticated ? t('cmdChip') : t('guestCmdChip')
 	const hasMeaningfulStats =
 		counts.friends > 0 ||
 		counts.followers > 0 ||
 		counts.suggested > 0 ||
 		counts.leaderboard > 0
+	const shouldShowStatGrid = isAuthenticated && hasMeaningfulStats
 
 	const tabs: {
 		id: CommunityTab
@@ -99,10 +103,14 @@ export function CommunityCommandDeck({
 		},
 	]
 
-	const visibleTabs = tabs.filter(
-		tab => tab.show && !(activeTab === 'discover' && tab.id === 'discover'),
-	)
-	const shouldShowTabRow = !(activeTab === 'discover' && !isAuthenticated)
+	const visibleTabs = tabs.filter(tab => tab.show)
+	const shouldShowTabRow = visibleTabs.length > 1
+	const statusMessage =
+		activeTab === 'discover'
+			? isAuthenticated
+				? t('discoverModeHint')
+				: t('guestDiscoverModeHint')
+			: t('searchFirstHintDesc')
 
 	return (
 		<motion.section
@@ -110,54 +118,67 @@ export function CommunityCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-4 shadow-card md:p-5',
+				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-3 shadow-card sm:p-4 md:p-5',
 				className,
 			)}
 		>
-			<div className='mb-4 flex items-center justify-between gap-3'>
+			<div className='mb-3 flex items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
 				<div>
 					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
 						{t('cmdEyebrow')}
 					</p>
-					<h2 className='mt-1 text-lg font-black text-text-primary'>
-						{t('cmdHeading')}
+					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>
+						{heading}
 					</h2>
 				</div>
 				<div className='hidden shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
 					<UserPlus className='size-3.5' />
-					{t('cmdChip')}
+					{chipLabel}
 				</div>
 			</div>
 
-			<div className='mb-3 rounded-xl border border-brand/15 bg-brand/6 px-3 py-2.5 sm:mb-4 sm:p-3'>
-				{activeTab === 'discover' ? (
-					<p className='text-sm font-semibold text-text-primary'>
-						{t('discoverModeHint')}
-					</p>
-				) : (
-					<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-						<div>
-							<p className='text-sm font-semibold text-text-primary'>
-								{t('searchFirstHint')}
-							</p>
-							<p className='mt-0.5 text-xs text-text-secondary'>
-								{t('searchFirstHintDesc')}
-							</p>
-						</div>
-						<button
-							type='button'
-							onClick={() => onTabChange('discover')}
-							className='inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-brand/25 bg-bg-card px-4 py-2 text-sm font-semibold text-brand shadow-card transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:bg-brand/8'
-						>
-							<Compass className='size-4' />
-							{t('openDiscover')}
-						</button>
+			<div className='mb-3 flex flex-col gap-3 sm:mb-4'>
+				<p className='max-w-2xl text-sm leading-6 text-text-secondary'>
+					{statusMessage}
+				</p>
+
+				{shouldShowTabRow && (
+					<div className='min-w-0'>
+						<SlideTabs
+							tabs={visibleTabs.map(tab => {
+								const Icon = tab.icon
+								const isActive = activeTab === tab.id
+
+								return {
+									id: tab.id,
+									label: tab.label,
+									icon: (
+										<Icon
+											className={cn(
+												'size-3.5',
+												isActive
+													? tab.id === 'leaderboard'
+														? 'text-xp'
+														: 'text-brand'
+													: 'text-text-muted',
+											)}
+										/>
+									),
+								}
+							})}
+							activeTab={activeTab}
+							onTabChange={value => onTabChange(value as CommunityTab)}
+							variant='pill'
+							size='sm'
+							fullWidth
+							className='w-full sm:w-auto'
+						/>
 					</div>
 				)}
 			</div>
 
-			{hasMeaningfulStats && (
-				<div className='mb-4 grid grid-cols-2 gap-2 lg:grid-cols-4'>
+			{shouldShowStatGrid && (
+				<div className='mb-3 grid grid-cols-2 gap-2 sm:mb-4 lg:grid-cols-4'>
 					<StatCard
 						label={t('friends')}
 						value={counts.friends.toString()}
@@ -182,41 +203,6 @@ export function CommunityCommandDeck({
 						icon={Trophy}
 						tone='xp'
 					/>
-				</div>
-			)}
-
-			{shouldShowTabRow && (
-				<div
-					className={cn(
-						'grid gap-2 sm:flex sm:flex-wrap',
-						visibleTabs.length === 1 ? 'grid-cols-1' : 'grid-cols-2',
-					)}
-				>
-					{visibleTabs.map(tab => {
-						const Icon = tab.icon
-						const isActive = activeTab === tab.id
-						return (
-							<button
-								type='button'
-								key={tab.id}
-								onClick={() => onTabChange(tab.id)}
-								className={cn(
-									'inline-flex min-h-10 items-center justify-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all sm:text-sm',
-									isActive
-										? 'border-brand/25 bg-brand/10 text-brand'
-										: 'border-border-subtle bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text-primary',
-								)}
-							>
-								<Icon className='size-3.5' />
-								{tab.label}
-								{typeof tab.count === 'number' && tab.count > 0 && (
-									<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-text-muted'>
-										{tab.count}
-									</span>
-								)}
-							</button>
-						)
-					})}
 				</div>
 			)}
 		</motion.section>

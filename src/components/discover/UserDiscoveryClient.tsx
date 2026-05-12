@@ -172,8 +172,8 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	// Show error state if initial load failed
 	if (loadError && profiles.length === 0) {
 		return (
-			<div className='space-y-6'>
-				<div className='max-w-md'>
+			<div className='space-y-5'>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
 					<InputGroup>
 						<InputGroupAddon align='inline-start'>
 							<Search className='size-4 text-text-muted' />
@@ -208,8 +208,8 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 	if (isLoading) {
 		return (
-			<div className='space-y-6'>
-				<div className='max-w-md'>
+			<div className='space-y-5'>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
 					<InputGroup>
 						<InputGroupAddon align='inline-start'>
 							<Search className='size-4 text-text-muted' />
@@ -222,7 +222,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 						/>
 					</InputGroup>
 				</div>
-				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4'>
+				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3'>
 					{Array.from({ length: 4 }).map((_, i) => (
 						<div
 							key={i}
@@ -248,9 +248,9 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	}
 
 	return (
-		<div className='space-y-6'>
+		<div className='space-y-5'>
 			{/* Search Bar */}
-			<div className='max-w-md'>
+			<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
 				<InputGroup>
 					<InputGroupAddon align='inline-start'>
 						<Search className='size-4 text-text-muted' />
@@ -297,7 +297,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 			) : (
 				<>
 					<motion.div
-						className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+						className='grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3'
 						initial={hasAnimated.current ? false : 'hidden'}
 						animate='visible'
 						variants={staggerContainer}
@@ -314,7 +314,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 
 					{/* Loading indicator */}
 					{isLoadingMore && (
-						<div className='grid grid-cols-1 gap-3 py-6 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4'>
+						<div className='grid grid-cols-1 gap-3 py-6 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3'>
 							{Array.from({ length: 4 }).map((_, i) => (
 								<div
 									key={i}
