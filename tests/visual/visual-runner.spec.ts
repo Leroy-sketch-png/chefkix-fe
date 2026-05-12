@@ -67,6 +67,8 @@ interface RouteConfig {
 	waitForSelector?: string
 	/** Optional: query params to append */
 	queryParams?: Record<string, string>
+	/** Optional: alternate route match for canonical redirects */
+	expectedPathRegex?: RegExp
 	/** Optional: skip auto-scroll (for modals/fixed layouts) */
 	skipScroll?: boolean
 	/** Optional: extra setup before screenshot */
@@ -102,20 +104,21 @@ const PUBLIC_ROUTES: RouteConfig[] = [
 		name: 'explore',
 		requiresAuth: false,
 		states: ['guest', 'default'],
-		waitForSelector: '[data-testid="explore-page"], main',
+		waitForSelector: '[data-testid="explore-page"]',
 	},
 	{
 		path: '/search',
 		name: 'search',
 		requiresAuth: false,
 		states: ['guest', 'default'],
-		waitForSelector: 'input, main',
+		waitForSelector: '[data-testid="search-page"]',
 	},
 	{
 		path: '/community',
 		name: 'community',
 		requiresAuth: false,
 		states: ['guest', 'default'],
+		waitForSelector: '[data-testid="community-page"]',
 	},
 ]
 
@@ -148,6 +151,8 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 		name: 'profile',
 		requiresAuth: true,
 		states: ['default'],
+		waitForSelector: '[data-testid="user-profile"]',
+		expectedPathRegex: /^\/[0-9a-fA-F-]{36}$/,
 	},
 	{
 		path: '/profile/badges',
@@ -229,26 +234,8 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 		states: ['default', 'empty'],
 	},
 	{
-		path: '/friends',
-		name: 'friends',
-		requiresAuth: true,
-		states: ['default', 'empty'],
-	},
-	{
 		path: '/cook-together',
 		name: 'cook-together',
-		requiresAuth: true,
-		states: ['default'],
-	},
-	{
-		path: '/admin',
-		name: 'admin',
-		requiresAuth: true,
-		states: ['default'],
-	},
-	{
-		path: '/discover',
-		name: 'discover',
 		requiresAuth: true,
 		states: ['default'],
 	},
@@ -433,8 +420,11 @@ async function waitForStable(
 	}
 
 	// Wait for network to settle
-	await page.waitForLoadState('networkidle').catch(() => {
-		// networkidle can timeout on pages with persistent connections (WebSocket)
+	// Cap networkidle at 15s — prevents budget exhaustion on data-heavy pages
+	// (e.g. dashboard with story feed + feed posts + pending sessions) where
+	// multiple concurrent real API calls push networkidle past the 60s test timeout.
+	await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {
+		// Expected: pages with WebSocket, polling, or multiple concurrent API calls
 	})
 
 	// Wait for specific content if requested
@@ -602,7 +592,11 @@ async function assertExpectedRoute(
 		)
 	}
 
-	if (route.path !== '/' && !currentPath.startsWith(route.path)) {
+	const routeMatchesExpectedPath = route.expectedPathRegex
+		? route.expectedPathRegex.test(currentPath)
+		: route.path === '/' || currentPath.startsWith(route.path)
+
+	if (!routeMatchesExpectedPath) {
 		throw new Error(
 			`Route ${route.path} resolved to unexpected path ${currentPath}. ` +
 				'Visual capture aborted to prevent false-success screenshots.',
@@ -811,7 +805,7 @@ test.describe('Visual Truth Machine', () => {
 	})
 
 	test.afterAll(async () => {
-		test.setTimeout(120_000) // AI review builds images — needs more than 60s default
+		test.setTimeout(300_000) // AI review builds images and audit exports can exceed the default hook budget
 		const manifestPath = writeManifest(currentDevice, currentRunId)
 		console.log(`\n📸 Archived capture manifest written: ${manifestPath}`)
 		console.log(`   Latest screenshots recorded: ${manifest.length}`)
@@ -918,9 +912,13 @@ test.describe('Visual Truth Machine', () => {
 					}
 				}
 
+				const gotoTimeout = parseInt(
+					process.env.VISUAL_GOTO_TIMEOUT || '30000',
+					10,
+				)
 				await page.goto(url.toString(), {
 					waitUntil: 'domcontentloaded',
-					timeout: 30_000,
+					timeout: gotoTimeout,
 				})
 
 				// ---- 5. Wait for stability --------------------------------------

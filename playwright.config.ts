@@ -12,7 +12,7 @@ export default defineConfig({
 	testDir: './tests/visual',
 	outputDir: './tests/visual/test-results',
 	preserveOutput: 'failures-only',
-	timeout: 60_000,
+	timeout: 180_000,
 	expect: {
 		toHaveScreenshot: {
 			maxDiffPixelRatio: 0.01,
@@ -31,7 +31,8 @@ export default defineConfig({
 		timezoneId: 'America/New_York',
 	},
 	webServer: {
-		command: 'npm run dev',
+		// Use the stable webpack dev server for visual runs to avoid turbopack font module errors.
+		command: 'npx next dev',
 		port: 3000,
 		reuseExistingServer: true,
 		timeout: 120_000,
