@@ -79,6 +79,8 @@ export interface XpBreakdown {
 // ── Publish validation ──────────────────────────────────────────────
 export interface PublishValidationError {
 	field: 'title' | 'coverImage' | 'ingredients' | 'steps'
-	message: string
-	hint: string
+	/** i18n key within 'create' namespace */
+	messageKey: string
+	/** i18n key within 'create' namespace */
+	hintKey: string
 }

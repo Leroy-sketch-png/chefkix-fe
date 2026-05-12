@@ -5,11 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
 import { CreateCommandDeck } from '@/components/recipe/CreateCommandDeck'
-import { CreateContextRail } from '@/components/recipe/CreateContextRail'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
@@ -213,15 +211,7 @@ function CreateRecipeContent() {
 							exit={{ opacity: 0, x: -20 }}
 							transition={TRANSITION_SPRING}
 						>
-							<PageHeader
-								icon={Edit3}
-								title={t('title')}
-								subtitle=''
-								gradient='orange'
-								marginBottom='md'
-							/>
-
-							<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+							<div className='grid grid-cols-1 gap-6'>
 								<div>
 									<CreateCommandDeck
 										hasLocalDraft={Boolean(localDraft)}
@@ -333,11 +323,6 @@ function CreateRecipeContent() {
 										)}
 									</AnimatePresence>
 								</div>
-
-								<CreateContextRail
-									hasLocalDraft={Boolean(localDraft)}
-									isLoadingDraft={isLoadingDraft}
-								/>
 							</div>
 						</motion.div>
 					) : (
@@ -392,7 +377,8 @@ function CreateRecipeContent() {
 					</AlertDialogContent>
 				</AlertDialog>
 
-				<div className='pb-40 md:pb-8' />
+				{/* Bottom breathing room for MobileBottomNav */}
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

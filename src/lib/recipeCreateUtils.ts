@@ -42,8 +42,8 @@ export const validateRecipeForPublish = (
 		return [
 			{
 				field: 'title',
-				message: 'No recipe data',
-				hint: 'Please create a recipe first.',
+				messageKey: 'noRecipeData',
+				hintKey: 'noRecipeDataHint',
 			},
 		]
 	}
@@ -53,32 +53,32 @@ export const validateRecipeForPublish = (
 	if (!recipe.title?.trim()) {
 		errors.push({
 			field: 'title',
-			message: 'Title is required',
-			hint: 'Add a title for your recipe in the preview.',
+			messageKey: 'nameRequired',
+			hintKey: 'nameRequiredHint',
 		})
 	}
 
 	if (!recipe.coverImageUrl?.trim()) {
 		errors.push({
 			field: 'coverImage',
-			message: 'Cover image is required',
-			hint: 'Upload a photo of your finished dish using the image button.',
+			messageKey: 'coverImageRequired',
+			hintKey: 'coverImageRequiredHint',
 		})
 	}
 
 	if (!recipe.ingredients || recipe.ingredients.length === 0) {
 		errors.push({
 			field: 'ingredients',
-			message: 'Ingredients are required',
-			hint: 'Add at least one ingredient to your recipe.',
+			messageKey: 'ingredientsRequired',
+			hintKey: 'ingredientsRequiredHint',
 		})
 	}
 
 	if (!recipe.steps || recipe.steps.length === 0) {
 		errors.push({
 			field: 'steps',
-			message: 'Steps are required',
-			hint: 'Add at least one step to your recipe instructions.',
+			messageKey: 'stepsRequired',
+			hintKey: 'stepsRequiredHint',
 		})
 	}
 

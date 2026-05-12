@@ -948,13 +948,15 @@ export const RecipeCreateAiFlow = ({
 			if (validationErrors.length > 0) {
 				diag.warn('recipe', 'PUBLISH validation failed', validationErrors)
 				const primaryError = validationErrors[0]
-				const allHints = validationErrors.map(e => `• ${e.hint}`).join('\n')
+				const allHints = validationErrors
+					.map(e => `• ${t(e.hintKey)}`)
+					.join('\n')
 
-				toast.error(primaryError.message, {
+				toast.error(t(primaryError.messageKey), {
 					description:
 						validationErrors.length === 1
-							? primaryError.hint
-							: `Please fix the following:\n${allHints}`,
+							? t(primaryError.hintKey)
+							: `${t('validationFixFollowing')}\n${allHints}`,
 					duration: 6000,
 				})
 				return
