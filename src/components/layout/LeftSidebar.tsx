@@ -64,6 +64,12 @@ const primaryNavItems: NavItem[] = [
 	{ href: '/profile', icon: User, labelKey: 'profile', requiresAuth: true },
 ]
 
+const guestPrimaryNavItems: NavItem[] = [
+	{ href: '/explore', icon: Compass, labelKey: 'explore' },
+	{ href: '/community', icon: Users, labelKey: 'community' },
+	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
+]
+
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
 	{
@@ -121,6 +127,10 @@ export const LeftSidebar = () => {
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
+		if (!isAuthenticated) {
+			return false
+		}
+
 		const allSecondary = [...secondaryNavItems]
 		if (user?.accountType === 'admin') allSecondary.push(adminNavItem)
 		return allSecondary.some(item => {
@@ -135,10 +145,7 @@ export const LeftSidebar = () => {
 
 	// Filter nav items based on auth state — guests only see public routes
 	const visiblePrimaryItems = useMemo(
-		() =>
-			isAuthenticated
-				? primaryNavItems
-				: primaryNavItems.filter(item => !item.requiresAuth),
+		() => (isAuthenticated ? primaryNavItems : guestPrimaryNavItems),
 		[isAuthenticated],
 	)
 
@@ -149,9 +156,12 @@ export const LeftSidebar = () => {
 
 	// Build the secondary items list (including admin if applicable), filtered for auth
 	const secondaryItems = useMemo(() => {
+		if (!isAuthenticated) {
+			return []
+		}
+
 		let items = [...secondaryNavItems]
 		if (user?.accountType === 'admin') items.push(adminNavItem)
-		if (!isAuthenticated) items = items.filter(item => !item.requiresAuth)
 		return items
 	}, [user?.accountType, isAuthenticated])
 

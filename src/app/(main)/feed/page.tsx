@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
 import { FeedCommandDeck } from '@/components/social/FeedCommandDeck'
@@ -151,23 +150,14 @@ export default function FeedPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				<PageHeader
-					icon={MessageSquare}
-					title={t('title')}
-					subtitle=''
-					gradient='pink'
-					marginBottom='sm'
-					showSparkles={false}
-				/>
-
-				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+				<div className='grid grid-cols-1 gap-6'>
 					<div>
 						<FeedCommandDeck
 							feedMode={feedMode}
 							onFeedModeChange={setFeedMode}
 							postCount={posts.length}
 							hasMore={hasMore}
-							className='mb-6'
+							className='mb-4 sm:mb-6'
 						/>
 
 						{isLoading ? (
@@ -184,10 +174,7 @@ export default function FeedPage() {
 								<h2 className='mb-2 text-lg font-bold text-text-primary'>
 									{t('empty')}
 								</h2>
-								<p className='text-sm text-text-secondary'>
-									The public feed is quiet right now. Check back soon for fresh
-									cooks, tips, and kitchen wins.
-								</p>
+								<p className='text-sm text-text-secondary'>{t('emptyDesc')}</p>
 							</div>
 						) : (
 							<>
@@ -225,14 +212,17 @@ export default function FeedPage() {
 							</>
 						)}
 
-						<div className='pb-24 md:pb-8' />
+						{/* Bottom breathing room for MobileBottomNav */}
+						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 					</div>
 
-					<FeedContextRail
-						postCount={posts.length}
-						feedMode={feedMode}
-						showFriendsOnline={Boolean(user)}
-					/>
+					<div className='xl:hidden'>
+						<FeedContextRail
+							postCount={posts.length}
+							feedMode={feedMode}
+							showFriendsOnline={Boolean(user)}
+						/>
+					</div>
 				</div>
 			</PageContainer>
 		</PageTransition>

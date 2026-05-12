@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	Sheet,
 	SheetContent,
@@ -22,10 +22,14 @@ import {
 	CUISINE_OPTIONS,
 	DIFFICULTY_OPTIONS,
 } from '@/components/shared/FilterSort'
+import { cn } from '@/lib/utils'
 
 interface RecipeFiltersSheetProps {
 	onApply?: (filters: RecipeFilters) => void
 	initialFilters?: RecipeFilters
+	/** Compact icon-only trigger for dense layouts */
+	compact?: boolean
+	triggerClassName?: string
 	/** Show the "First-Timer Friendly" toggle prominently (for new users) */
 	showFirstTimerPromo?: boolean
 }
@@ -38,6 +42,17 @@ export interface RecipeFilters {
 	rating: number | null
 	/** Filter to show only Foolproof quality tier recipes - perfect for beginners */
 	foolproofOnly: boolean
+}
+
+function createDefaultFilters(): RecipeFilters {
+	return {
+		dietary: [],
+		cuisine: [],
+		difficulty: [],
+		cookingTimeMax: 1440,
+		rating: null,
+		foolproofOnly: false,
+	}
 }
 
 /**
@@ -53,20 +68,19 @@ export interface RecipeFilters {
 export const RecipeFiltersSheet = ({
 	onApply,
 	initialFilters,
+	compact = false,
+	triggerClassName,
 	showFirstTimerPromo = false,
 }: RecipeFiltersSheetProps) => {
 	const t = useTranslations('shared')
 	const [isOpen, setIsOpen] = useState(false)
 	const [filters, setFilters] = useState<RecipeFilters>(
-		initialFilters || {
-			dietary: [],
-			cuisine: [],
-			difficulty: [],
-			cookingTimeMax: 1440, // 24 hours in minutes
-			rating: null,
-			foolproofOnly: false,
-		},
+		initialFilters ?? createDefaultFilters(),
 	)
+
+	useEffect(() => {
+		setFilters(initialFilters ?? createDefaultFilters())
+	}, [initialFilters])
 
 	const handleApply = () => {
 		onApply?.(filters)
@@ -74,14 +88,7 @@ export const RecipeFiltersSheet = ({
 	}
 
 	const handleReset = () => {
-		const resetFilters: RecipeFilters = {
-			dietary: [],
-			cuisine: [],
-			difficulty: [],
-			cookingTimeMax: 1440, // 24 hours
-			rating: null,
-			foolproofOnly: false,
-		}
+		const resetFilters = createDefaultFilters()
 		setFilters(resetFilters)
 	}
 
@@ -96,11 +103,22 @@ export const RecipeFiltersSheet = ({
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			<SheetTrigger asChild>
-				<Button variant='outline' className='relative'>
+				<Button
+					variant='outline'
+					size={compact ? 'icon' : 'sm'}
+					className={cn('relative', compact && 'h-12 w-12', triggerClassName)}
+					aria-label={compact ? t('fsFilters') : undefined}
+					title={compact ? t('fsFilters') : undefined}
+				>
 					<Filter className='size-4' />
-					{t('fsFilters')}
+					{compact ? null : t('fsFilters')}
 					{activeFiltersCount > 0 && (
-						<span className='ml-2 flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white'>
+						<span
+							className={cn(
+								'ml-2 flex size-5 items-center justify-center rounded-full bg-brand text-xs font-bold text-white',
+								compact && 'absolute -right-1 -top-1 ml-0',
+							)}
+						>
 							{activeFiltersCount}
 						</span>
 					)}

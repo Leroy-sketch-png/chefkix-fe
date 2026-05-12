@@ -66,7 +66,7 @@ export function AnnouncementBanner({
 	return (
 		<div
 			className={cn(
-				'relative flex items-center justify-center gap-2 px-10 py-2.5 text-sm',
+				'relative flex items-center justify-center gap-2 px-4 py-2 text-xs sm:px-10 sm:py-2.5 sm:text-sm',
 				variant === 'brand' && 'bg-brand text-white',
 				variant === 'gradient' &&
 					'bg-gradient-to-r from-brand via-brand/85 to-brand text-white',
@@ -76,7 +76,7 @@ export function AnnouncementBanner({
 			)}
 			role='banner'
 		>
-			<p className='text-center'>
+			<p className='line-clamp-1 max-w-[56rem] pr-7 text-center leading-snug sm:line-clamp-none sm:pr-0'>
 				{message}
 				{href && (
 					<>
@@ -95,7 +95,7 @@ export function AnnouncementBanner({
 				<button
 					type='button'
 					onClick={handleDismiss}
-					className='absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-1 opacity-70 transition-opacity hover:opacity-100'
+					className='absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 opacity-70 transition-opacity hover:opacity-100 sm:right-3'
 					aria-label='Dismiss announcement'
 				>
 					<X className='size-4' />

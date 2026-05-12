@@ -655,6 +655,8 @@ const PostDeadlineUrgentItem = ({
 	onPostNow,
 }: PostDeadlineUrgentNotification) => {
 	const t = useTranslations('notifications')
+	const hasDecay = decayPercent > 0
+	const hasOriginalXp = originalXp > 0
 	return (
 		<NotifWrapper
 			isRead={isRead}
@@ -679,22 +681,28 @@ const PostDeadlineUrgentItem = ({
 					</strong>
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
-					<MetaTag className='bg-error/15 text-error'>
-						{t('decayActive', { percent: decayPercent })}
-					</MetaTag>
+					{hasDecay && (
+						<MetaTag className='bg-error/15 text-error'>
+							{t('decayActive', { percent: decayPercent })}
+						</MetaTag>
+					)}
 					<span className='text-xs text-text-muted'>
-						{t('xpRemainingOf', { pending: pendingXp, original: originalXp })}
+						{hasOriginalXp
+							? t('xpRemainingOf', { pending: pendingXp, original: originalXp })
+							: t('xpAtStake', { xp: pendingXp })}
 					</span>
 				</div>
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onPostNow}
-				className='border-error/20 bg-error/10 text-error hover:bg-error/15'
-			>
-				{t('postNowUrgent')}
-			</ActionButton>
+			{pendingXp > 0 && (
+				<ActionButton
+					onClick={onPostNow}
+					className='border-error/20 bg-error/10 text-error hover:bg-error/15'
+				>
+					{t('postNowUrgent')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }

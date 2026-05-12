@@ -299,6 +299,7 @@ const FallbackTrendingCard = ({ item }: { item: FallbackRecipePreview }) => {
 
 export default function HomePage() {
 	const t = useTranslations('landing')
+	const tCommon = useTranslations('common')
 	const router = useRouter()
 	const { user, isLoading } = useAuth()
 	const [trendingRecipes, setTrendingRecipes] = useState<Recipe[]>([])
@@ -380,7 +381,7 @@ export default function HomePage() {
 				/>
 
 				{/* Navigation */}
-				<nav className='flex items-center justify-between px-6 py-4 md:px-12 md:py-6'>
+				<nav className='flex items-center justify-between px-6 py-3 md:px-12 md:py-6'>
 					<div className='flex items-center gap-2'>
 						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero'>
 							<ChefHat className='size-5 text-white' />
@@ -396,7 +397,7 @@ export default function HomePage() {
 						</Link>
 						<Link
 							href='/auth/sign-up'
-							className='hidden rounded-xl bg-brand px-5 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:inline-flex'
+							className='inline-flex rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:px-5 sm:text-sm'
 						>
 							{t('getStarted')}
 						</Link>
@@ -408,7 +409,7 @@ export default function HomePage() {
 					variants={staggerContainer}
 					initial='hidden'
 					animate='visible'
-					className='mx-auto max-w-5xl px-6 pb-12 pt-8 text-center md:px-12 md:pb-16 md:pt-16'
+					className='mx-auto max-w-5xl px-6 pb-8 pt-2 text-center md:px-12 md:pb-16 md:pt-10'
 				>
 					<motion.div variants={staggerItem}>
 						<motion.div
@@ -446,14 +447,14 @@ export default function HomePage() {
 					>
 						<Link
 							href='/auth/sign-up'
-							className='group flex items-center gap-2 rounded-xl bg-brand px-8 py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+							className='group flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-8 py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:w-auto'
 						>
 							{t('startCookingFree')}
 							<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
 						</Link>
 						<Link
 							href='/explore'
-							className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
+							className='flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:border-brand/30 hover:shadow-warm sm:w-auto'
 						>
 							{t('browseRecipes')}
 						</Link>
@@ -461,8 +462,8 @@ export default function HomePage() {
 				</motion.section>
 
 				{/* Trending Recipes Section */}
-				<section className='mx-auto max-w-6xl px-6 py-10 md:px-12 md:py-16'>
-					<div className='mb-6 flex items-center justify-between'>
+				<section className='mx-auto max-w-6xl px-6 py-8 md:px-12 md:py-16'>
+					<div className='mb-4 flex items-center justify-between md:mb-6'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
 							<h2 className='text-xl font-bold text-text-primary'>
@@ -494,60 +495,27 @@ export default function HomePage() {
 							))}
 						</div>
 					) : hasTrendingContent ? (
-						<>
-							{recipesError && (
-								<div className='mb-4 flex items-center justify-between rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
-									<div className='flex items-center gap-2 text-sm text-text-secondary'>
-										<AlertTriangle className='size-4 text-warning' />
-										<span>{t('couldntLoadRecipes')}</span>
-									</div>
-									<button
-										type='button'
-										onClick={() => {
-											setRecipesLoading(true)
-											setRecipesError(null)
-											getTrendingRecipes({ limit: 4 })
-												.then(res => {
-													if (res.success && res.data) {
-														setTrendingRecipes(res.data.slice(0, 4))
-													} else {
-														setRecipesError(
-															res.message || t('couldNotLoadDefault'),
-														)
-													}
-												})
-												.catch(() => setRecipesError(t('couldNotConnect')))
-												.finally(() => setRecipesLoading(false))
-										}}
-										className='inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
-									>
-										<RefreshCw className='size-4' />
-										{t('tryAgain')}
-									</button>
-								</div>
-							)}
-							<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-								{trendingRecipes.map((recipe, i) => (
-									<TrendingRecipeCard
-										key={recipe.id}
-										recipe={recipe}
-										index={i}
-										byLabel={t('by', {
-											name: recipe.author?.displayName || 'ChefKix',
-										})}
-										cookedLabel={t('peopleCookedThis', {
-											count: recipe.cookCount,
-										})}
-									/>
-								))}
-							</div>
-						</>
+						<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+							{trendingRecipes.map((recipe, i) => (
+								<TrendingRecipeCard
+									key={recipe.id}
+									recipe={recipe}
+									index={i}
+									byLabel={t('by', {
+										name: recipe.author?.displayName || 'ChefKix',
+									})}
+									cookedLabel={t('peopleCookedThis', {
+										count: recipe.cookCount,
+									})}
+								/>
+							))}
+						</div>
 					) : recipesError ? (
 						<div className='space-y-4'>
 							<div className='flex items-center justify-between rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
 								<div className='flex items-center gap-2 text-sm text-text-secondary'>
 									<AlertTriangle className='size-4 text-warning' />
-									<span>{t('couldntLoadRecipes')}</span>
+									<span>{tCommon('showingRecipePreviews')}</span>
 								</div>
 								<button
 									type='button'

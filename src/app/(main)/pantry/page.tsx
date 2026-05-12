@@ -25,13 +25,11 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
 import { PantryCommandDeck } from '@/components/pantry/PantryCommandDeck'
-import { PantryContextRail } from '@/components/pantry/PantryContextRail'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -426,17 +424,8 @@ export default function PantryPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+				<div className='grid grid-cols-1 gap-6 py-6'>
 					<div className='space-y-6'>
-						{/* ── Header ────────────────────────── */}
-						<PageHeader
-							icon={Package}
-							title={t('title')}
-							subtitle=''
-							gradient='green'
-							marginBottom='sm'
-						/>
-
 						<PantryCommandDeck
 							itemCount={items.length}
 							expiredCount={expiredCount}
@@ -1022,14 +1011,6 @@ export default function PantryPage() {
 							)}
 						</AnimatePresence>
 					</div>
-
-					<PantryContextRail
-						itemCount={items.length}
-						expiringCount={expiringCount}
-						expiredCount={expiredCount}
-						matchedRecipesCount={matchedRecipes.length}
-						showSuggestions={showSuggestions}
-					/>
 				</div>
 
 				{/* ── Delete Confirmation Dialog ── */}
@@ -1157,7 +1138,7 @@ export default function PantryPage() {
 				</AnimatePresence>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

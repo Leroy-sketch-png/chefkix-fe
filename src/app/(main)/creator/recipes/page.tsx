@@ -88,6 +88,24 @@ const difficultyColors: Record<Difficulty, string> = {
 	Expert: 'bg-xp text-white',
 }
 
+const getRecipeStatusLabel = (
+	status: Recipe['recipeStatus'],
+	t: ReturnType<typeof useTranslations<'creator'>>,
+) => {
+	switch (status) {
+		case 'DRAFT':
+			return t('statusDraft')
+		case 'PENDING':
+			return t('statusPending')
+		case 'PUBLISHED':
+			return t('statusPublished')
+		case 'ARCHIVED':
+			return t('statusArchived')
+		default:
+			return status
+	}
+}
+
 const RecipeManageCard = ({
 	recipe,
 	onDelete,
@@ -98,6 +116,7 @@ const RecipeManageCard = ({
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const t = useTranslations('creator')
+	const recipeStatusLabel = getRecipeStatusLabel(recipe.recipeStatus, t)
 
 	return (
 		<motion.div
@@ -147,7 +166,7 @@ const RecipeManageCard = ({
 									: 'bg-bg-elevated/90 text-text-muted',
 							)}
 						>
-							{recipe.recipeStatus}
+							{recipeStatusLabel}
 						</span>
 					</div>
 				</div>
@@ -411,15 +430,15 @@ export default function MyRecipesPage() {
 
 			<PageContainer maxWidth='2xl'>
 				<PremiumSurface
-					eyebrow='Creator Recipes'
-					chipText={`${recipes.length} total`}
+					eyebrow={t('recipesEyebrow')}
+					chipText={t('recipesTotalCount', { count: recipes.length })}
 					tone='xp'
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex items-center gap-3'>
 						<button
 							type='button'
-							aria-label='Go back'
+							aria-label={t('ariaGoBack')}
 							onClick={() => router.back()}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
 						>
@@ -455,8 +474,12 @@ export default function MyRecipesPage() {
 				{/* Filters */}
 				{recipes.length > 0 && (
 					<PremiumSurface
-						eyebrow='Recipe Controls'
-						chipText={searchQuery ? 'Filtered' : 'All Visible'}
+						eyebrow={t('recipeControlsEyebrow')}
+						chipText={
+							searchQuery
+								? t('recipeControlsFiltered')
+								: t('recipeControlsAllVisible')
+						}
 						className='mb-6 p-3 md:p-4'
 						showOrbs={false}
 					>
@@ -516,7 +539,7 @@ export default function MyRecipesPage() {
 							className='gap-2 rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50'
 						>
 							<Plus className='size-4' />
-							Create Your First Recipe
+							{t('createYourFirstRecipe')}
 						</Button>
 					</motion.div>
 				) : filteredRecipes.length === 0 ? (
@@ -532,13 +555,15 @@ export default function MyRecipesPage() {
 					</motion.div>
 				) : (
 					<PremiumSurface
-						eyebrow='Recipe Library'
-						chipText={`${filteredRecipes.length} shown`}
+						eyebrow={t('recipeLibraryEyebrow')}
+						chipText={t('recipeLibraryShownCount', {
+							count: filteredRecipes.length,
+						})}
 						className='p-3 md:p-4'
 					>
 						<SurfaceSectionHeader
-							eyebrow='Manage and Publish'
-							chipText='Edit, duplicate, delete'
+							eyebrow={t('managePublishEyebrow')}
+							chipText={t('managePublishChip')}
 							className='mb-3'
 						/>
 						<motion.div
@@ -561,7 +586,7 @@ export default function MyRecipesPage() {
 					</PremiumSurface>
 				)}
 
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

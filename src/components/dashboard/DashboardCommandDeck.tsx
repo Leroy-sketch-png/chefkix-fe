@@ -70,15 +70,24 @@ export function DashboardCommandDeck({
 				}
 				gradient='brand'
 				stats={statCards}
+				className='p-2.5 sm:p-4'
 			>
-				<div className='mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2'>
-					<Button asChild variant='brand' className='h-10 justify-start gap-2'>
+				<div className='mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-3'>
+					<Button
+						asChild
+						variant='brand'
+						className='h-10 justify-start gap-2 px-3 text-sm sm:h-11'
+					>
 						<Link href='/explore'>
 							<BookOpen className='size-4' />
 							{t('cmdBtnExplore')}
 						</Link>
 					</Button>
-					<Button asChild variant='gaming' className='h-10 justify-start gap-2'>
+					<Button
+						asChild
+						variant='gaming'
+						className='h-10 justify-start gap-2 px-3 text-sm sm:h-11'
+					>
 						<Link href='/explore?difficulty=Beginner'>
 							<ChefHat className='size-4' />
 							{t('cmdBtnQuickCook')}
@@ -87,7 +96,7 @@ export function DashboardCommandDeck({
 					<Button
 						asChild
 						variant='outline'
-						className='h-10 justify-start gap-2'
+						className='h-10 justify-start gap-2 px-3 text-sm sm:h-11'
 					>
 						<Link href='/create'>
 							<PenSquare className='size-4' />
@@ -97,7 +106,7 @@ export function DashboardCommandDeck({
 					<Button
 						asChild
 						variant='outline'
-						className='h-10 justify-start gap-2'
+						className='h-10 justify-start gap-2 px-3 text-sm sm:h-11'
 					>
 						<Link href='/community'>
 							<Users2 className='size-4' />
@@ -110,13 +119,13 @@ export function DashboardCommandDeck({
 					initial={{ opacity: 0, y: 8 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-					className='mt-4 flex flex-col items-start justify-between gap-3 rounded-xl border border-streak/25 bg-streak/6 p-3 sm:flex-row sm:items-center'
+					className='mt-2.5 flex flex-col items-start justify-between gap-2 rounded-xl border border-streak/25 bg-streak/6 p-2 sm:mt-4 sm:flex-row sm:items-center sm:gap-3 sm:p-3'
 				>
 					<div>
-						<p className='text-sm font-semibold text-text-primary'>
+						<p className='text-xs font-semibold text-text-primary sm:text-sm'>
 							{t('cmdRhythmTitle')}
 						</p>
-						<p className='mt-1 text-xs text-text-secondary'>
+						<p className='mt-0.5 hidden text-[11px] text-text-secondary sm:block sm:mt-1 sm:text-xs'>
 							{t('cmdRhythmDesc')}
 						</p>
 					</div>

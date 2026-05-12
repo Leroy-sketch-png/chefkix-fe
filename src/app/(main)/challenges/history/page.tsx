@@ -17,7 +17,10 @@ import {
 } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 // ============================================
 // HELPERS
@@ -154,7 +157,7 @@ export default function ChallengeHistoryPageRoute() {
 					/>
 				</PremiumSurface>
 
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

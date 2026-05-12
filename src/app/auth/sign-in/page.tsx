@@ -32,70 +32,75 @@ const SignInPage = () => {
 		return returnTo && !isProtected ? returnTo : '/explore'
 	})()
 	return (
-		<AuthLayout className='px-4 pb-8 pt-16 sm:py-10'>
+		<AuthLayout className='px-4 py-8 sm:py-8'>
 			{showDevQuickLogin ? <DevQuickLogin /> : null}
-			<div className='absolute left-4 top-4 z-20 flex items-center gap-2 sm:left-8 sm:top-8'>
-				<Link
-					href='/'
-					className='flex size-10 items-center justify-center rounded-full bg-bg-card border border-border-subtle text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand hover:shadow-warm sm:size-12'
-					title={t('backToWelcome')}
-				>
-					<ArrowLeft className='size-5' />
-				</Link>
 
-				<Link
-					href={guestExploreHref}
-					className='hidden h-10 items-center rounded-full bg-bg-card/50 border border-border-subtle px-5 text-sm font-bold text-text-secondary backdrop-blur-md transition-all hover:bg-brand/10 hover:border-brand hover:text-brand sm:flex sm:h-12'
-				>
-					{t('exploreAsGuest')}
-				</Link>
-			</div>
-
-			<motion.div
-				variants={staggerContainer}
-				initial='hidden'
-				animate='visible'
-				className='relative w-full max-w-md'
-			>
+			<div className='relative w-full max-w-md'>
 				<motion.div
-					variants={staggerItem}
-					className='mb-3 flex items-center justify-center gap-2.5 sm:mb-5'
+					variants={staggerContainer}
+					initial='hidden'
+					animate='visible'
+					className='relative w-full'
 				>
-					<motion.div className='flex size-10 items-center justify-center rounded-xl bg-brand shadow-warm shadow-brand/20 sm:size-12'>
-						<ChefHat className='size-5 text-white sm:size-6' />
+					<motion.div
+						variants={staggerItem}
+						className='mb-3 flex items-center justify-center gap-2 sm:mb-4'
+					>
+						<motion.div className='flex size-9 items-center justify-center rounded-xl bg-brand shadow-warm shadow-brand/20 sm:size-12'>
+							<ChefHat className='size-4.5 text-white sm:size-6' />
+						</motion.div>
+						<motion.h1
+							className='text-lg font-bold text-text-primary sm:text-2xl'
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.2 }}
+						>
+							{t('brandName')}
+						</motion.h1>
 					</motion.div>
-					<motion.h1
-						className='text-xl font-bold text-text-primary sm:text-2xl'
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.2 }}
-					>
-						{t('brandName')}
-					</motion.h1>
-				</motion.div>
 
-				{/* Sign In Card */}
-				<motion.div
-					variants={staggerItem}
-					className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/97 via-bg-card/92 to-bg-elevated/70 p-5 shadow-warm shadow-black/5 backdrop-blur-sm sm:p-8'
-				>
-					<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
-					<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
-					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/30 via-white/10 to-transparent dark:from-white/8' />
-					<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 dark:ring-white/8' />
-					<motion.h2
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.3 }}
-						className='relative z-10 mb-5 text-center text-lg font-bold text-text-primary sm:mb-6 sm:text-xl'
+					{/* Sign In Card with header controls moved inside for cohesive layout */}
+					<motion.div
+						variants={staggerItem}
+						className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/97 via-bg-card/92 to-bg-elevated/70 p-4 shadow-warm shadow-black/5 backdrop-blur-sm sm:p-8'
 					>
-						{t('pageTitle')}
-					</motion.h2>
-					<div className='relative z-10'>
-						<SignInForm />
-					</div>
+						<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
+						<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
+						<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/30 via-white/10 to-transparent dark:from-white/8' />
+						<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 dark:ring-white/8' />
+
+						<div className='relative z-10 mb-4 flex items-center justify-between'>
+							<Link
+								href='/'
+								className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand hover:shadow-warm sm:size-12'
+								title={t('backToWelcome')}
+							>
+								<ArrowLeft className='size-5' />
+							</Link>
+
+							<Link
+								href={guestExploreHref}
+								className='inline-flex h-10 items-center rounded-full border border-border-subtle bg-bg-card/50 px-4 text-xs font-bold text-text-secondary backdrop-blur-md transition-all hover:border-brand hover:bg-brand/10 hover:text-brand sm:h-12 sm:px-5 sm:text-sm'
+							>
+								{t('exploreAsGuest')}
+							</Link>
+						</div>
+
+						<motion.h2
+							initial={{ opacity: 0, y: 10 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3 }}
+							className='relative z-10 mb-4 text-center text-lg font-bold text-text-primary sm:mb-5 sm:text-xl'
+						>
+							{t('pageTitle')}
+						</motion.h2>
+
+						<div className='relative z-10'>
+							<SignInForm />
+						</div>
+					</motion.div>
 				</motion.div>
-			</motion.div>
+			</div>
 		</AuthLayout>
 	)
 }

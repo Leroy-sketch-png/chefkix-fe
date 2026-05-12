@@ -32,7 +32,6 @@ import { trackEvent } from '@/lib/eventTracker'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { RecipeCardEnhanced } from '@/components/recipe'
 import { RecipeCardSkeleton } from '@/components/recipe/RecipeCardSkeleton'
 import { ExploreCommandDeck } from '@/components/explore/ExploreCommandDeck'
@@ -661,7 +660,11 @@ function ExploreContent() {
 						RECIPES_PER_PAGE,
 					)
 					if (cancelled) return
-					if (searchRes.success && searchRes.data?.recipes?.hits) {
+					if (!searchRes.success) {
+						setError(t('failedLoadRecipesDescription'))
+						return
+					}
+					if (searchRes.data?.recipes?.hits) {
 						const recipesResult = searchRes.data.recipes
 						const allRecipes = recipesResult.hits.map(h =>
 							mapRecipeDocToRecipe(h.document),
@@ -715,7 +718,11 @@ function ExploreContent() {
 							: await getAllRecipes(filterParams)
 
 					if (cancelled) return
-					if (response.success && response.data) {
+					if (!response.success) {
+						setError(t('failedLoadRecipesDescription'))
+						return
+					}
+					if (response.data) {
 						let allRecipes = response.data
 
 						if (allRecipes.length > 0 && viewMode === 'trending') {
@@ -1117,387 +1124,388 @@ function ExploreContent() {
 
 	return (
 		<PageTransition>
-			{/* Global navigation loading indicator */}
-			<AnimatePresence>
-				{isNavigating && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
-					>
-						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
-							<Loader2 className='size-4 animate-spin' />
-							{t('loading')}
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
-
-			<PageContainer maxWidth='2xl'>
-				{/* Header */}
-				<PageHeader
-					icon={Compass}
-					title={t('title')}
-					subtitle={t('subtitle')}
-					gradient='gray'
-					className='hidden sm:block'
-				/>
-
-				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
-					<div>
-						<ExploreCommandDeck
-							activeFiltersCount={activeFiltersCount}
-							resultCount={totalCount}
-							viewMode={viewMode}
-							onViewModeChange={setViewMode}
-							sortValue={sortBy}
-							onSortChange={setSortBy}
-							sortOptions={sortOptions}
-							sortDisabled={viewMode === 'trending'}
-							labels={{
-								eyebrow: t('commandEyebrow'),
-								heading: commandHeading,
-								modeChip: t('commandModeChip'),
-								results: t('commandResults'),
-								filters: t('commandFilters'),
-								activeFilters: t('commandActiveFilters'),
-								mode: t('commandMode'),
-								sort: t('commandSort'),
-								sortNewest: t('commandSortNewest'),
-								allRecipes: t('allRecipes'),
-								trending: t('trending'),
-								modeAll: t('commandModeAll'),
-								modeTrending: t('commandModeTrending'),
-							}}
-							className='mb-6'
+			<div data-testid='explore-page'>
+				{/* Global navigation loading indicator */}
+				<AnimatePresence>
+					{isNavigating && (
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
 						>
-							<div className='space-y-4'>
-								<div className='group relative'>
-									<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
-									<Input
-										ref={searchInputRef}
-										placeholder={t('searchPlaceholder')}
-										aria-label={t('searchPlaceholder')}
-										role='combobox'
-										aria-expanded={
-											showAutocomplete && autocompleteSuggestions.length > 0
-										}
-										aria-autocomplete='list'
-										aria-controls='explore-autocomplete-listbox'
-										aria-activedescendant={
-											selectedSuggestionIndex >= 0
-												? `explore-suggestion-${selectedSuggestionIndex}`
-												: undefined
-										}
-										value={searchQuery}
-										onChange={e => setSearchQuery(e.target.value)}
-										onKeyDown={handleSearchKeyDown}
-										onFocus={() => {
-											if (autocompleteSuggestions.length > 0) {
-												setShowAutocomplete(true)
-											}
-										}}
-										className='h-12 rounded-xl border-border-medium bg-bg-elevated/80 pl-12 pr-10 text-base transition-all focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50'
-									/>
-									{searchQuery && (
-										<button
-											type='button'
-											onClick={handleClearSearch}
-											className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-											aria-label={t('clearSearch')}
-										>
-											<X className='size-4' />
-										</button>
-									)}
-
-									{showAutocomplete && autocompleteSuggestions.length > 0 && (
-										<div
-											id='explore-autocomplete-listbox'
-											role='listbox'
-											className='absolute z-dropdown mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-border-subtle bg-bg-card shadow-xl'
-										>
-											{autocompleteSuggestions.map((suggestion, index) => (
-												<button
-													type='button'
-													key={`${suggestion}-${index}`}
-													id={`explore-suggestion-${index}`}
-													role='option'
-													aria-selected={selectedSuggestionIndex === index}
-													onClick={() => {
-														setSearchQuery(suggestion)
-														setDebouncedSearch(suggestion)
-														setShowAutocomplete(false)
-													}}
-													className={`flex w-full items-center gap-3 border-b border-border-subtle p-3 text-left transition-colors last:border-b-0 ${
-														selectedSuggestionIndex === index
-															? 'bg-brand/10'
-															: 'hover:bg-bg-hover'
-													}`}
-												>
-													<div className='flex size-8 items-center justify-center rounded-full bg-brand/10 text-brand'>
-														<Search className='size-4' />
-													</div>
-													<p className='min-w-0 flex-1 truncate text-sm font-medium text-text-primary'>
-														{suggestion}
-													</p>
-												</button>
-											))}
-										</div>
-									)}
-								</div>
-
-								{shouldShowFilterTrigger && (
-									<div className='flex justify-end'>
-										<RecipeFiltersSheet
-											onApply={handleFiltersApply}
-											initialFilters={filters}
-										/>
-									</div>
-								)}
+							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+								<Loader2 className='size-4 animate-spin' />
+								{t('loading')}
 							</div>
-						</ExploreCommandDeck>
-						{/* Filter Chips & Result Count */}
-						<AnimatePresence>
-							{(activeFiltersCount > 0 || debouncedSearch) && !isLoading && (
-								<FilterChips
-									filters={filters}
-									onRemove={handleFilterRemove}
-									onClearAll={handleClearAllFilters}
-									resultCount={totalCount}
-									searchQuery={debouncedSearch}
-								/>
-							)}
-						</AnimatePresence>
+						</motion.div>
+					)}
+				</AnimatePresence>
 
-						{/* Hero/Featured Recipe (only when not searching) */}
-						<AnimatePresence mode='wait'>
-							{!isLoading && featuredRecipe && !debouncedSearch && (
-								<HeroRecipe recipe={featuredRecipe} onCook={handleCook} />
-							)}
-						</AnimatePresence>
-
-						{/* Keyboard navigation hint */}
-						{focusedCardIndex >= 0 && (
-							<motion.div
-								initial={{ opacity: 0, y: -10 }}
-								animate={{ opacity: 1, y: 0 }}
-								className='mb-4 flex items-center gap-2 text-sm text-text-muted'
-							>
-								<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
-									↑↓←→
-								</kbd>
-								<span>{t('kbdNavigate')}</span>
-								<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
-									Enter
-								</kbd>
-								<span>{t('kbdOpen')}</span>
-								<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
-									Esc
-								</kbd>
-								<span>{t('kbdCancel')}</span>
-							</motion.div>
-						)}
-
-						{/* Content */}
-						{isLoading && (
-							<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3'>
-								{Array.from({ length: 3 }).map((_, index) => (
-									<div
-										key={`explore-loading-card-${index}`}
-										className={`overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-3.5 shadow-card ${
-											index === 2 ? 'hidden sm:block' : ''
-										}`}
-									>
-										<Skeleton className='mb-2.5 aspect-[16/6] w-full rounded-xl' />
-										<div className='space-y-1.5'>
-											<Skeleton className='h-4 w-5/6' />
-											<Skeleton className='h-3 w-3/4' />
-											<Skeleton className='mt-1.5 h-7 w-2/3 rounded-xl' />
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-						{error && (
-							<ErrorState
-								title={t('failedLoadRecipes')}
-								message={error}
-								onRetry={() => {
-									setError(null)
-									setRetryCount(c => c + 1)
+				<PageContainer maxWidth='2xl'>
+					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+						<div>
+							<ExploreCommandDeck
+								activeFiltersCount={activeFiltersCount}
+								resultCount={totalCount}
+								viewMode={viewMode}
+								onViewModeChange={setViewMode}
+								sortValue={sortBy}
+								onSortChange={setSortBy}
+								sortOptions={sortOptions}
+								sortDisabled={viewMode === 'trending'}
+								labels={{
+									eyebrow: t('commandEyebrow'),
+									heading: commandHeading,
+									modeChip: t('commandModeChip'),
+									results: t('commandResults'),
+									filters: t('commandFilters'),
+									activeFilters: t('commandActiveFilters'),
+									mode: t('commandMode'),
+									sort: t('commandSort'),
+									sortNewest: t('commandSortNewest'),
+									allRecipes: t('allRecipes'),
+									trending: t('trending'),
+									modeAll: t('commandModeAll'),
+									modeTrending: t('commandModeTrending'),
 								}}
-							/>
-						)}
-						{!isLoading && !error && recipes.length === 0 && (
-							<EmptyStateGamified
-								variant='search'
-								className={
-									hasNoActiveQueryOrFilters ? 'my-2 py-7 md:py-10' : undefined
-								}
-								title={
-									activeFiltersCount > 0
-										? t('noMatchingRecipes')
-										: t('noRecipesFound')
-								}
-								description={
-									activeFiltersCount > 0
-										? t('adjustFiltersHint')
-										: debouncedSearch
-											? t('noSearchResults', { query: debouncedSearch })
-											: t('beFirstToShare')
-								}
-								searchSuggestions={
-									debouncedSearch
-										? trendingSearches.length > 0
-											? trendingSearches.slice(0, 5)
-											: [
-													'Pasta',
-													'Quick dinner',
-													'Chicken',
-													'Healthy breakfast',
-													'Dessert',
-												]
-										: undefined
-								}
-								primaryAction={
-									activeFiltersCount > 0 || debouncedSearch
-										? {
-												label: t('clearAll'),
-												onClick: handleClearAllFilters,
-											}
-										: {
-												label: t('createRecipe'),
-												href: '/create',
-											}
-								}
-								secondaryActions={
-									hasNoActiveQueryOrFilters
-										? [
-												viewMode === 'all'
-													? {
-															label: t('trending'),
-															onClick: () => setViewMode('trending'),
-														}
-													: {
-															label: t('allRecipes'),
-															onClick: () => setViewMode('all'),
-														},
-											]
-										: undefined
-								}
-							/>
-						)}
-						{!isLoading && !error && recipes.length > 0 && (
-							<>
-								<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
-									{recipes.map((recipe, index) => (
-										<motion.div
-											key={recipe.id}
-											variants={staggerItemVariants}
-											className={`rounded-2xl  ${
-												focusedCardIndex === index
-													? 'ring-2 ring-brand ring-offset-2 ring-offset-bg'
-													: ''
-											}`}
-											onClick={() => {
-												sessionStorage.setItem(
-													SCROLL_RESTORATION_KEY,
-													String(window.scrollY),
-												)
-											}}
-										>
-											<RecipeCardEnhanced
-												variant='grid'
-												id={recipe.id}
-												title={recipe.title}
-												description={recipe.description}
-												imageUrl={getRecipeImage(recipe)}
-												cookTimeMinutes={getTotalTime(recipe)}
-												difficulty={
-													(recipe.difficulty as Difficulty) || 'Beginner'
+								className='mb-6'
+							>
+								<div className='space-y-2.5'>
+									<div className='flex items-center gap-2'>
+										<div className='group relative flex-1'>
+											<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
+											<Input
+												ref={searchInputRef}
+												placeholder={t('searchPlaceholder')}
+												aria-label={t('searchPlaceholder')}
+												role='combobox'
+												aria-expanded={
+													showAutocomplete && autocompleteSuggestions.length > 0
 												}
-												xpReward={recipe.xpReward ?? 0}
-												rating={recipe.averageRating ?? 0}
-												cookCount={recipe.cookCount ?? 0}
-												skillTags={recipe.skillTags}
-												badges={recipe.rewardBadges}
-												author={
-													recipe.author?.displayName
-														? {
-																id: recipe.author.userId,
-																name: recipe.author.displayName,
-																avatarUrl:
-																	recipe.author.avatarUrl ||
-																	'/placeholder-avatar.svg',
-																isVerified: false,
-															}
+												aria-autocomplete='list'
+												aria-controls='explore-autocomplete-listbox'
+												aria-activedescendant={
+													selectedSuggestionIndex >= 0
+														? `explore-suggestion-${selectedSuggestionIndex}`
 														: undefined
 												}
-												isSaved={recipe.isSaved ?? savedRecipes.has(recipe.id)}
-												onCook={() => handleCook(recipe.id)}
-												onSave={() => handleSave(recipe.id)}
+												value={searchQuery}
+												onChange={e => setSearchQuery(e.target.value)}
+												onKeyDown={handleSearchKeyDown}
+												onFocus={() => {
+													if (autocompleteSuggestions.length > 0) {
+														setShowAutocomplete(true)
+													}
+												}}
+												className='h-12 rounded-xl border-border-medium bg-bg-elevated/80 pl-12 pr-10 text-sm transition-all focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50 sm:text-base'
 											/>
-										</motion.div>
-									))}
-								</StaggerContainer>
+											{searchQuery && (
+												<button
+													type='button'
+													onClick={handleClearSearch}
+													className='absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+													aria-label={t('clearSearch')}
+												>
+													<X className='size-4' />
+												</button>
+											)}
 
-								{/* Infinite scroll sentinel */}
-								<div ref={loadMoreRef} className='h-px' />
+											{showAutocomplete &&
+												autocompleteSuggestions.length > 0 && (
+													<div
+														id='explore-autocomplete-listbox'
+														role='listbox'
+														className='absolute z-dropdown mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-border-subtle bg-bg-card shadow-xl'
+													>
+														{autocompleteSuggestions.map(
+															(suggestion, index) => (
+																<button
+																	type='button'
+																	key={`${suggestion}-${index}`}
+																	id={`explore-suggestion-${index}`}
+																	role='option'
+																	aria-selected={
+																		selectedSuggestionIndex === index
+																	}
+																	onClick={() => {
+																		setSearchQuery(suggestion)
+																		setDebouncedSearch(suggestion)
+																		setShowAutocomplete(false)
+																	}}
+																	className={`flex w-full items-center gap-3 border-b border-border-subtle p-3 text-left transition-colors last:border-b-0 ${
+																		selectedSuggestionIndex === index
+																			? 'bg-brand/10'
+																			: 'hover:bg-bg-hover'
+																	}`}
+																>
+																	<div className='flex size-8 items-center justify-center rounded-full bg-brand/10 text-brand'>
+																		<Search className='size-4' />
+																	</div>
+																	<p className='min-w-0 flex-1 truncate text-sm font-medium text-text-primary'>
+																		{suggestion}
+																	</p>
+																</button>
+															),
+														)}
+													</div>
+												)}
+										</div>
 
-								{/* Loading indicator for infinite scroll */}
-								{isLoadingMore && <RecipeCardSkeleton count={3} />}
+										{shouldShowFilterTrigger && (
+											<RecipeFiltersSheet
+												onApply={handleFiltersApply}
+												initialFilters={filters}
+												triggerClassName='h-12 shrink-0 rounded-xl border-border-medium bg-bg-card px-3.5 text-sm font-semibold text-text-secondary hover:border-brand/40 hover:text-text-primary'
+											/>
+										)}
+									</div>
+								</div>
+							</ExploreCommandDeck>
+							{/* Filter Chips & Result Count */}
+							<AnimatePresence>
+								{(activeFiltersCount > 0 || debouncedSearch) && !isLoading && (
+									<FilterChips
+										filters={filters}
+										onRemove={handleFilterRemove}
+										onClearAll={handleClearAllFilters}
+										resultCount={totalCount}
+										searchQuery={debouncedSearch}
+									/>
+								)}
+							</AnimatePresence>
 
-								{/* Load more error with retry */}
-								{loadMoreError && !isLoadingMore && (
-									<motion.div
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										className='flex flex-col items-center gap-2 py-8'
-									>
-										<span className='text-sm text-text-muted'>
-											{t('loadMoreFailed')}
-										</span>
-										<motion.button
-											type='button'
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											onClick={handleLoadMore}
-											className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
+							{/* Hero/Featured Recipe (only when not searching) */}
+							<AnimatePresence mode='wait'>
+								{!isLoading && featuredRecipe && !debouncedSearch && (
+									<HeroRecipe recipe={featuredRecipe} onCook={handleCook} />
+								)}
+							</AnimatePresence>
+
+							{/* Keyboard navigation hint */}
+							{focusedCardIndex >= 0 && (
+								<motion.div
+									initial={{ opacity: 0, y: -10 }}
+									animate={{ opacity: 1, y: 0 }}
+									className='mb-4 flex items-center gap-2 text-sm text-text-muted'
+								>
+									<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
+										↑↓←→
+									</kbd>
+									<span>{t('kbdNavigate')}</span>
+									<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
+										Enter
+									</kbd>
+									<span>{t('kbdOpen')}</span>
+									<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
+										Esc
+									</kbd>
+									<span>{t('kbdCancel')}</span>
+								</motion.div>
+							)}
+
+							{/* Content */}
+							{isLoading && (
+								<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3'>
+									{Array.from({ length: 3 }).map((_, index) => (
+										<div
+											key={`explore-loading-card-${index}`}
+											className={`overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-3.5 shadow-card ${
+												index === 2 ? 'hidden sm:block' : ''
+											}`}
 										>
-											{t('tryAgainButton')}
-										</motion.button>
-									</motion.div>
-								)}
+											<Skeleton className='mb-2.5 aspect-[16/6] w-full rounded-xl' />
+											<div className='space-y-1.5'>
+												<Skeleton className='h-4 w-5/6' />
+												<Skeleton className='h-3 w-3/4' />
+												<Skeleton className='mt-1.5 h-7 w-2/3 rounded-xl' />
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+							{error && (
+								<ErrorState
+									title={t('failedLoadRecipes')}
+									message={error}
+									onRetry={() => {
+										setError(null)
+										setRetryCount(c => c + 1)
+									}}
+								/>
+							)}
+							{!isLoading && !error && recipes.length === 0 && (
+								<EmptyStateGamified
+									variant='search'
+									className={
+										hasNoActiveQueryOrFilters ? 'my-2 py-7 md:py-10' : undefined
+									}
+									title={
+										activeFiltersCount > 0
+											? t('noMatchingRecipes')
+											: t('noRecipesFound')
+									}
+									description={
+										activeFiltersCount > 0
+											? t('adjustFiltersHint')
+											: debouncedSearch
+												? t('noSearchResults', { query: debouncedSearch })
+												: t('beFirstToShare')
+									}
+									searchSuggestions={
+										debouncedSearch
+											? trendingSearches.length > 0
+												? trendingSearches.slice(0, 5)
+												: [
+														'Pasta',
+														'Quick dinner',
+														'Chicken',
+														'Healthy breakfast',
+														'Dessert',
+													]
+											: undefined
+									}
+									primaryAction={
+										activeFiltersCount > 0 || debouncedSearch
+											? {
+													label: t('clearAll'),
+													onClick: handleClearAllFilters,
+												}
+											: {
+													label: t('createRecipe'),
+													href: '/create',
+												}
+									}
+									secondaryActions={
+										hasNoActiveQueryOrFilters
+											? [
+													viewMode === 'all'
+														? {
+																label: t('trending'),
+																onClick: () => setViewMode('trending'),
+															}
+														: {
+																label: t('allRecipes'),
+																onClick: () => setViewMode('all'),
+															},
+												]
+											: undefined
+									}
+								/>
+							)}
+							{!isLoading && !error && recipes.length > 0 && (
+								<>
+									<StaggerContainer className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+										{recipes.map((recipe, index) => (
+											<motion.div
+												key={recipe.id}
+												variants={staggerItemVariants}
+												className={`rounded-2xl  ${
+													focusedCardIndex === index
+														? 'ring-2 ring-brand ring-offset-2 ring-offset-bg'
+														: ''
+												}`}
+												onClick={() => {
+													sessionStorage.setItem(
+														SCROLL_RESTORATION_KEY,
+														String(window.scrollY),
+													)
+												}}
+											>
+												<RecipeCardEnhanced
+													variant='grid'
+													id={recipe.id}
+													title={recipe.title}
+													description={recipe.description}
+													imageUrl={getRecipeImage(recipe)}
+													cookTimeMinutes={getTotalTime(recipe)}
+													difficulty={
+														(recipe.difficulty as Difficulty) || 'Beginner'
+													}
+													xpReward={recipe.xpReward ?? 0}
+													rating={recipe.averageRating ?? 0}
+													cookCount={recipe.cookCount ?? 0}
+													skillTags={recipe.skillTags}
+													badges={recipe.rewardBadges}
+													author={
+														recipe.author?.displayName
+															? {
+																	id: recipe.author.userId,
+																	name: recipe.author.displayName,
+																	avatarUrl:
+																		recipe.author.avatarUrl ||
+																		'/placeholder-avatar.svg',
+																	isVerified: false,
+																}
+															: undefined
+													}
+													isSaved={
+														recipe.isSaved ?? savedRecipes.has(recipe.id)
+													}
+													onCook={() => handleCook(recipe.id)}
+													onSave={() => handleSave(recipe.id)}
+												/>
+											</motion.div>
+										))}
+									</StaggerContainer>
 
-								{/* End of results indicator */}
-								{!hasMore && recipes.length > 0 && (
-									<motion.div
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										className='flex justify-center py-8'
-									>
-										<span className='tabular-nums text-sm text-text-muted'>
-											✨ {t('seenAllRecipes', { count: totalCount })}
-										</span>
-									</motion.div>
-								)}
-							</>
-						)}
-						{/* Bottom breathing room for MobileBottomNav */}
-						<div className='pb-40 md:pb-8' />
+									{/* Infinite scroll sentinel */}
+									<div ref={loadMoreRef} className='h-px' />
+
+									{/* Loading indicator for infinite scroll */}
+									{isLoadingMore && <RecipeCardSkeleton count={3} />}
+
+									{/* Load more error with retry */}
+									{loadMoreError && !isLoadingMore && (
+										<motion.div
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											className='flex flex-col items-center gap-2 py-8'
+										>
+											<span className='text-sm text-text-muted'>
+												{t('loadMoreFailed')}
+											</span>
+											<motion.button
+												type='button'
+												whileHover={BUTTON_HOVER}
+												whileTap={BUTTON_TAP}
+												onClick={handleLoadMore}
+												className='rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 text-sm font-medium text-brand transition-colors hover:bg-brand/10 focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												{t('tryAgainButton')}
+											</motion.button>
+										</motion.div>
+									)}
+
+									{/* End of results indicator */}
+									{!hasMore && recipes.length > 0 && (
+										<motion.div
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											className='flex justify-center py-8'
+										>
+											<span className='tabular-nums text-sm text-text-muted'>
+												✨ {t('seenAllRecipes', { count: totalCount })}
+											</span>
+										</motion.div>
+									)}
+								</>
+							)}
+							{/* Bottom breathing room for MobileBottomNav */}
+							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+						</div>
+
+						<ExploreContextRail
+							trendingSearches={trendingSearches}
+							onQuickSearch={term => {
+								setSearchQuery(term)
+								setDebouncedSearch(term)
+							}}
+							showDiscoveryWidgets={!debouncedSearch}
+						/>
 					</div>
-
-					<ExploreContextRail
-						trendingSearches={trendingSearches}
-						onQuickSearch={term => {
-							setSearchQuery(term)
-							setDebouncedSearch(term)
-						}}
-						showDiscoveryWidgets={!debouncedSearch}
-					/>
-				</div>
-			</PageContainer>
+				</PageContainer>
+			</div>
 		</PageTransition>
 	)
 }

@@ -66,10 +66,13 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [hasError, setHasError] = useState(false)
 	const [imgError, setImgError] = useState(false)
+	const [retryCount, setRetryCount] = useState(0)
 
 	useEffect(() => {
 		let cancelled = false
 		const fetchPick = async () => {
+			setIsLoading(true)
+			setHasError(false)
 			try {
 				const res = await getTonightsPick()
 				if (cancelled) return
@@ -91,7 +94,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		return () => {
 			cancelled = true
 		}
-	}, [])
+	}, [retryCount])
 
 	if (isLoading) {
 		return (
@@ -134,13 +137,26 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 				<p className='mt-2 text-sm text-text-secondary'>
 					{hasError ? t('tpErrorMsg') : t('tpEmptyMsg')}
 				</p>
-				<Link
-					href='/create'
-					className='mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline'
-				>
-					<ChefHat className='size-4' />
-					{t('tpExplore')}
-				</Link>
+				<div className='mt-3 flex items-center gap-3'>
+					{hasError && (
+						<motion.button
+							type='button'
+							onClick={() => setRetryCount(c => c + 1)}
+							whileTap={ICON_BUTTON_TAP}
+							whileHover={ICON_BUTTON_HOVER}
+							className='inline-flex items-center gap-1.5 rounded-lg bg-brand/10 px-3 py-1.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/20'
+						>
+							{t('tpRetry')}
+						</motion.button>
+					)}
+					<Link
+						href='/explore'
+						className='inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline'
+					>
+						<ChefHat className='size-4' />
+						{t('tpExplore')}
+					</Link>
+				</div>
 			</div>
 		)
 	}
@@ -299,4 +315,3 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		</GlowCard>
 	)
 }
-

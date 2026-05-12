@@ -27,14 +27,6 @@ export default function MainAppLayout({
 }) {
 	return (
 		<>
-			{/* Skip to main content — first focusable element for keyboard users */}
-			<a
-				href='#main-content'
-				className='sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-tooltip focus:rounded-xl focus:bg-brand focus:px-4 focus:py-2 focus:text-white focus:shadow-warm'
-			>
-				Skip to main content
-			</a>
-
 			<AppShell
 				header={
 					<ErrorBoundary>

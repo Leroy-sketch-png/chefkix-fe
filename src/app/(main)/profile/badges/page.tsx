@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import {
 	getAllBadges,
 	resolveBadgesWithFallback,
@@ -184,10 +183,10 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 					</div>
 					<div className='text-center'>
 						<p className='text-sm font-semibold text-text-muted'>
-							Hidden Badge
+							{t('hiddenBadge')}
 						</p>
 						<p className='mt-1 text-xs text-text-muted/70'>
-							Discover how to unlock!
+							{t('discoverUnlock')}
 						</p>
 					</div>
 				</>
@@ -375,13 +374,15 @@ export default function BadgeCatalogPage() {
 				<div className='sticky top-0 z-sticky border-b border-border-subtle bg-bg-card/95 backdrop-blur-sm'>
 					<PageContainer maxWidth='xl'>
 						<PremiumSurface
-							eyebrow='Badge Vault'
-							chipText={`${earnedCount}/${totalBadges} unlocked`}
+							eyebrow={t('vaultEyebrow')}
+							chipText={t('vaultChip', {
+								earned: earnedCount,
+								total: totalBadges,
+							})}
 							tone='xp'
 							className='my-4 p-3 md:p-4'
 						>
-							{/* Back + PageHeader */}
-							<div className='mb-4 flex items-center gap-3'>
+							<div className='mb-4 flex items-start gap-3'>
 								<motion.button
 									type='button'
 									onClick={() => router.back()}
@@ -391,25 +392,30 @@ export default function BadgeCatalogPage() {
 								>
 									<ArrowLeft className='size-5' />
 								</motion.button>
-								<div className='flex-1'>
-									<PageHeader
-										icon={Trophy}
-										title={t('badgeCollection')}
-										subtitle={t('badgeProgress', {
-											earned: earnedCount,
-											total: totalBadges,
-											percent: progressPercent,
-										})}
-										gradient='warm'
-										marginBottom='sm'
-										className='mb-0'
-									/>
+								<div className='flex-1 rounded-2xl border border-border-subtle bg-bg-card px-4 py-5 shadow-card'>
+									<div className='flex items-center gap-3'>
+										<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-[0_6px_18px_rgba(255,90,54,0.28)]'>
+											<Trophy className='size-5' />
+										</div>
+										<div className='min-w-0'>
+											<h1 className='text-3xl font-black tracking-tight text-text-primary'>
+												{t('title')}
+											</h1>
+											<p className='mt-1 text-sm text-text-secondary'>
+												{t('subtitle', {
+													earned: earnedCount,
+													total: totalBadges,
+													percent: progressPercent,
+												})}
+											</p>
+										</div>
+									</div>
 								</div>
 							</div>
 
 							<SurfaceSectionHeader
-								eyebrow='Discover and Filter'
-								chipText='Category, rarity, earned'
+								eyebrow={t('discoverFilterEyebrow')}
+								chipText={t('discoverFilterChip')}
 								className='mb-3'
 							/>
 
@@ -518,8 +524,8 @@ export default function BadgeCatalogPage() {
 				{/* Badge Grid */}
 				<PageContainer maxWidth='xl' className='py-6'>
 					<PremiumSurface
-						eyebrow='Collected Badges'
-						chipText={`${filteredBadges.length} visible`}
+						eyebrow={t('collectedBadgesEyebrow')}
+						chipText={t('visibleCount', { count: filteredBadges.length })}
 						className='p-3 md:p-4'
 					>
 						<AnimatePresence mode='popLayout'>
@@ -580,8 +586,8 @@ export default function BadgeCatalogPage() {
 				{/* Rarity Legend */}
 				<PageContainer maxWidth='xl' className='pb-8'>
 					<PremiumSurface
-						eyebrow='Progress Legend'
-						chipText='Rarity Guide'
+						eyebrow={t('progressLegendEyebrow')}
+						chipText={t('rarityGuide')}
 						tone='streak'
 						className='p-3 md:p-4'
 					>
@@ -617,7 +623,7 @@ export default function BadgeCatalogPage() {
 						</div>
 					</PremiumSurface>
 
-					<div className='pb-40 md:pb-8' />
+					<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 				</PageContainer>
 			</div>
 		</PageTransition>

@@ -40,6 +40,7 @@ interface NavItem {
 	icon: React.ComponentType<{ className?: string }>
 	labelKey: string
 	isCreate?: boolean
+	isGetStarted?: boolean
 }
 
 /**
@@ -96,6 +97,7 @@ const guestNavItems: NavItem[] = [
 		href: PATHS.AUTH.SIGN_UP,
 		icon: UserPlus,
 		labelKey: 'getStarted',
+		isGetStarted: true,
 	},
 ]
 
@@ -214,6 +216,27 @@ export const MobileBottomNav = () => {
 								<span className='text-xs font-semibold leading-tight text-brand'>
 									{label}
 								</span>
+							</Link>
+						)
+					}
+
+					// Special handling for the Get Started CTA (guest conversion button)
+					if (item.isGetStarted) {
+						return (
+							<Link
+								key={item.href}
+								href={href}
+								className='relative -mt-2 flex flex-1 flex-col items-center justify-center gap-1 self-start'
+							>
+								<motion.div
+									whileHover={ICON_BUTTON_HOVER}
+									whileTap={ICON_BUTTON_TAP}
+									transition={TRANSITION_SPRING}
+									className='flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-white shadow-[0_6px_20px_rgba(255,90,54,0.4)]'
+								>
+									<Icon className='size-4' />
+									<span className='text-xs font-bold'>{label}</span>
+								</motion.div>
 							</Link>
 						)
 					}

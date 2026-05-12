@@ -123,8 +123,8 @@ export default function CreatorRoute() {
 		icon: badge.icon,
 		name: badge.name,
 		description: badge.recipeTitle
-			? `Earned from ${badge.recipeTitle}`
-			: 'Creator achievement',
+			? t('badgeEarnedFrom', { title: badge.recipeTitle })
+			: t('badgeCreatorAchievement'),
 		isEarned: true,
 	}))
 
@@ -169,9 +169,9 @@ export default function CreatorRoute() {
 		xpGenerated: r.creatorXpEarned ?? 0,
 		badge:
 			r.cookCount >= 100
-				? { type: 'milestone' as const, label: '100+ Cooks' }
+				? { type: 'milestone' as const, label: t('performanceBadgeMilestone') }
 				: r.cookCount >= 50
-					? { type: 'trending' as const, label: 'Popular' }
+					? { type: 'trending' as const, label: t('performanceBadgePopular') }
 					: undefined,
 		needsAttention: r.cookCount === 0 && r.viewCount > 10,
 	}))
@@ -264,8 +264,16 @@ export default function CreatorRoute() {
 							icon: <BookOpen className='size-4' />,
 						}}
 						quickActions={[
-							{ label: 'Explore top recipes', emoji: '🔥', href: '/explore' },
-							{ label: 'Browse challenges', emoji: '🏆', href: '/challenges' },
+							{
+								label: t('exploreTopRecipes'),
+								emoji: '🔥',
+								href: '/explore',
+							},
+							{
+								label: t('browseChallenges'),
+								emoji: '🏆',
+								href: '/challenges',
+							},
 						]}
 					/>
 				</PageContainer>
@@ -294,39 +302,39 @@ export default function CreatorRoute() {
 
 			<PageContainer maxWidth='xl'>
 				<PremiumSurface
-					eyebrow='Creator Studio'
-					chipText='Performance Center'
+					eyebrow={t('studioEyebrow')}
+					chipText={t('studioChip')}
 					tone='xp'
-					className='mb-6 p-4 md:p-6'
+					className='mb-5 p-4 md:p-5'
 				>
-					<div className='flex flex-col gap-5 md:gap-6'>
+					<div className='flex flex-col gap-4 md:gap-5'>
 						<div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
-							<div className='min-w-0'>
-								<div className='mb-3 flex items-center gap-3'>
-									<motion.button
-										type='button'
-										onClick={() =>
-											startNavigationTransition(() => {
-												router.push('/dashboard')
-											})
-										}
-										disabled={isNavigating}
-										whileTap={BUTTON_SUBTLE_TAP}
-										className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-										aria-label={t('ariaGoToDashboard')}
-									>
-										<ArrowLeft className='size-5' />
-									</motion.button>
-									<div className='grid size-10 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
-										<ChefHat className='size-5' />
-									</div>
+							<div className='min-w-0 flex items-start gap-3'>
+								<motion.button
+									type='button'
+									onClick={() =>
+										startNavigationTransition(() => {
+											router.push('/dashboard')
+										})
+									}
+									disabled={isNavigating}
+									whileTap={BUTTON_SUBTLE_TAP}
+									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('ariaGoToDashboard')}
+								>
+									<ArrowLeft className='size-5' />
+								</motion.button>
+								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
+									<ChefHat className='size-5' />
 								</div>
-								<h1 className='text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>
-									{t('dashboardTitle')}
-								</h1>
-								<p className='mt-1 max-w-3xl text-sm text-text-secondary md:text-base'>
-									{t('dashboardSubtitle')}
-								</p>
+								<div className='min-w-0'>
+									<h1 className='text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>
+										{t('dashboardTitle')}
+									</h1>
+									<p className='mt-1 max-w-2xl text-sm text-text-secondary md:text-base'>
+										{t('dashboardSubtitle')}
+									</p>
+								</div>
 							</div>
 
 							<div className='flex flex-col gap-2 sm:flex-row lg:justify-end'>
@@ -360,7 +368,7 @@ export default function CreatorRoute() {
 							</div>
 						</div>
 
-						<div className='grid gap-2 sm:grid-cols-3'>
+						<div className='grid gap-2 sm:grid-cols-3 lg:max-w-2xl'>
 							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
 								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
 									{t('recipesPublished')}
@@ -391,8 +399,8 @@ export default function CreatorRoute() {
 
 				<div className='grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]'>
 					<PremiumSurface
-						eyebrow='Growth Dashboard'
-						chipText='Live'
+						eyebrow={t('growthDashboardEyebrow')}
+						chipText={t('growthDashboardChip')}
 						className='p-3 md:p-4'
 					>
 						<CreatorDashboard
@@ -420,8 +428,12 @@ export default function CreatorRoute() {
 
 					<div className='space-y-6 xl:sticky xl:top-24 xl:self-start'>
 						<PremiumSurface
-							eyebrow='Recipe Intelligence'
-							chipText={heatmapRecipeId ? 'Focused Recipe' : 'Select Recipe'}
+							eyebrow={t('recipeIntelligenceEyebrow')}
+							chipText={
+								heatmapRecipeId
+									? t('recipeIntelligenceChipFocused')
+									: t('recipeIntelligenceChipSelect')
+							}
 							tone='blue'
 							className='p-3 md:p-4'
 						>
@@ -434,15 +446,15 @@ export default function CreatorRoute() {
 								/>
 							) : (
 								<SurfaceSectionHeader
-									eyebrow='No Recipe Selected'
-									chipText='Open step analytics from leaderboard cards'
+									eyebrow={t('noRecipeSelectedEyebrow')}
+									chipText={t('noRecipeSelectedChip')}
 								/>
 							)}
 						</PremiumSurface>
 
 						<PremiumSurface
-							eyebrow='Tip Intelligence'
-							chipText='Recent Signals'
+							eyebrow={t('tipIntelligenceEyebrow')}
+							chipText={t('tipIntelligenceChip')}
 							tone='streak'
 							className='p-3 md:p-4'
 						>
@@ -452,7 +464,7 @@ export default function CreatorRoute() {
 				</div>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

@@ -18,9 +18,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { ShoppingListsCommandDeck } from '@/components/shopping-lists/ShoppingListsCommandDeck'
-import { ShoppingListsContextRail } from '@/components/shopping-lists/ShoppingListsContextRail'
 import { Portal } from '@/components/ui/portal'
 import { ErrorState } from '@/components/ui/error-state'
 import { ShoppingListItemRow } from './ShoppingListItemRow'
@@ -440,19 +438,8 @@ export default function ShoppingListsPage() {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='2xl'>
-					<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+					<div className='grid grid-cols-1 gap-6 py-6'>
 						<div className='space-y-6'>
-							<PageHeader
-								icon={ShoppingCart}
-								title={selectedList.name}
-								subtitle={t('itemsChecked', {
-									checked: selectedList.items.filter(i => i.checked).length,
-									total: selectedList.totalItems,
-								})}
-								gradient='blue'
-								marginBottom='sm'
-							/>
-
 							<ShoppingListsCommandDeck
 								variant='detail'
 								counts={{
@@ -714,16 +701,6 @@ export default function ShoppingListsPage() {
 								)}
 							</PremiumSurface>
 						</div>
-
-						<ShoppingListsContextRail
-							variant='detail'
-							counts={{
-								lists: lists.length,
-								totalItems: selectedList.totalItems,
-								checkedItems: selectedList.checkedItems,
-								progress,
-							}}
-						/>
 					</div>
 				</PageContainer>
 			</PageTransition>
@@ -735,16 +712,8 @@ export default function ShoppingListsPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+				<div className='grid grid-cols-1 gap-6 py-6'>
 					<div className='space-y-6'>
-						<PageHeader
-							icon={ShoppingCart}
-							title={t('title')}
-							subtitle={t('subtitle', { count: lists.length })}
-							gradient='blue'
-							marginBottom='sm'
-						/>
-
 						<ShoppingListsCommandDeck
 							variant='list'
 							counts={{
@@ -956,26 +925,6 @@ export default function ShoppingListsPage() {
 							</PremiumSurface>
 						)}
 					</div>
-
-					<ShoppingListsContextRail
-						variant='list'
-						counts={{
-							lists: lists.length,
-							totalItems: lists.reduce((sum, list) => sum + list.totalItems, 0),
-							checkedItems: lists.reduce(
-								(sum, list) => sum + list.checkedItems,
-								0,
-							),
-							progress:
-								lists.reduce((sum, list) => sum + list.totalItems, 0) > 0
-									? Math.round(
-											(lists.reduce((sum, list) => sum + list.checkedItems, 0) /
-												lists.reduce((sum, list) => sum + list.totalItems, 0)) *
-												100,
-										)
-									: 0,
-						}}
-					/>
 				</div>
 
 				{/* ── Delete Confirmation Dialog ── */}
@@ -1036,7 +985,7 @@ export default function ShoppingListsPage() {
 				</AnimatePresence>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

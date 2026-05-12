@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Compass, Sparkles, TrendingUp } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { TonightsPick } from '@/components/dashboard/TonightsPick'
 import { SeasonsBest } from '@/components/explore/SeasonsBest'
 
@@ -15,6 +16,7 @@ export function ExploreContextRail({
 	onQuickSearch,
 	showDiscoveryWidgets,
 }: ExploreContextRailProps) {
+	const t = useTranslations('explore')
 	const quickTerms =
 		trendingSearches.length > 0
 			? trendingSearches.slice(0, 8)
@@ -36,10 +38,10 @@ export function ExploreContextRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-					Search Momentum
+					{t('railSearchMomentum')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
-					Hot Queries
+					{t('railHotQueries')}
 				</h3>
 				<div className='mt-3 flex flex-wrap gap-2'>
 					{quickTerms.map(term => (
@@ -58,7 +60,7 @@ export function ExploreContextRail({
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-					Quick Moves
+					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
 					<Link
@@ -66,14 +68,14 @@ export function ExploreContextRail({
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Sparkles className='size-3.5' />
-						Create recipe
+						{t('railCreateRecipe')}
 					</Link>
 					<Link
 						href='/dashboard'
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<Compass className='size-3.5' />
-						Back to dashboard
+						{t('railBackToDashboard')}
 					</Link>
 				</div>
 			</div>

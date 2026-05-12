@@ -51,7 +51,12 @@ export function CookieConsent({
 		pathname === '/privacy' ||
 		pathname === '/terms'
 	const useCompactCopy = isMobile || isDiscoverySurface
-	const deferUntilInteraction = isMobile && !isSuppressedSurface
+	const shouldDeferGuestDiscoveryConsent =
+		!isAuthenticated && isDiscoverySurface
+	const deferUntilInteraction =
+		(isMobile || shouldDeferGuestDiscoveryConsent) && !isSuppressedSurface
+	const avoidDesktopGuestRail =
+		!isMobile && !isAuthenticated && isDiscoverySurface
 
 	useEffect(() => {
 		if (!isHydrated) {
@@ -133,9 +138,16 @@ export function CookieConsent({
 					exit={{ y: 100, opacity: 0 }}
 					transition={{ type: 'spring', damping: 25, stiffness: 300 }}
 					className={cn(
-						'fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 sm:inset-x-auto sm:bottom-4 sm:left-auto sm:right-4 sm:max-w-container-sm sm:px-0',
+						'fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 sm:bottom-4 sm:right-4 sm:left-auto sm:max-w-[15rem] sm:px-0',
 						className,
 					)}
+					style={
+						avoidDesktopGuestRail
+							? {
+									right: 'calc(var(--right-w) + var(--space-lg))',
+								}
+							: undefined
+					}
 					role='dialog'
 					aria-label={t('cookieConsent')}
 				>

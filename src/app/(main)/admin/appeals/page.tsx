@@ -385,7 +385,7 @@ export default function AppealsPage() {
 				</div>
 			</PremiumSurface>
 
-			<div className='pb-40 md:pb-8' />
+			<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 		</PageContainer>
 	)
 }

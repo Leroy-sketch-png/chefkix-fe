@@ -4,6 +4,7 @@ import { UserX, Home, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { PATHS } from '@/constants/paths'
 
 export const ProfileNotFound = () => {
 	const t = useTranslations('profile')
@@ -17,9 +18,7 @@ export const ProfileNotFound = () => {
 				</div>
 
 				<h1 className='mb-2 text-3xl font-bold'>{t('profileNotFound')}</h1>
-				<p className='mb-8 text-text-secondary'>
-					{t('profileNotFoundDesc')}
-				</p>
+				<p className='mb-8 text-text-secondary'>{t('profileNotFoundDesc')}</p>
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					<Button asChild>
@@ -29,7 +28,7 @@ export const ProfileNotFound = () => {
 						</Link>
 					</Button>
 					<Button variant='outline' asChild>
-						<Link href='/discover'>
+						<Link href={PATHS.DISCOVER}>
 							<Search className='mr-2 size-4' />
 							{t('discoverPeople')}
 						</Link>

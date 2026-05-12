@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-	Users,
 	ChefHat,
 	Copy,
 	Check,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
@@ -145,28 +143,13 @@ function CookTogetherContent() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
-				<PremiumSurface
-					eyebrow='Co-Cooking'
-					chipText='Live Rooms'
-					tone='streak'
-					className='mb-6 p-3 md:p-4'
-				>
-					<PageHeader
-						icon={Users}
-						title={t('ctTitle')}
-						subtitle={t('ctSubtitle')}
-						gradient='orange'
-						marginBottom='sm'
-					/>
-				</PremiumSurface>
-
+			<PageContainer maxWidth='xl'>
 				<AnimatePresence>
 					{roomCode && (
 						<PremiumSurface
-							eyebrow='Active Room'
+							eyebrow={t('ctActiveRoomEyebrow')}
 							chipText={roomCode}
-							className='mb-6 p-0'
+							className='mb-6 p-3'
 							tone='success'
 						>
 							<motion.div
@@ -183,7 +166,7 @@ function CookTogetherContent() {
 										</div>
 										<div>
 											<p className='text-sm font-medium text-text-secondary'>
-												Your Active Room
+												{t('ctActiveRoom')}
 											</p>
 											<p className='font-mono text-2xl font-bold tracking-widest text-brand'>
 												{roomCode}
@@ -220,9 +203,9 @@ function CookTogetherContent() {
 
 				{/* Join a Room Card */}
 				<PremiumSurface
-					eyebrow='Join A Room'
-					chipText='6-character code'
-					className='p-0'
+					eyebrow={t('ctJoinRoomEyebrow')}
+					chipText={t('ctJoinRoomChip')}
+					className='p-3'
 				>
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -295,9 +278,9 @@ function CookTogetherContent() {
 
 				{/* How It Works */}
 				<PremiumSurface
-					eyebrow='Flow'
-					chipText='Create, invite, cook'
-					className='mt-6 p-0'
+					eyebrow={t('ctFlowEyebrow')}
+					chipText={t('ctFlowChip')}
+					className='mt-6 p-3'
 					tone='blue'
 				>
 					<motion.div
@@ -307,8 +290,8 @@ function CookTogetherContent() {
 						className='rounded-radius border border-border-subtle bg-bg-card p-6 shadow-card md:p-8'
 					>
 						<SurfaceSectionHeader
-							eyebrow='How It Works'
-							chipText='3 steps'
+							eyebrow={t('ctHowItWorksEyebrow')}
+							chipText={t('ctHowItWorksChip')}
 							className='mb-4'
 						/>
 						<div className='mb-6 flex items-center gap-3'>
@@ -361,7 +344,7 @@ function CookTogetherContent() {
 					</motion.div>
 				</PremiumSurface>
 
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)
@@ -369,7 +352,7 @@ function CookTogetherContent() {
 
 function CookTogetherSkeleton() {
 	return (
-		<PageContainer maxWidth='lg'>
+		<PageContainer maxWidth='xl'>
 			<div className='space-y-6'>
 				{/* Header */}
 				<div className='text-center space-y-2'>

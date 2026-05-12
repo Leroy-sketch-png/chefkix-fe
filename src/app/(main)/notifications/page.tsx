@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -215,6 +214,12 @@ const transformToGamifiedNotification = (
 				isRead: notif.isRead,
 			}
 		case 'STREAK_WARNING':
+			if (
+				((data.hoursRemaining as number) ||
+					parseHoursFromContent(notif.content)) <= 0
+			) {
+				return null
+			}
 			return {
 				id: notif.id,
 				type: 'streak_warning',
@@ -229,12 +234,18 @@ const transformToGamifiedNotification = (
 		case 'POST_DEADLINE': {
 			const days =
 				(data.daysRemaining as number) || parseDaysFromContent(notif.content)
+			const pendingXp = (data.pendingXp as number) || 0
+
+			// A deadline notification with zero pending XP is a contradictory nudge.
+			if (pendingXp <= 0) {
+				return null
+			}
 			return {
 				id: notif.id,
 				type: days <= 1 ? 'post_deadline_urgent' : 'post_deadline',
 				recipeName: (data.recipeName as string) || 'Recipe',
 				daysRemaining: days,
-				pendingXp: (data.pendingXp as number) || 0,
+				pendingXp,
 				...(days <= 1
 					? {
 							originalXp: (data.originalXp as number) || 0,
@@ -695,17 +706,7 @@ export default function NotificationsPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				{/* Header - PRIMARY page (in LeftSidebar), no back button */}
-				<PageHeader
-					icon={Bell}
-					title={t('title')}
-					subtitle=''
-					showSparkles={false}
-					gradient='blue'
-					marginBottom='sm'
-				/>
-
-				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+				<div className='grid grid-cols-1 gap-6'>
 					<div className='space-y-4'>
 						<NotificationsCommandDeck
 							counts={counts}
@@ -804,10 +805,12 @@ export default function NotificationsPage() {
 												notif.type === 'post_deadline' ||
 												notif.type === 'post_deadline_urgent'
 											) {
-												extraProps.onPostNow = () =>
-													startNavigationTransition(() => {
-														router.push('/create')
-													})
+												if (notif.pendingXp > 0) {
+													extraProps.onPostNow = () =>
+														startNavigationTransition(() => {
+															router.push('/create')
+														})
+												}
 											}
 											if (notif.type === 'challenge_reminder') {
 												extraProps.onSeeRecipes = () =>
@@ -861,10 +864,12 @@ export default function NotificationsPage() {
 								)}
 							</motion.div>
 						)}
-						<div className='pb-40 md:pb-8' />
+						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
 					</div>
 
-					<NotificationsContextRail counts={counts} />
+					<div className='xl:hidden'>
+						<NotificationsContextRail counts={counts} />
+					</div>
 				</div>
 			</PageContainer>
 		</PageTransition>

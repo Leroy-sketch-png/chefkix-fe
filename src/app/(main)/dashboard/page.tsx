@@ -13,7 +13,6 @@ import {
 } from '@/services/cookingSession'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { PostCard } from '@/components/social/PostCard'
@@ -21,7 +20,6 @@ import { PollCard } from '@/components/social/PollCard'
 import { RecentCookCard } from '@/components/social/RecentCookCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { CreatePostForm } from '@/components/social/CreatePostForm'
-import { QuickPostFAB } from '@/components/social/QuickPostFAB'
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyStateGamified } from '@/components/shared'
 import { FeedModeTabBar, type FeedMode } from '@/components/shared/FeedTabBar'
@@ -578,14 +576,6 @@ export default function DashboardPage() {
 			</AnimatePresence>
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					<PageHeader
-						icon={Home}
-						title={t('title')}
-						subtitle=''
-						gradient='orange'
-						marginBottom='md'
-					/>
-
 					<DashboardCommandDeck
 						className='mb-6'
 						stats={stats}
@@ -1024,11 +1014,8 @@ export default function DashboardPage() {
 							{!isNewUser && <SinceLastVisitCard className='mb-0' />}
 						</aside>
 					</div>
-					<div className='pb-24 md:pb-8' />
+					<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
 				</PageContainer>
-				<div className='hidden md:block'>
-					<QuickPostFAB onPostCreated={handlePostCreated} />
-				</div>
 			</PageTransition>
 		</>
 	)

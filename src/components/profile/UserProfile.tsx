@@ -693,7 +693,10 @@ export const UserProfile = ({
 	]
 
 	return (
-		<div className='mx-auto w-full max-w-container-xl'>
+		<div
+			data-testid='user-profile'
+			className='mx-auto w-full max-w-container-xl'
+		>
 			{/* Block confirmation dialog */}
 			<ConfirmDialog
 				open={showBlockConfirm}

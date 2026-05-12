@@ -28,7 +28,6 @@ import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import VideoCall from '@/components/chat/VideoCall'
 import AvatarImage from '@/components/messages/AvatarImage'
-import { MessagesContextRail } from '@/components/messages'
 import {
 	getMyConversations,
 	getMessages,
@@ -521,7 +520,7 @@ function MessagesContent() {
 	).length
 
 	return (
-		<div className='grid h-[calc(100vh-4rem)] grid-cols-1 overflow-hidden xl:grid-cols-[22rem_minmax(0,1fr)_20rem]'>
+		<div className='grid h-[calc(100vh-4rem)] grid-cols-1 overflow-hidden pb-[var(--h-mobile-nav)] md:pb-0 xl:grid-cols-[22rem_minmax(0,1fr)]'>
 			{/* ========== LEFT PANEL: Conversations Sidebar ========== */}
 			{/* Full height, fixed width on desktop, full screen on mobile when no chat selected */}
 			<aside
@@ -559,7 +558,7 @@ function MessagesContent() {
 				</header>
 
 				{/* Conversations List - Scrollable */}
-				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-24 md:pb-2'>
+				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-2'>
 					<div className='mb-2 px-2'>
 						<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
 							Active conversations
@@ -890,14 +889,6 @@ function MessagesContent() {
 					<WelcomeState hasConversations={conversations.length > 0} />
 				)}
 			</main>
-
-			<MessagesContextRail
-				totalConversations={conversations.length}
-				unreadConversations={unreadConversations}
-				isConnected={isConnected}
-				connectionError={wsError}
-				hasActiveConversation={Boolean(selectedConversation)}
-			/>
 		</div>
 	)
 }

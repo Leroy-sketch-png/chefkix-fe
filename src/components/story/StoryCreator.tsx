@@ -21,6 +21,7 @@ import { Rnd } from 'react-rnd'
 import { useStoryStore } from '@/store/storyStore'
 import { createStory } from '@/services/story'
 import { api } from '@/lib/axios'
+import { useTranslations } from '@/i18n/hooks'
 
 interface StoryItem {
 	id: string
@@ -62,6 +63,7 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
 
 export function StoryCreator() {
 	const router = useRouter()
+	const t = useTranslations('story')
 	const [items, setItems] = useState<StoryItem[]>([])
 	const [mediaFile, setMediaFile] = useState<File | null>(null)
 	const [mediaPreview, setMediaPreview] = useState<string>('')
@@ -113,7 +115,7 @@ export function StoryCreator() {
 			width: 260,
 			height: 60,
 			rotation: 0,
-			data: { text: 'Nhập chữ...', color: '#ffffff' },
+			data: { text: t('textPlaceholder'), color: '#ffffff' },
 		}
 		setItems([...items, newItem])
 	}
@@ -152,7 +154,7 @@ export function StoryCreator() {
 
 	const handleSubmit = async () => {
 		if (!mediaFile) {
-			toast.error('Vui lòng chọn ảnh nền')
+			toast.error(t('selectBackgroundPrompt'))
 			return
 		}
 
@@ -210,13 +212,13 @@ export function StoryCreator() {
 			})
 
 			if (response.status === 201 || response.data?.success) {
-				toast.success('Đăng Story thành công!')
+				toast.success(t('publishSuccessMessage'))
 				await fetchStoryFeed()
 				router.push('/dashboard')
 			}
 		} catch (e: any) {
-			console.error('Lỗi đăng story:', e)
-			toast.error(e.response?.data?.message || 'Có lỗi xảy ra')
+			console.error('Story publish error:', e)
+			toast.error(e.response?.data?.message || t('errorMessage'))
 		} finally {
 			setIsLoading(false)
 		}
@@ -235,14 +237,14 @@ export function StoryCreator() {
 					>
 						<X className='w-5 h-5' />
 					</Button>
-					<h2 className='text-xl font-bold'>Tạo tin</h2>
+					<h2 className='text-xl font-bold'>{t('createStoryTitle')}</h2>
 				</div>
 
 				<div className='flex-1 overflow-y-auto p-4 space-y-6'>
 					{/* Khu vực Upload Ảnh Nền */}
 					<div className='space-y-3'>
 						<h3 className='text-[15px] font-semibold text-[#B0B3B8]'>
-							Ảnh / Video nền
+							{t('backgroundMediaLabel')}
 						</h3>
 						<input
 							type='file'
@@ -256,19 +258,23 @@ export function StoryCreator() {
 							className='w-full bg-[#3A3B3C] hover:bg-[#4E4F50] text-[#E4E6EB] font-semibold h-12 flex items-center justify-center gap-2 rounded-xl'
 						>
 							<ImageIcon className='w-5 h-5' />
-							{mediaPreview ? 'Thay đổi ảnh nền' : 'Chọn ảnh nền'}
+							{mediaPreview
+								? t('changeBackgroundButton')
+								: t('selectBackgroundButton')}
 						</Button>
 					</div>
 
 					{mediaPreview && (
 						<div className='space-y-4 p-4 bg-[#18191A] rounded-xl border border-[#3E4042]'>
 							<h3 className='text-[15px] font-semibold text-[#B0B3B8] mb-2'>
-								Chỉnh sửa nền
+								{t('editBackgroundSection')}
 							</h3>
 
 							<div className='space-y-2'>
 								<div className='flex justify-between text-xs text-[#B0B3B8]'>
-									<span>Phóng to ({imageScale.toFixed(1)}x)</span>
+									<span>
+										{t('zoomLabel', { scale: imageScale.toFixed(1) })}
+									</span>
 								</div>
 								<input
 									type='range'
@@ -283,7 +289,7 @@ export function StoryCreator() {
 
 							<div className='space-y-2'>
 								<div className='flex justify-between text-xs text-[#B0B3B8]'>
-									<span>Xoay ({imageRotation}°)</span>
+									<span>{t('rotateLabel', { rotation: imageRotation })}</span>
 								</div>
 								<input
 									type='range'
@@ -301,7 +307,7 @@ export function StoryCreator() {
 					{/* Khu vực Thêm Sticker / Text */}
 					<div className='space-y-3'>
 						<h3 className='text-[15px] font-semibold text-[#B0B3B8]'>
-							Thêm chi tiết
+							{t('addDetailsSection')}
 						</h3>
 						<div className='grid grid-cols-2 gap-3'>
 							<button
@@ -311,7 +317,7 @@ export function StoryCreator() {
 								<div className='bg-white/10 p-2 rounded-full mb-2'>
 									<TypeIcon className='w-5 h-5 text-white' />
 								</div>
-								<span className='text-sm font-medium'>Văn bản</span>
+								<span className='text-sm font-medium'>{t('textOption')}</span>
 							</button>
 
 							<div className='relative'>
@@ -322,7 +328,9 @@ export function StoryCreator() {
 									<div className='bg-white/10 p-2 rounded-full mb-2'>
 										<Smile className='w-5 h-5 text-white' />
 									</div>
-									<span className='text-sm font-medium'>Cảm xúc</span>
+									<span className='text-sm font-medium'>
+										{t('emojiOption')}
+									</span>
 								</button>
 								{showEmojiPicker && (
 									<div className='absolute top-full left-0 mt-2 z-dropdown shadow-2xl rounded-xl overflow-hidden'>
@@ -353,7 +361,9 @@ export function StoryCreator() {
 							className='w-full flex items-center justify-center gap-2 p-3 bg-[#3A3B3C] hover:bg-[#4E4F50] rounded-xl transition-colors'
 						>
 							<ImagePlus className='w-5 h-5' />
-							<span className='text-sm font-medium'>Tải ảnh Sticker lên</span>
+							<span className='text-sm font-medium'>
+								{t('uploadStickerButton')}
+							</span>
 						</button>
 					</div>
 				</div>
@@ -365,7 +375,7 @@ export function StoryCreator() {
 						disabled={isLoading || !mediaPreview}
 						className='w-full bg-[#0866FF] hover:bg-[#0054D1] text-white font-semibold h-11 rounded-xl text-[15px]'
 					>
-						{isLoading ? 'Đang xử lý...' : 'Chia sẻ lên Tin'}
+						{isLoading ? t('loadingText') : t('publishButton')}
 					</Button>
 				</div>
 			</div>
@@ -386,7 +396,7 @@ export function StoryCreator() {
 					) : (
 						<div className='absolute inset-0 flex flex-col items-center justify-center text-[#B0B3B8] bg-[#242526]'>
 							<Camera className='w-16 h-16 mb-4 opacity-30' />
-							<span className='text-sm font-medium'>Bản xem trước</span>
+							<span className='text-sm font-medium'>{t('previewLabel')}</span>
 						</div>
 					)}
 

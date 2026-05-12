@@ -164,7 +164,7 @@ const LevelRing = ({
 	return (
 		<div
 			className={cn(
-				'absolute flex items-center gap-3 rounded-full border border-white/15 bg-black/45 backdrop-blur-xl',
+				'hidden items-center gap-3 rounded-full border border-white/15 bg-black/45 backdrop-blur-xl sm:flex',
 				size === 'default'
 					? 'right-4 top-4 py-2.5 pl-2.5 pr-4'
 					: 'right-3 top-3 py-2 pl-2 pr-3',
@@ -233,7 +233,7 @@ const StreakBadge = ({ count }: { count: number }) => {
 		<motion.div
 			initial={{ scale: 0.8, opacity: 0 }}
 			animate={{ scale: 1, opacity: 1 }}
-			className='absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-warm shadow-streak/30'
+			className='hidden items-center gap-1.5 rounded-full bg-streak px-3 py-2 font-display font-semibold text-white shadow-warm shadow-streak/30 sm:flex'
 		>
 			<span className='text-base'>🔥</span>
 			<span className='text-lg tabular-nums'>{count}</span>
@@ -274,9 +274,9 @@ const StatsRow = ({
 }) => {
 	const t = useTranslations('profile')
 	return (
-		<div className='flex flex-col gap-4 border-y border-border-subtle bg-bg-elevated/60 px-4 py-4 sm:flex-row sm:items-center sm:gap-0 md:px-6'>
+		<div className='grid gap-4 border-y border-border-subtle bg-bg-elevated/60 px-4 py-4 sm:flex sm:flex-row sm:items-center sm:gap-0 md:px-6'>
 			{/* Social Stats */}
-			<div className='flex gap-6 md:gap-8'>
+			<div className='grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:gap-8'>
 				{isOwnProfile ? (
 					<Link
 						href='/profile/followers?tab=followers'
@@ -327,7 +327,7 @@ const StatsRow = ({
 			<div className='hidden h-10 w-px bg-border sm:mx-6 sm:block md:mx-8' />
 
 			{/* Cooking Stats */}
-			<div className='flex gap-6 md:gap-8'>
+			<div className='grid grid-cols-2 gap-4 sm:flex sm:gap-6 md:gap-8'>
 				<div className='flex flex-col'>
 					<span className='text-xl font-bold tracking-tight text-success tabular-nums'>
 						<AnimatedNumber
@@ -653,9 +653,9 @@ const OwnProfileHeader = ({
 			</div>
 
 			{/* Profile Details */}
-			<div className='relative z-10 -mt-12 flex flex-wrap items-start gap-5 px-6 md:flex-nowrap'>
+			<div className='relative z-10 -mt-10 flex flex-col gap-4 px-4 sm:px-6 md:-mt-12 md:flex-row md:flex-nowrap md:items-start'>
 				{/* Avatar */}
-				<div className='relative flex-shrink-0'>
+				<div className='relative flex-shrink-0 self-center md:self-auto'>
 					<Image
 						src={user.avatarUrl}
 						alt={user.displayName}
@@ -670,7 +670,7 @@ const OwnProfileHeader = ({
 				</div>
 
 				{/* Info */}
-				<div className='flex-1 pt-14'>
+				<div className='flex-1 pt-0 md:pt-14'>
 					<h1 className='truncate text-2xl font-bold tracking-tight text-text-primary'>
 						{user.displayName}
 					</h1>
@@ -685,13 +685,13 @@ const OwnProfileHeader = ({
 				</div>
 
 				{/* Actions */}
-				<div className='flex gap-2 pt-14'>
+				<div className='flex w-full flex-wrap gap-2 pt-0 md:w-auto md:pt-14'>
 					<motion.button
 						type='button'
 						onClick={onEditProfile}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='group flex items-center gap-1.5 rounded-xl border border-border-medium bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='group flex flex-1 min-w-[9rem] items-center justify-center gap-1.5 rounded-xl border border-border-medium bg-bg-elevated px-4 py-2.5 text-sm font-semibold transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 md:flex-none md:min-w-0'
 						title={`${t('phEditProfile')} (${modKey}+E)`}
 					>
 						<Settings className='size-4' />
@@ -706,7 +706,7 @@ const OwnProfileHeader = ({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-10 w-10 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 						aria-label={t('shareProfileAria')}
 					>
 						<Share2 className='size-4' />
@@ -856,9 +856,9 @@ const OtherUserProfileHeader = ({
 			</div>
 
 			{/* Profile Details */}
-			<div className='relative z-10 -mt-12 flex flex-wrap items-start gap-5 px-6 md:flex-nowrap'>
+			<div className='relative z-10 -mt-10 flex flex-col gap-4 px-4 sm:px-6 md:-mt-12 md:flex-row md:flex-nowrap md:items-start'>
 				{/* Avatar */}
-				<div className='relative flex-shrink-0'>
+				<div className='relative flex-shrink-0 self-center md:self-auto'>
 					<Image
 						src={user.avatarUrl}
 						alt={user.displayName}
@@ -873,7 +873,7 @@ const OtherUserProfileHeader = ({
 				</div>
 
 				{/* Info */}
-				<div className='flex-1 pt-14'>
+				<div className='flex-1 pt-0 md:pt-14'>
 					<div className='flex items-center gap-2'>
 						<h1 className='truncate text-2xl font-bold tracking-tight text-text-primary'>
 							{user.displayName}
@@ -893,7 +893,7 @@ const OtherUserProfileHeader = ({
 				</div>
 
 				{/* Actions */}
-				<div className='flex gap-2 pt-14'>
+				<div className='flex w-full flex-wrap gap-2 pt-0 md:w-auto md:pt-14'>
 					<motion.button
 						type='button'
 						onClick={onFollow}
@@ -901,7 +901,7 @@ const OtherUserProfileHeader = ({
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						className={cn(
-							'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+							'flex flex-1 min-w-[9rem] items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 md:flex-none md:min-w-0',
 							isFollowing
 								? 'border border-border-medium bg-bg-elevated hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
 								: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
@@ -930,7 +930,7 @@ const OtherUserProfileHeader = ({
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
-						className='flex h-10 w-10 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
@@ -948,7 +948,7 @@ const OtherUserProfileHeader = ({
 						whileTap={BUTTON_SUBTLE_TAP}
 						transition={TRANSITION_SPRING}
 						className={cn(
-							'flex h-10 w-10 items-center justify-center rounded-xl border transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+							'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
 							isBlocked
 								? 'border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20'
 								: 'border-border-medium bg-bg-elevated text-text-muted hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive',

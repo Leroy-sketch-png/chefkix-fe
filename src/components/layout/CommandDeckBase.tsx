@@ -109,12 +109,12 @@ export function CommandDeckBase({
 			className={cn(
 				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card',
 				gradientClass,
-				'p-4 shadow-card md:p-5',
+				'p-3 shadow-card sm:p-4 md:p-5',
 				className,
 			)}
 		>
 			{/* Header */}
-			<div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+			<div className='mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4'>
 				<div>
 					<p
 						className={cn(
@@ -124,7 +124,9 @@ export function CommandDeckBase({
 					>
 						{eyebrow}
 					</p>
-					<h2 className='mt-1 text-lg font-black text-text-primary'>{title}</h2>
+					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>
+						{title}
+					</h2>
 					{subtitle && (
 						<p className='mt-1 text-xs text-text-secondary'>{subtitle}</p>
 					)}
@@ -136,7 +138,7 @@ export function CommandDeckBase({
 			{stats && <CommandDeckStatGrid stats={stats} />}
 
 			{/* Children (for custom layouts) */}
-			{children && <div className='mt-4'>{children}</div>}
+			{children && <div className='mt-3 sm:mt-4'>{children}</div>}
 		</motion.section>
 	)
 }

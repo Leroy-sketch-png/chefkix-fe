@@ -303,7 +303,12 @@ export function LeaderboardPage({
 	const showMyRankBanner = myRank && (!userInList || myRank.rank > 50)
 
 	return (
-		<div className={cn('max-w-md mx-auto p-4', className)}>
+		<div
+			className={cn(
+				'max-w-container-xl mx-auto p-4 pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8',
+				className,
+			)}
+		>
 			{/* Header */}
 			<div className='flex items-center gap-4 mb-5'>
 				{onBack && (
@@ -361,10 +366,27 @@ export function LeaderboardPage({
 				</>
 			) : (
 				<>
-					{/* Podium (Top 3) */}
-					{podiumEntries.length === 3 && (
+					{/* Podium (Top 3 if available) — show partial state for young leaderboards */}
+					{podiumEntries.length > 0 && (
 						<LeaderboardPodium
-							entries={podiumEntries}
+							entries={podiumEntries.concat(
+								// Fill missing spots so podium grid doesn't break
+								Array(3 - podiumEntries.length)
+									.fill(null)
+									.map((_, i) => ({
+										userId: `placeholder-${i}`,
+										username: '',
+										displayName: '',
+										avatarUrl: '',
+										level: 0,
+										rank: (podiumEntries.length + i + 1) as 1 | 2 | 3,
+										xp: 0,
+										isCurrentUser: false,
+										recipesCooked: 0,
+										streak: 0,
+										topBadges: [],
+									})) as unknown as PodiumEntry[],
+							)}
 							onUserClick={e =>
 								onUserClick?.({
 									...e,
@@ -433,12 +455,17 @@ export function LeaderboardPage({
 							? t('emptyFriendsTitle')
 							: t('emptyGlobalTitle')}
 					</h3>
-					<p className='text-sm text-text-secondary max-w-xs'>
+					<p className='text-sm text-text-secondary max-w-xs mb-1'>
 						{type === 'friends' ? t('emptyFriendsDesc') : t('emptyGlobalDesc')}
 					</p>
+					{type === 'friends' && (
+						<p className='text-xs text-text-muted max-w-xs mb-4'>
+							Invite friends and compete in real-time. XP resets every Sunday.
+						</p>
+					)}
 					<Link
 						href={type === 'friends' ? '/community' : '/explore'}
-						className='mt-4 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+						className='inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{type === 'friends' ? t('findFriends') : t('startCooking')}
 					</Link>

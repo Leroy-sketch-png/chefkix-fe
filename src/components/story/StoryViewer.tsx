@@ -18,6 +18,7 @@ import { sendStoryReaction, sendStoryReply } from '@/services/story'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
 import { useAuth } from '@/hooks/useAuth'
+import { useTranslations } from '@/i18n/hooks'
 import { formatDistanceToNow } from 'date-fns'
 import StoryInteractionBar from '@/components/story/StoryInteractionBar'
 import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
@@ -105,6 +106,7 @@ export function StoryViewer({
 	)
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
 	const { user: currentUser } = useAuth()
+	const t = useTranslations('story')
 
 	const currentStory = stories[currentStoryIndex]
 
@@ -302,7 +304,7 @@ export function StoryViewer({
 	const isMe = currentUser?.userId === userId
 	const displayAuthorName = isMe
 		? currentUser.displayName || currentUser.username
-		: authorName || 'Story Author'
+		: authorName || t('storyAuthor')
 	const displayAuthorAvatar = isMe ? currentUser.avatarUrl : authorAvatar
 
 	return (
@@ -390,8 +392,9 @@ export function StoryViewer({
 									<p className='text-xs text-neutral-200 drop-shadow-md'>
 										{currentStory.createdAt
 											? formatDistanceToNow(new Date(currentStory.createdAt)) +
-												' ago'
-											: 'Just now'}
+												' ' +
+												t('storyTimestamp')
+											: t('justNow')}
 									</p>
 								</div>
 							</div>
@@ -399,18 +402,21 @@ export function StoryViewer({
 								<button
 									onClick={() => setIsPaused(!isPaused)}
 									className='text-white/80 hover:text-white'
+									title={isPaused ? t('playButton') : t('pauseButton')}
 								>
 									{isPaused ? <Play size={20} /> : <Pause size={20} />}
 								</button>
 								<button
 									onClick={() => setIsMuted(!isMuted)}
 									className='text-white/80 hover:text-white'
+									title={isMuted ? t('unmuteButton') : t('muteButton')}
 								>
 									{isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
 								</button>
 								<button
 									onClick={onClose}
 									className='text-white/80 hover:text-white'
+									title={t('closeButton')}
 								>
 									<X size={24} />
 								</button>
@@ -449,7 +455,7 @@ export function StoryViewer({
 									try {
 										// Đảm bảo truyền đúng tham số
 										await sendStoryReply(currentStory.id, content)
-										toast.success('Đã gửi phản hồi')
+										toast.success(t('replyPrompt'))
 									} catch (err) {
 										console.error('Failed to send story reply', err)
 									}

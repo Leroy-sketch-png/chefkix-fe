@@ -20,7 +20,40 @@ import {
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
+
+const getLeaderboardTypeLabel = (
+	type: LeaderboardType,
+	t: ReturnType<typeof useTranslations<'leaderboard'>>,
+) => {
+	switch (type) {
+		case 'friends':
+			return t('tabFriends')
+		case 'league':
+			return t('tabLeague')
+		case 'global':
+		default:
+			return t('tabGlobal')
+	}
+}
+
+const getLeaderboardTimeframeLabel = (
+	timeframe: Timeframe,
+	t: ReturnType<typeof useTranslations<'leaderboard'>>,
+) => {
+	switch (timeframe) {
+		case 'monthly':
+			return t('timeframeMonthly')
+		case 'all_time':
+			return t('timeframeAllTime')
+		case 'weekly':
+		default:
+			return t('timeframeWeekly')
+	}
+}
 
 // ============================================
 // PAGE
@@ -36,7 +69,9 @@ export default function LeaderboardRoute() {
 	// Guests can only view global leaderboard — friends/league require auth
 	const handleTypeChange = (newType: LeaderboardType) => {
 		if (newType !== 'global' && !user) {
-			requireAuth(t('authActionFriends'))
+			const message =
+				newType === 'friends' ? t('authGateFriends') : t('authGateLeague')
+			requireAuth(message)
 			return
 		}
 		setType(newType)
@@ -157,14 +192,14 @@ export default function LeaderboardRoute() {
 		<PageTransition>
 			<PageContainer maxWidth='xl'>
 				<PremiumSurface
-					eyebrow='Rank Arena'
-					chipText={`${type.toUpperCase()} · ${timeframe.toUpperCase()}`}
+					eyebrow={t('rankArenaEyebrow')}
+					chipText={`${getLeaderboardTypeLabel(type, t)} · ${getLeaderboardTimeframeLabel(timeframe, t)}`}
 					className='p-3 md:p-4'
 					tone='xp'
 				>
 					<SurfaceSectionHeader
-						eyebrow='Competition'
-						chipText={`${entries.length} chefs`}
+						eyebrow={t('competitionEyebrow')}
+						chipText={t('chefCount', { count: entries.length })}
 						className='mb-3'
 					/>
 					<LeaderboardPage
@@ -177,13 +212,12 @@ export default function LeaderboardRoute() {
 						onTypeChange={handleTypeChange}
 						onTimeframeChange={setTimeframe}
 						onUserClick={entry => router.push(`/${entry.userId}`)}
-						onBack={() => router.back()}
 						onCookNow={() => router.push('/explore')}
 					/>
 				</PremiumSurface>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

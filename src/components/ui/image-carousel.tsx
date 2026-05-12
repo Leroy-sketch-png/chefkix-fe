@@ -42,21 +42,30 @@ export function ImageCarousel({
 	onImageError,
 }: ImageCarouselProps) {
 	const t = useTranslations('common')
+	const normalizedImages = images.map(image =>
+		/^https?:\/\/(?:images|plus)\.unsplash\.com/i.test(image)
+			? '/placeholder-recipe.svg'
+			: image,
+	)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [direction, setDirection] = useState(0)
 	const [failedIndices, setFailedIndices] = useState<number[]>([])
 	const containerRef = useRef<HTMLDivElement>(null)
-	const imageSetKey = images.join('||')
+	const imageSetKey = normalizedImages.join('||')
 
-	const hasMultiple = images.length > 1
+	const hasMultiple = normalizedImages.length > 1
 	const currentImageHasFailed = failedIndices.includes(currentIndex)
 
 	useEffect(() => {
-		setCurrentIndex(prev => Math.min(prev, Math.max(images.length - 1, 0)))
+		setCurrentIndex(prev =>
+			Math.min(prev, Math.max(normalizedImages.length - 1, 0)),
+		)
 		setFailedIndices([])
-	}, [imageSetKey, images.length])
+	}, [imageSetKey, normalizedImages.length])
 	const [loadedIndices, setLoadedIndices] = useState<number[]>([])
-	const allFailed = images.length > 0 && failedIndices.length === images.length
+	const allFailed =
+		normalizedImages.length > 0 &&
+		failedIndices.length === normalizedImages.length
 	const currentImageIsLoading =
 		!loadedIndices.includes(currentIndex) &&
 		!failedIndices.includes(currentIndex)
@@ -64,14 +73,16 @@ export function ImageCarousel({
 	const goToNext = useCallback(() => {
 		if (!hasMultiple) return
 		setDirection(1)
-		setCurrentIndex(prev => (prev + 1) % images.length)
-	}, [hasMultiple, images.length])
+		setCurrentIndex(prev => (prev + 1) % normalizedImages.length)
+	}, [hasMultiple, normalizedImages.length])
 
 	const goToPrev = useCallback(() => {
 		if (!hasMultiple) return
 		setDirection(-1)
-		setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
-	}, [hasMultiple, images.length])
+		setCurrentIndex(
+			prev => (prev - 1 + normalizedImages.length) % normalizedImages.length,
+		)
+	}, [hasMultiple, normalizedImages.length])
 
 	const goToIndex = useCallback(
 		(index: number) => {
@@ -151,7 +162,7 @@ export function ImageCarousel({
 		auto: '',
 	}
 
-	if (images.length === 0) return null
+	if (normalizedImages.length === 0) return null
 
 	// Collapse entirely if every image has definitively failed — prevents dead zone
 	if (allFailed) return null
@@ -168,7 +179,7 @@ export function ImageCarousel({
 			role='region'
 			aria-label={t('ariaImageCarousel', {
 				current: currentIndex + 1,
-				total: images.length,
+				total: normalizedImages.length,
 			})}
 			aria-roledescription='carousel'
 		>
@@ -192,7 +203,7 @@ export function ImageCarousel({
 						<div
 							className='absolute inset-0 flex items-center justify-center bg-gradient-to-br from-accent-purple/10 to-bg-elevated'
 							role='img'
-							aria-label={`${alt} ${currentIndex + 1} of ${images.length}`}
+							aria-label={`${alt} ${currentIndex + 1} of ${normalizedImages.length}`}
 						>
 							<ImageOff
 								className='size-12 text-text-muted'
@@ -201,14 +212,16 @@ export function ImageCarousel({
 						</div>
 					) : (
 						<Image
-							src={images[currentIndex]}
-							alt={`${alt} ${currentIndex + 1} of ${images.length}`}
+							src={normalizedImages[currentIndex]}
+							alt={`${alt} ${currentIndex + 1} of ${normalizedImages.length}`}
 							fill
 							className='object-cover'
 							sizes='(max-width: 768px) 100vw, 600px'
 							onError={() => handleImageError(currentIndex)}
 							onLoad={() => handleImageLoad(currentIndex)}
-							unoptimized={/^https?:\/\//.test(images[currentIndex] || '')}
+							unoptimized={/^https?:\/\//.test(
+								normalizedImages[currentIndex] || '',
+							)}
 						/>
 					)}
 					{/* Shimmer overlay while current image is loading */}
@@ -265,7 +278,7 @@ export function ImageCarousel({
 					role='tablist'
 					aria-label={t('ariaImageIndicators')}
 				>
-					{images.map((_, index) => (
+					{normalizedImages.map((_, index) => (
 						<button
 							type='button'
 							key={index}
@@ -292,7 +305,7 @@ export function ImageCarousel({
 						'rounded-full bg-bg-card border border-border-subtle px-2 py-0.5 text-xs font-medium text-text-primary',
 					)}
 				>
-					{currentIndex + 1}/{images.length}
+					{currentIndex + 1}/{normalizedImages.length}
 				</div>
 			)}
 		</div>

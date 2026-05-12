@@ -31,6 +31,9 @@ export const PageContainer = ({
 				'w-full',
 				center && 'mx-auto',
 				maxWidthClasses[maxWidth],
+				// Reserve space for the mobile bottom nav (uses CSS variable --h-mobile-nav).
+				// Applies on small screens, removed on md+ where desktop navs apply.
+				'pb-[var(--h-mobile-nav)] md:pb-0',
 				className,
 			)}
 		>

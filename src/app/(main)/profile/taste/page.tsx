@@ -21,7 +21,6 @@ import {
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { EmptyStateGamified } from '@/components/shared'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/useAuth'
@@ -131,8 +130,8 @@ function computeTasteDimensions(
 
 // ── Radar Chart (SVG) ──
 function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
-	const size = 280
-	const pad = 50
+	const size = 210
+	const pad = 32
 	const svgSize = size + pad * 2
 	const center = svgSize / 2
 	const radius = (size - 60) / 2
@@ -160,7 +159,7 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 	return (
 		<div className='flex items-center justify-center overflow-visible'>
 			<svg
-				className='h-auto w-full'
+				className='h-auto w-full max-w-[220px] sm:max-w-[280px]'
 				overflow='visible'
 				width={svgSize}
 				height={svgSize}
@@ -309,7 +308,7 @@ export default function TasteProfilePage() {
 	if (isLoading) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
+				<PageContainer maxWidth='xl'>
 					<div className='mb-6 flex items-center gap-3'>
 						<Skeleton className='size-10 rounded-xl' />
 						<Skeleton className='h-8 w-48' />
@@ -328,7 +327,7 @@ export default function TasteProfilePage() {
 	if (!profile) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
+				<PageContainer maxWidth='xl'>
 					<EmptyStateGamified
 						variant='custom'
 						emoji='🧑‍🍳'
@@ -346,14 +345,14 @@ export default function TasteProfilePage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='xl'>
 				<PremiumSurface
-					eyebrow='Taste Intelligence'
-					chipText='Live Behavioral Profile'
+					eyebrow={t('tasteIntelligenceEyebrow')}
+					chipText={t('tasteIntelligenceChip')}
 					className='mb-8 p-3 md:p-4'
 					tone='xp'
 				>
-					<div className='flex items-center gap-3'>
+					<div className='flex items-start gap-3'>
 						<motion.button
 							type='button'
 							onClick={() => router.back()}
@@ -363,15 +362,20 @@ export default function TasteProfilePage() {
 						>
 							<ArrowLeft className='size-5' />
 						</motion.button>
-						<div className='flex-1'>
-							<PageHeader
-								icon={Sparkles}
-								title={t('tasteDNA')}
-								subtitle={t('tasteDNASubtitle')}
-								gradient='purple'
-								marginBottom='sm'
-								className='mb-0'
-							/>
+						<div className='flex-1 rounded-2xl border border-border-subtle bg-bg-card px-4 py-5 shadow-card'>
+							<div className='flex items-center gap-3'>
+								<div className='grid size-10 place-items-center rounded-2xl bg-xp text-white shadow-[0_6px_18px_rgba(150,93,255,0.28)]'>
+									<Sparkles className='size-5' />
+								</div>
+								<div className='min-w-0'>
+									<h1 className='text-3xl font-black tracking-tight text-text-primary'>
+										{t('tasteDNA')}
+									</h1>
+									<p className='mt-1 text-sm text-text-secondary'>
+										{t('tasteDNASubtitle')}
+									</p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</PremiumSurface>
@@ -399,23 +403,25 @@ export default function TasteProfilePage() {
 				{/* Radar Chart — only show when user has actual data */}
 				{!isBlankProfile && (
 					<PremiumSurface
-						eyebrow='Taste DNA Radar'
+						eyebrow={t('tasteRadarEyebrow')}
 						chipText={
-							topDimension ? `Top: ${topDimension.label}` : 'Calibrating'
+							topDimension
+								? t('tasteRadarChipTop', { trait: topDimension.label })
+								: t('tasteRadarChipCalibrating')
 						}
-						className='mx-auto mb-8 max-w-sm p-4 sm:p-6'
+						className='mx-auto mb-6 max-w-lg p-2.5 sm:p-6'
 						showOrbs={false}
 					>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='mx-auto max-w-sm rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'
+							className='mx-auto max-w-lg rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-6'
 						>
 							<TasteRadar dimensions={dimensions} />
 							{topDimension && (
 								<p className='mt-4 text-center text-sm text-text-secondary'>
-									Your strongest trait:{' '}
+									{t('tasteStrongestTraitLabel')}{' '}
 									<span className='font-semibold text-brand'>
 										{topDimension.label}
 									</span>
@@ -443,13 +449,13 @@ export default function TasteProfilePage() {
 				{/* Dimension Breakdown */}
 				{!isBlankProfile && (
 					<PremiumSurface
-						eyebrow='Dimension Breakdown'
-						chipText={`${dimensions.length} traits`}
+						eyebrow={t('tasteDimensionsEyebrow')}
+						chipText={t('tasteDimensionsChip', { count: dimensions.length })}
 						className='p-3 md:p-4'
 					>
 						<SurfaceSectionHeader
-							eyebrow='Trait Signals'
-							chipText='Behavior + preferences'
+							eyebrow={t('tasteSignalsEyebrow')}
+							chipText={t('tasteSignalsChip')}
 							className='mb-3'
 						/>
 						<div className='space-y-3'>
@@ -502,8 +508,10 @@ export default function TasteProfilePage() {
 					tasteProfile.cuisineDistribution &&
 					tasteProfile.cuisineDistribution.length > 0 && (
 						<PremiumSurface
-							eyebrow='Cuisine DNA'
-							chipText={`${tasteProfile.totalInteractions ?? 0} interactions`}
+							eyebrow={t('tasteCuisineEyebrow')}
+							chipText={t('tasteCuisineChip', {
+								count: tasteProfile.totalInteractions ?? 0,
+							})}
 							tone='blue'
 							className='mt-8 p-3 md:p-4'
 						>
@@ -515,11 +523,12 @@ export default function TasteProfilePage() {
 							>
 								<h2 className='mb-4 flex items-center gap-2 font-semibold text-text-primary'>
 									<Globe className='size-5 text-brand' />
-									Your Cuisine DNA
+									{t('tasteCuisineTitle')}
 								</h2>
 								<p className='mb-4 text-xs text-text-muted'>
-									Based on {tasteProfile.totalInteractions ?? 0} interactions —
-									likes, saves, views, and cooks
+									{t('tasteCuisineSubtitle', {
+										count: tasteProfile.totalInteractions ?? 0,
+									})}
 								</p>
 								<div className='space-y-3'>
 									<SkillBars
@@ -557,7 +566,7 @@ export default function TasteProfilePage() {
 					>
 						<h2 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
 							<Zap className='size-5 text-gaming-xp' />
-							Your Interests
+							{t('tasteInterestsTitle')}
 						</h2>
 						<div className='flex flex-wrap gap-2'>
 							{profile.preferences.map(pref => (
@@ -584,7 +593,7 @@ export default function TasteProfilePage() {
 							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary'>
 									<Globe className='size-4 text-brand' />
-									Favorite Cuisines
+									{t('tasteFavoriteCuisinesTitle')}
 								</h3>
 								<div className='flex flex-wrap gap-2'>
 									{cookingPrefs.preferredCuisines.map(c => (
@@ -602,7 +611,7 @@ export default function TasteProfilePage() {
 							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary'>
 									<Trophy className='size-4 text-gaming-xp' />
-									Dietary Preferences
+									{t('tasteDietaryPreferencesTitle')}
 								</h3>
 								<div className='flex flex-wrap gap-2'>
 									{cookingPrefs.dietaryRestrictions.map(d => (
@@ -650,7 +659,7 @@ export default function TasteProfilePage() {
 					</motion.div>
 				)}
 
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

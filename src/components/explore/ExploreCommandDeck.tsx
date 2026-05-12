@@ -8,6 +8,7 @@ import {
 	TrendingUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SlideTabs } from '@/components/ui/slide-tabs'
 
 interface ExploreCommandDeckProps {
 	activeFiltersCount: number
@@ -89,7 +90,6 @@ export function ExploreCommandDeck({
 	const activeSortLabel =
 		sortOptions.find(option => option.value === sortValue)?.label ??
 		labels.sortNewest
-	const shouldShowMobileStats = resultCount > 0 || activeFiltersCount > 0
 	const shouldShowSortControl = resultCount > 0 || activeFiltersCount > 0
 
 	return (
@@ -98,16 +98,16 @@ export function ExploreCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-4 shadow-card md:p-5',
+				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-3 shadow-card sm:p-4 md:p-5',
 				className,
 			)}
 		>
-			<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+			<div className='mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
 				<div>
 					<p className='text-xs font-bold uppercase tracking-[0.16em] text-brand'>
 						{labels.eyebrow}
 					</p>
-					<h2 className='mt-1 text-lg font-black text-text-primary'>
+					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>
 						{labels.heading}
 					</h2>
 				</div>
@@ -117,30 +117,9 @@ export function ExploreCommandDeck({
 				</div>
 			</div>
 
-			<div className='mb-4'>{children}</div>
+			<div className='mb-3 sm:mb-4'>{children}</div>
 
-			{shouldShowMobileStats && (
-				<div className='mb-4 grid grid-cols-2 gap-2 sm:hidden'>
-					<div className='rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2'>
-						<p className='text-2xs font-bold uppercase tracking-[0.14em] text-text-muted'>
-							{labels.results}
-						</p>
-						<p className='mt-1 text-sm font-black tabular-nums text-text-primary'>
-							{resultCount}
-						</p>
-					</div>
-					<div className='rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2'>
-						<p className='text-2xs font-bold uppercase tracking-[0.14em] text-text-muted'>
-							{labels.filters}
-						</p>
-						<p className='mt-1 text-sm font-black tabular-nums text-text-primary'>
-							{activeFiltersCount}
-						</p>
-					</div>
-				</div>
-			)}
-
-			<div className='mb-4 hidden grid-cols-2 gap-2 sm:grid lg:grid-cols-4'>
+			<div className='mb-4 hidden grid-cols-2 gap-2 sm:grid'>
 				<StatChip
 					label={labels.results}
 					value={resultCount.toString()}
@@ -153,74 +132,77 @@ export function ExploreCommandDeck({
 					icon={Filter}
 					tone={activeFiltersCount > 0 ? 'brand' : 'muted'}
 				/>
-				<StatChip
-					label={labels.mode}
-					value={viewMode === 'all' ? labels.modeAll : labels.modeTrending}
-					icon={viewMode === 'all' ? Search : Flame}
-					tone={viewMode === 'all' ? 'muted' : 'xp'}
-				/>
-				<StatChip
-					label={labels.sort}
-					value={activeSortLabel}
-					icon={TrendingUp}
-					tone='muted'
-				/>
 			</div>
 
-			<div className='mb-4 flex flex-wrap items-center gap-2'>
-				<button
-					type='button'
-					onClick={() => onViewModeChange('all')}
-					className={cn(
-						'inline-flex h-10 min-w-36 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-all',
-						viewMode === 'all'
-							? 'bg-brand text-white shadow-card'
-							: 'border border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand',
-					)}
-				>
-					<Compass className='size-4' />
-					{labels.allRecipes}
-				</button>
-				<button
-					type='button'
-					onClick={() => onViewModeChange('trending')}
-					className={cn(
-						'inline-flex h-10 min-w-36 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition-all',
-						viewMode === 'trending'
-							? 'bg-xp text-white shadow-card'
-							: 'border border-border-medium bg-bg-card text-text-secondary hover:border-xp hover:text-xp',
-					)}
-				>
-					<Flame className='size-4' />
-					{labels.trending}
-				</button>
-			</div>
+			<div className='flex flex-col gap-2 sm:gap-3'>
+				<div className='flex items-center gap-2 sm:flex-wrap sm:items-center'>
+					<div className='min-w-0 flex-1 sm:flex-none'>
+						<SlideTabs
+							tabs={[
+								{
+									id: 'all',
+									label: labels.allRecipes,
+									icon: (
+										<Compass
+											className={cn(
+												'size-3.5',
+												viewMode === 'all' ? 'text-brand' : 'text-text-muted',
+											)}
+										/>
+									),
+								},
+								{
+									id: 'trending',
+									label: labels.trending,
+									icon: (
+										<Flame
+											className={cn(
+												'size-3.5',
+												viewMode === 'trending' ? 'text-xp' : 'text-text-muted',
+											)}
+										/>
+									),
+								},
+							]}
+							activeTab={viewMode}
+							onTabChange={value =>
+								onViewModeChange(value as 'all' | 'trending')
+							}
+							variant='pill'
+							size='sm'
+							fullWidth
+							className='w-full sm:w-auto'
+						/>
+					</div>
 
-			{shouldShowSortControl && (
-				<div className='flex flex-wrap items-center gap-2'>
-					<label
-						htmlFor='explore-sort-select'
-						className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'
-					>
-						{labels.sort}
-					</label>
-					<select
-						id='explore-sort-select'
-						value={sortValue}
-						onChange={event => onSortChange(event.target.value)}
-						disabled={sortDisabled}
-						className={cn(
-							'h-10 min-w-44 rounded-xl border border-border-medium bg-bg-card px-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60',
-						)}
-					>
-						{sortOptions.map(option => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
+					{shouldShowSortControl && (
+						<div className='w-36 shrink-0 sm:flex sm:w-auto sm:items-center sm:gap-2'>
+							<label
+								htmlFor='explore-sort-select'
+								className='sr-only text-xs font-semibold uppercase tracking-[0.12em] text-text-muted sm:not-sr-only'
+							>
+								{labels.sort}
+							</label>
+							<select
+								id='explore-sort-select'
+								aria-label={labels.sort}
+								value={sortValue}
+								onChange={event => onSortChange(event.target.value)}
+								disabled={sortDisabled}
+								className={cn(
+									'h-10 w-full rounded-xl border border-border-medium bg-bg-card px-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-44 sm:w-auto',
+								)}
+							>
+								{sortOptions.map(option => (
+									<option key={option.value} value={option.value}>
+										{option.label}
+									</option>
+								))}
+							</select>
+						</div>
+					)}
 				</div>
-			)}
+			</div>
 		</motion.section>
 	)
 }

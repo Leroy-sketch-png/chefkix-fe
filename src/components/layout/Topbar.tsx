@@ -35,12 +35,14 @@ import {
 } from '@/lib/motion'
 
 interface HeaderRoutePolicy {
+	showDesktopSearchBar: boolean
 	showMobileSearchShortcut: boolean
 	showMessagesButton: boolean
 	showNotificationsButton: boolean
 }
 
 const defaultRoutePolicy: HeaderRoutePolicy = {
+	showDesktopSearchBar: true,
 	showMobileSearchShortcut: true,
 	showMessagesButton: true,
 	showNotificationsButton: true,
@@ -54,6 +56,7 @@ function getHeaderRoutePolicy(pathname: string): HeaderRoutePolicy {
 	) {
 		return {
 			...defaultRoutePolicy,
+			showDesktopSearchBar: false,
 			showMobileSearchShortcut: false,
 		}
 	}
@@ -351,7 +354,7 @@ export const Topbar = () => {
 		<StickyHeader
 			height='h-16 md:h-18'
 			left={leftSlot}
-			center={centerSlot}
+			center={routePolicy.showDesktopSearchBar ? centerSlot : undefined}
 			right={rightSlot}
 			className={cn(
 				'relative overflow-hidden',

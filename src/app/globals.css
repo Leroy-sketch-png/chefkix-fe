@@ -253,7 +253,8 @@
 
 	/* Heights */
 	--h-topbar: 72px;
-	--h-mobile-nav: 72px;
+	/* Mobile nav includes elevated buttons and safe-area padding; reserve extra clearance. */
+	--h-mobile-nav: 104px;
 	--h-mobile-header: 60px; /* Mobile sticky header offset */
 	--h-textarea-sm: 120px; /* Compact textarea (post content) */
 	--h-textarea-min: 100px; /* Minimum height for textareas */

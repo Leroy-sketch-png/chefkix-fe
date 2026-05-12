@@ -27,7 +27,7 @@ import {
 	History,
 	TrendingUp,
 } from 'lucide-react'
-import Image from 'next/image'
+import Image, { type ImageProps } from 'next/image'
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -65,6 +65,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -226,6 +227,40 @@ function findSuggestion(query: string): string | null {
 // COMPONENTS
 // ============================================
 
+function SearchResultImage({
+	src,
+	fallbackSrc = '/placeholder-recipe.svg',
+	onError,
+	...props
+}: Omit<ImageProps, 'src'> & {
+	src: string
+	fallbackSrc?: string
+}) {
+	const [currentSrc, setCurrentSrc] = useState(src || fallbackSrc)
+	const [hasError, setHasError] = useState(false)
+	const isRemoteSource = /^https?:\/\//i.test(currentSrc || fallbackSrc)
+
+	useEffect(() => {
+		setCurrentSrc(src || fallbackSrc)
+		setHasError(false)
+	}, [fallbackSrc, src])
+
+	return (
+		<Image
+			{...props}
+			src={currentSrc || fallbackSrc}
+			unoptimized={isRemoteSource}
+			onError={event => {
+				onError?.(event)
+				if (!hasError) {
+					setHasError(true)
+					setCurrentSrc(fallbackSrc)
+				}
+			}}
+		/>
+	)
+}
+
 const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
 	const { requireAuth } = useAuthGate()
@@ -264,15 +299,12 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 				className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card transition-shadow hover:shadow-warm'
 			>
 				<div className='relative h-44 w-full overflow-hidden'>
-					<Image
+					<SearchResultImage
 						src={recipe.imageUrl || '/placeholder-recipe.svg'}
 						alt={recipe.title}
 						fill
 						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
-						onError={e => {
-							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
-						}}
 					/>
 				</div>
 				<div className='p-4'>
@@ -429,15 +461,12 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 				className='group flex gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-shadow hover:shadow-card'
 			>
 				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
-					<Image
+					<SearchResultImage
 						src={post.imageUrl || '/placeholder-recipe.svg'}
 						alt={`Post by ${post.author.username}${post.caption ? `: ${post.caption.slice(0, 80)}` : ''}`}
 						fill
 						sizes='80px'
 						className='object-cover transition-transform duration-300 group-hover:scale-105'
-						onError={e => {
-							;(e.target as HTMLImageElement).src = '/placeholder-recipe.svg'
-						}}
 					/>
 				</div>
 				<div className='min-w-0 flex-1'>
@@ -516,6 +545,7 @@ function SearchContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const t = useTranslations('search')
+	const { isAuthenticated } = useAuth()
 	const query = searchParams.get('q') || ''
 	const [searchInput, setSearchInput] = useState(query)
 	const isInternalNav = useRef(false)
@@ -650,25 +680,28 @@ function SearchContent() {
 	if (error && query) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
-					<ErrorState
-						title={t('searchFailed')}
-						message={t('searchFailedDesc')}
-						onRetry={() => {
-							setError(false)
-							setIsLoading(true)
-						}}
-					/>
-				</PageContainer>
+				<div data-testid='search-page'>
+					<PageContainer maxWidth='lg'>
+						<ErrorState
+							title={t('searchFailed')}
+							message={t('searchFailedDesc')}
+							onRetry={() => {
+								setError(false)
+								setIsLoading(true)
+							}}
+						/>
+					</PageContainer>
+				</div>
 			</PageTransition>
 		)
 	}
 
 	if (!query) {
-		const visibleSuggestionTerms = SEARCH_SUGGESTIONS.slice(0, 6)
-		const trendingTermsForDeck = TRENDING_SEARCH_TERMS.filter(
-			({ term }) => !visibleSuggestionTerms.includes(term),
-		)
+		const visibleSuggestionTerms = SEARCH_SUGGESTIONS.filter(
+			term =>
+				!TRENDING_SEARCH_TERMS.some(trendingItem => trendingItem.term === term),
+		).slice(0, 4)
+		const trendingTermsForDeck = TRENDING_SEARCH_TERMS
 
 		const handleSuggestionClick = (term: string) => {
 			setSearchInput(term)
@@ -683,31 +716,256 @@ function SearchContent() {
 
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='2xl'>
-					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
-						<div className='space-y-6'>
-							<motion.section
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={TRANSITION_SPRING}
-								className='rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-4 shadow-card md:p-5'
-							>
-								<div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
-									<div>
-										<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-											Discovery Command
-										</p>
-										<h1 className='mt-1 text-xl font-black leading-tight text-text-primary md:text-2xl'>
-											Search what to cook now
-										</h1>
+				<div data-testid='search-page'>
+					<PageContainer maxWidth='2xl'>
+						<div
+							className={cn(
+								'grid grid-cols-1 gap-6',
+								isAuthenticated && 'xl:grid-cols-[minmax(0,1fr)_18rem]',
+							)}
+						>
+							<div className='space-y-6'>
+								<motion.section
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={TRANSITION_SPRING}
+									className='rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-3 shadow-card sm:p-4 md:p-5'
+								>
+									<div className='mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
+										<div>
+											<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+												{t('discoveryCommandEyebrow')}
+											</p>
+											<h1 className='mt-1 text-lg font-black leading-tight text-text-primary sm:text-xl md:text-2xl'>
+												{t('discoveryCommandHeading')}
+											</h1>
+										</div>
+										<div className='hidden items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
+											<Sparkles className='size-3.5' />
+											{t('liveSuggestions')}
+										</div>
 									</div>
-									<div className='hidden items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
-										<Sparkles className='size-3.5' />
-										Live suggestions
-									</div>
-								</div>
 
-								<div className='relative mb-4'>
+									<div className='relative mb-3 sm:mb-4'>
+										<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
+										<input
+											type='text'
+											value={searchInput}
+											onChange={e => handleSearchInputChange(e.target.value)}
+											placeholder={t('searchPlaceholder')}
+											aria-label={t('searchPlaceholder')}
+											className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-11 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:ring-0 sm:py-3.5'
+										/>
+										{searchInput && (
+											<motion.button
+												type='button'
+												onClick={() => handleSearchInputChange('')}
+												whileTap={BUTTON_TAP}
+												className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+												aria-label={t('clearSearch')}
+											>
+												<X className='size-4' />
+											</motion.button>
+										)}
+									</div>
+
+									<div className='mb-2 flex items-center gap-2 text-text-secondary'>
+										<Sparkles className='size-4 text-brand' />
+										<p className='text-sm font-semibold'>{t('suggestions')}</p>
+									</div>
+
+									<div className='-mx-3 overflow-x-auto pb-1 sm:mx-0 sm:overflow-visible sm:pb-0'>
+										<div className='flex min-w-max gap-2 px-3 sm:flex-wrap sm:px-0'>
+											{visibleSuggestionTerms.map(term => (
+												<motion.button
+													type='button'
+													key={term}
+													onClick={() => handleSuggestionClick(term)}
+													whileTap={BUTTON_TAP}
+													className='min-h-9 shrink-0 rounded-full border border-border-subtle bg-bg-card px-3.5 py-1.5 text-sm font-semibold text-text-primary transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:min-h-10 sm:px-4 sm:py-2'
+												>
+													{term}
+												</motion.button>
+											))}
+										</div>
+									</div>
+								</motion.section>
+
+								{recentSearches.length > 0 && (
+									<motion.section
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ ...TRANSITION_SPRING, delay: 0.05 }}
+										className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'
+									>
+										<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+											<History className='size-4' />
+											<p className='text-sm font-semibold'>
+												{t('recentSearches')}
+											</p>
+										</div>
+										<div className='flex flex-wrap gap-2'>
+											{recentSearches.map(term => (
+												<div
+													key={term}
+													className='inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-elevated pr-1'
+												>
+													<motion.button
+														type='button'
+														onClick={() => handleSuggestionClick(term)}
+														whileTap={BUTTON_TAP}
+														className='px-3 py-1.5 text-sm font-medium text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{term}
+													</motion.button>
+													<motion.button
+														type='button'
+														onClick={() => handleRemoveRecent(term)}
+														whileTap={BUTTON_TAP}
+														className='flex size-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+														aria-label={t('removeRecentSearch', { term })}
+													>
+														<X className='size-3' />
+													</motion.button>
+												</div>
+											))}
+										</div>
+									</motion.section>
+								)}
+
+								<motion.section
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
+									className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'
+								>
+									<div className='mb-3 flex items-center gap-2 text-text-secondary'>
+										<Flame className='size-4 text-streak' />
+										<p className='text-sm font-semibold'>
+											{t('trendingSearches')}
+										</p>
+									</div>
+									<div className='grid grid-cols-2 gap-2'>
+										{trendingTermsForDeck.map(
+											({ term, icon: Icon, iconClass }) => (
+												<motion.button
+													type='button'
+													key={term}
+													onClick={() => handleSuggestionClick(term)}
+													whileTap={BUTTON_TAP}
+													className='group flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-elevated px-2 py-2 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-2 sm:p-3'
+												>
+													<span
+														className={cn(
+															'flex size-6 items-center justify-center rounded-lg sm:size-8',
+															iconClass,
+														)}
+													>
+														<Icon className='size-3 sm:size-4' />
+													</span>
+													<span className='text-[13px] font-semibold leading-tight text-text-primary sm:text-sm'>
+														{term}
+													</span>
+												</motion.button>
+											),
+										)}
+									</div>
+								</motion.section>
+
+								{/* Bottom breathing room for MobileBottomNav */}
+								<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+							</div>
+
+							{isAuthenticated && (
+								<motion.aside
+									initial={{ opacity: 0, x: 10 }}
+									animate={{ opacity: 1, x: 0 }}
+									transition={{ duration: DURATION_S.normal }}
+									className='hidden xl:flex xl:flex-col xl:gap-4 xl:self-start xl:sticky xl:top-24'
+								>
+									<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+										<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+											{t('quickMoves')}
+										</p>
+										<div className='mt-3 grid gap-2'>
+											<Link
+												href='/explore'
+												className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+											>
+												<BookOpen className='size-3.5' />
+												{t('exploreAll')}
+											</Link>
+											<Link
+												href='/community'
+												className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+											>
+												<Users className='size-3.5' />
+												{t('discoverPeople')}
+											</Link>
+											<Link
+												href='/feed'
+												className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+											>
+												<ImageIcon className='size-3.5' />
+												{t('viewFeed')}
+											</Link>
+										</div>
+									</div>
+								</motion.aside>
+							)}
+						</div>
+					</PageContainer>
+				</div>
+			</PageTransition>
+		)
+	}
+
+	return (
+		<PageTransition>
+			<div data-testid='search-page'>
+				{/* Global navigation loading indicator */}
+				<AnimatePresence>
+					{isNavigating && (
+						<motion.div
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 1 }}
+							exit={{ opacity: 0 }}
+							className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+						>
+							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
+								<motion.div
+									animate={{ rotate: 360 }}
+									transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+								>
+									<Search className='size-4' />
+								</motion.div>
+								{t('loading')}
+							</div>
+						</motion.div>
+					)}
+				</AnimatePresence>
+
+				<PageContainer maxWidth='lg'>
+					<PremiumSurface
+						eyebrow={t('resultsWorkspaceEyebrow')}
+						chipText={t('results', { count: totalResults })}
+						className='mb-6 p-3 md:p-4'
+						tone='blue'
+					>
+						{/* Header - Secondary page pattern with back button */}
+						<div>
+							{/* Editable search input - users can refine from within the page */}
+							<div className='mb-4 flex items-center gap-3'>
+								<motion.button
+									type='button'
+									onClick={() => router.back()}
+									whileTap={BUTTON_TAP}
+									className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+									aria-label={t('goBack')}
+								>
+									<ArrowLeft className='size-5' />
+								</motion.button>
+								<div className='relative flex-1'>
 									<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
 									<input
 										type='text'
@@ -715,7 +973,7 @@ function SearchContent() {
 										onChange={e => handleSearchInputChange(e.target.value)}
 										placeholder={t('searchPlaceholder')}
 										aria-label={t('searchPlaceholder')}
-										className='w-full rounded-xl border border-border-subtle bg-bg-card py-3.5 pl-12 pr-11 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:ring-0'
+										className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
 									/>
 									{searchInput && (
 										<motion.button
@@ -729,539 +987,297 @@ function SearchContent() {
 										</motion.button>
 									)}
 								</div>
-
-								<div className='flex flex-wrap gap-2'>
-									{visibleSuggestionTerms.map((term, index) => (
-										<motion.button
-											type='button'
-											key={term}
-											onClick={() => handleSuggestionClick(term)}
-											whileTap={BUTTON_TAP}
-											className={cn(
-												'min-h-10 rounded-full border border-border-subtle bg-bg-card px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50',
-												index >= 3 && 'hidden sm:inline-flex',
-											)}
-										>
-											{term}
-										</motion.button>
-									))}
-								</div>
-							</motion.section>
-
-							{recentSearches.length > 0 && (
-								<motion.section
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ ...TRANSITION_SPRING, delay: 0.05 }}
-									className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
+							</div>
+							<div className='mb-2 flex items-center gap-3'>
+								<motion.div
+									initial={{ scale: 0 }}
+									animate={{ scale: 1 }}
+									transition={TRANSITION_SPRING}
+									className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
 								>
-									<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-										<History className='size-4' />
-										<p className='text-sm font-semibold'>
-											{t('recentSearches')}
-										</p>
-									</div>
-									<div className='flex flex-wrap gap-2'>
-										{recentSearches.map(term => (
-											<div
-												key={term}
-												className='inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-elevated pr-1'
-											>
-												<motion.button
-													type='button'
-													onClick={() => handleSuggestionClick(term)}
-													whileTap={BUTTON_TAP}
-													className='px-3 py-1.5 text-sm font-medium text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-												>
-													{term}
-												</motion.button>
-												<motion.button
-													type='button'
-													onClick={() => handleRemoveRecent(term)}
-													whileTap={BUTTON_TAP}
-													className='flex size-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-													aria-label={t('removeRecentSearch', { term })}
-												>
-													<X className='size-3' />
-												</motion.button>
-											</div>
-										))}
-									</div>
-								</motion.section>
-							)}
-
-							<motion.section
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-								className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
-							>
-								<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-									<Flame className='size-4 text-streak' />
-									<p className='text-sm font-semibold'>
-										{t('trendingSearches')}
-									</p>
-								</div>
-								<div className='grid grid-cols-2 gap-2'>
-									{trendingTermsForDeck.map(
-										({ term, icon: Icon, iconClass }, index) => (
-											<motion.button
-												type='button'
-												key={term}
-												onClick={() => handleSuggestionClick(term)}
-												whileTap={BUTTON_TAP}
-												className={cn(
-													'group flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-elevated px-2 py-2 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-2 sm:p-3',
-													index >= 2 && 'hidden sm:flex',
-												)}
-											>
-												<span
-													className={cn(
-														'flex size-6 items-center justify-center rounded-lg sm:size-8',
-														iconClass,
-													)}
-												>
-													<Icon className='size-3 sm:size-4' />
-												</span>
-												<span className='text-[13px] font-semibold leading-tight text-text-primary sm:text-sm'>
-													{term}
-												</span>
-											</motion.button>
-										),
-									)}
-								</div>
-							</motion.section>
-
-							<div className='pb-24 md:pb-8' />
+									<Search className='size-6 text-white' />
+								</motion.div>
+								<h1 className='text-3xl font-bold text-text-primary'>
+									{t('resultsHeading', { query })}
+								</h1>
+							</div>
+							<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
+								<Sparkles className='size-4 text-streak' />
+								{t('resultsFound', { count: totalResults })}
+							</p>
 						</div>
+					</PremiumSurface>
 
-						<motion.aside
-							initial={{ opacity: 0, x: 10 }}
-							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: DURATION_S.normal }}
-							className='hidden xl:flex xl:flex-col xl:gap-4 xl:self-start xl:sticky xl:top-24'
-						>
-							<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-									Search Pulse
-								</p>
-								<h3 className='mt-1 text-lg font-black text-text-primary'>
-									Discovery ready
-								</h3>
-								<div className='mt-3 grid gap-2'>
-									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
-										<span className='text-xs font-semibold text-text-secondary'>
-											Recent terms
-										</span>
-										<span className='text-sm font-black tabular-nums text-text-primary'>
-											{recentSearches.length}
-										</span>
-									</div>
-									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
-										<span className='text-xs font-semibold text-text-secondary'>
-											Suggestion packs
-										</span>
-										<span className='text-sm font-black tabular-nums text-text-primary'>
-											{SEARCH_SUGGESTIONS.length}
-										</span>
-									</div>
-									<div className='flex items-center justify-between rounded-lg bg-bg-elevated px-3 py-2'>
-										<span className='text-xs font-semibold text-text-secondary'>
-											Trending slots
-										</span>
-										<span className='text-sm font-black tabular-nums text-text-primary'>
-											{TRENDING_SEARCH_TERMS.length}
-										</span>
-									</div>
-								</div>
-							</div>
-
-							<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-									Quick Moves
-								</p>
-								<div className='mt-3 grid gap-2'>
-									<Link
-										href='/explore'
-										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
-									>
-										<BookOpen className='size-3.5' />
-										{t('exploreAll')}
-									</Link>
-									<Link
-										href='/community'
-										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
-									>
-										<Users className='size-3.5' />
-										{t('discoverPeople')}
-									</Link>
-									<Link
-										href='/feed'
-										className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
-									>
-										<ImageIcon className='size-3.5' />
-										{t('viewFeed')}
-									</Link>
-								</div>
-							</div>
-						</motion.aside>
-					</div>
-				</PageContainer>
-			</PageTransition>
-		)
-	}
-
-	return (
-		<PageTransition>
-			{/* Global navigation loading indicator */}
-			<AnimatePresence>
-				{isNavigating && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
+					<PremiumSurface
+						eyebrow={t('resultsStreamsEyebrow')}
+						className='p-3 md:p-4'
 					>
-						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
-							<motion.div
-								animate={{ rotate: 360 }}
-								transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-							>
-								<Search className='size-4' />
-							</motion.div>
-							{t('loading')}
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+						<FeedTabBar<SearchTab>
+							tabs={tabs}
+							activeTab={activeTab}
+							onTabChange={setActiveTab}
+							variant='underline'
+							size='lg'
+							className='mb-6'
+						/>
 
-			<PageContainer maxWidth='lg'>
-				<PremiumSurface
-					eyebrow='Search Workspace'
-					chipText={`${totalResults} results`}
-					className='mb-6 p-3 md:p-4'
-					tone='blue'
-				>
-					{/* Header - Secondary page pattern with back button */}
-					<div>
-						{/* Editable search input - users can refine from within the page */}
-						<div className='mb-4 flex items-center gap-3'>
-							<motion.button
-								type='button'
-								onClick={() => router.back()}
-								whileTap={BUTTON_TAP}
-								className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-								aria-label={t('goBack')}
-							>
-								<ArrowLeft className='size-5' />
-							</motion.button>
-							<div className='relative flex-1'>
-								<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
-								<input
-									type='text'
-									value={searchInput}
-									onChange={e => handleSearchInputChange(e.target.value)}
-									placeholder={t('searchPlaceholder')}
-									aria-label={t('searchPlaceholder')}
-									className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
-								/>
-								{searchInput && (
-									<motion.button
-										type='button'
-										onClick={() => handleSearchInputChange('')}
-										whileTap={BUTTON_TAP}
-										className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-										aria-label={t('clearSearch')}
-									>
-										<X className='size-4' />
-									</motion.button>
-								)}
-							</div>
-						</div>
-						<div className='mb-2 flex items-center gap-3'>
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={TRANSITION_SPRING}
-								className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
-							>
-								<Search className='size-6 text-white' />
-							</motion.div>
-							<h1 className='text-3xl font-bold text-text-primary'>
-								Results for &quot;{query}&quot;
-							</h1>
-						</div>
-						<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
-							<Sparkles className='size-4 text-streak' />
-							{totalResults} results found
-						</p>
-					</div>
-				</PremiumSurface>
-
-				<PremiumSurface
-					eyebrow='Result Streams'
-					chipText={activeTab}
-					className='p-3 md:p-4'
-				>
-					<FeedTabBar<SearchTab>
-						tabs={tabs}
-						activeTab={activeTab}
-						onTabChange={setActiveTab}
-						variant='underline'
-						size='lg'
-						className='mb-6'
-					/>
-
-					{/* Results */}
-					<AnimatePresence mode='wait'>
-						{isLoading ? (
-							<motion.div
-								key='loading-skeleton'
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								transition={{ duration: DURATION_S.fast }}
-							>
-								{activeTab === 'recipes' && (
-									<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-										{Array.from({ length: 6 }).map((_, i) => (
-											<div
-												key={i}
-												className='overflow-hidden rounded-radius border border-border-subtle bg-bg-card'
-											>
-												<Skeleton className='aspect-[4/3] w-full' />
-												<div className='space-y-3 p-4'>
-													<Skeleton className='h-5 w-full' />
-													<Skeleton className='h-5 w-3/4' />
-													<Skeleton className='h-4 w-24' />
-												</div>
-											</div>
-										))}
-									</div>
-								)}
-								{activeTab === 'people' && (
-									<div className='space-y-4'>
-										{Array.from({ length: 4 }).map((_, i) => (
-											<div
-												key={i}
-												className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'
-											>
-												<Skeleton className='size-14 shrink-0 rounded-full' />
-												<div className='flex-1 space-y-2'>
-													<Skeleton className='h-5 w-32' />
-													<Skeleton className='h-4 w-24' />
-													<Skeleton className='h-4 w-48' />
-												</div>
-												<Skeleton className='h-9 w-24 rounded-xl' />
-											</div>
-										))}
-									</div>
-								)}
-								{activeTab === 'posts' && (
-									<div className='space-y-3'>
-										{Array.from({ length: 4 }).map((_, i) => (
-											<div
-												key={i}
-												className='rounded-2xl bg-bg-card p-4 space-y-3'
-											>
-												<div className='flex items-center gap-3'>
-													<Skeleton className='size-10 rounded-full' />
-													<div className='flex-1 space-y-1'>
-														<Skeleton className='h-4 w-28' />
-														<Skeleton className='h-3 w-20' />
+						{/* Results */}
+						<AnimatePresence mode='wait'>
+							{isLoading ? (
+								<motion.div
+									key='loading-skeleton'
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									exit={{ opacity: 0 }}
+									transition={{ duration: DURATION_S.fast }}
+								>
+									{activeTab === 'recipes' && (
+										<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+											{Array.from({ length: 6 }).map((_, i) => (
+												<div
+													key={i}
+													className='overflow-hidden rounded-radius border border-border-subtle bg-bg-card'
+												>
+													<Skeleton className='aspect-[4/3] w-full' />
+													<div className='space-y-3 p-4'>
+														<Skeleton className='h-5 w-full' />
+														<Skeleton className='h-5 w-3/4' />
+														<Skeleton className='h-4 w-24' />
 													</div>
 												</div>
-												<Skeleton className='h-4 w-full' />
-												<Skeleton className='h-4 w-3/4' />
-												<Skeleton className='aspect-video w-full rounded-xl' />
-											</div>
-										))}
-									</div>
-								)}
-							</motion.div>
-						) : (
-							<>
-								{activeTab === 'recipes' && (
-									<motion.div
-										key='recipes'
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, y: -10 }}
-										transition={{ duration: DURATION_S.normal }}
-									>
-										{results.recipes.length > 0 ? (
-											<StaggerContainer staggerDelay={0.05}>
-												<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
-													{results.recipes.map(recipe => (
-														<RecipeResultCard key={recipe.id} recipe={recipe} />
-													))}
+											))}
+										</div>
+									)}
+									{activeTab === 'people' && (
+										<div className='space-y-4'>
+											{Array.from({ length: 4 }).map((_, i) => (
+												<div
+													key={i}
+													className='flex items-center gap-4 rounded-2xl bg-bg-card p-4'
+												>
+													<Skeleton className='size-14 shrink-0 rounded-full' />
+													<div className='flex-1 space-y-2'>
+														<Skeleton className='h-5 w-32' />
+														<Skeleton className='h-4 w-24' />
+														<Skeleton className='h-4 w-48' />
+													</div>
+													<Skeleton className='h-9 w-24 rounded-xl' />
 												</div>
-											</StaggerContainer>
-										) : (
-											<>
-												{suggestion && (
-													<motion.p
-														initial={{ opacity: 0 }}
-														animate={{ opacity: 1 }}
-														className='mb-4 text-center text-sm text-text-secondary'
-													>
-														Did you mean{' '}
-														<motion.button
-															type='button'
-															onClick={() => {
-																isInternalNav.current = true
-																setSearchInput(suggestion)
-																startNavigationTransition(() => {
-																	router.push(
-																		`/search?q=${encodeURIComponent(suggestion)}`,
-																	)
-																})
-															}}
-															disabled={isNavigating}
-															whileTap={BUTTON_TAP}
-															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											))}
+										</div>
+									)}
+									{activeTab === 'posts' && (
+										<div className='space-y-3'>
+											{Array.from({ length: 4 }).map((_, i) => (
+												<div
+													key={i}
+													className='rounded-2xl bg-bg-card p-4 space-y-3'
+												>
+													<div className='flex items-center gap-3'>
+														<Skeleton className='size-10 rounded-full' />
+														<div className='flex-1 space-y-1'>
+															<Skeleton className='h-4 w-28' />
+															<Skeleton className='h-3 w-20' />
+														</div>
+													</div>
+													<Skeleton className='h-4 w-full' />
+													<Skeleton className='h-4 w-3/4' />
+													<Skeleton className='aspect-video w-full rounded-xl' />
+												</div>
+											))}
+										</div>
+									)}
+								</motion.div>
+							) : (
+								<>
+									{activeTab === 'recipes' && (
+										<motion.div
+											key='recipes'
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: -10 }}
+											transition={{ duration: DURATION_S.normal }}
+										>
+											{results.recipes.length > 0 ? (
+												<StaggerContainer staggerDelay={0.05}>
+													<div className='grid gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+														{results.recipes.map(recipe => (
+															<RecipeResultCard
+																key={recipe.id}
+																recipe={recipe}
+															/>
+														))}
+													</div>
+												</StaggerContainer>
+											) : (
+												<>
+													{suggestion && (
+														<motion.p
+															initial={{ opacity: 0 }}
+															animate={{ opacity: 1 }}
+															className='mb-4 text-center text-sm text-text-secondary'
 														>
-															{suggestion}
-														</motion.button>
-														?
-													</motion.p>
-												)}
-												<EmptyStateGamified
-													variant='search'
-													title={t('noRecipes')}
-													description={t('noRecipesDesc', { query })}
-													primaryAction={{
-														label: t('exploreAll'),
-														href: '/explore',
-													}}
-												/>
-											</>
-										)}
-									</motion.div>
-								)}
+															{t('didYouMean')}{' '}
+															<motion.button
+																type='button'
+																onClick={() => {
+																	isInternalNav.current = true
+																	setSearchInput(suggestion)
+																	startNavigationTransition(() => {
+																		router.push(
+																			`/search?q=${encodeURIComponent(suggestion)}`,
+																		)
+																	})
+																}}
+																disabled={isNavigating}
+																whileTap={BUTTON_TAP}
+																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															>
+																{suggestion}
+															</motion.button>
+															?
+														</motion.p>
+													)}
+													<EmptyStateGamified
+														variant='search'
+														title={t('noRecipes')}
+														description={t('noRecipesDesc', { query })}
+														primaryAction={{
+															label: t('exploreAll'),
+															href: '/explore',
+														}}
+													/>
+												</>
+											)}
+										</motion.div>
+									)}
 
-								{activeTab === 'people' && (
-									<motion.div
-										key='people'
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, y: -10 }}
-										transition={{ duration: DURATION_S.normal }}
-									>
-										{results.people.length > 0 ? (
-											<StaggerContainer staggerDelay={0.05}>
-												<div className='space-y-4'>
-													{results.people.map(person => (
-														<PersonResultCard key={person.id} person={person} />
-													))}
-												</div>
-											</StaggerContainer>
-										) : (
-											<>
-												{suggestion && (
-													<motion.p
-														initial={{ opacity: 0 }}
-														animate={{ opacity: 1 }}
-														className='mb-4 text-center text-sm text-text-secondary'
-													>
-														Did you mean{' '}
-														<motion.button
-															type='button'
-															onClick={() => {
-																isInternalNav.current = true
-																setSearchInput(suggestion)
-																startNavigationTransition(() => {
-																	router.push(
-																		`/search?q=${encodeURIComponent(suggestion)}`,
-																	)
-																})
-															}}
-															disabled={isNavigating}
-															whileTap={BUTTON_TAP}
-															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									{activeTab === 'people' && (
+										<motion.div
+											key='people'
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: -10 }}
+											transition={{ duration: DURATION_S.normal }}
+										>
+											{results.people.length > 0 ? (
+												<StaggerContainer staggerDelay={0.05}>
+													<div className='space-y-4'>
+														{results.people.map(person => (
+															<PersonResultCard
+																key={person.id}
+																person={person}
+															/>
+														))}
+													</div>
+												</StaggerContainer>
+											) : (
+												<>
+													{suggestion && (
+														<motion.p
+															initial={{ opacity: 0 }}
+															animate={{ opacity: 1 }}
+															className='mb-4 text-center text-sm text-text-secondary'
 														>
-															{suggestion}
-														</motion.button>
-														?
-													</motion.p>
-												)}
-												<EmptyStateGamified
-													variant='search'
-													title={t('noPeople')}
-													description={t('noPeopleDesc', { query })}
-													primaryAction={{
-														label: t('discoverPeople'),
-														href: '/community',
-													}}
-												/>
-											</>
-										)}
-									</motion.div>
-								)}
+															{t('didYouMean')}{' '}
+															<motion.button
+																type='button'
+																onClick={() => {
+																	isInternalNav.current = true
+																	setSearchInput(suggestion)
+																	startNavigationTransition(() => {
+																		router.push(
+																			`/search?q=${encodeURIComponent(suggestion)}`,
+																		)
+																	})
+																}}
+																disabled={isNavigating}
+																whileTap={BUTTON_TAP}
+																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															>
+																{suggestion}
+															</motion.button>
+															?
+														</motion.p>
+													)}
+													<EmptyStateGamified
+														variant='search'
+														title={t('noPeople')}
+														description={t('noPeopleDesc', { query })}
+														primaryAction={{
+															label: t('discoverPeople'),
+															href: '/community',
+														}}
+													/>
+												</>
+											)}
+										</motion.div>
+									)}
 
-								{activeTab === 'posts' && (
-									<motion.div
-										key='posts'
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, y: -10 }}
-										transition={{ duration: DURATION_S.normal }}
-									>
-										{results.posts.length > 0 ? (
-											<StaggerContainer staggerDelay={0.05}>
-												<div className='space-y-3'>
-													{results.posts.map(post => (
-														<PostResultCard key={post.id} post={post} />
-													))}
-												</div>
-											</StaggerContainer>
-										) : (
-											<>
-												{suggestion && (
-													<motion.p
-														initial={{ opacity: 0 }}
-														animate={{ opacity: 1 }}
-														className='mb-4 text-center text-sm text-text-secondary'
-													>
-														Did you mean{' '}
-														<motion.button
-															type='button'
-															onClick={() => {
-																isInternalNav.current = true
-																setSearchInput(suggestion)
-																startNavigationTransition(() => {
-																	router.push(
-																		`/search?q=${encodeURIComponent(suggestion)}`,
-																	)
-																})
-															}}
-															disabled={isNavigating}
-															whileTap={BUTTON_TAP}
-															className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									{activeTab === 'posts' && (
+										<motion.div
+											key='posts'
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											exit={{ opacity: 0, y: -10 }}
+											transition={{ duration: DURATION_S.normal }}
+										>
+											{results.posts.length > 0 ? (
+												<StaggerContainer staggerDelay={0.05}>
+													<div className='space-y-3'>
+														{results.posts.map(post => (
+															<PostResultCard key={post.id} post={post} />
+														))}
+													</div>
+												</StaggerContainer>
+											) : (
+												<>
+													{suggestion && (
+														<motion.p
+															initial={{ opacity: 0 }}
+															animate={{ opacity: 1 }}
+															className='mb-4 text-center text-sm text-text-secondary'
 														>
-															{suggestion}
-														</motion.button>
-														?
-													</motion.p>
-												)}
-												<EmptyStateGamified
-													variant='search'
-													title={t('noPosts')}
-													description={t('noPostsDesc', { query })}
-													primaryAction={{
-														label: t('viewFeed'),
-														href: '/dashboard',
-													}}
-												/>
-											</>
-										)}
-									</motion.div>
-								)}
-							</>
-						)}
-					</AnimatePresence>
-				</PremiumSurface>
-			</PageContainer>
+															{t('didYouMean')}{' '}
+															<motion.button
+																type='button'
+																onClick={() => {
+																	isInternalNav.current = true
+																	setSearchInput(suggestion)
+																	startNavigationTransition(() => {
+																		router.push(
+																			`/search?q=${encodeURIComponent(suggestion)}`,
+																		)
+																	})
+																}}
+																disabled={isNavigating}
+																whileTap={BUTTON_TAP}
+																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+															>
+																{suggestion}
+															</motion.button>
+															?
+														</motion.p>
+													)}
+													<EmptyStateGamified
+														variant='search'
+														title={t('noPosts')}
+														description={t('noPostsDesc', { query })}
+														primaryAction={{
+															label: t('viewFeed'),
+															href: '/feed',
+														}}
+													/>
+												</>
+											)}
+										</motion.div>
+									)}
+								</>
+							)}
+						</AnimatePresence>
+					</PremiumSurface>
+				</PageContainer>
+			</div>
 		</PageTransition>
 	)
 }

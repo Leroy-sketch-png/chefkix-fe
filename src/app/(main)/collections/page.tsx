@@ -133,7 +133,7 @@ export default function CollectionsPage() {
 	if (isLoading) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
+				<PageContainer maxWidth='xl'>
 					<div className='space-y-6 py-6'>
 						<div className='h-8 w-48 animate-pulse rounded-xl bg-bg-elevated' />
 						<div className='grid gap-4 sm:grid-cols-2'>
@@ -153,7 +153,7 @@ export default function CollectionsPage() {
 	if (fetchError) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
+				<PageContainer maxWidth='xl'>
 					<ErrorState
 						title={t('loadFailed')}
 						message={t('loadFailedMessage')}
@@ -170,7 +170,7 @@ export default function CollectionsPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='lg'>
+			<PageContainer maxWidth='xl'>
 				<div className='space-y-6 py-6'>
 					{/* Header */}
 					<PageHeader
@@ -194,8 +194,8 @@ export default function CollectionsPage() {
 					/>
 
 					<SurfaceSectionHeader
-						eyebrow='Collection Library'
-						chipText={`${collections.length} collections`}
+						eyebrow={t('libraryEyebrow')}
+						chipText={t('libraryCount', { count: collections.length })}
 					/>
 
 					{/* Collections Grid */}
@@ -213,11 +213,13 @@ export default function CollectionsPage() {
 						/>
 					) : (
 						<PremiumSurface
-							eyebrow='Curated Boards'
-							chipText={`${collections.length} active`}
+							eyebrow={t('boardsEyebrow')}
+							chipText={t('activeCollectionsCount', {
+								count: collections.length,
+							})}
 							className='p-4 md:p-5'
 						>
-							<div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+							<div className='grid gap-4 md:grid-cols-2'>
 								{collections.map(collection => (
 									<motion.div
 										key={collection.id}
@@ -299,7 +301,7 @@ export default function CollectionsPage() {
 				</div>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 
 			{/* Create Collection Modal */}

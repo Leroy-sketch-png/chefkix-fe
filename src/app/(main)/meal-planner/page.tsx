@@ -20,9 +20,7 @@ import {
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { MealPlannerCommandDeck } from '@/components/meal-planner/MealPlannerCommandDeck'
-import { MealPlannerContextRail } from '@/components/meal-planner/MealPlannerContextRail'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -319,17 +317,8 @@ export default function MealPlannerPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-6 py-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
+				<div className='grid grid-cols-1 gap-6 py-6'>
 					<div className='space-y-6'>
-						{/* ── Header with PageHeader ────────────────────────── */}
-						<PageHeader
-							icon={CalendarDays}
-							title={t('title')}
-							subtitle={t('subtitle')}
-							gradient='green'
-							marginBottom='sm'
-						/>
-
 						<MealPlannerCommandDeck
 							hasPlan={hasPlan}
 							plannedDays={plannedDays.length}
@@ -616,13 +605,6 @@ export default function MealPlannerPage() {
 							)}
 						</AnimatePresence>
 					</div>
-
-					<MealPlannerContextRail
-						totalMealsPlanned={totalMealsPlanned}
-						checkedItems={checkedItems.size}
-						useAI={useAI}
-						hasReasoning={Boolean(plan?.reasoning)}
-					/>
 				</div>
 
 				{/* ── Swap Meal Modal ── */}
@@ -796,7 +778,7 @@ export default function MealPlannerPage() {
 				</AnimatePresence>
 
 				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-40 md:pb-8' />
+				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
 	)

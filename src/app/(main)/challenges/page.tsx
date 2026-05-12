@@ -19,14 +19,12 @@ import {
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import {
 	DailyChallengeBanner,
 	ActiveBattlesSection,
 } from '@/components/challenges'
 import { ChallengesCommandDeck } from '@/components/challenges/ChallengesCommandDeck'
-import { ChallengesContextRail } from '@/components/challenges/ChallengesContextRail'
 import { EmptyStateGamified } from '@/components/shared'
 import { ErrorState } from '@/components/ui/error-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -179,15 +177,7 @@ export default function ChallengesPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				{/* Header */}
-				<PageHeader
-					icon={Trophy}
-					title={t('title')}
-					subtitle=''
-					gradient='yellow'
-				/>
-
-				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
+				<div className='grid grid-cols-1 gap-6'>
 					<div>
 						<ChallengesCommandDeck
 							counts={{
@@ -658,17 +648,8 @@ export default function ChallengesPage() {
 						)}
 
 						{/* Bottom breathing room for MobileBottomNav */}
-						<div className='pb-40 md:pb-8' />
+						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 					</div>
-
-					<ChallengesContextRail
-						counts={{
-							community: communityChallenges.length,
-							seasonal: seasonalChallenges.length,
-							hasDaily: Boolean(dailyChallenge),
-							hasWeekly: Boolean(weeklyChallenge),
-						}}
-					/>
 				</div>
 			</PageContainer>
 		</PageTransition>
