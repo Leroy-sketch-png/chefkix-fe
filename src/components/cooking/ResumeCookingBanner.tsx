@@ -78,10 +78,9 @@ export const ResumeCookingBanner = ({
 					setPendingSession(response.data)
 
 					// Fetch recipe details for display
-					const recipeResponse = await getRecipeById(
-						response.data.recipeId,
-						{ timeoutMs: RESUME_BANNER_TIMEOUT_MS },
-					)
+					const recipeResponse = await getRecipeById(response.data.recipeId, {
+						timeoutMs: RESUME_BANNER_TIMEOUT_MS,
+					})
 					if (!cancelled && recipeResponse.success && recipeResponse.data) {
 						setRecipeName(recipeResponse.data.title)
 						setRecipeImage(

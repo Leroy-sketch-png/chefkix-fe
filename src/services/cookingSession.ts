@@ -173,11 +173,9 @@ export const startSession = async (
  * Get the user's currently active session (if any).
  * Use for app resume / restoring cooking UI state.
  */
-export const getCurrentSession = async (
-	requestOptions?: { timeoutMs?: number },
-): Promise<
-	ApiResponse<CookingSession | null>
-> => {
+export const getCurrentSession = async (requestOptions?: {
+	timeoutMs?: number
+}): Promise<ApiResponse<CookingSession | null>> => {
 	try {
 		const response = await api.get<ApiResponse<CookingSession | null>>(
 			API_ENDPOINTS.COOKING_SESSIONS.CURRENT,
@@ -227,11 +225,14 @@ export const getSessionById = async (
  * Get session history with optional status filter.
  * @param status Filter by status: 'completed' | 'posted' | 'post_deleted' | 'expired' | 'abandoned' | 'all'
  */
-export const getSessionHistory = async (params?: {
-	status?: SessionStatus | 'all'
-	page?: number
-	size?: number
-}, requestOptions?: { timeoutMs?: number }): Promise<
+export const getSessionHistory = async (
+	params?: {
+		status?: SessionStatus | 'all'
+		page?: number
+		size?: number
+	},
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<{
 		sessions: SessionHistoryItem[]
 		pagination: { page: number; size: number; total: number }
@@ -277,11 +278,9 @@ export const getSessionHistory = async (params?: {
 /**
  * Get pending sessions (completed but not yet posted) via dedicated endpoint.
  */
-export const getPendingSessions = async (
-	requestOptions?: { timeoutMs?: number },
-): Promise<
-	ApiResponse<SessionHistoryItem[]>
-> => {
+export const getPendingSessions = async (requestOptions?: {
+	timeoutMs?: number
+}): Promise<ApiResponse<SessionHistoryItem[]>> => {
 	try {
 		const response = await api.get<ApiResponse<SessionHistoryItem[]>>(
 			API_ENDPOINTS.COOKING_SESSIONS.PENDING,
@@ -549,7 +548,7 @@ export const completeSession = async (
 export const linkPostToSession = async (
 	sessionId: string,
 	postId: string,
- 	requestOptions?: { timeoutMs?: number },
+	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<LinkPostResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<LinkPostResponse>>(

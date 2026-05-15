@@ -72,7 +72,7 @@ export const getAllRecipes = async (
  */
 export const getRecipeById = async (
 	recipeId: string,
- 	requestOptions?: { timeoutMs?: number },
+	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<Recipe>> => {
 	// Guard against undefined/null recipeId to prevent /recipes/undefined requests
 	if (!recipeId) {
@@ -162,9 +162,9 @@ export const getTrendingRecipes = async (
  * Uses cooking history + trending for taste-based picks.
  * Returns RecommendationResponse with recipe + whyRecommended + matchSignals + confidenceScore
  */
-export const getTonightsPick = async (
-	requestOptions?: { timeoutMs?: number },
-): Promise<ApiResponse<RecommendationResponse>> => {
+export const getTonightsPick = async (requestOptions?: {
+	timeoutMs?: number
+}): Promise<ApiResponse<RecommendationResponse>> => {
 	try {
 		const response = await api.get<ApiResponse<RecommendationResponse>>(
 			API_ENDPOINTS.RECIPES.TONIGHT_PICK,
@@ -177,7 +177,7 @@ export const getTonightsPick = async (
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,
-			message: 'Failed to fetch tonight\'s pick',
+			message: "Failed to fetch tonight's pick",
 			statusCode: 500,
 		}
 	}

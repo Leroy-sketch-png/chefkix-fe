@@ -377,13 +377,16 @@ export const toggleLike = async (
  * Mirrors getFeedPosts but hits /posts/following instead of /posts/all.
  * Always requires authentication (no anonymous access).
  */
-export const getFollowingFeedPosts = async (params?: {
-	limit?: number
-	offset?: number
-	page?: number
-	size?: number
-	mode?: 'latest' | 'trending'
-}, requestOptions?: { timeoutMs?: number }): Promise<
+export const getFollowingFeedPosts = async (
+	params?: {
+		limit?: number
+		offset?: number
+		page?: number
+		size?: number
+		mode?: 'latest' | 'trending'
+	},
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: PaginationMeta
 	}
@@ -416,13 +419,16 @@ export const getFollowingFeedPosts = async (params?: {
 	}
 }
 
-export const getFeedPosts = async (params?: {
-	limit?: number
-	offset?: number
-	page?: number
-	size?: number
-	mode?: 'latest' | 'trending' | 'forYou' // 0 = latest (default), 1 = trending (hotScore), 2 = forYou (taste-based)
-}, requestOptions?: { timeoutMs?: number }): Promise<
+export const getFeedPosts = async (
+	params?: {
+		limit?: number
+		offset?: number
+		page?: number
+		size?: number
+		mode?: 'latest' | 'trending' | 'forYou' // 0 = latest (default), 1 = trending (hotScore), 2 = forYou (taste-based)
+	},
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: PaginationMeta
 	}

@@ -17,17 +17,16 @@ import type {
 // FRIENDS COOKING NOW
 // ============================================================
 
-export const getFriendsActiveCooking = async (
-	requestOptions?: { timeoutMs?: number },
-): Promise<
-	ApiResponse<FriendCookingActivityResponse>
-> => {
+export const getFriendsActiveCooking = async (requestOptions?: {
+	timeoutMs?: number
+}): Promise<ApiResponse<FriendCookingActivityResponse>> => {
 	try {
-		const response = await api.get<
-			ApiResponse<FriendCookingActivityResponse>
-		>(API_ENDPOINTS.COOKING_SESSIONS.FRIENDS_ACTIVE, {
-			timeout: requestOptions?.timeoutMs,
-		})
+		const response = await api.get<ApiResponse<FriendCookingActivityResponse>>(
+			API_ENDPOINTS.COOKING_SESSIONS.FRIENDS_ACTIVE,
+			{
+				timeout: requestOptions?.timeoutMs,
+			},
+		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -48,12 +47,12 @@ export const getFriendsActiveCooking = async (
 // ============================================================
 
 export const getRecipeSocialProof = async (
-	recipeId: string
+	recipeId: string,
 ): Promise<ApiResponse<RecipeSocialProofResponse>> => {
 	try {
-		const response = await api.get<
-			ApiResponse<RecipeSocialProofResponse>
-		>(API_ENDPOINTS.RECIPES.SOCIAL_PROOF(recipeId))
+		const response = await api.get<ApiResponse<RecipeSocialProofResponse>>(
+			API_ENDPOINTS.RECIPES.SOCIAL_PROOF(recipeId),
+		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -78,12 +77,13 @@ export const getActivitySummary = async (
 	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<NotificationSummaryResponse>> => {
 	try {
-		const response = await api.get<
-			ApiResponse<NotificationSummaryResponse>
-		>(API_ENDPOINTS.NOTIFICATIONS.SUMMARY_SINCE, {
-			params: { since },
-			timeout: requestOptions?.timeoutMs,
-		})
+		const response = await api.get<ApiResponse<NotificationSummaryResponse>>(
+			API_ENDPOINTS.NOTIFICATIONS.SUMMARY_SINCE,
+			{
+				params: { since },
+				timeout: requestOptions?.timeoutMs,
+			},
+		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)

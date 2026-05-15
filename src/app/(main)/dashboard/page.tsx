@@ -271,9 +271,9 @@ export default function DashboardPage() {
 					prev.map(post =>
 						post.id === pendingPostLink.postId
 							? {
-								...post,
-								xpEarned: linkResponse.data?.xpAwarded ?? post.xpEarned,
-							}
+									...post,
+									xpEarned: linkResponse.data?.xpAwarded ?? post.xpEarned,
+								}
 							: post,
 					),
 				)
@@ -356,11 +356,14 @@ export default function DashboardPage() {
 
 		const loadInitialFeed = async () => {
 			if (feedMode === 'following') {
-				const response = await getFollowingFeedPosts({
-					page: 0,
-					size: POSTS_PER_PAGE,
-					mode: 'latest',
-				}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+				const response = await getFollowingFeedPosts(
+					{
+						page: 0,
+						size: POSTS_PER_PAGE,
+						mode: 'latest',
+					},
+					{ timeoutMs: DASHBOARD_FEED_TIMEOUT_MS },
+				)
 
 				return {
 					response,
@@ -371,11 +374,14 @@ export default function DashboardPage() {
 				}
 			}
 
-			const response = await getFeedPosts({
-				page: 0,
-				size: POSTS_PER_PAGE,
-				mode: feedMode,
-			}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+			const response = await getFeedPosts(
+				{
+					page: 0,
+					size: POSTS_PER_PAGE,
+					mode: feedMode,
+				},
+				{ timeoutMs: DASHBOARD_FEED_TIMEOUT_MS },
+			)
 			const feedPosts = (response.data ?? []).filter(
 				post => post.postType !== 'GROUP',
 			)
@@ -388,11 +394,14 @@ export default function DashboardPage() {
 				}
 			}
 
-			const trendingResponse = await getFeedPosts({
-				page: 0,
-				size: POSTS_PER_PAGE,
-				mode: 'trending',
-			}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+			const trendingResponse = await getFeedPosts(
+				{
+					page: 0,
+					size: POSTS_PER_PAGE,
+					mode: 'trending',
+				},
+				{ timeoutMs: DASHBOARD_FEED_TIMEOUT_MS },
+			)
 			const trendingPosts = (trendingResponse.data ?? []).filter(
 				post => post.postType !== 'GROUP',
 			)
@@ -455,9 +464,7 @@ export default function DashboardPage() {
 							feedPosts = [newPost, ...feedPosts]
 						} else {
 							feedPosts = feedPosts.map(p =>
-								p.id === newPost.id
-									? { ...p, xpEarned: newPost.xpEarned }
-									: p,
+								p.id === newPost.id ? { ...p, xpEarned: newPost.xpEarned } : p,
 							)
 						}
 					} catch (e) {
