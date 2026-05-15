@@ -20,6 +20,8 @@ interface FriendsCookingNowProps {
 	pollInterval?: number
 }
 
+const FRIENDS_COOKING_TIMEOUT_MS = 8000
+
 /**
  * "Friends Cooking Now" widget for the dashboard.
  * Shows active rooms where followed users are currently cooking.
@@ -38,8 +40,8 @@ export function FriendsCookingNow({
 	const fetchAll = useCallback(async () => {
 		try {
 			const [roomsRes, soloRes] = await Promise.all([
-				getFriendsActiveRooms(),
-				getFriendsActiveCooking(),
+				getFriendsActiveRooms({ timeoutMs: FRIENDS_COOKING_TIMEOUT_MS }),
+				getFriendsActiveCooking({ timeoutMs: FRIENDS_COOKING_TIMEOUT_MS }),
 			])
 			if (roomsRes.success && roomsRes.data) setRooms(roomsRes.data)
 			if (soloRes.success && soloRes.data) {

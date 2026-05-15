@@ -137,11 +137,15 @@ export async function inviteToRoom(
  * Get active rooms where followed users are cooking.
  * Used for "Friends Cooking Now" dashboard widget — poll every 30s.
  */
-export async function getFriendsActiveRooms(): Promise<
+export async function getFriendsActiveRooms(
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<FriendsActiveRoom[]>
 > {
 	try {
-		const response = await api.get(API_ENDPOINTS.COOKING_ROOMS.FRIENDS_ACTIVE)
+		const response = await api.get(API_ENDPOINTS.COOKING_ROOMS.FRIENDS_ACTIVE, {
+			timeout: requestOptions?.timeoutMs,
+		})
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)

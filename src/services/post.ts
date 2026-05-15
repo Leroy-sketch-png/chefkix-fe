@@ -383,7 +383,7 @@ export const getFollowingFeedPosts = async (params?: {
 	page?: number
 	size?: number
 	mode?: 'latest' | 'trending'
-}): Promise<
+}, requestOptions?: { timeoutMs?: number }): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: PaginationMeta
 	}
@@ -397,6 +397,7 @@ export const getFollowingFeedPosts = async (params?: {
 					...backendParams,
 					mode: params?.mode === 'trending' ? 1 : 0,
 				},
+				timeout: requestOptions?.timeoutMs,
 			},
 		)
 		return mapPostPageResponse(response.data)
@@ -421,7 +422,7 @@ export const getFeedPosts = async (params?: {
 	page?: number
 	size?: number
 	mode?: 'latest' | 'trending' | 'forYou' // 0 = latest (default), 1 = trending (hotScore), 2 = forYou (taste-based)
-}): Promise<
+}, requestOptions?: { timeoutMs?: number }): Promise<
 	ApiResponse<Post[]> & {
 		pagination?: PaginationMeta
 	}
@@ -436,6 +437,7 @@ export const getFeedPosts = async (params?: {
 					...backendParams,
 					mode: modeMap[params?.mode ?? 'latest'],
 				},
+				timeout: requestOptions?.timeoutMs,
 			},
 		)
 		return mapPostPageResponse(response.data)

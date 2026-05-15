@@ -134,12 +134,15 @@ export interface SeasonalChallenge {
  * Get today's daily challenge.
  * Returns the challenge details including matching recipes.
  */
-export const getTodaysChallenge = async (): Promise<
+export const getTodaysChallenge = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<DailyChallenge>
 > => {
 	try {
 		const response = await api.get<ApiResponse<DailyChallenge>>(
 			API_ENDPOINTS.CHALLENGES.TODAY,
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {
@@ -221,12 +224,15 @@ export const getChallengeStats = async (): Promise<
  * Get this week's weekly challenge with progress.
  * Weekly challenges require multiple completions within a week (Mon-Sun).
  */
-export const getWeeklyChallenge = async (): Promise<
+export const getWeeklyChallenge = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<WeeklyChallenge>
 > => {
 	try {
 		const response = await api.get<ApiResponse<WeeklyChallenge>>(
 			API_ENDPOINTS.CHALLENGES.WEEKLY,
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {
@@ -271,12 +277,15 @@ export const getCommunityChallenges = async (): Promise<
 /**
  * Get seasonal challenges (active + upcoming) with per-user progress.
  */
-export const getSeasonalChallenges = async (): Promise<
+export const getSeasonalChallenges = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<SeasonalChallenge[]>
 > => {
 	try {
 		const response = await api.get<ApiResponse<SeasonalChallenge[]>>(
 			API_ENDPOINTS.CHALLENGES.SEASONAL,
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {

@@ -39,6 +39,7 @@ interface SinceLastVisitCardProps {
 
 const LAST_VISIT_KEY = 'chefkix_last_visit'
 const MIN_ABSENCE_HOURS = 4 // Only show if away for 4+ hours
+const ACTIVITY_SUMMARY_TIMEOUT_MS = 8000
 
 // ============================================
 // HELPERS
@@ -96,7 +97,10 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 
 			// Use the new backend endpoint for pre-aggregated summary
 			try {
-				const response = await getActivitySummary(storedLastVisit.toISOString())
+				const response = await getActivitySummary(
+					storedLastVisit.toISOString(),
+					{ timeoutMs: ACTIVITY_SUMMARY_TIMEOUT_MS },
+				)
 				if (
 					!cancelled &&
 					response.success &&

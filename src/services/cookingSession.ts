@@ -173,12 +173,15 @@ export const startSession = async (
  * Get the user's currently active session (if any).
  * Use for app resume / restoring cooking UI state.
  */
-export const getCurrentSession = async (): Promise<
+export const getCurrentSession = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<CookingSession | null>
 > => {
 	try {
 		const response = await api.get<ApiResponse<CookingSession | null>>(
 			API_ENDPOINTS.COOKING_SESSIONS.CURRENT,
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {
@@ -228,19 +231,29 @@ export const getSessionHistory = async (params?: {
 	status?: SessionStatus | 'all'
 	page?: number
 	size?: number
-}): Promise<
+}, requestOptions?: { timeoutMs?: number }): Promise<
 	ApiResponse<{
 		sessions: SessionHistoryItem[]
 		pagination: { page: number; size: number; total: number }
 	}>
 > => {
 	try {
+		const queryParams = params
+			? {
+					page: params.page,
+					size: params.size,
+					statusFilter: params.status,
+				}
+			: undefined
 		const response = await api.get<
 			ApiResponse<{
 				sessions: SessionHistoryItem[]
 				pagination: { page: number; size: number; total: number }
 			}>
-		>(API_ENDPOINTS.COOKING_SESSIONS.BASE, { params })
+		>(API_ENDPOINTS.COOKING_SESSIONS.BASE, {
+			params: queryParams,
+			timeout: requestOptions?.timeoutMs,
+		})
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -262,32 +275,25 @@ export const getSessionHistory = async (params?: {
 }
 
 /**
- * Get pending sessions (completed but not yet posted).
- * Convenience wrapper for getSessionHistory with status='completed'.
+ * Get pending sessions (completed but not yet posted) via dedicated endpoint.
  */
-export const getPendingSessions = async (): Promise<
+export const getPendingSessions = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<SessionHistoryItem[]>
 > => {
 	try {
-		const response = await getSessionHistory({ status: 'completed' })
-		if (response.success && response.data) {
-			const pending = response.data.sessions.filter(
-				s => s.status === 'completed' && !s.postId,
-			)
-			return {
-				success: true,
-				message: 'Pending sessions fetched',
-				statusCode: 200,
-				data: pending,
-			}
-		}
-		return {
-			success: false,
-			message: response.message || 'Failed to get pending sessions',
-			statusCode: response.statusCode || 500,
-		}
+		const response = await api.get<ApiResponse<SessionHistoryItem[]>>(
+			API_ENDPOINTS.COOKING_SESSIONS.PENDING,
+			{ timeout: requestOptions?.timeoutMs },
+		)
+		return response.data
 	} catch (error) {
 		logDevError('pending failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<SessionHistoryItem[]>>
+		if (axiosError.response) {
+			return axiosError.response.data
+		}
 		return {
 			success: false,
 			message: 'Failed to get pending sessions',
@@ -543,11 +549,13 @@ export const completeSession = async (
 export const linkPostToSession = async (
 	sessionId: string,
 	postId: string,
+ 	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<LinkPostResponse>> => {
 	try {
 		const response = await api.post<ApiResponse<LinkPostResponse>>(
 			API_ENDPOINTS.COOKING_SESSIONS.LINK_POST(sessionId),
 			{ postId },
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {

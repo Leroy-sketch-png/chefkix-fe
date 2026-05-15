@@ -34,6 +34,8 @@ interface TonightsPickProps {
 	className?: string
 }
 
+const TONIGHTS_PICK_TIMEOUT_MS = 8000
+
 const normalizeRecommendationText = (value?: string | null) =>
 	(value ?? '')
 		.toLowerCase()
@@ -74,7 +76,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			setIsLoading(true)
 			setHasError(false)
 			try {
-				const res = await getTonightsPick()
+				const res = await getTonightsPick({
+					timeoutMs: TONIGHTS_PICK_TIMEOUT_MS,
+				})
 				if (cancelled) return
 				if (res.success && res.data?.recipe) {
 					setRecommendation(res.data)

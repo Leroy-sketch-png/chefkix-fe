@@ -72,6 +72,7 @@ export const getAllRecipes = async (
  */
 export const getRecipeById = async (
 	recipeId: string,
+ 	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<Recipe>> => {
 	// Guard against undefined/null recipeId to prevent /recipes/undefined requests
 	if (!recipeId) {
@@ -84,7 +85,9 @@ export const getRecipeById = async (
 		}
 	}
 	try {
-		const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId))
+		const response = await api.get(API_ENDPOINTS.RECIPES.GET_BY_ID(recipeId), {
+			timeout: requestOptions?.timeoutMs,
+		})
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -159,10 +162,13 @@ export const getTrendingRecipes = async (
  * Uses cooking history + trending for taste-based picks.
  * Returns RecommendationResponse with recipe + whyRecommended + matchSignals + confidenceScore
  */
-export const getTonightsPick = async (): Promise<ApiResponse<RecommendationResponse>> => {
+export const getTonightsPick = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<ApiResponse<RecommendationResponse>> => {
 	try {
 		const response = await api.get<ApiResponse<RecommendationResponse>>(
 			API_ENDPOINTS.RECIPES.TONIGHT_PICK,
+			{ timeout: requestOptions?.timeoutMs },
 		)
 		return response.data
 	} catch (error) {

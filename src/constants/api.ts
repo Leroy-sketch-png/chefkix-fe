@@ -140,6 +140,7 @@ export const API_ENDPOINTS = {
 	COOKING_SESSIONS: {
 		BASE: `${API_PREFIX}/cooking-sessions`,
 		CURRENT: `${API_PREFIX}/cooking-sessions/current`,
+		PENDING: `${API_PREFIX}/cooking-sessions/pending`,
 		GET_BY_ID: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}`,
 		NAVIGATE: (sessionId: string) =>

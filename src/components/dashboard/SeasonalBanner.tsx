@@ -34,6 +34,7 @@ function getTimeRemaining(
 }
 
 const DISMISSED_KEY = 'chefkix_seasonal_banner_dismissed'
+const SEASONAL_BANNER_TIMEOUT_MS = 8000
 
 function isDismissed(challengeId: string): boolean {
 	try {
@@ -73,7 +74,9 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 
 		async function fetchSeasonal() {
 			try {
-				const res = await getSeasonalChallenges()
+				const res = await getSeasonalChallenges({
+					timeoutMs: SEASONAL_BANNER_TIMEOUT_MS,
+				})
 				if (!mounted) return
 				if (res.success && res.data && res.data.length > 0) {
 					// Show first active challenge

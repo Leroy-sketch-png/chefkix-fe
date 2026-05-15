@@ -17,13 +17,17 @@ import type {
 // FRIENDS COOKING NOW
 // ============================================================
 
-export const getFriendsActiveCooking = async (): Promise<
+export const getFriendsActiveCooking = async (
+	requestOptions?: { timeoutMs?: number },
+): Promise<
 	ApiResponse<FriendCookingActivityResponse>
 > => {
 	try {
 		const response = await api.get<
 			ApiResponse<FriendCookingActivityResponse>
-		>(API_ENDPOINTS.COOKING_SESSIONS.FRIENDS_ACTIVE)
+		>(API_ENDPOINTS.COOKING_SESSIONS.FRIENDS_ACTIVE, {
+			timeout: requestOptions?.timeoutMs,
+		})
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
@@ -70,13 +74,15 @@ export const getRecipeSocialProof = async (
 // ============================================================
 
 export const getActivitySummary = async (
-	since: string
+	since: string,
+	requestOptions?: { timeoutMs?: number },
 ): Promise<ApiResponse<NotificationSummaryResponse>> => {
 	try {
 		const response = await api.get<
 			ApiResponse<NotificationSummaryResponse>
 		>(API_ENDPOINTS.NOTIFICATIONS.SUMMARY_SINCE, {
 			params: { since },
+			timeout: requestOptions?.timeoutMs,
 		})
 		return response.data
 	} catch (error) {

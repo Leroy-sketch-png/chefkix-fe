@@ -65,6 +65,13 @@ import { useTranslations } from '@/i18n/hooks'
 import { StoryFeed } from '@/components/story/StoryFeed'
 
 const POSTS_PER_PAGE = 10
+const DASHBOARD_FEED_TIMEOUT_MS = 12000
+const DASHBOARD_AUX_TIMEOUT_MS = 8000
+const DASHBOARD_XP_SYNC_TIMEOUT_MS = 10000
+
+type DashboardStoryUser = UserStoryFeedResponse & {
+	hasStories: boolean
+}
 
 interface PendingPostLink {
 	sessionId: string
@@ -117,7 +124,7 @@ const toObject = (value: unknown): Record<string, unknown> | null => {
 	return value as Record<string, unknown>
 }
 
-const normalizeStoryFeed = (payload: unknown): UserStoryFeedResponse[] => {
+const normalizeStoryFeed = (payload: unknown): DashboardStoryUser[] => {
 	const root = toObject(payload)
 	const nested = root ? toObject(root.data) : null
 
@@ -162,7 +169,7 @@ const normalizeStoryFeed = (payload: unknown): UserStoryFeedResponse[] => {
 				hasStories: true,
 			}
 		})
-		.filter((story): story is UserStoryFeedResponse => Boolean(story))
+		.filter((story): story is DashboardStoryUser => Boolean(story))
 }
 
 function FeedItemErrorFallback({
@@ -212,7 +219,7 @@ export default function DashboardPage() {
 	const router = useRouter()
 	const t = useTranslations('dashboard')
 	const [posts, setPosts] = useState<Post[]>([])
-	const [storyUsers, setStoryUsers] = useState<UserStoryFeedResponse[]>([]) // 🌟 State đã được định kiểu chuẩn
+	const [storyUsers, setStoryUsers] = useState<DashboardStoryUser[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -251,11 +258,25 @@ export default function DashboardPage() {
 			const linkResponse = await linkPostToSession(
 				pendingPostLink.sessionId,
 				pendingPostLink.postId,
+				{ timeoutMs: DASHBOARD_XP_SYNC_TIMEOUT_MS },
 			)
 
 			if (linkResponse.success && linkResponse.data) {
 				sessionStorage.removeItem(PENDING_POST_LINK_KEY)
 				setHasPendingXpSync(false)
+				setPendingSessions(prev =>
+					prev.filter(session => session.id !== pendingPostLink.sessionId),
+				)
+				setPosts(prev =>
+					prev.map(post =>
+						post.id === pendingPostLink.postId
+							? {
+								...post,
+								xpEarned: linkResponse.data?.xpAwarded ?? post.xpEarned,
+							}
+							: post,
+					),
+				)
 
 				const newPostJson = sessionStorage.getItem('newPost')
 				if (newPostJson) {
@@ -291,7 +312,7 @@ export default function DashboardPage() {
 
 		const fetchStories = async () => {
 			try {
-				const res = await getStoryFeed()
+				const res = await getStoryFeed({ timeoutMs: DASHBOARD_AUX_TIMEOUT_MS })
 				if (cancelled) return
 				setStoryUsers(normalizeStoryFeed(res))
 			} catch (err) {
@@ -311,6 +332,86 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		let cancelled = false
+
+		const loadPendingSessions = async () => {
+			try {
+				const pendingResponse = await getPendingSessions({
+					timeoutMs: DASHBOARD_AUX_TIMEOUT_MS,
+				})
+				if (cancelled || !pendingResponse.success || !pendingResponse.data) {
+					return
+				}
+
+				const wasDismissed =
+					sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
+				if (!wasDismissed) {
+					setPendingSessions(
+						pendingResponse.data.map(transformToPendingSession),
+					)
+				}
+			} catch (err) {
+				logDevError('Failed to load pending dashboard sessions:', err)
+			}
+		}
+
+		const loadInitialFeed = async () => {
+			if (feedMode === 'following') {
+				const response = await getFollowingFeedPosts({
+					page: 0,
+					size: POSTS_PER_PAGE,
+					mode: 'latest',
+				}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+
+				return {
+					response,
+					feedPosts: (response.data ?? []).filter(
+						post => post.postType !== 'GROUP',
+					),
+					usedColdStartFallback: false,
+				}
+			}
+
+			const response = await getFeedPosts({
+				page: 0,
+				size: POSTS_PER_PAGE,
+				mode: feedMode,
+			}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+			const feedPosts = (response.data ?? []).filter(
+				post => post.postType !== 'GROUP',
+			)
+
+			if (feedMode !== 'forYou' || (response.success && feedPosts.length > 0)) {
+				return {
+					response,
+					feedPosts,
+					usedColdStartFallback: false,
+				}
+			}
+
+			const trendingResponse = await getFeedPosts({
+				page: 0,
+				size: POSTS_PER_PAGE,
+				mode: 'trending',
+			}, { timeoutMs: DASHBOARD_FEED_TIMEOUT_MS })
+			const trendingPosts = (trendingResponse.data ?? []).filter(
+				post => post.postType !== 'GROUP',
+			)
+
+			if (trendingResponse.success) {
+				return {
+					response: trendingResponse,
+					feedPosts: trendingPosts,
+					usedColdStartFallback: trendingPosts.length > 0,
+				}
+			}
+
+			return {
+				response,
+				feedPosts,
+				usedColdStartFallback: false,
+			}
+		}
+
 		const fetchInitialData = async () => {
 			setIsLoading(true)
 			setError(null)
@@ -323,94 +424,55 @@ export default function DashboardPage() {
 				)
 				setHasPendingXpSync(Boolean(pendingPostLinkJson))
 				if (pendingPostLinkJson) {
-					const recovered = await retryPendingXpSync()
-					if (cancelled) return
-					if (!recovered) {
-						toast.warning(t('toastXpStillSyncing'))
-					}
+					void retryPendingXpSync()
 				}
 
-				const [feedResponse, pendingResponse] = await Promise.all([
-					feedMode === 'following'
-						? getFollowingFeedPosts({
-								page: 0,
-								size: POSTS_PER_PAGE,
-								mode: 'latest',
-							})
-						: getFeedPosts({ page: 0, size: POSTS_PER_PAGE, mode: feedMode }),
-					getPendingSessions(),
-				])
+				void loadPendingSessions()
+
+				const {
+					response: feedResponse,
+					feedPosts: initialFeedPosts,
+					usedColdStartFallback,
+				} = await loadInitialFeed()
 				if (cancelled) return
 
-				if (feedResponse.success && feedResponse.data) {
-					let feedPosts = feedResponse.data
-					feedPosts = feedPosts.filter(post => post.postType !== 'GROUP')
-
-					const newPostJson = sessionStorage.getItem('newPost')
-					if (newPostJson) {
-						try {
-							const newPost = JSON.parse(newPostJson) as Post
-							sessionStorage.removeItem('newPost')
-							const exists = feedPosts.some(p => p.id === newPost.id)
-							if (!exists) {
-								feedPosts = [newPost, ...feedPosts]
-							} else {
-								feedPosts = feedPosts.map(p =>
-									p.id === newPost.id
-										? { ...p, xpEarned: newPost.xpEarned }
-										: p,
-								)
-							}
-						} catch (e) {
-							logDevError('Failed to parse newPost from sessionStorage:', e)
-							sessionStorage.removeItem('newPost')
-						}
-					}
-
-					setPosts(feedPosts)
+				if (!feedResponse.success || !feedResponse.data) {
 					setIsColdStartFallback(false)
+					setHasMore(false)
+					setError(t('failedToLoadFeed'))
+					return
+				}
 
-					if (feedMode === 'forYou' && feedPosts.length === 0) {
-						const trendingResponse = await getFeedPosts({
-							page: 0,
-							size: POSTS_PER_PAGE,
-							mode: 'trending',
-						})
-						if (
-							!cancelled &&
-							trendingResponse.success &&
-							trendingResponse.data
-						) {
-							const trendingPosts = trendingResponse.data.filter(
-								post => post.postType !== 'GROUP',
+				let feedPosts = initialFeedPosts
+
+				const newPostJson = sessionStorage.getItem('newPost')
+				if (newPostJson) {
+					try {
+						const newPost = JSON.parse(newPostJson) as Post
+						sessionStorage.removeItem('newPost')
+						const exists = feedPosts.some(p => p.id === newPost.id)
+						if (!exists) {
+							feedPosts = [newPost, ...feedPosts]
+						} else {
+							feedPosts = feedPosts.map(p =>
+								p.id === newPost.id
+									? { ...p, xpEarned: newPost.xpEarned }
+									: p,
 							)
-							if (trendingPosts.length > 0) {
-								setPosts(trendingPosts)
-								setIsColdStartFallback(true)
-								if (trendingResponse.pagination) {
-									setHasMore(!trendingResponse.pagination.last)
-								} else {
-									setHasMore(trendingPosts.length >= POSTS_PER_PAGE)
-								}
-							}
 						}
-					}
-
-					if (feedResponse.pagination) {
-						setHasMore(!feedResponse.pagination.last)
-					} else {
-						setHasMore(feedPosts.length >= POSTS_PER_PAGE)
+					} catch (e) {
+						logDevError('Failed to parse newPost from sessionStorage:', e)
+						sessionStorage.removeItem('newPost')
 					}
 				}
 
-				if (pendingResponse.success && pendingResponse.data) {
-					const wasDismissed =
-						sessionStorage.getItem('chefkix_pending_dismissed') === 'true'
-					if (!wasDismissed) {
-						setPendingSessions(
-							pendingResponse.data.map(transformToPendingSession),
-						)
-					}
+				setPosts(feedPosts)
+				setIsColdStartFallback(usedColdStartFallback)
+
+				if (feedResponse.pagination) {
+					setHasMore(!feedResponse.pagination.last)
+				} else {
+					setHasMore(feedPosts.length >= POSTS_PER_PAGE)
 				}
 			} catch (err) {
 				if (cancelled) return

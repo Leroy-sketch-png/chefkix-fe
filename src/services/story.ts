@@ -17,9 +17,10 @@ export const createStory = async (payload: any) => {
 	)
 }
 
-export const getStoryFeed = async () => {
+export const getStoryFeed = async (requestOptions?: { timeoutMs?: number }) => {
 	return await api.get<ApiResponse<UserStoryFeedResponse[]>>(
 		API_ENDPOINTS.STORIES.FEED,
+		{ timeout: requestOptions?.timeoutMs },
 	)
 }
 

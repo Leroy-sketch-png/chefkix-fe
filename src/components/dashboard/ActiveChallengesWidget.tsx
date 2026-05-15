@@ -43,6 +43,8 @@ interface ActiveChallengesWidgetProps {
 	className?: string
 }
 
+const CHALLENGE_WIDGET_TIMEOUT_MS = 8000
+
 export function ActiveChallengesWidget({
 	className,
 }: ActiveChallengesWidgetProps) {
@@ -57,8 +59,12 @@ export function ActiveChallengesWidget({
 		setLoaded(false)
 		try {
 			const [dailyRes, weeklyRes] = await Promise.all([
-				getTodaysChallenge().catch(() => null),
-				getWeeklyChallenge().catch(() => null),
+				getTodaysChallenge({
+					timeoutMs: CHALLENGE_WIDGET_TIMEOUT_MS,
+				}).catch(() => null),
+				getWeeklyChallenge({
+					timeoutMs: CHALLENGE_WIDGET_TIMEOUT_MS,
+				}).catch(() => null),
 			])
 
 			if (!dailyRes && !weeklyRes) {
@@ -97,8 +103,12 @@ export function ActiveChallengesWidget({
 			setLoaded(false)
 			try {
 				const [dailyRes, weeklyRes] = await Promise.all([
-					getTodaysChallenge().catch(() => null),
-					getWeeklyChallenge().catch(() => null),
+					getTodaysChallenge({
+						timeoutMs: CHALLENGE_WIDGET_TIMEOUT_MS,
+					}).catch(() => null),
+					getWeeklyChallenge({
+						timeoutMs: CHALLENGE_WIDGET_TIMEOUT_MS,
+					}).catch(() => null),
 				])
 				if (cancelled) return
 

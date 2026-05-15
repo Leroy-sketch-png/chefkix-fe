@@ -24,6 +24,8 @@ interface ResumeCookingBannerProps {
 	className?: string
 }
 
+const RESUME_BANNER_TIMEOUT_MS = 8000
+
 /**
  * ResumeCookingBanner - Shows when user has an interrupted/paused cooking session
  *
@@ -62,7 +64,9 @@ export const ResumeCookingBanner = ({
 			}
 
 			try {
-				const response = await getCurrentSession()
+				const response = await getCurrentSession({
+					timeoutMs: RESUME_BANNER_TIMEOUT_MS,
+				})
 				if (cancelled) return
 				if (
 					response.success &&
@@ -74,7 +78,10 @@ export const ResumeCookingBanner = ({
 					setPendingSession(response.data)
 
 					// Fetch recipe details for display
-					const recipeResponse = await getRecipeById(response.data.recipeId)
+					const recipeResponse = await getRecipeById(
+						response.data.recipeId,
+						{ timeoutMs: RESUME_BANNER_TIMEOUT_MS },
+					)
 					if (!cancelled && recipeResponse.success && recipeResponse.data) {
 						setRecipeName(recipeResponse.data.title)
 						setRecipeImage(
