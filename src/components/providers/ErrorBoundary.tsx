@@ -58,22 +58,31 @@ export class ErrorBoundary extends Component<Props, State> {
 
 	public render() {
 		if (this.state.hasError) {
+			let fallback: ReactNode
+
 			if (this.props.fallbackRender) {
-				return this.props.fallbackRender({
+				fallback = this.props.fallbackRender({
 					error: this.state.error,
 					onReset: this.handleReset,
 				})
-			}
-
-			if (this.props.fallback) {
-				return this.props.fallback
+			} else if (this.props.fallback) {
+				fallback = this.props.fallback
+			} else {
+				fallback = (
+					<ErrorBoundaryFallback
+						error={this.state.error}
+						onReset={this.handleReset}
+					/>
+				)
 			}
 
 			return (
-				<ErrorBoundaryFallback
-					error={this.state.error}
-					onReset={this.handleReset}
-				/>
+				<div
+					data-error-boundary='active'
+					data-error-boundary-message={this.state.error?.message ?? ''}
+				>
+					{fallback}
+				</div>
 			)
 		}
 

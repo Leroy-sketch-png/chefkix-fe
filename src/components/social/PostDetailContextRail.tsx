@@ -92,7 +92,7 @@ export function PostDetailContextRail({
 								{t('sessionXp')}
 							</span>
 							<span className='text-sm font-black text-xp'>
-								+{Math.round(post.baseXpAwarded ?? 0) * 0.7}
+								+{Math.round(post.xpEarned ?? 0)}
 							</span>
 						</div>
 					)}
@@ -106,11 +106,11 @@ export function PostDetailContextRail({
 				<div className='mt-3 grid gap-2'>
 					<QuickActionButton icon={Bookmark} label={t('savePostLabel')} />
 					<QuickActionButton icon={Share2} label={t('sharePost')} />
-					{post.author?.userId && (
+					{post.userId && (
 						<QuickActionButton
 							icon={Zap}
 							label={t('visitAuthor')}
-							href={`/${post.author.userId}`}
+							href={`/${post.userId}`}
 						/>
 					)}
 					<QuickActionButton

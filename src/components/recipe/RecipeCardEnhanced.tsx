@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { MagicCard } from '@/components/ui/magic-card'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -405,98 +406,105 @@ const FeedCard = ({
 			transition={TRANSITION_SPRING}
 			className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<Link
-				href={`/recipes/${id}`}
-				className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-success)'
+				className='h-full w-full'
 			>
-				{/* Image - using Next.js Image wrapped in motion.div for optimization */}
-				<motion.div
-					className='relative aspect-video overflow-hidden'
-					whileHover={IMAGE_ZOOM_HOVER}
-					transition={TRANSITION_SPRING}
+				<Link
+					href={`/recipes/${id}`}
+					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
 				>
-					<Image
-						src={imageUrl}
-						alt={title}
-						fallbackType='recipe'
-						fill
-						className='object-cover transition-transform duration-500'
-						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-					/>
-					{/* Scrim — top fade for XP badge readability, bottom fade for card blend */}
-					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/25 to-transparent' />
-					<div className='pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent' />
-				</motion.div>
+					{/* Image - using Next.js Image wrapped in motion.div for optimization */}
+					<motion.div
+						className='relative aspect-video overflow-hidden'
+						whileHover={IMAGE_ZOOM_HOVER}
+						transition={TRANSITION_SPRING}
+					>
+						<Image
+							src={imageUrl}
+							alt={title}
+							fallbackType='recipe'
+							fill
+							className='object-cover transition-transform duration-500'
+							sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+						/>
+						{/* Scrim — top fade for XP badge readability, bottom fade for card blend */}
+						<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/25 to-transparent' />
+						<div className='pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent' />
+					</motion.div>
 
-				{/* Content */}
-				<div className='p-4'>
-					<h3 className='mb-2 text-lg font-serif font-bold'>{title}</h3>
+					{/* Content */}
+					<div className='p-4'>
+						<h3 className='mb-2 text-lg font-serif font-bold'>{title}</h3>
 
-					{/* Skills you'll learn */}
-					{skillTags && skillTags.length > 0 && (
-						<div className='mb-2'>
-							<SkillTagsRow skills={skillTags} maxVisible={3} size='small' />
-						</div>
-					)}
-
-					<div className='mb-3 flex items-center gap-2.5 text-sm text-text-muted'>
-						{author && (
-							<>
-								<span className='flex items-center gap-1.5'>
-									<Image
-										src={author.avatarUrl}
-										alt={author.name}
-										fallbackType='avatar'
-										width={24}
-										height={24}
-										className='size-6 rounded-full'
-									/>
-									{author.name}
-								</span>
-								<span className='text-border'>•</span>
-							</>
+						{/* Skills you'll learn */}
+						{skillTags && skillTags.length > 0 && (
+							<div className='mb-2'>
+								<SkillTagsRow skills={skillTags} maxVisible={3} size='small' />
+							</div>
 						)}
-						<span className='flex items-center gap-1'>
-							<Clock className='size-3.5' />
-							{formatCookingTime(cookTimeMinutes)}
-						</span>
-					</div>
 
-					<div className='flex items-center justify-between gap-4'>
-						<div className='flex gap-4'>
-							<span className='flex items-center gap-1.5 text-sm text-success tabular-nums'>
-								<ChefHat className='size-4' />
-								{cookCount >= 1000
-									? `${(cookCount / 1000).toFixed(1)}k`
-									: cookCount}{' '}
-								{t('cookedCount')}
+						<div className='mb-3 flex items-center gap-2.5 text-sm text-text-muted'>
+							{author && (
+								<>
+									<span className='flex items-center gap-1.5'>
+										<Image
+											src={author.avatarUrl}
+											alt={author.name}
+											fallbackType='avatar'
+											width={24}
+											height={24}
+											className='size-6 rounded-full'
+										/>
+										{author.name}
+									</span>
+									<span className='text-border'>•</span>
+								</>
+							)}
+							<span className='flex items-center gap-1'>
+								<Clock className='size-3.5' />
+								{formatCookingTime(cookTimeMinutes)}
 							</span>
-							{rating > 0 && (
-								<span className='flex items-center gap-1.5 text-sm text-warning tabular-nums'>
-									<Star className='size-4' />
-									{rating.toFixed(1)}
+						</div>
+
+						<div className='flex items-center justify-between gap-4'>
+							<div className='flex gap-4'>
+								<span className='flex items-center gap-1.5 text-sm text-success tabular-nums'>
+									<ChefHat className='size-4' />
+									{cookCount >= 1000
+										? `${(cookCount / 1000).toFixed(1)}k`
+										: cookCount}{' '}
+									{t('cookedCount')}
 								</span>
+								{rating > 0 && (
+									<span className='flex items-center gap-1.5 text-sm text-warning tabular-nums'>
+										<Star className='size-4' />
+										{rating.toFixed(1)}
+									</span>
+								)}
+							</div>
+							{/* Badges you can unlock */}
+							{badges && badges.length > 0 && (
+								<BadgePreview badges={badges} maxVisible={1} />
 							)}
 						</div>
-						{/* Badges you can unlock */}
-						{badges && badges.length > 0 && (
-							<BadgePreview badges={badges} maxVisible={1} />
-						)}
 					</div>
-				</div>
-			</Link>
+				</Link>
 
-			{/* Cook now button */}
-			<motion.button
-				type='button'
-				onClick={onCookNow}
-				whileHover={BUTTON_HOVER}
-				whileTap={BUTTON_TAP}
-				className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
-			>
-				<Play className='size-4' />
-				{t('cookNow')}
-			</motion.button>
+				{/* Cook now button */}
+				<motion.button
+					type='button'
+					onClick={onCookNow}
+					whileHover={BUTTON_HOVER}
+					whileTap={BUTTON_TAP}
+					className='absolute bottom-4 right-4 z-10 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+				>
+					<Play className='size-4' />
+					{t('cookNow')}
+				</motion.button>
+			</MagicCard>
 		</motion.article>
 	)
 }
@@ -530,155 +538,166 @@ const GridCard = ({
 			transition={TRANSITION_SPRING}
 			className='group/recipe overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<Link
-				href={`/recipes/${id}`}
-				className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-success)'
+				className='h-full w-full'
 			>
-				{/* Image - using Next.js Image wrapped in motion.div for optimization */}
-				<motion.div
-					className='relative aspect-[4/3] overflow-hidden'
-					whileHover={IMAGE_ZOOM_LARGE_HOVER}
-					transition={TRANSITION_SPRING}
+				<Link
+					href={`/recipes/${id}`}
+					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
 				>
-					<div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/30 to-transparent' />
-					<div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/40 to-transparent' />
-					<Image
-						src={imageUrl}
-						alt={title}
-						fallbackType='recipe'
-						fill
-						className='object-cover'
-						sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-					/>
-					<XPBadge xp={xpReward} />
-					{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
-					<DifficultyIndicator difficulty={difficulty} showLabel />
-					{/* Quality badge - only show Foolproof tier */}
-					{qualityTier === 'Foolproof' && (
-						<div className='absolute right-3 top-3'>
-							<QualityBadge
-								tier='Foolproof'
-								size='sm'
-								showLabel
-								showScore={false}
-								animate={false}
-							/>
-						</div>
-					)}
-				</motion.div>
+					{/* Image - using Next.js Image wrapped in motion.div for optimization */}
+					<motion.div
+						className='relative aspect-[4/3] overflow-hidden'
+						whileHover={IMAGE_ZOOM_LARGE_HOVER}
+						transition={TRANSITION_SPRING}
+					>
+						<div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/30 to-transparent' />
+						<div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/40 to-transparent' />
+						<Image
+							src={imageUrl}
+							alt={title}
+							fallbackType='recipe'
+							fill
+							className='object-cover'
+							sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+						/>
+						<XPBadge xp={xpReward} />
+						{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
+						<DifficultyIndicator difficulty={difficulty} showLabel />
+						{/* Quality badge - only show Foolproof tier */}
+						{qualityTier === 'Foolproof' && (
+							<div className='absolute right-3 top-3'>
+								<QualityBadge
+									tier='Foolproof'
+									size='sm'
+									showLabel
+									showScore={false}
+									animate={false}
+								/>
+							</div>
+						)}
+					</motion.div>
 
-				{/* Content */}
-				<div className='p-4'>
-					<h3 className='mb-1.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
-						{title}
-					</h3>
-					{description && (
-						<p className='mb-2 line-clamp-2 text-sm leading-relaxed text-text-muted'>
-							{description}
-						</p>
-					)}
+					{/* Content */}
+					<div className='p-4'>
+						<h3 className='mb-1.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+							{title}
+						</h3>
+						{description && (
+							<p className='mb-2 line-clamp-2 text-sm leading-relaxed text-text-muted'>
+								{description}
+							</p>
+						)}
 
-					{/* Skills & Badges - compact row to reduce vertical space */}
-					{(skillTags?.length || badges?.length) && (
-						<div className='mb-2 flex flex-wrap items-center gap-x-3 gap-y-1'>
-							{skillTags && skillTags.length > 0 && (
-								<SkillTagsRow skills={skillTags} maxVisible={2} size='small' />
-							)}
-							{badges && badges.length > 0 && (
-								<BadgePreview badges={badges} maxVisible={1} />
-							)}
-						</div>
-					)}
+						{/* Skills & Badges - compact row to reduce vertical space */}
+						{(skillTags?.length || badges?.length) && (
+							<div className='mb-2 flex flex-wrap items-center gap-x-3 gap-y-1'>
+								{skillTags && skillTags.length > 0 && (
+									<SkillTagsRow
+										skills={skillTags}
+										maxVisible={2}
+										size='small'
+									/>
+								)}
+								{badges && badges.length > 0 && (
+									<BadgePreview badges={badges} maxVisible={1} />
+								)}
+							</div>
+						)}
 
-					{/* Stats row with cook count */}
-					<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
-						<div className='flex items-center gap-3'>
-							<span className='flex items-center gap-1'>
-								<Clock className='size-3.5' />
-								{formatCookingTime(cookTimeMinutes)}
-							</span>
-							{cookCount > 0 && (
-								<span className='flex items-center gap-1 text-success tabular-nums'>
-									<ChefHat className='size-3.5' />
-									{cookCount >= 1000
-										? `${(cookCount / 1000).toFixed(1)}k`
-										: cookCount}
+						{/* Stats row with cook count */}
+						<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
+							<div className='flex items-center gap-3'>
+								<span className='flex items-center gap-1'>
+									<Clock className='size-3.5' />
+									{formatCookingTime(cookTimeMinutes)}
+								</span>
+								{cookCount > 0 && (
+									<span className='flex items-center gap-1 text-success tabular-nums'>
+										<ChefHat className='size-3.5' />
+										{cookCount >= 1000
+											? `${(cookCount / 1000).toFixed(1)}k`
+											: cookCount}
+									</span>
+								)}
+							</div>
+							{/* Only show rating if it exists and > 0 */}
+							{rating > 0 && (
+								<span className='flex items-center gap-1 text-warning tabular-nums'>
+									⭐ {rating.toFixed(1)}
 								</span>
 							)}
 						</div>
-						{/* Only show rating if it exists and > 0 */}
-						{rating > 0 && (
-							<span className='flex items-center gap-1 text-warning tabular-nums'>
-								⭐ {rating.toFixed(1)}
-							</span>
+
+						{/* Author - only show if valid author data exists */}
+						{author && (
+							<div className='mb-4 flex items-center gap-2 text-sm'>
+								<Image
+									src={author.avatarUrl}
+									alt={author.name}
+									fallbackType='avatar'
+									width={28}
+									height={28}
+									className='size-7 rounded-full'
+								/>
+								<span>{author.name}</span>
+								{author.isVerified && (
+									<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
+										✓
+									</span>
+								)}
+							</div>
 						)}
 					</div>
+				</Link>
 
-					{/* Author - only show if valid author data exists */}
-					{author && (
-						<div className='mb-4 flex items-center gap-2 text-sm'>
-							<Image
-								src={author.avatarUrl}
-								alt={author.name}
-								fallbackType='avatar'
-								width={28}
-								height={28}
-								className='size-7 rounded-full'
-							/>
-							<span>{author.name}</span>
-							{author.isVerified && (
-								<span className='rounded-full bg-success px-1.5 py-0.5 text-2xs text-white'>
-									✓
-								</span>
-							)}
-						</div>
-					)}
-				</div>
-			</Link>
-
-			{/* Actions - more subtle, card is already clickable */}
-			<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
-				<motion.button
-					type='button'
-					onClick={e => {
-						e.preventDefault()
-						e.stopPropagation()
-						onCook?.()
-					}}
-					whileHover={BUTTON_HOVER}
-					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
-				>
-					<Play className='size-4' />
-					{t('startCooking')}
-				</motion.button>
-				<motion.button
-					type='button'
-					onClick={e => {
-						e.preventDefault()
-						e.stopPropagation()
-						onSave?.()
-					}}
-					whileHover={BUTTON_SUBTLE_HOVER}
-					whileTap={BUTTON_SUBTLE_TAP}
-					transition={TRANSITION_SPRING}
-					aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
-					className={cn(
-						'flex size-9 items-center justify-center rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-						isSaved
-							? 'bg-gold/15 text-gold'
-							: 'text-text-muted hover:bg-gold/10 hover:text-gold',
-					)}
-				>
-					<motion.div
-						variants={BOOKMARK_SLIDE}
-						animate={isSaved ? 'saved' : 'unsaved'}
-						initial={false}
+				{/* Actions - more subtle, card is already clickable */}
+				<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
+					<motion.button
+						type='button'
+						onClick={e => {
+							e.preventDefault()
+							e.stopPropagation()
+							onCook?.()
+						}}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
-						<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
-					</motion.div>
-				</motion.button>
-			</div>
+						<Play className='size-4' />
+						{t('startCooking')}
+					</motion.button>
+					<motion.button
+						type='button'
+						onClick={e => {
+							e.preventDefault()
+							e.stopPropagation()
+							onSave?.()
+						}}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+						aria-label={isSaved ? t('removeFromSaved') : t('saveRecipe')}
+						className={cn(
+							'flex size-9 items-center justify-center rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+							isSaved
+								? 'bg-gold/15 text-gold'
+								: 'text-text-muted hover:bg-gold/10 hover:text-gold',
+						)}
+					>
+						<motion.div
+							variants={BOOKMARK_SLIDE}
+							animate={isSaved ? 'saved' : 'unsaved'}
+							initial={false}
+						>
+							<Bookmark className={cn('size-5', isSaved && 'fill-current')} />
+						</motion.div>
+					</motion.button>
+				</div>
+			</MagicCard>
 		</motion.article>
 	)
 }
@@ -710,164 +729,171 @@ const FeaturedCard = ({
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl shadow-warm'
 		>
-			<Link
-				href={`/recipes/${id}`}
-				className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-xp)'
+				className='h-full w-full'
 			>
-				<div className='relative aspect-video min-h-panel-md'>
-					<Image
-						src={imageUrl}
-						alt={title}
-						fallbackType='recipe'
-						fill
-						sizes='(max-width: 768px) 100vw, 50vw'
-						className='object-cover'
-					/>
-					{/* Gradient overlay */}
-					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
+				<Link
+					href={`/recipes/${id}`}
+					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+				>
+					<div className='relative aspect-video min-h-panel-md'>
+						<Image
+							src={imageUrl}
+							alt={title}
+							fallbackType='recipe'
+							fill
+							sizes='(max-width: 768px) 100vw, 50vw'
+							className='object-cover'
+						/>
+						{/* Gradient overlay */}
+						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent' />
 
-					{/* Trending badge */}
-					{isTrending && (
-						<div className='absolute left-5 top-5 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-error to-error/80 px-4 py-2.5 text-sm font-bold text-white'>
-							<TrendingUp className='size-4' />
-							{t('trending')}
-						</div>
-					)}
-
-					{/* XP + Difficulty badges */}
-					<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
-						{xpReward != null && xpReward > 0 && (
-							<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-warm shadow-success/40'>
-								<span className='text-lg'>⚡</span>
-								<span className='tabular-nums'>{xpReward} XP</span>
+						{/* Trending badge */}
+						{isTrending && (
+							<div className='absolute left-5 top-5 flex items-center gap-1.5 rounded-full bg-gradient-to-br from-error to-error/80 px-4 py-2.5 text-sm font-bold text-white'>
+								<TrendingUp className='size-4' />
+								{t('trending')}
 							</div>
 						)}
-						<div
-							className={cn(
-								'rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-white',
-								(difficultyConfig[difficulty] ?? difficultyConfig.Beginner)
-									.bgColor,
+
+						{/* XP + Difficulty badges */}
+						<div className='absolute right-5 top-5 flex flex-col items-end gap-2.5'>
+							{xpReward != null && xpReward > 0 && (
+								<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-br from-success to-success/80 px-4 py-2.5 text-base font-bold text-white shadow-warm shadow-success/40'>
+									<span className='text-lg'>⚡</span>
+									<span className='tabular-nums'>{xpReward} XP</span>
+								</div>
 							)}
-						>
-							{t('difficultyChallenge', {
-								difficulty: difficulty || 'Beginner',
-							})}
-						</div>
-					</div>
-
-					{/* Content overlay */}
-					<div className='absolute inset-x-0 bottom-0 z-10 p-6 md:p-8'>
-						<h3 className='mb-3 text-2xl font-bold tracking-tight text-white drop-shadow-md md:text-3xl'>
-							{title}
-						</h3>
-						{description && (
-							<p className='mb-4 max-w-lg text-sm text-white/80 md:text-base'>
-								{description}
-							</p>
-						)}
-
-						{/* Skills you'll learn */}
-						{skillTags && skillTags.length > 0 && (
-							<div className='mb-4 flex flex-wrap gap-2'>
-								{skillTags.slice(0, 4).map(skill => (
-									<span
-										key={skill}
-										className='rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white'
-									>
-										{skill}
-									</span>
-								))}
+							<div
+								className={cn(
+									'rounded-full px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-white',
+									(difficultyConfig[difficulty] ?? difficultyConfig.Beginner)
+										.bgColor,
+								)}
+							>
+								{t('difficultyChallenge', {
+									difficulty: difficulty || 'Beginner',
+								})}
 							</div>
-						)}
+						</div>
 
-						{/* Badges you can unlock */}
-						{badges && badges.length > 0 && (
-							<div className='mb-4 flex items-center gap-2'>
-								<span className='text-sm'>🏆</span>
-								<div className='flex gap-1.5'>
-									{badges.slice(0, 2).map(badge => (
+						{/* Content overlay */}
+						<div className='absolute inset-x-0 bottom-0 z-10 p-6 md:p-8'>
+							<h3 className='mb-3 text-2xl font-bold tracking-tight text-white drop-shadow-md md:text-3xl'>
+								{title}
+							</h3>
+							{description && (
+								<p className='mb-4 max-w-lg text-sm text-white/80 md:text-base'>
+									{description}
+								</p>
+							)}
+
+							{/* Skills you'll learn */}
+							{skillTags && skillTags.length > 0 && (
+								<div className='mb-4 flex flex-wrap gap-2'>
+									{skillTags.slice(0, 4).map(skill => (
 										<span
-											key={badge}
-											className='rounded-full bg-gold/30 px-2.5 py-1 text-xs font-medium text-gold'
+											key={skill}
+											className='rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white'
 										>
-											{badge}
+											{skill}
 										</span>
 									))}
-									{badges.length > 2 && (
-										<span className='rounded-full bg-white/20 px-2 py-1 text-xs font-medium text-white/70'>
-											+{badges.length - 2}
-										</span>
-									)}
 								</div>
-							</div>
-						)}
+							)}
 
-						{/* Stats */}
-						<div className='mb-5 flex flex-wrap gap-4 md:gap-6'>
-							<span className='flex items-center gap-1.5 text-sm text-white/90'>
-								<ChefHat className='size-4' />
-								{cookCount >= 1000
-									? `${(cookCount / 1000).toFixed(1)}k`
-									: cookCount}{' '}
-								{t('cookedCount')}
-							</span>
-							{rating > 0 && (
+							{/* Badges you can unlock */}
+							{badges && badges.length > 0 && (
+								<div className='mb-4 flex items-center gap-2'>
+									<span className='text-sm'>🏆</span>
+									<div className='flex gap-1.5'>
+										{badges.slice(0, 2).map(badge => (
+											<span
+												key={badge}
+												className='rounded-full bg-gold/30 px-2.5 py-1 text-xs font-medium text-gold'
+											>
+												{badge}
+											</span>
+										))}
+										{badges.length > 2 && (
+											<span className='rounded-full bg-white/20 px-2 py-1 text-xs font-medium text-white/70'>
+												+{badges.length - 2}
+											</span>
+										)}
+									</div>
+								</div>
+							)}
+
+							{/* Stats */}
+							<div className='mb-5 flex flex-wrap gap-4 md:gap-6'>
 								<span className='flex items-center gap-1.5 text-sm text-white/90'>
-									<Star className='size-4' />
-									{rating.toFixed(1)}
+									<ChefHat className='size-4' />
+									{cookCount >= 1000
+										? `${(cookCount / 1000).toFixed(1)}k`
+										: cookCount}{' '}
+									{t('cookedCount')}
 								</span>
-							)}
-							<span className='flex items-center gap-1.5 text-sm text-white/90'>
-								<Clock className='size-4' />
-								{formatCookingTime(cookTimeMinutes)}
-							</span>
-						</div>
-
-						{/* Author - only show if valid author data */}
-						{author && (
-							<div className='mb-6 flex items-center gap-3.5'>
-								<Image
-									src={author.avatarUrl}
-									alt={author.name}
-									fallbackType='avatar'
-									width={48}
-									height={48}
-									className='size-12 rounded-full border-2 border-white/30'
-								/>
-								<div className='flex flex-col'>
-									<span className='font-bold text-white'>{author.name}</span>
-									{author.title && (
-										<span className='text-sm text-white/70'>
-											{author.title}
-										</span>
-									)}
-								</div>
+								{rating > 0 && (
+									<span className='flex items-center gap-1.5 text-sm text-white/90'>
+										<Star className='size-4' />
+										{rating.toFixed(1)}
+									</span>
+								)}
+								<span className='flex items-center gap-1.5 text-sm text-white/90'>
+									<Clock className='size-4' />
+									{formatCookingTime(cookTimeMinutes)}
+								</span>
 							</div>
-						)}
 
-						{/* CTA */}
-						<motion.button
-							type='button'
-							onClick={e => {
-								e.preventDefault()
-								onCook?.()
-							}}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							transition={TRANSITION_SPRING}
-							className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
-						>
-							<Play className='size-5 md:size-6' />
-							{t('startCooking')}
-							{xpReward != null && xpReward > 0 && (
-								<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
-									{t('earnXp', { xp: xpReward })}
-								</span>
+							{/* Author - only show if valid author data */}
+							{author && (
+								<div className='mb-6 flex items-center gap-3.5'>
+									<Image
+										src={author.avatarUrl}
+										alt={author.name}
+										fallbackType='avatar'
+										width={48}
+										height={48}
+										className='size-12 rounded-full border-2 border-white/30'
+									/>
+									<div className='flex flex-col'>
+										<span className='font-bold text-white'>{author.name}</span>
+										{author.title && (
+											<span className='text-sm text-white/70'>
+												{author.title}
+											</span>
+										)}
+									</div>
+								</div>
 							)}
-						</motion.button>
+
+							{/* CTA */}
+							<motion.button
+								type='button'
+								onClick={e => {
+									e.preventDefault()
+									onCook?.()
+								}}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								transition={TRANSITION_SPRING}
+								className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								<Play className='size-5 md:size-6' />
+								{t('startCooking')}
+								{xpReward != null && xpReward > 0 && (
+									<span className='rounded-full bg-white/20 px-3 py-1 text-sm font-semibold max-md:hidden'>
+										{t('earnXp', { xp: xpReward })}
+									</span>
+								)}
+							</motion.button>
+						</div>
 					</div>
-				</div>
-			</Link>
+				</Link>
+			</MagicCard>
 		</motion.article>
 	)
 }
@@ -891,108 +917,115 @@ const CookedCard = ({
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl border border-xp/25 bg-bg-card shadow-card transition-all duration-300 hover:border-xp/45 hover:shadow-warm'
 		>
-			<Link
-				href={`/recipes/${id}`}
-				className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-xp)'
+				glowTo='var(--color-brand)'
+				className='h-full w-full'
 			>
-				{/* Image */}
-				<div className='relative aspect-video overflow-hidden'>
-					<Image
-						src={imageUrl}
-						alt={title}
-						fallbackType='recipe'
-						fill
-						sizes='(max-width: 768px) 100vw, 33vw'
-						className='object-cover'
-					/>
-					<MasteryBadge level={mastery.masteryLevel} />
-					<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold tabular-nums text-white'>
-						{t('cookedTimes', { count: mastery.personalCookCount })}
+				<Link
+					href={`/recipes/${id}`}
+					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
+				>
+					{/* Image */}
+					<div className='relative aspect-video overflow-hidden'>
+						<Image
+							src={imageUrl}
+							alt={title}
+							fallbackType='recipe'
+							fill
+							sizes='(max-width: 768px) 100vw, 33vw'
+							className='object-cover'
+						/>
+						<MasteryBadge level={mastery.masteryLevel} />
+						<div className='absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold tabular-nums text-white'>
+							{t('cookedTimes', { count: mastery.personalCookCount })}
+						</div>
 					</div>
-				</div>
 
-				{/* Content */}
-				<div className='p-4'>
-					<h3 className='mb-3.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
-						{title}
-					</h3>
+					{/* Content */}
+					<div className='p-4'>
+						<h3 className='mb-3.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+							{title}
+						</h3>
 
-					{/* Mastery progress */}
-					<div className='mb-4'>
-						<div className='mb-2 flex items-center justify-between text-xs'>
-							<span className='font-semibold text-xp'>{t('mastery')}</span>
-							<span className='text-text-muted'>
-								{t('moreCooksToMilestone', {
-									count: mastery.cooksToNextMilestone,
+						{/* Mastery progress */}
+						<div className='mb-4'>
+							<div className='mb-2 flex items-center justify-between text-xs'>
+								<span className='font-semibold text-xp'>{t('mastery')}</span>
+								<span className='text-text-muted'>
+									{t('moreCooksToMilestone', {
+										count: mastery.cooksToNextMilestone,
+									})}
+								</span>
+							</div>
+							<div className='relative mb-2 h-2 overflow-hidden rounded-full bg-border'>
+								<motion.div
+									initial={{ width: 0 }}
+									animate={{ width: `${mastery.masteryPercent}%` }}
+									transition={{ duration: DURATION_S.slow }}
+									className='h-full rounded-full bg-gradient-xp'
+								/>
+							</div>
+							<div className='flex justify-between text-xs'>
+								{[1, 3, 7, 25].map(milestone => (
+									<span
+										key={milestone}
+										className={cn(
+											'rounded-full px-2 py-0.5',
+											mastery.personalCookCount >= milestone
+												? 'bg-xp/20 text-xp'
+												: mastery.personalCookCount === milestone - 1
+													? 'bg-xp text-white'
+													: 'bg-border text-text-muted',
+										)}
+									>
+										{milestone}
+									</span>
+								))}
+							</div>
+						</div>
+
+						{/* XP summary */}
+						<div className='mb-4 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2.5 text-sm'>
+							<span className='font-bold tabular-nums text-success'>
+								{t('xpEarned', { xp: mastery.totalXpEarned })}
+							</span>
+							<span className='tabular-nums text-text-muted'>
+								{t('nextCookXp', {
+									xp: mastery.nextCookXp,
+									percent: mastery.nextCookPercent,
 								})}
 							</span>
 						</div>
-						<div className='relative mb-2 h-2 overflow-hidden rounded-full bg-border'>
-							<motion.div
-								initial={{ width: 0 }}
-								animate={{ width: `${mastery.masteryPercent}%` }}
-								transition={{ duration: DURATION_S.slow }}
-								className='h-full rounded-full bg-gradient-xp'
-							/>
-						</div>
-						<div className='flex justify-between text-xs'>
-							{[1, 3, 7, 25].map(milestone => (
-								<span
-									key={milestone}
-									className={cn(
-										'rounded-full px-2 py-0.5',
-										mastery.personalCookCount >= milestone
-											? 'bg-xp/20 text-xp'
-											: mastery.personalCookCount === milestone - 1
-												? 'bg-xp text-white'
-												: 'bg-border text-text-muted',
-									)}
-								>
-									{milestone}
-								</span>
-							))}
-						</div>
 					</div>
+				</Link>
 
-					{/* XP summary */}
-					<div className='mb-4 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2.5 text-sm'>
-						<span className='font-bold tabular-nums text-success'>
-							{t('xpEarned', { xp: mastery.totalXpEarned })}
-						</span>
-						<span className='tabular-nums text-text-muted'>
-							{t('nextCookXp', {
-								xp: mastery.nextCookXp,
-								percent: mastery.nextCookPercent,
-							})}
-						</span>
-					</div>
+				{/* Actions */}
+				<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
+					<motion.button
+						type='button'
+						onClick={onCookAgain}
+						whileHover={BUTTON_HOVER}
+						whileTap={BUTTON_TAP}
+						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-xp py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] transition-all hover:bg-xp/90 hover:shadow-[0_4px_12px_rgba(99,102,241,0.45)] focus-visible:ring-2 focus-visible:ring-xp/50'
+					>
+						<RefreshCw className='size-[15px]' />
+						{t('cookAgain')}
+					</motion.button>
+					<motion.button
+						type='button'
+						onClick={onViewHistory}
+						whileHover={BUTTON_SUBTLE_HOVER}
+						whileTap={BUTTON_SUBTLE_TAP}
+						transition={TRANSITION_SPRING}
+						className='flex size-9 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-xp/50'
+						aria-label={t('viewCookingHistory')}
+					>
+						<History className='size-[15px]' />
+					</motion.button>
 				</div>
-			</Link>
-
-			{/* Actions */}
-			<div className='flex gap-2 border-t border-border-subtle/60 px-4 py-3'>
-				<motion.button
-					type='button'
-					onClick={onCookAgain}
-					whileHover={BUTTON_HOVER}
-					whileTap={BUTTON_TAP}
-					className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-xp py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] transition-all hover:bg-xp/90 hover:shadow-[0_4px_12px_rgba(99,102,241,0.45)] focus-visible:ring-2 focus-visible:ring-xp/50'
-				>
-					<RefreshCw className='size-[15px]' />
-					{t('cookAgain')}
-				</motion.button>
-				<motion.button
-					type='button'
-					onClick={onViewHistory}
-					whileHover={BUTTON_SUBTLE_HOVER}
-					whileTap={BUTTON_SUBTLE_TAP}
-					transition={TRANSITION_SPRING}
-					className='flex size-9 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-xp/50'
-					aria-label={t('viewCookingHistory')}
-				>
-					<History className='size-[15px]' />
-				</motion.button>
-			</div>
+			</MagicCard>
 		</motion.article>
 	)
 }

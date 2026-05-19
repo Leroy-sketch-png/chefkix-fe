@@ -13,6 +13,7 @@ import {
 	ArrowRight,
 	Play,
 	TrendingUp,
+	Search,
 	Timer,
 	Trophy,
 	Zap,
@@ -35,12 +36,14 @@ import { Recipe, formatCookingTime } from '@/lib/types/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import { logDevError } from '@/lib/dev-log'
 import { TextLoop } from '@/components/ui/text-loop'
-import { DotPattern } from '@/components/ui/dot-pattern'
 import { HighlightOnScroll } from '@/components/ui/highlight-on-scroll'
-import { CountUpStats } from '@/components/ui/count-up-stats'
 import { AnnouncementBanner } from '@/components/ui/announcement-banner'
 import { NoiseOverlay } from '@/components/ui/noise-overlay'
 import { TextReveal } from '@/components/ui/text-reveal'
+import { SpotlightCards } from '@/components/ui/spotlight-cards'
+import { WavyBackground } from '@/components/ui/wavy-background'
+import { MagicCard } from '@/components/ui/magic-card'
+import { Button } from '@/components/ui/button'
 
 // ============================================
 // TYPES
@@ -54,13 +57,13 @@ interface FeatureHighlight {
 	iconColor: string
 }
 
-interface FallbackRecipePreview {
-	id: string
-	title: string
-	time: string
-	difficulty: string
-	xp: number
-	imageUrl: string
+interface LandingPathway {
+	icon: typeof Timer
+	titleKey: string
+	descriptionKey: string
+	href: string
+	accent: string
+	iconColor: string
 }
 
 // ============================================
@@ -69,60 +72,60 @@ interface FallbackRecipePreview {
 
 const featureHighlights: FeatureHighlight[] = [
 	{
-		icon: Timer,
-		titleKey: 'smartTimersTitle',
-		descriptionKey: 'smartTimersDesc',
+		icon: TrendingUp,
+		titleKey: 'realFoodFeedTitle',
+		descriptionKey: 'realFoodFeedDesc',
 		accent: 'bg-info/10',
 		iconColor: 'text-info',
 	},
 	{
-		icon: Trophy,
-		titleKey: 'earnXpTitle',
-		descriptionKey: 'earnXpDesc',
+		icon: Sparkles,
+		titleKey: 'saveWhatHitsTitle',
+		descriptionKey: 'saveWhatHitsDesc',
+		accent: 'bg-streak/10',
+		iconColor: 'text-streak',
+	},
+	{
+		icon: ChefHat,
+		titleKey: 'cookWhenReadyTitle',
+		descriptionKey: 'cookWhenReadyDesc',
 		accent: 'bg-xp/10',
 		iconColor: 'text-xp',
 	},
-	{
-		icon: Zap,
-		titleKey: 'stepByStepTitle',
-		descriptionKey: 'stepByStepDesc',
-		accent: 'bg-brand/10',
-		iconColor: 'text-brand',
-	},
 ]
 
-const fallbackTrendingPreview: FallbackRecipePreview[] = [
+const discoveryPillKeys = [
+	'heroPillQuickTips',
+	'heroPillRecentCooks',
+	'heroPillReviews',
+	'heroPillBattles',
+	'heroPillPolls',
+] as const
+
+const landingPathways: LandingPathway[] = [
 	{
-		id: 'fallback-quick-pasta',
-		title: 'Quick Garlic Pasta',
-		time: '20 min',
-		difficulty: 'Beginner',
-		xp: 20,
-		imageUrl: '/placeholder-recipe.svg',
+		icon: Sparkles,
+		titleKey: 'entryCommunityTitle',
+		descriptionKey: 'entryCommunityDesc',
+		href: '/community',
+		accent: 'bg-streak/10',
+		iconColor: 'text-streak',
 	},
 	{
-		id: 'fallback-pan-seared-chicken',
-		title: 'Pan-Seared Chicken Bowl',
-		time: '30 min',
-		difficulty: 'Intermediate',
-		xp: 30,
-		imageUrl: '/placeholder-recipe.svg',
+		icon: Search,
+		titleKey: 'entrySearchTitle',
+		descriptionKey: 'entrySearchDesc',
+		href: '/search',
+		accent: 'bg-info/10',
+		iconColor: 'text-info',
 	},
 	{
-		id: 'fallback-veggie-stir-fry',
-		title: 'Veggie Stir Fry',
-		time: '18 min',
-		difficulty: 'Beginner',
-		xp: 18,
-		imageUrl: '/placeholder-recipe.svg',
-	},
-	{
-		id: 'fallback-protein-wrap',
-		title: 'Protein Wrap',
-		time: '12 min',
-		difficulty: 'Beginner',
-		xp: 15,
-		imageUrl: '/placeholder-recipe.svg',
+		icon: TrendingUp,
+		titleKey: 'entryExploreTitle',
+		descriptionKey: 'entryExploreDesc',
+		href: '/explore',
+		accent: 'bg-brand/10',
+		iconColor: 'text-brand',
 	},
 ]
 
@@ -147,20 +150,27 @@ const FeatureCard = ({
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ delay: 0.8 + index * 0.1, ...TRANSITION_SPRING }}
-			className='flex items-start gap-3 rounded-xl border border-border-subtle bg-bg-card/80 p-4 shadow-card backdrop-blur-sm'
+			className='rounded-2xl h-full'
 		>
-			<div
-				className={cn(
-					'flex size-10 shrink-0 items-center justify-center rounded-xl',
-					feature.accent,
-				)}
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-xp)'
+				className='flex h-full items-start gap-3 rounded-2xl border border-border-subtle bg-bg-card/80 p-5 shadow-card transition-all duration-300 hover:shadow-warm p-5'
 			>
-				<Icon className={cn('size-5', feature.iconColor)} />
-			</div>
-			<div>
-				<h3 className='font-semibold text-text-primary'>{title}</h3>
-				<p className='mt-0.5 text-sm text-text-secondary'>{description}</p>
-			</div>
+				<div
+					className={cn(
+						'flex size-10 shrink-0 items-center justify-center rounded-xl',
+						feature.accent,
+					)}
+				>
+					<Icon className={cn('size-5', feature.iconColor)} />
+				</div>
+				<div className='text-left'>
+					<h3 className='font-semibold text-text-primary'>{title}</h3>
+					<p className='mt-1 text-sm text-text-secondary'>{description}</p>
+				</div>
+			</MagicCard>
 		</motion.div>
 	)
 }
@@ -188,118 +198,81 @@ const TrendingRecipeCard = ({
 			initial={{ opacity: 0, y: 30 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ delay: 0.6 + index * 0.1, ...TRANSITION_SPRING }}
+			className='rounded-2xl h-full'
 		>
 			<Link
 				href={`/recipes/${recipe.id}`}
-				className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
+				className='group block h-full rounded-2xl'
 			>
-				<div className='relative aspect-video w-full overflow-hidden sm:aspect-[4/3]'>
-					<Image
-						src={coverImage}
-						alt={recipe.title}
-						fill
-						className='object-cover transition-transform duration-500 group-hover:scale-105'
-						sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
-					/>
-					{/* Gradient overlay */}
-					<div className='pointer-events-none absolute inset-0 bg-gradient-scrim' />
-					{/* Cook CTA — always visible on mobile, hover-revealed on desktop */}
-					<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20'>
-						<motion.div
-							className='rounded-full bg-brand p-3 opacity-80 shadow-card transition-opacity sm:opacity-0 sm:group-hover:opacity-100'
-							whileHover={ICON_BUTTON_HOVER}
-						>
-							<Play className='size-5 text-white' fill='white' />
-						</motion.div>
-					</div>
-					{/* Stats overlay */}
-					<div className='absolute bottom-0 left-0 right-0 flex items-center justify-between p-3'>
-						<div className='flex items-center gap-2 text-xs text-white/90'>
-							<span className='flex items-center gap-1'>
-								<Clock className='size-3' />
-								{formatCookingTime(totalTime)}
-							</span>
-							<span className='flex items-center gap-1'>
-								<Flame className='size-3' />
-								{difficulty}
-							</span>
+				<MagicCard
+					mode='orb'
+					glowFrom='var(--color-brand)'
+					glowTo='var(--color-streak)'
+					className='overflow-hidden h-full rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-brand/30 hover:shadow-warm p-0'
+				>
+					<div className='relative aspect-video w-full overflow-hidden sm:aspect-[4/3]'>
+						<Image
+							src={coverImage}
+							alt={recipe.title}
+							fill
+							className='object-cover transition-transform duration-500 group-hover:scale-105'
+							sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
+						/>
+						{/* Gradient overlay */}
+						<div className='pointer-events-none absolute inset-0 bg-gradient-scrim' />
+						{/* Cook CTA — always visible on mobile, hover-revealed on desktop */}
+						<div className='absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20'>
+							<motion.div
+								className='rounded-full bg-brand p-3 opacity-80 shadow-card transition-opacity sm:opacity-0 sm:group-hover:opacity-100'
+								whileHover={ICON_BUTTON_HOVER}
+							>
+								<Play className='size-5 text-white' fill='white' />
+							</motion.div>
 						</div>
-						{recipe.xpReward > 0 && (
-							<span className='rounded-full bg-xp/90 px-2 py-0.5 text-xs font-bold text-white'>
-								+{recipe.xpReward} XP
-							</span>
+						{/* Stats overlay */}
+						<div className='absolute bottom-0 left-0 right-0 flex items-center justify-between p-3'>
+							<div className='flex items-center gap-2 text-xs text-white/90'>
+								<span className='flex items-center gap-1'>
+									<Clock className='size-3' />
+									{totalTime > 0 ? formatCookingTime(totalTime) : ''}
+								</span>
+								<span className='flex items-center gap-1'>
+									<Flame className='size-3' />
+									{difficulty}
+								</span>
+							</div>
+							{recipe.xpReward > 0 && (
+								<span className='rounded-full bg-xp/90 px-2 py-0.5 text-xs font-bold text-white'>
+									+{recipe.xpReward} XP
+								</span>
+							)}
+						</div>
+					</div>
+					<div className='p-4 text-left'>
+						<h3 className='line-clamp-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
+							{recipe.title}
+						</h3>
+						<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
+							{byLabel}
+						</p>
+						{recipe.cookCount > 0 && (
+							<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
+								<ChefHat className='size-3' />
+								<span>{cookedLabel}</span>
+							</div>
 						)}
 					</div>
-				</div>
-				<div className='p-4'>
-					<h3 className='line-clamp-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
-						{recipe.title}
-					</h3>
-					<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
-						{byLabel}
-					</p>
-					{recipe.cookCount > 0 && (
-						<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
-							<ChefHat className='size-3' />
-							<span>{cookedLabel}</span>
-						</div>
-					)}
-				</div>
+				</MagicCard>
 			</Link>
 		</motion.div>
 	)
 }
-
-const FallbackTrendingCard = ({ item }: { item: FallbackRecipePreview }) => {
-	return (
-		<Link
-			href='/explore'
-			className='group block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all hover:border-brand/30 hover:shadow-warm'
-		>
-			<div className='relative aspect-video w-full overflow-hidden sm:aspect-[4/3]'>
-				<Image
-					src={item.imageUrl}
-					alt={item.title}
-					fill
-					className='object-cover transition-transform duration-500 group-hover:scale-105'
-					sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
-				/>
-				<div className='pointer-events-none absolute inset-0 bg-gradient-scrim' />
-				<div className='absolute bottom-0 left-0 right-0 flex items-center justify-between p-3'>
-					<div className='flex items-center gap-2 text-xs text-white/90'>
-						<span className='flex items-center gap-1'>
-							<Clock className='size-3' />
-							{item.time}
-						</span>
-						<span className='flex items-center gap-1'>
-							<Flame className='size-3' />
-							{item.difficulty}
-						</span>
-					</div>
-					<span className='rounded-full bg-xp/90 px-2 py-0.5 text-xs font-bold text-white'>
-						+{item.xp} XP
-					</span>
-				</div>
-			</div>
-			<div className='p-4'>
-				<h3 className='line-clamp-1 font-bold text-text-primary transition-colors group-hover:text-brand'>
-					{item.title}
-				</h3>
-				<p className='mt-1 line-clamp-1 text-sm text-text-secondary'>
-					ChefKix Preview
-				</p>
-			</div>
-		</Link>
-	)
-}
-
 // ============================================
 // MAIN PAGE
 // ============================================
 
 export default function HomePage() {
 	const t = useTranslations('landing')
-	const tCommon = useTranslations('common')
 	const router = useRouter()
 	const { user, isLoading } = useAuth()
 	const [trendingRecipes, setTrendingRecipes] = useState<Recipe[]>([])
@@ -359,14 +332,6 @@ export default function HomePage() {
 
 	return (
 		<div className='relative min-h-screen bg-bg'>
-			{/* Subtle dot pattern background */}
-			<DotPattern
-				fade
-				spacing={24}
-				radius={0.8}
-				color='var(--text-muted)'
-				className='absolute inset-0 opacity-[0.15]'
-			/>
 			{/* Warm noise texture for depth */}
 			<NoiseOverlay opacity={0.03} />
 
@@ -380,89 +345,193 @@ export default function HomePage() {
 					message={t('launchBanner')}
 				/>
 
-				{/* Navigation */}
-				<nav className='flex items-center justify-between px-6 py-3 md:px-12 md:py-6'>
-					<div className='flex items-center gap-2'>
-						<div className='flex size-10 items-center justify-center rounded-xl bg-gradient-hero'>
-							<ChefHat className='size-5 text-white' />
+				<div className='relative min-h-[90vh] overflow-hidden border-b border-border-subtle/50 bg-bg'>
+					<div className='pointer-events-none absolute inset-0'>
+						<div className='absolute inset-0 bg-[radial-gradient(circle_at_top_center,rgba(255,90,54,0.18),transparent_24%),radial-gradient(circle_at_15%_22%,rgba(255,90,54,0.12),transparent_22%),radial-gradient(circle_at_82%_30%,rgba(234,179,8,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.76),rgba(248,244,239,0.92)_48%,rgba(248,244,239,1)_100%)]' />
+						<div className='absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-bg' />
+					</div>
+					{/* Navigation */}
+					<nav className='w-full flex items-center justify-between px-6 py-3 md:px-12 md:py-6 relative z-30'>
+						<Link href='/' className='group flex items-center gap-2'>
+							<div className='relative flex size-10 items-center justify-center rounded-xl bg-gradient-hero transition-transform duration-300 group-hover:scale-105'>
+								<ChefHat className='size-5 text-white' />
+							</div>
+							<span className='text-xl font-bold text-text-primary transition-colors duration-300 group-hover:text-brand'>
+								ChefKix
+							</span>
+						</Link>
+						<div className='flex items-center gap-3'>
+							<Link
+								href='/auth/sign-in'
+								className='rounded-xl px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary'
+							>
+								{t('signIn')}
+							</Link>
+							<motion.div
+								whileHover={{ scale: 1.03 }}
+								whileTap={{ scale: 0.97 }}
+							>
+								<Button
+									onClick={() => router.push('/auth/sign-up')}
+									variant='brand'
+									className='h-10 rounded-xl px-5 text-sm font-bold shadow-warm'
+								>
+									{t('getStarted')}
+								</Button>
+							</motion.div>
 						</div>
-						<span className='text-xl font-bold text-text-primary'>ChefKix</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<Link
-							href='/auth/sign-in'
-							className='rounded-xl px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary'
-						>
-							{t('signIn')}
-						</Link>
-						<Link
-							href='/auth/sign-up'
-							className='inline-flex rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:px-5 sm:text-sm'
-						>
-							{t('getStarted')}
-						</Link>
-					</div>
-				</nav>
+					</nav>
 
-				{/* Hero Section */}
-				<motion.section
-					variants={staggerContainer}
-					initial='hidden'
-					animate='visible'
-					className='mx-auto max-w-5xl px-6 pb-8 pt-2 text-center md:px-12 md:pb-16 md:pt-10'
-				>
-					<motion.div variants={staggerItem}>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							transition={{ delay: 0.1, ...TRANSITION_SPRING }}
-							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-hero shadow-warm shadow-brand/30'
-						>
-							<ChefHat className='size-8 text-white' />
+					{/* Hero Section */}
+					<motion.section
+						variants={staggerContainer}
+						initial='hidden'
+						animate='visible'
+						className='mx-auto max-w-5xl px-6 pb-8 pt-2 text-center md:px-12 md:pb-16 md:pt-10 relative z-20 flex-1 flex flex-col justify-center'
+					>
+						<motion.div variants={staggerItem} className='mx-auto mb-6 w-fit'>
+							<div className='inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-4 py-2 text-sm font-semibold text-brand shadow-card'>
+								<Sparkles className='size-4' />
+								<span>{t('heroEyebrow')}</span>
+							</div>
 						</motion.div>
-					</motion.div>
 
-					<motion.h1
-						variants={staggerItem}
-						className='mb-4 text-3xl font-extrabold leading-tight text-text-primary md:text-4xl lg:text-5xl'
-					>
-						{t('heroTitle1')}{' '}
-						<TextLoop
-							texts={[t('heroTitlePro'), t('heroTitleGamer')]}
-							interval={2500}
-							textClassName='bg-gradient-hero-text bg-clip-text text-transparent'
-						/>
-					</motion.h1>
-
-					<motion.p
-						variants={staggerItem}
-						className='mx-auto mb-6 max-w-xl text-lg text-text-secondary'
-					>
-						{t('heroDescription')}
-					</motion.p>
-
-					<motion.div
-						variants={staggerItem}
-						className='flex flex-col items-center justify-center gap-3 sm:flex-row'
-					>
-						<Link
-							href='/auth/sign-up'
-							className='group flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-8 py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] sm:w-auto'
+						<motion.h1
+							variants={staggerItem}
+							className='mb-4 text-4xl font-black leading-tight text-text-primary md:text-5xl lg:text-6xl tracking-tight'
 						>
-							{t('startCookingFree')}
-							<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
-						</Link>
-						<Link
-							href='/explore'
-							className='flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-8 py-3.5 text-base font-semibold text-text-primary shadow-card transition-all hover:border-brand/30 hover:shadow-warm sm:w-auto'
+							{t('heroTitle1')}{' '}
+							<span className='inline-block text-brand'>
+								<TextLoop
+									texts={[t('heroTitlePro'), t('heroTitleGamer')]}
+									interval={2800}
+									textClassName='inline-block font-black text-brand'
+								/>
+							</span>
+						</motion.h1>
+
+						<motion.p
+							variants={staggerItem}
+							className='mx-auto mb-8 max-w-2xl text-lg md:text-xl leading-relaxed text-text-secondary font-medium'
 						>
-							{t('browseRecipes')}
-						</Link>
-					</motion.div>
-				</motion.section>
+							{t('heroDescription')}
+						</motion.p>
+
+						<motion.div
+							variants={staggerItem}
+							className='flex flex-col items-center justify-center gap-4 sm:flex-row'
+						>
+							<motion.div
+								whileHover={{ scale: 1.03 }}
+								whileTap={{ scale: 0.97 }}
+								className='w-full sm:w-auto'
+							>
+								<Button
+									onClick={() => router.push('/community')}
+									variant='brand'
+									size='lg'
+									className='w-full sm:w-auto rounded-xl px-8 py-6 text-base font-bold shadow-warm'
+								>
+									<span className='flex items-center justify-center gap-2'>
+										{t('seeCommunityFeed')}
+										<ArrowRight className='size-5 transition-transform group-hover:translate-x-1' />
+									</span>
+								</Button>
+							</motion.div>
+
+							<motion.div
+								whileHover={{ scale: 1.03 }}
+								whileTap={{ scale: 0.97 }}
+								className='w-full sm:w-auto'
+							>
+								<Button
+									onClick={() => router.push('/auth/sign-up')}
+									variant='outline'
+									size='lg'
+									className='w-full sm:w-auto rounded-xl border-2 border-border-medium bg-bg-card/80 px-8 py-6 text-base font-semibold text-text-primary transition-colors hover:border-brand hover:text-brand'
+								>
+									{t('startCookingFree')}
+								</Button>
+							</motion.div>
+						</motion.div>
+
+						<motion.p
+							variants={staggerItem}
+							className='mx-auto mt-4 max-w-2xl text-sm font-medium text-text-muted md:text-base'
+						>
+							{t('heroFootnote')}
+						</motion.p>
+
+						<motion.div
+							variants={staggerItem}
+							className='mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2'
+						>
+							{discoveryPillKeys.map(key => (
+								<span
+									key={key}
+									className='rounded-full border border-border-subtle bg-bg-card/80 px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card'
+								>
+									{t(key)}
+								</span>
+							))}
+						</motion.div>
+					</motion.section>
+				</div>
 
 				{/* Trending Recipes Section */}
 				<section className='mx-auto max-w-6xl px-6 py-8 md:px-12 md:py-16'>
+					<div className='mb-8'>
+						<div className='mb-5 text-center md:mb-6'>
+							<div className='mb-2 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-4 py-2 text-sm font-semibold text-brand'>
+								<TrendingUp className='size-4' />
+								<span>{t('entrySectionEyebrow')}</span>
+							</div>
+							<p className='mx-auto max-w-3xl text-base leading-relaxed text-text-secondary'>
+								{t('entrySectionDesc')}
+							</p>
+						</div>
+
+						<div className='grid gap-4 md:grid-cols-3'>
+							{landingPathways.map(pathway => {
+								const Icon = pathway.icon
+
+								return (
+									<Link
+										key={pathway.titleKey}
+										href={pathway.href}
+										className='group block rounded-2xl h-full'
+									>
+										<MagicCard
+											mode='orb'
+											glowFrom='var(--color-brand)'
+											glowTo='var(--color-xp)'
+											className='flex h-full flex-col rounded-2xl border border-border-subtle bg-bg-card/90 p-5 text-left shadow-card transition-all duration-300 hover:border-brand/30 hover:shadow-warm'
+										>
+											<div
+												className={cn(
+													'mb-4 flex size-11 items-center justify-center rounded-2xl',
+													pathway.accent,
+												)}
+											>
+												<Icon className={cn('size-5', pathway.iconColor)} />
+											</div>
+											<h3 className='font-semibold text-text-primary transition-colors group-hover:text-brand'>
+												{t(pathway.titleKey)}
+											</h3>
+											<p className='mt-2 flex-1 text-sm leading-relaxed text-text-secondary'>
+												{t(pathway.descriptionKey)}
+											</p>
+											<div className='mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand'>
+												{t('seeAll')}
+												<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
+											</div>
+										</MagicCard>
+									</Link>
+								)
+							})}
+						</div>
+					</div>
+
 					<div className='mb-4 flex items-center justify-between md:mb-6'>
 						<div className='flex items-center gap-2'>
 							<TrendingUp className='size-5 text-brand' />
@@ -511,11 +580,19 @@ export default function HomePage() {
 							))}
 						</div>
 					) : recipesError ? (
-						<div className='space-y-4'>
-							<div className='flex items-center justify-between rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
-								<div className='flex items-center gap-2 text-sm text-text-secondary'>
-									<AlertTriangle className='size-4 text-warning' />
-									<span>{tCommon('showingRecipePreviews')}</span>
+						<div className='rounded-3xl border border-warning/30 bg-gradient-to-br from-warning/8 via-bg-card to-brand/5 p-6 shadow-card'>
+							<div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
+								<div className='max-w-2xl'>
+									<div className='mb-3 inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-warning'>
+										<AlertTriangle className='size-3.5' />
+										{t('trendingUnavailableEyebrow')}
+									</div>
+									<h3 className='text-xl font-bold text-text-primary'>
+										{t('trendingUnavailableTitle')}
+									</h3>
+									<p className='mt-2 text-sm leading-relaxed text-text-secondary md:text-base'>
+										{t('trendingUnavailableDesc')}
+									</p>
 								</div>
 								<button
 									type='button'
@@ -535,16 +612,57 @@ export default function HomePage() {
 											.catch(() => setRecipesError(t('couldNotConnect')))
 											.finally(() => setRecipesLoading(false))
 									}}
-									className='inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-brand transition-colors hover:bg-brand/10'
+									className='inline-flex items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand hover:text-brand'
 								>
 									<RefreshCw className='size-4' />
 									{t('tryAgain')}
 								</button>
 							</div>
-							<div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-								{fallbackTrendingPreview.map(item => (
-									<FallbackTrendingCard key={item.id} item={item} />
-								))}
+							<div className='mt-6 grid gap-3 md:grid-cols-2'>
+								<Link
+									href='/explore'
+									className='group rounded-2xl border border-border-subtle bg-bg-card/90 p-4 transition-all hover:border-brand/30 hover:shadow-card'
+								>
+									<div className='flex items-start gap-3'>
+										<div className='flex size-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand'>
+											<TrendingUp className='size-5' />
+										</div>
+										<div className='min-w-0'>
+											<h4 className='font-semibold text-text-primary'>
+												{t('trendingUnavailableExploreTitle')}
+											</h4>
+											<p className='mt-1 text-sm text-text-secondary'>
+												{t('trendingUnavailableExploreDesc')}
+											</p>
+										</div>
+									</div>
+									<div className='mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand'>
+										{t('browseRecipes')}
+										<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
+									</div>
+								</Link>
+								<Link
+									href='/community'
+									className='group rounded-2xl border border-border-subtle bg-bg-card/90 p-4 transition-all hover:border-brand/30 hover:shadow-card'
+								>
+									<div className='flex items-start gap-3'>
+										<div className='flex size-11 shrink-0 items-center justify-center rounded-2xl bg-streak/10 text-streak'>
+											<Sparkles className='size-5' />
+										</div>
+										<div className='min-w-0'>
+											<h4 className='font-semibold text-text-primary'>
+												{t('trendingUnavailableCommunityTitle')}
+											</h4>
+											<p className='mt-1 text-sm text-text-secondary'>
+												{t('trendingUnavailableCommunityDesc')}
+											</p>
+										</div>
+									</div>
+									<div className='mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand'>
+										{t('seeCommunity')}
+										<ArrowRight className='size-4 transition-transform group-hover:translate-x-1' />
+									</div>
+								</Link>
 							</div>
 						</div>
 					) : (
@@ -581,7 +699,7 @@ export default function HomePage() {
 							</h2>
 						</div>
 
-						<div className='grid gap-4 md:grid-cols-3'>
+						<SpotlightCards columns={3} dimAmount={0.4} className='gap-4'>
 							{featureHighlights.map((feature, i) => (
 								<FeatureCard
 									key={feature.titleKey}
@@ -591,7 +709,7 @@ export default function HomePage() {
 									description={t(feature.descriptionKey)}
 								/>
 							))}
-						</div>
+						</SpotlightCards>
 					</div>
 				</section>
 
@@ -777,51 +895,67 @@ export default function HomePage() {
 				</AnimatePresence>
 
 				{/* Bottom CTA */}
-				<section className='px-6 py-16 text-center md:px-12'>
-					<div className='mx-auto max-w-lg'>
-						{/* Community stats */}
-						<div className='mx-auto mb-12 max-w-md'>
-							<CountUpStats
-								columns={3}
-								stats={[
-									{ value: 500, label: t('recipesAvailable'), suffix: '+' },
-									{ value: 50, label: t('activeCooks'), suffix: '+' },
-									{
-										value: 4.8,
-										label: t('avgRating'),
-										prefix: '★ ',
-										decimals: 1,
-									},
-								]}
-							/>
-						</div>
+				<WavyBackground
+					colors={[
+						'oklch(from var(--color-brand) l c h / 20%)',
+						'oklch(from var(--color-xp) l c h / 15%)',
+						'oklch(from var(--color-combo) l c h / 10%)',
+					]}
+					className='relative py-24 overflow-hidden bg-bg border-t border-border-subtle w-full flex items-center justify-center'
+				>
+					<div className='mx-auto max-w-3xl rounded-3xl border border-border-subtle bg-bg-card/40 backdrop-blur-md p-8 sm:p-12 shadow-warm relative overflow-hidden z-10'>
+						{/* Subtle glowing radial background blobs */}
+						<div className='absolute -left-20 -top-20 size-60 rounded-full bg-brand/5 blur-[60px] pointer-events-none' />
+						<div className='absolute -right-20 -bottom-20 size-60 rounded-full bg-xp/5 blur-[60px] pointer-events-none' />
 
-						<motion.div
-							initial={{ scale: 0 }}
-							whileInView={{ scale: 1 }}
-							viewport={{ once: true }}
-							transition={TRANSITION_SPRING}
-							className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-warm shadow-card shadow-brand/20'
-						>
-							<Flame className='size-8 text-white' />
-						</motion.div>
-						<h2 className='mb-3 text-2xl font-bold text-text-primary md:text-3xl'>
-							{t('kitchenWaiting')}
-						</h2>
-						<p className='mb-6 text-text-secondary'>{t('bottomCtaDesc')}</p>
-						<Link
-							href='/auth/sign-up'
-							className='inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-3.5 font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
-						>
-							<ChefHat className='size-5' />
-							{t('startCookingFree')}
-						</Link>
-						<p className='mt-4 text-xs text-text-muted'>{t('noCreditCard')}</p>
+						<div className='relative z-10 max-w-lg mx-auto'>
+							<div className='mb-8 flex flex-wrap items-center justify-center gap-2'>
+								{discoveryPillKeys.map(key => (
+									<span
+										key={`cta-${key}`}
+										className='rounded-full border border-border-subtle bg-bg-card/75 px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card'
+									>
+										{t(key)}
+									</span>
+								))}
+							</div>
+
+							<motion.div
+								initial={{ scale: 0 }}
+								whileInView={{ scale: 1 }}
+								viewport={{ once: true }}
+								transition={TRANSITION_SPRING}
+								className='mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-gradient-warm shadow-card shadow-brand/20'
+							>
+								<Flame className='size-8 text-white' />
+							</motion.div>
+							<h2 className='mb-3 text-2xl font-bold text-text-primary md:text-3xl'>
+								{t('kitchenWaiting')}
+							</h2>
+							<p className='mb-6 text-text-secondary'>{t('bottomCtaDesc')}</p>
+							<motion.div
+								whileHover={{ scale: 1.03 }}
+								whileTap={{ scale: 0.97 }}
+							>
+								<Button
+									onClick={() => router.push('/auth/sign-up')}
+									variant='brand'
+									size='lg'
+									className='px-10 py-6 text-lg font-bold text-white shadow-warm rounded-2xl bg-brand w-full'
+								>
+									<ChefHat className='mr-2 size-5' />
+									{t('startCookingFree')}
+								</Button>
+							</motion.div>
+							<p className='mt-4 text-xs text-text-muted'>
+								{t('noCreditCard')}
+							</p>
+						</div>
 					</div>
-				</section>
+				</WavyBackground>
 
 				{/* Footer */}
-				<footer className='border-t border-border-subtle px-6 py-8 md:px-12'>
+				<footer className='border-t border-border-subtle px-6 py-8 md:px-12 bg-bg relative z-20'>
 					<div className='mx-auto max-w-5xl'>
 						<div className='flex flex-col gap-6 md:flex-row md:items-start md:justify-between'>
 							{/* Brand */}

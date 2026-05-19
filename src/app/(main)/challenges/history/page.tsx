@@ -142,11 +142,6 @@ export default function ChallengeHistoryPageRoute() {
 					tone='streak'
 					className='p-3 md:p-4'
 				>
-					<SurfaceSectionHeader
-						eyebrow='Consistency View'
-						chipText='Month navigation + streak context'
-						className='mb-3'
-					/>
 					<ChallengeHistoryPage
 						days={days}
 						stats={stats}

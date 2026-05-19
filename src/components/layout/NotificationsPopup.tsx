@@ -22,6 +22,7 @@ import {
 } from '@/components/notifications/NotificationItemsGamified'
 import {
 	getNotifications,
+	markNotificationRead,
 	markAllNotificationsRead,
 	type Notification as APINotification,
 } from '@/services/notification'
@@ -32,8 +33,15 @@ import { formatShortTimeAgo } from '@/lib/utils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
+import { transformToGamifiedNotification } from '@/lib/notifications/gamified'
 
-type NotificationType = 'like' | 'comment' | 'follow' | 'cook' | 'achievement'
+type NotificationType =
+	| 'like'
+	| 'comment'
+	| 'follow'
+	| 'cook'
+	| 'achievement'
+	| 'mention'
 
 interface SocialNotification {
 	id: number
@@ -45,72 +53,10 @@ interface SocialNotification {
 	action: string
 	target?: string
 	targetEntityId?: string // Post ID for likes/comments, User ID for follows
+	targetEntityUrl?: string
 	time: string
 	read: boolean
 }
-
-// Helper to transform API notification to gamified notification format
-// Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
-const transformToGamifiedNotification = (
-	notif: APINotification,
-): GamifiedNotification | null => {
-	const data = (notif.data ?? {}) as Record<string, unknown>
-	const timestamp = new Date(notif.createdAt)
-
-	switch (notif.type) {
-		case 'XP_AWARDED':
-			return {
-				id: notif.id,
-				type: 'xp_awarded',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				xpAmount: (data.xpAmount as number) || 0,
-				pendingXp: (data.pendingXp as number) || 0,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'LEVEL_UP':
-			return {
-				id: notif.id,
-				type: 'level_up',
-				newLevel: (data.newLevel as number) || 1,
-				newGoalXp: (data.newGoalXp as number) || 1000,
-				recipesToNextLevel: (data.recipesToNextLevel as number) || 5,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'BADGE_EARNED':
-			return {
-				id: notif.id,
-				type: 'badge_unlocked',
-				badgeIcon: (data.badgeIcon as string) || '🏆',
-				badgeName: (data.badgeName as string) || 'Badge',
-				badgeRarity:
-					(data.badgeRarity as 'common' | 'rare' | 'epic' | 'legendary') ||
-					'common',
-				requirement: (data.requirement as string) || '',
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'CREATOR_BONUS':
-			return {
-				id: notif.id,
-				type: 'creator_bonus',
-				cookerName: (data.cookerName as string) || 'User',
-				cookerUsername: (data.cookerUsername as string) || 'user',
-				cookerAvatarUrl:
-					(data.cookerAvatarUrl as string) || '/placeholder-avatar.svg',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				xpBonus: (data.xpBonus as number) || 0,
-				totalCookRewards: (data.totalCookRewards as number) || 1,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		default:
-			return null
-	}
-}
-
-// Helper to format time ago
 
 // Helper to transform API notification to social notification format
 // Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
@@ -125,7 +71,19 @@ const transformToSocialNotification = (
 		NEW_FOLLOWER: 'follow',
 		FOLLOW: 'follow',
 		POST_LIKE: 'like',
+		RECIPE_LIKED: 'like',
 		POST_COMMENT: 'comment',
+		USER_MENTION: 'mention',
+		CO_CHEF_TAGGED: 'mention',
+		ROOM_INVITE: 'cook',
+		DUEL_INVITE: 'cook',
+		DUEL_ACCEPTED: 'cook',
+		DUEL_DECLINED: 'cook',
+		DUEL_COMPLETED: 'achievement',
+		DUEL_EXPIRED: 'cook',
+		JOIN_REQUESTED: 'follow',
+		MEMBER_JOINED: 'follow',
+		JOIN_REQUEST_APPROVED: 'follow',
 	}
 
 	const type = typeMap[notif.type]
@@ -149,6 +107,7 @@ const transformToSocialNotification = (
 		action: notif.content || notif.body || '',
 		target: undefined,
 		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows
+		targetEntityUrl: notif.targetEntityUrl,
 		time: formatShortTimeAgo(timestamp),
 		read: notif.isRead,
 	}
@@ -158,6 +117,7 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	const iconMap = {
 		like: { icon: Heart, bg: 'bg-destructive' },
 		comment: { icon: MessageCircle, bg: 'bg-brand' },
+		mention: { icon: MessageCircle, bg: 'bg-brand' },
 		follow: { icon: UserPlus, bg: 'bg-accent-purple' },
 		cook: { icon: ChefHat, bg: 'bg-gold' },
 		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
@@ -193,6 +153,58 @@ export const NotificationsPopup = () => {
 	const [fetchError, setFetchError] = useState(false)
 
 	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
+
+	const markPopupNotificationRead = (notificationId: string) => {
+		const wasUnread =
+			gamifiedNotifications.some(
+				notification =>
+					notification.id === notificationId && !notification.isRead,
+			) ||
+			socialNotifications.some(
+				notification =>
+					notification.notificationId === notificationId && !notification.read,
+			)
+
+		if (!wasUnread) {
+			return
+		}
+
+		setGamifiedNotifications(prev =>
+			prev.map(notification =>
+				notification.id === notificationId
+					? { ...notification, isRead: true }
+					: notification,
+			),
+		)
+		setSocialNotifications(prev =>
+			prev.map(notification =>
+				notification.notificationId === notificationId
+					? { ...notification, read: true }
+					: notification,
+			),
+		)
+		setUnreadCount(prev => Math.max(0, prev - 1))
+
+		void markNotificationRead(notificationId).catch(error => {
+			logDevError('Failed to mark popup notification read:', error)
+		})
+	}
+
+	const navigateFromPopupNotification = (
+		notificationId: string,
+		path: string,
+	) => {
+		markPopupNotificationRead(notificationId)
+		handleClose()
+		router.push(path)
+	}
+
+	const openPostComposer = (sessionId?: string) => {
+		const target = sessionId
+			? `/post/new?session=${encodeURIComponent(sessionId)}`
+			: '/post/new'
+		return target
+	}
 
 	// Fetch notifications when popup opens
 	useEffect(() => {
@@ -399,24 +411,55 @@ export const NotificationsPopup = () => {
 								// Provide callbacks based on notification type
 								const callbacks = {
 									onPost:
-										notif.type === 'xp_awarded'
+										notif.type === 'xp_awarded' && notif.pendingXp > 0
 											? () => {
-													toggleNotificationsPopup()
-													router.push('/create')
+													navigateFromPopupNotification(
+														notif.id,
+														openPostComposer(notif.sessionId),
+													)
 												}
 											: undefined,
 									onFindRecipe:
 										notif.type === 'streak_warning'
 											? () => {
-													toggleNotificationsPopup()
-													router.push('/explore')
+													navigateFromPopupNotification(notif.id, '/explore')
 												}
 											: undefined,
-									onViewPost:
-										notif.type === 'creator_bonus'
+									onViewBadge:
+										notif.type === 'badge_unlocked'
 											? () => {
-													toggleNotificationsPopup()
-													router.push('/dashboard')
+													navigateFromPopupNotification(
+														notif.id,
+														'/profile/badges',
+													)
+												}
+											: undefined,
+									onPostNow:
+										notif.type === 'post_deadline' ||
+										notif.type === 'post_deadline_urgent'
+											? () => {
+													navigateFromPopupNotification(
+														notif.id,
+														openPostComposer(notif.sessionId),
+													)
+												}
+											: undefined,
+									onSeeRecipes:
+										notif.type === 'challenge_reminder'
+											? () => {
+													navigateFromPopupNotification(notif.id, '/challenges')
+												}
+											: undefined,
+									onExplore:
+										notif.type === 'weekend_nudge'
+											? () => {
+													navigateFromPopupNotification(notif.id, '/explore')
+												}
+											: undefined,
+									onViewPantry:
+										notif.type === 'pantry_expiring'
+											? () => {
+													navigateFromPopupNotification(notif.id, '/pantry')
 												}
 											: undefined,
 								}
@@ -441,16 +484,24 @@ export const NotificationsPopup = () => {
 							{socialNotifications.map(notif => {
 								// Determine navigation target based on notification type
 								const getNavigationPath = () => {
+									if (notif.targetEntityUrl) {
+										return notif.targetEntityUrl
+									}
 									if (notif.type === 'follow') {
 										// For follow notifications, navigate to the follower's profile
 										return `/${notif.userId}`
 									}
 									if (
-										(notif.type === 'like' || notif.type === 'comment') &&
+										(notif.type === 'like' ||
+											notif.type === 'comment' ||
+											notif.type === 'mention') &&
 										notif.targetEntityId
 									) {
 										// For likes/comments, navigate to the post
 										return `/post/${notif.targetEntityId}`
+									}
+									if (notif.type === 'cook' || notif.type === 'achievement') {
+										return '/dashboard'
 									}
 									return null
 								}
@@ -458,8 +509,7 @@ export const NotificationsPopup = () => {
 								const handleClick = () => {
 									const path = getNavigationPath()
 									if (path) {
-										handleClose()
-										router.push(path)
+										navigateFromPopupNotification(notif.notificationId, path)
 									}
 								}
 
@@ -475,12 +525,7 @@ export const NotificationsPopup = () => {
 											toast.success(
 												t('toastFollowSuccess', { user: notif.user }),
 											)
-											// Mark this notification as read locally
-											setSocialNotifications(prev =>
-												prev.map(n =>
-													n.id === notif.id ? { ...n, read: true } : n,
-												),
-											)
+											markPopupNotificationRead(notif.notificationId)
 										} else {
 											toast.error(t('toastFollowFailed'))
 										}

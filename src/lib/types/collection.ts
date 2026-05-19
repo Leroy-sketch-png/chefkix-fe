@@ -63,12 +63,24 @@ export interface CreateCollectionRequest {
 	name: string
 	description?: string
 	isPublic: boolean
+	collectionType?: CollectionType
+	recipeIds?: string[]
+	difficulty?: DifficultyStep['difficulty']
+	estimatedTotalMinutes?: number
+	totalXp?: number
+	difficultyProgression?: DifficultyStep[]
 }
 
 export interface UpdateCollectionRequest {
 	name: string
 	description?: string
 	isPublic: boolean
+	collectionType?: CollectionType
+	recipeIds?: string[]
+	difficulty?: DifficultyStep['difficulty']
+	estimatedTotalMinutes?: number
+	totalXp?: number
+	difficultyProgression?: DifficultyStep[]
 }
 
 /**

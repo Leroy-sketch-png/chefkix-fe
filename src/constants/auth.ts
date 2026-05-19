@@ -22,6 +22,7 @@ const DEV_ONLY_PUBLIC_ROUTES =
 // Dynamic route prefixes that don't require authentication (matched with startsWith)
 export const PUBLIC_ROUTE_PREFIXES = [
 	'/recipes/', // Recipe detail pages: /recipes/[id]
+	'/collections/', // Collection detail pages: /collections/[id]
 	'/post/', // Single post pages: /post/[id]
 	'/shopping-lists/shared/', // Shared shopping list viewer: /shopping-lists/shared/[token]
 ]
@@ -41,6 +42,22 @@ export const AUTH_ROUTES = [
 	PATHS.AUTH.SIGN_UP,
 	PATHS.AUTH.VERIFY_OTP,
 ]
+
+function isSafeRelativeAppPath(path: string): boolean {
+	return path.startsWith('/') && !path.startsWith('//')
+}
+
+function getPathnameFromReturnTo(returnTo: string): string | null {
+	if (!isSafeRelativeAppPath(returnTo)) {
+		return null
+	}
+
+	try {
+		return new URL(returnTo, 'https://chefkix.local').pathname
+	} catch {
+		return null
+	}
+}
 
 /**
  * Known top-level route segments that are NOT user profile pages.
@@ -106,4 +123,22 @@ export function isPublicRoutePath(pathname: string): boolean {
 	}
 
 	return false
+}
+
+export function getGuestBrowseHref(
+	returnTo: string | null | undefined,
+	fallback: string = PATHS.EXPLORE,
+): string {
+	if (!returnTo) {
+		return fallback
+	}
+
+	const normalizedReturnTo = returnTo.trim()
+	const pathname = getPathnameFromReturnTo(normalizedReturnTo)
+
+	if (!pathname || !isPublicRoutePath(pathname)) {
+		return fallback
+	}
+
+	return normalizedReturnTo
 }

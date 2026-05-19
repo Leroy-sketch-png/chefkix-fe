@@ -265,11 +265,13 @@ function CreatePostContent() {
 				content: content.trim(),
 				photoUrls: photoFiles,
 				sessionId: session?.id, // Link to cooking session for XP
-				...(session &&
-					reviewRating > 0 && {
-						postType: 'RECIPE_REVIEW' as const,
-						reviewRating,
-					}),
+				...(session && {
+					postType:
+						reviewRating > 0
+							? ('RECIPE_REVIEW' as const)
+							: ('RECENT_COOK' as const),
+					...(reviewRating > 0 && { reviewRating }),
+				}),
 			})
 
 			if (response.success && response.data) {

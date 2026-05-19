@@ -57,7 +57,7 @@ export interface StreakMilestoneCardProps {
 
 export interface StreakWidgetProps {
 	currentStreak: number
-	weekProgress: ('cooked' | 'today' | 'future')[] // 7 days, Mon-Sun
+	weekProgress: ('cooked' | 'today' | 'missed' | 'future')[] // 7 days, Mon-Sun
 	isActiveToday: boolean
 	status: 'active' | 'at-risk'
 	className?: string
@@ -497,7 +497,9 @@ export function StreakWidget({
 								day === 'today' &&
 									(isActiveToday
 										? 'border-transparent bg-gradient-success text-white shadow-card shadow-success/30'
-										: 'border-dashed border-success bg-bg-card text-success'),
+										: 'border-dashed border-success bg-bg-card text-success'), // Missed: past day with no cook — muted X-mark visual
+								day === 'missed' &&
+									'border-border bg-bg/50 text-text-muted opacity-50',
 								day === 'future' && 'border-border bg-bg text-text-secondary',
 							)}
 							title={`${dayFullNames[index]}${day === 'today' ? ` (${t('swToday')})` : ''}`}

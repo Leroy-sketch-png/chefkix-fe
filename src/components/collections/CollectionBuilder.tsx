@@ -16,8 +16,14 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import {
+	AsyncCombobox,
+	type AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { DifficultyStep, CollectionType } from '@/lib/types/collection'
+import type { RecipeSearchDoc } from '@/lib/types/search'
+import { autocompleteSearch } from '@/services/search'
 
 interface CollectionBuilderProps {
 	/** Initial collection name */
@@ -30,6 +36,8 @@ interface CollectionBuilderProps {
 	initialStages?: DifficultyStep[]
 	/** Initial collection type */
 	initialType?: CollectionType
+	/** Initial visibility */
+	initialIsPublic?: boolean
 	/** Callback when saving the collection */
 	onSave: (data: CollectionBuilderData) => Promise<void>
 	/** Callback to close/cancel builder */
@@ -45,6 +53,8 @@ export interface CollectionBuilderData {
 	recipeIds: string[]
 	difficultyProgression: DifficultyStep[]
 	isPublic: boolean
+	difficulty?: DifficultyStep['difficulty']
+	totalXp?: number
 }
 
 type DifficultyLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
@@ -85,6 +95,7 @@ export function CollectionBuilder({
 	initialRecipeIds = [],
 	initialStages = [],
 	initialType = 'LEARNING_PATH',
+	initialIsPublic = true,
 	onSave,
 	onCancel,
 	isSaving = false,
@@ -93,7 +104,7 @@ export function CollectionBuilder({
 	const [name, setName] = useState(initialName)
 	const [description, setDescription] = useState(initialDescription)
 	const [collectionType] = useState<CollectionType>(initialType)
-	const [isPublic, setIsPublic] = useState(true)
+	const [isPublic, setIsPublic] = useState(initialIsPublic)
 	const [stages, setStages] = useState<DifficultyStep[]>(
 		initialStages.length > 0
 			? initialStages
@@ -112,7 +123,8 @@ export function CollectionBuilder({
 		useState<DifficultyLevel>('Beginner')
 
 	// Computed stats
-	const totalRecipes = stages.reduce((acc, s) => acc + s.recipeIds.length, 0)
+	const allRecipeIds = stages.flatMap(stage => stage.recipeIds)
+	const totalRecipes = allRecipeIds.length
 	const totalXp = totalRecipes * 50 // Estimate: 50 XP per recipe
 
 	const handleAddStage = useCallback(() => {
@@ -179,6 +191,26 @@ export function CollectionBuilder({
 		[],
 	)
 
+	const handleAddRecipe = useCallback(
+		(stageIndex: number, option: AsyncComboboxOption) => {
+			const recipeId = option.value
+			if (allRecipeIds.includes(recipeId)) {
+				toast.error(t('builderRecipeDuplicate'))
+				return
+			}
+
+			setStages(prev =>
+				prev.map((stage, idx) =>
+					idx === stageIndex
+						? { ...stage, recipeIds: [...stage.recipeIds, recipeId] }
+						: stage,
+				),
+			)
+			toast.success(t('builderRecipeAdded', { name: option.label }))
+		},
+		[allRecipeIds, t],
+	)
+
 	const handleSave = async () => {
 		if (!name.trim()) {
 			toast.error(t('builderCollectionNameRequired'))
@@ -189,16 +221,29 @@ export function CollectionBuilder({
 			return
 		}
 
-		// Flatten all recipe IDs in order
-		const allRecipeIds = stages.flatMap(s => s.recipeIds)
+		const normalizedStages = stages
+			.map((stage, index) => ({
+				...stage,
+				label:
+					stage.label.trim() || t('builderStageFallback', { index: index + 1 }),
+				order: index,
+			}))
+			.filter(stage => stage.recipeIds.length > 0)
+
+		const orderedRecipeIds = normalizedStages.flatMap(stage => stage.recipeIds)
+		const resolvedDifficulty =
+			normalizedStages[normalizedStages.length - 1]?.difficulty ?? 'Beginner'
+		const resolvedTotalXp = orderedRecipeIds.length * 50
 
 		await onSave({
 			name: name.trim(),
 			description: description.trim(),
 			collectionType,
-			recipeIds: allRecipeIds,
-			difficultyProgression: stages,
+			recipeIds: orderedRecipeIds,
+			difficultyProgression: normalizedStages,
 			isPublic,
+			difficulty: resolvedDifficulty,
+			totalXp: resolvedTotalXp,
 		})
 	}
 
@@ -226,7 +271,7 @@ export function CollectionBuilder({
 			<div className='space-y-4 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-5 shadow-card'>
 				<div>
 					<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-						Name
+						{t('builderNameLabel')}
 					</label>
 					<input
 						type='text'
@@ -239,7 +284,7 @@ export function CollectionBuilder({
 				</div>
 				<div>
 					<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-						Description
+						{t('builderDescriptionLabel')}
 					</label>
 					<textarea
 						value={description}
@@ -313,6 +358,8 @@ export function CollectionBuilder({
 							onUpdateDifficulty={handleUpdateStageDifficulty}
 							onRemove={handleRemoveStage}
 							onRemoveRecipe={handleRemoveRecipe}
+							onAddRecipe={handleAddRecipe}
+							existingRecipeIds={allRecipeIds}
 							getDifficultyColor={getDifficultyColor}
 						/>
 					))}
@@ -346,7 +393,7 @@ export function CollectionBuilder({
 						<div className='space-y-4'>
 							<div>
 								<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-									Stage Name
+									{t('builderStageNameLabel')}
 								</label>
 								<input
 									type='text'
@@ -359,7 +406,7 @@ export function CollectionBuilder({
 							</div>
 							<div>
 								<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
-									Difficulty
+									{t('builderDifficultyLabel')}
 								</label>
 								<select
 									value={newStageDifficulty}
@@ -432,6 +479,8 @@ interface StageItemProps {
 	onUpdateDifficulty: (index: number, difficulty: DifficultyLevel) => void
 	onRemove: (index: number) => void
 	onRemoveRecipe: (stageIndex: number, recipeId: string) => void
+	onAddRecipe: (stageIndex: number, option: AsyncComboboxOption) => void
+	existingRecipeIds: string[]
 	getDifficultyColor: (difficulty: string) => string
 }
 
@@ -442,11 +491,34 @@ function StageItem({
 	onUpdateDifficulty,
 	onRemove,
 	onRemoveRecipe,
+	onAddRecipe,
+	existingRecipeIds,
 	getDifficultyColor,
 }: StageItemProps) {
 	const t = useTranslations('collections')
 	const controls = useDragControls()
 	const [isEditing, setIsEditing] = useState(false)
+	const [recipeSearch, setRecipeSearch] = useState('')
+
+	const fetchRecipeOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			const response = await autocompleteSearch(query.trim(), 'recipes', 6)
+			if (!response.success || !response.data?.recipes?.hits) {
+				return []
+			}
+
+			return response.data.recipes.hits
+				.map(hit => hit.document as RecipeSearchDoc)
+				.filter(doc => !existingRecipeIds.includes(doc.id))
+				.map(doc => ({
+					value: doc.id,
+					label: doc.title,
+					secondary: doc.cuisine || doc.description || undefined,
+					category: doc.difficulty || undefined,
+				}))
+		},
+		[existingRecipeIds],
+	)
 
 	return (
 		<Reorder.Item
@@ -510,35 +582,59 @@ function StageItem({
 			</div>
 
 			{/* Recipes in this stage */}
-			{stage.recipeIds.length > 0 ? (
-				<div className='border-t border-border-subtle px-4 py-3'>
-					<div className='space-y-2'>
-						{stage.recipeIds.map((recipeId, idx) => (
-							<div
-								key={recipeId}
-								className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
-							>
-								<span className='text-sm text-text-primary'>
-									Recipe {idx + 1}: {recipeId.slice(0, 8)}...
-								</span>
-								<button
-									type='button'
-									onClick={() => onRemoveRecipe(stageIndex, recipeId)}
-									className='rounded p-1 text-text-muted hover:bg-destructive/10 hover:text-destructive'
+			<div className='border-t border-border-subtle px-4 py-3'>
+				<div className='space-y-3'>
+					{stage.recipeIds.length > 0 ? (
+						<div className='space-y-2'>
+							{stage.recipeIds.map((recipeId, idx) => (
+								<div
+									key={recipeId}
+									className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
 								>
-									<X className='size-3.5' />
-								</button>
-							</div>
-						))}
+									<span className='text-sm text-text-primary'>
+										{t('builderRecipeLabel', {
+											index: idx + 1,
+											id: recipeId.slice(0, 8),
+										})}
+									</span>
+									<button
+										type='button'
+										onClick={() => onRemoveRecipe(stageIndex, recipeId)}
+										className='rounded p-1 text-text-muted hover:bg-destructive/10 hover:text-destructive'
+									>
+										<X className='size-3.5' />
+									</button>
+								</div>
+							))}
+						</div>
+					) : (
+						<p className='text-center text-xs text-text-muted'>
+							{t('builderNoRecipes')}
+						</p>
+					)}
+
+					<div className='rounded-xl border border-dashed border-border-subtle bg-bg-card/50 p-3'>
+						<p className='mb-2 text-xs font-medium uppercase tracking-wide text-text-muted'>
+							{t('builderAddRecipeToStage')}
+						</p>
+						<AsyncCombobox
+							fetchOptions={fetchRecipeOptions}
+							onSelect={option => {
+								onAddRecipe(stageIndex, option)
+								setRecipeSearch('')
+							}}
+							value={recipeSearch}
+							onChange={setRecipeSearch}
+							placeholder={t('builderSearchRecipesPlaceholder')}
+							emptyMessage={t('builderSearchRecipesEmpty')}
+							searchingMessage={t('builderSearchRecipesLoading')}
+							errorMessage={t('builderSearchRecipesError')}
+							maxResults={6}
+							minChars={2}
+						/>
 					</div>
 				</div>
-			) : (
-				<div className='border-t border-border-subtle px-4 py-3'>
-					<p className='text-center text-xs text-text-muted'>
-						{t('builderNoRecipes')}
-					</p>
-				</div>
-			)}
+			</div>
 		</Reorder.Item>
 	)
 }

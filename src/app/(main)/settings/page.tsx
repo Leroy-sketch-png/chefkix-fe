@@ -301,20 +301,21 @@ const SettingsCard = ({
 	children: React.ReactNode
 	className?: string
 }) => (
-	<motion.div
-		variants={cardVariants}
-		className={cn(
-			'rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6',
-			className,
-		)}
-	>
-		<div className='mb-4'>
-			<h2 className='text-base font-semibold text-text-primary'>{title}</h2>
-			{description && (
-				<p className='mt-1 text-sm text-text-secondary'>{description}</p>
+	<motion.div variants={cardVariants}>
+		<div
+			className={cn(
+				'rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card md:p-6',
+				className,
 			)}
+		>
+			<div className='mb-4'>
+				<h2 className='text-base font-semibold text-text-primary'>{title}</h2>
+				{description && (
+					<p className='mt-1 text-sm text-text-secondary'>{description}</p>
+				)}
+			</div>
+			{children}
 		</div>
-		{children}
 	</motion.div>
 )
 
@@ -996,7 +997,7 @@ export default function SettingsPage() {
 						tabs: TABS.length,
 						hasDisplayName: displayName.trim().length > 0,
 						notificationsEnabled: Boolean(settings?.notifications.push.enabled),
-						verificationReady: verificationStatus?.status === 'VERIFIED',
+						verificationReady: verificationStatus?.status === 'APPROVED',
 					}}
 					className='mb-6'
 				/>

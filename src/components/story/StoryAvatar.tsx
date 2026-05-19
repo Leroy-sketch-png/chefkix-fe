@@ -24,7 +24,7 @@ export const StoryAvatar = ({
 
 	return (
 		<div className='flex w-20 flex-col items-center gap-2'>
-			<div className='relative rounded-[1.25rem] bg-bg-card/80 p-1.5 shadow-card transition-transform duration-200 active:scale-95'>
+			<div className='relative rounded-xl bg-bg-card/80 p-1.5 shadow-card transition-transform duration-200 active:scale-95'>
 				<div
 					className={cn(
 						'relative flex h-16 w-16 items-center justify-center rounded-full p-[3px]',

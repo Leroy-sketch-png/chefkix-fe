@@ -71,6 +71,7 @@ import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
+import { cn } from '@/lib/utils'
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
@@ -78,6 +79,7 @@ import {
 	socialCardSurface,
 	socialCardTopAccent,
 	socialCardHeaderPadding,
+	POST_TYPE_TO_TONE,
 } from '@/components/social/socialCardStyles'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
@@ -123,18 +125,18 @@ interface PostCardProps {
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
 	QUICK:
-		'bg-warning/18 text-warning-deep border border-warning/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	POLL: 'bg-info/18 text-info border border-info/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-warning/28 text-warning-deep border border-warning/35 shadow-[0_1px_6px_rgba(0,0,0,0.08)]',
+	POLL: 'bg-info/28 text-info border border-info/35 shadow-[0_0_10px_rgba(59,130,246,0.18)]',
 	RECENT_COOK:
-		'bg-brand/18 text-brand border border-brand/20 shadow-[0_1px_4px_rgba(255,90,54,0.15)]',
+		'bg-brand/28 text-brand border border-brand/35 shadow-[0_0_12px_rgba(255,90,54,0.25)]',
 	GROUP:
-		'bg-accent-purple/18 text-accent-purple border border-accent-purple/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-accent-purple/28 text-accent-purple border border-accent-purple/35 shadow-[0_0_10px_rgba(139,92,246,0.18)]',
 	RECIPE_REVIEW:
-		'bg-warning/22 text-warning-deep border border-warning/25 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-warning/32 text-warning-deep border border-warning/40 shadow-[0_0_10px_rgba(245,158,11,0.18)]',
 	QUICK_TIP:
-		'bg-success/18 text-success-deep border border-success/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-success/28 text-success-deep border border-success/35 shadow-[0_0_10px_rgba(16,185,129,0.18)]',
 	RECIPE_BATTLE:
-		'bg-error/18 text-error border border-error/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-error/28 text-error border border-error/35 shadow-[0_0_12px_rgba(239,68,68,0.22)]',
 }
 
 function PostCardErrorFallback({
@@ -679,9 +681,10 @@ const PostCardContent = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div
-					whileHover={CARD_FEED_HOVER}
-					className={socialCardSurface()}
+				<div
+					className={socialCardSurface({
+						tone: POST_TYPE_TO_TONE[post.postType] ?? 'default',
+					})}
 				>
 					{/* Warm top-edge accent — barely visible but adds depth */}
 					<div className={socialCardTopAccent} />
@@ -1549,7 +1552,7 @@ const PostCardContent = ({
 							</motion.div>
 						)}
 					</AnimatePresence>
-				</motion.div>
+				</div>
 
 				{/* Report Modal */}
 				<ReportModal

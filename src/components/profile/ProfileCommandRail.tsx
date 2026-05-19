@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MagicCard } from '@/components/ui/magic-card'
 import { motion } from 'framer-motion'
 import {
 	Activity,
@@ -77,7 +78,10 @@ export function ProfileCommandRail({
 				className,
 			)}
 		>
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
 					{t('railEyebrow')}
 				</p>
@@ -91,9 +95,12 @@ export function ProfileCommandRail({
 					<StatChip label={t('railStatStreak')} value={`${streakCount}d`} />
 					<StatChip label={t('followersLabel')} value={followers.toString()} />
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
 					{t('railJumpToSection')}
 				</p>
@@ -126,9 +133,12 @@ export function ProfileCommandRail({
 						)
 					})}
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
 					{t('railIntensitySignals')}
 				</p>
@@ -146,9 +156,12 @@ export function ProfileCommandRail({
 						<span>{t('railPendingLoops', { count: pendingPosts })}</span>
 					</div>
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 p-4 shadow-card'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-gradient-to-br from-brand/8 via-bg-card/75 to-xp/8 p-4 shadow-card backdrop-blur-md'
+			>
 				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
 					{t('railQuickMoves')}
 				</p>
@@ -181,7 +194,7 @@ export function ProfileCommandRail({
 						</Link>
 					</Button>
 				</div>
-			</div>
+			</MagicCard>
 		</motion.aside>
 	)
 }

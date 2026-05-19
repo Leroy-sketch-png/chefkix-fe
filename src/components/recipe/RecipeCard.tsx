@@ -1,7 +1,7 @@
 'use client'
 
 import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
-import { Bookmark, Heart } from 'lucide-react'
+import { Bookmark, ChefHat, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -10,11 +10,13 @@ import { motion } from 'framer-motion'
 import { toggleLikeRecipe, toggleSaveRecipe } from '@/services/recipe'
 import { toast } from 'sonner'
 import { triggerSaveConfetti } from '@/lib/confetti'
-import { TRANSITION_SPRING, EXIT_VARIANTS, CARD_GRID_HOVER } from '@/lib/motion'
+import { TRANSITION_SPRING, EXIT_VARIANTS } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { useTranslations } from 'next-intl'
 import { QualityBadge } from './QualityBadge'
+import { TiltCard } from '@/components/ui/tilt-card'
+import { ShinyButton } from '@/components/ui/shiny-button'
 
 interface RecipeCardProps {
 	recipe: Recipe
@@ -127,7 +129,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 			transition={TRANSITION_SPRING}
 			layout
 		>
-			<motion.div whileHover={CARD_GRID_HOVER} transition={TRANSITION_SPRING}>
+			<TiltCard maxTilt={5} scale={1.02} glare glareOpacity={0.08}>
 				<Link
 					href={`/recipes/${recipe.id}`}
 					className='group relative block overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-brand/40 hover:bg-bg-elevated hover:shadow-warm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
@@ -148,14 +150,14 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						/>
 						{/* Difficulty badge */}
 						<div
-							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white ${
+							className={`absolute left-2 top-2 rounded-xl px-2.5 py-1 text-xs font-bold uppercase tracking-wide backdrop-blur-sm ${
 								recipe.difficulty === 'Beginner'
-									? 'bg-gradient-to-br from-success to-success/80'
+									? 'border border-success/40 bg-success/20 text-success-deep shadow-[0_0_12px_rgba(16,185,129,0.3)]'
 									: recipe.difficulty === 'Intermediate'
-										? 'bg-gradient-to-br from-accent-purple to-accent-purple-hover'
+										? 'border border-accent-purple/40 bg-accent-purple/20 text-accent-purple shadow-[0_0_12px_rgba(139,92,246,0.3)]'
 										: recipe.difficulty === 'Advanced'
-											? 'bg-gradient-to-br from-warning to-gold'
-											: 'bg-gradient-to-br from-destructive to-gold'
+											? 'border border-warning/40 bg-warning/20 text-warning-deep shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+											: 'border border-error/40 bg-error/20 text-error shadow-[0_0_12px_rgba(239,68,68,0.3)]'
 							}`}
 						>
 							{recipe.difficulty}
@@ -224,7 +226,7 @@ const RecipeCardComponent = ({ recipe, onUpdate }: RecipeCardProps) => {
 						</div>
 					</div>
 				</Link>
-			</motion.div>
+			</TiltCard>
 		</motion.div>
 	)
 }

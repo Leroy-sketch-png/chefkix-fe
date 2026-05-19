@@ -20,10 +20,13 @@ export default defineConfig({
 		},
 	},
 	use: {
-		baseURL: 'http://localhost:3000',
+		baseURL: 'http://localhost:3100',
 		trace: 'on-first-retry',
 		screenshot: 'off',
 		video: 'off',
+		launchOptions: {
+			args: ['--disable-web-security'],
+		},
 		// Consistent viewport for deterministic screenshots
 		viewport: { width: 1440, height: 900 },
 		colorScheme: 'light',
@@ -32,8 +35,8 @@ export default defineConfig({
 	},
 	webServer: {
 		// Use the stable webpack dev server for visual runs to avoid turbopack font module errors.
-		command: 'npx next dev',
-		port: 3000,
+		command: 'npx next dev --port 3100',
+		port: 3100,
 		reuseExistingServer: true,
 		timeout: 120_000,
 	},

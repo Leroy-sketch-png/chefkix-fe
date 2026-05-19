@@ -34,15 +34,18 @@ export function TextLoop({
 	}, [texts.length, interval])
 
 	return (
-		<span className={cn('relative inline-flex overflow-hidden', className)}>
+		<span className={cn('relative inline-block align-baseline', className)}>
 			<AnimatePresence mode='wait'>
 				<motion.span
 					key={texts[index]}
-					initial={{ y: '100%', opacity: 0 }}
+					initial={{ y: 8, opacity: 0 }}
 					animate={{ y: 0, opacity: 1 }}
-					exit={{ y: '-100%', opacity: 0 }}
+					exit={{ y: -8, opacity: 0 }}
 					transition={{ duration: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
-					className={cn('inline-block', textClassName)}
+					className={cn(
+						'inline-block whitespace-nowrap will-change-transform',
+						textClassName,
+					)}
 				>
 					{texts[index]}
 				</motion.span>

@@ -75,6 +75,12 @@ export function FriendsOnlineWidget() {
 				<p className='text-xs leading-relaxed text-text-muted'>
 					{t('friendsOnlineEmpty')}
 				</p>
+				<Link
+					href='/explore'
+					className='mt-3 inline-flex items-center rounded-xl border border-border-subtle bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
+				>
+					{t('exploreNow')}
+				</Link>
 			</div>
 		)
 	}

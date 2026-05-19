@@ -58,7 +58,7 @@ function StatCard({
 	const toneClass = {
 		brand: 'border-brand/20 bg-brand/8 text-brand',
 		xp: 'border-xp/20 bg-xp/8 text-xp',
-		social: 'border-error/20 bg-error/8 text-error',
+		social: 'border-success/20 bg-success/8 text-success',
 		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
 	}[tone]
 

@@ -1005,6 +1005,70 @@ img[alt]:after {
 }
 
 /* ============ MICRO-INTERACTIONS & POLISH ============ */
+
+/* Animated gradient text sweep (for headings, premium text) */
+@keyframes gradient-text {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.animate-gradient-text {
+	animation: gradient-text 4s ease infinite;
+	background-size: 300% 100%;
+}
+
+/* Shiny button shine sweep effect */
+@keyframes shine-sweep {
+	0% {
+		background-position: -200% center;
+	}
+	100% {
+		background-position: 200% center;
+	}
+}
+
+.animate-shine-sweep {
+	animation: shine-sweep 3s ease-in-out infinite;
+}
+
+/* Slow continuous rotation (for decorative elements, spinners) */
+@keyframes spin-slow {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin-slow {
+	animation: spin-slow 8s linear infinite;
+}
+
+/* Animated background position (for gradient animations) */
+@keyframes background-position-spin {
+	0% {
+		background-position: 0% 0%;
+	}
+	50% {
+		background-position: 100% 100%;
+	}
+	100% {
+		background-position: 0% 0%;
+	}
+}
+
+.animate-background-position-spin {
+	animation: background-position-spin 6s ease infinite;
+}
+
 @keyframes shimmer {
 	0% {
 		background-position: -1000px 0;

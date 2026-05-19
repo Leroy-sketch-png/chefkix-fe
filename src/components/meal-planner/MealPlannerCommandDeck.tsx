@@ -1,5 +1,12 @@
 import { motion } from 'framer-motion'
-import { CalendarDays, ChefHat, ShoppingCart, Sparkles } from 'lucide-react'
+import {
+	CalendarDays,
+	ChefHat,
+	ShoppingCart,
+	Sparkles,
+	Brain,
+	CheckCircle2,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 
@@ -17,35 +24,64 @@ interface MealPlannerCommandDeckProps {
 	className?: string
 }
 
-function StatCard({
-	label,
+function PlanStat({
 	value,
+	unit,
+	label,
 	icon: Icon,
 	tone,
+	empty,
 }: {
+	value: string | number
+	unit?: string
 	label: string
-	value: string
 	icon: React.ComponentType<{ className?: string }>
 	tone: 'brand' | 'success' | 'muted'
+	empty?: boolean
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		success: 'border-success/20 bg-success/8 text-success',
+	const toneBg = {
+		brand: 'from-brand/8 to-brand/4 border-brand/20',
+		success: 'from-success/8 to-success/4 border-success/20',
+		muted: 'from-bg-elevated to-bg-elevated border-border-subtle',
+	}[tone]
+	const toneText = {
+		brand: 'text-brand',
+		success: 'text-success',
+		muted: 'text-text-muted',
+	}[tone]
+	const toneIcon = {
+		brand: 'border-brand/20 bg-brand/10 text-brand',
+		success: 'border-success/20 bg-success/10 text-success',
 		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
 	}[tone]
 
 	return (
-		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
+		<div
+			className={cn(
+				'rounded-xl border bg-gradient-to-br p-3 shadow-card',
+				toneBg,
+			)}
+		>
 			<div className='flex items-center justify-between gap-2'>
 				<div>
 					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
 						{label}
 					</p>
-					<p className='mt-1 text-lg font-black tabular-nums text-text-primary'>
-						{value}
+					<p
+						className={cn(
+							'mt-1 text-2xl font-black tabular-nums',
+							empty ? 'text-text-muted' : 'text-text-primary',
+						)}
+					>
+						{empty ? '—' : value}
+						{!empty && unit && (
+							<span className='ml-1 text-sm font-semibold text-text-secondary'>
+								{unit}
+							</span>
+						)}
 					</p>
 				</div>
-				<div className={cn('rounded-md border p-1.5', toneClass)}>
+				<div className={cn('rounded-lg border p-1.5', toneIcon)}>
 					<Icon className='size-3.5' />
 				</div>
 			</div>
@@ -93,28 +129,32 @@ export function MealPlannerCommandDeck({
 			</div>
 
 			<div className='mb-3 grid grid-cols-2 gap-2 lg:mb-4 lg:grid-cols-4'>
-				<StatCard
+				<PlanStat
 					label={t('statDays')}
-					value={plannedDays.toString()}
+					value={plannedDays}
+					unit='days'
 					icon={CalendarDays}
 					tone={hasPlan ? 'success' : 'muted'}
+					empty={!hasPlan}
 				/>
-				<StatCard
+				<PlanStat
 					label={t('statMeals')}
-					value={totalMealsPlanned.toString()}
+					value={totalMealsPlanned}
+					unit='meals'
 					icon={ChefHat}
 					tone={hasPlan ? 'brand' : 'muted'}
+					empty={!hasPlan}
 				/>
-				<StatCard
-					label={t('statGenerator')}
-					value={useAI ? t('statGeneratorAI') : t('statGeneratorQuick')}
-					icon={Sparkles}
-					tone='brand'
+				<PlanStat
+					label='AI Mode'
+					value={useAI ? 'On' : 'Off'}
+					icon={Brain}
+					tone={useAI ? 'brand' : 'muted'}
 				/>
-				<StatCard
-					label={t('statState')}
-					value={hasPlan ? t('statStateLive') : t('statStateEmpty')}
-					icon={ShoppingCart}
+				<PlanStat
+					label='Status'
+					value={hasPlan ? 'Ready' : 'Empty'}
+					icon={hasPlan ? CheckCircle2 : ShoppingCart}
 					tone={hasPlan ? 'success' : 'muted'}
 				/>
 			</div>

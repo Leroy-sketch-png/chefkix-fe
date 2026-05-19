@@ -15,12 +15,14 @@ import {
 	Grid3X3,
 	ChefHat,
 	Bookmark,
+	FolderHeart,
 	Trophy,
 	Heart,
 	ShieldBan,
 	MoreHorizontal,
 } from 'lucide-react'
 import Link from 'next/link'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { cn, formatNumber } from '@/lib/utils'
@@ -594,6 +596,11 @@ const OwnProfileHeader = ({
 		},
 		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
+			id: 'collections',
+			label: t('tabCollections'),
+			icon: <FolderHeart className='size-4' />,
+		},
+		{
 			id: 'cooking',
 			label: t('tabCooking'),
 			icon: <ChefHat className='size-4' />,
@@ -613,7 +620,11 @@ const OwnProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
+		<PremiumSurface
+			tone='brand'
+			showOrbs={true}
+			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
+		>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -790,7 +801,7 @@ const OwnProfileHeader = ({
 				activeTab={activeTab}
 				onTabChange={onTabChange}
 			/>
-		</div>
+		</PremiumSurface>
 	)
 }
 
@@ -821,6 +832,11 @@ const OtherUserProfileHeader = ({
 		},
 		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
+			id: 'collections',
+			label: t('tabCollections'),
+			icon: <FolderHeart className='size-4' />,
+		},
+		{
 			id: 'achievements',
 			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
@@ -829,7 +845,11 @@ const OtherUserProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
+		<PremiumSurface
+			tone='brand'
+			showOrbs={true}
+			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
+		>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
@@ -989,7 +1009,7 @@ const OtherUserProfileHeader = ({
 				activeTab={activeTab}
 				onTabChange={onTabChange}
 			/>
-		</div>
+		</PremiumSurface>
 	)
 }
 

@@ -66,6 +66,7 @@ import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
+import { MagicCard } from '@/components/ui/magic-card'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -491,50 +492,56 @@ export default function ShoppingListsPage() {
 								<motion.div
 									initial={{ opacity: 0, y: -8 }}
 									animate={{ opacity: 1, y: 0 }}
-									className='flex items-center gap-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3'
 								>
-									<ShoppingCart className='size-5 flex-shrink-0 text-brand' />
-									<div className='flex-1 min-w-0'>
-										<p className='text-sm font-semibold text-text-primary'>
-											{t('shopInstacart')}
-										</p>
-										<p className='text-xs text-text-muted'>
-											{t('remainingItems', { count: uncheckedItems.length })}
-										</p>
-									</div>
-									<button
-										type='button'
-										disabled={isCheckingOut}
-										onClick={async () => {
-											if (!selectedList) return
-											setIsCheckingOut(true)
-											try {
-												const result = await checkoutShoppingList(
-													selectedList.id,
-													'affiliate',
-												)
-												if (result?.checkoutUrl) {
-													window.open(
-														result.checkoutUrl,
-														'_blank',
-														'noopener,noreferrer',
-													)
-													toast.success(
-														t('checkoutStarted', { count: result.itemCount }),
-													)
-												} else {
-													toast.success(t('checkoutPrepared'))
-												}
-											} catch {
-												toast.error(t('checkoutFailed'))
-											} finally {
-												setIsCheckingOut(false)
-											}
-										}}
-										className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60'
+									<MagicCard
+										mode='orb'
+										glowFrom='var(--color-brand)'
+										glowTo='var(--color-warning)'
+										className='flex items-center gap-3 rounded-xl border border-brand/20 bg-bg-card/75 backdrop-blur-md px-4 py-3 shadow-lg overflow-hidden'
 									>
-										{isCheckingOut ? t('processing') : t('shopNow')}
-									</button>
+										<ShoppingCart className='size-5 flex-shrink-0 text-brand z-10' />
+										<div className='flex-1 min-w-0 z-10'>
+											<p className='text-sm font-semibold text-text-primary'>
+												{t('shopInstacart')}
+											</p>
+											<p className='text-xs text-text-muted'>
+												{t('remainingItems', { count: uncheckedItems.length })}
+											</p>
+										</div>
+										<button
+											type='button'
+											disabled={isCheckingOut}
+											onClick={async () => {
+												if (!selectedList) return
+												setIsCheckingOut(true)
+												try {
+													const result = await checkoutShoppingList(
+														selectedList.id,
+														'affiliate',
+													)
+													if (result?.checkoutUrl) {
+														window.open(
+															result.checkoutUrl,
+															'_blank',
+															'noopener,noreferrer',
+														)
+														toast.success(
+															t('checkoutStarted', { count: result.itemCount }),
+														)
+													} else {
+														toast.success(t('checkoutPrepared'))
+													}
+												} catch {
+													toast.error(t('checkoutFailed'))
+												} finally {
+													setIsCheckingOut(false)
+												}
+											}}
+											className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60 z-10'
+										>
+											{isCheckingOut ? t('processing') : t('shopNow')}
+										</button>
+									</MagicCard>
 								</motion.div>
 							)}
 
@@ -658,10 +665,15 @@ export default function ShoppingListsPage() {
 									className='mb-3'
 								/>
 								{selectedList.items.length === 0 ? (
-									<div className='rounded-xl border border-border-subtle bg-bg-card py-16 text-center shadow-card'>
-										<Package className='mx-auto mb-3 size-12 text-text-muted/40' />
-										<p className='text-text-muted'>{t('emptyList')}</p>
-									</div>
+									<MagicCard
+										mode='orb'
+										glowFrom='var(--color-brand)'
+										glowTo='var(--color-xp)'
+										className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-16 text-center shadow-card overflow-hidden'
+									>
+										<Package className='mx-auto mb-3 size-12 text-text-muted/40 z-10' />
+										<p className='text-text-muted z-10'>{t('emptyList')}</p>
+									</MagicCard>
 								) : (
 									<div className='space-y-4'>
 										{Object.entries(groupedItems).map(([category, items]) => {
@@ -671,29 +683,36 @@ export default function ShoppingListsPage() {
 												<motion.div
 													key={category}
 													layout
-													className='rounded-xl border border-border-subtle bg-bg-card shadow-card'
+													className='overflow-hidden rounded-xl'
 												>
-													<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3'>
-														<span className='text-lg'>{config.icon}</span>
-														<span className='text-sm font-semibold text-text-primary'>
-															{category}
-														</span>
-														<span className='ml-auto text-xs text-text-muted'>
-															{items.filter(i => i.checked).length}/
-															{items.length}
-														</span>
-													</div>
-													<ul className='divide-y divide-border-subtle'>
-														{items.map(item => (
-															<ShoppingListItemRow
-																key={item.itemId}
-																item={item}
-																onToggle={handleToggleItem}
-																onRemove={handleRemoveItem}
-																removeAriaLabel={t('ariaRemoveItem')}
-															/>
-														))}
-													</ul>
+													<MagicCard
+														mode='orb'
+														glowFrom='var(--color-brand)'
+														glowTo='var(--color-success)'
+														className='rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden'
+													>
+														<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3 z-10 relative'>
+															<span className='text-lg'>{config.icon}</span>
+															<span className='text-sm font-semibold text-text-primary'>
+																{category}
+															</span>
+															<span className='ml-auto text-xs text-text-muted'>
+																{items.filter(i => i.checked).length}/
+																{items.length}
+															</span>
+														</div>
+														<ul className='divide-y divide-border-subtle z-10 relative bg-bg-card/45'>
+															{items.map(item => (
+																<ShoppingListItemRow
+																	key={item.itemId}
+																	item={item}
+																	onToggle={handleToggleItem}
+																	onRemove={handleRemoveItem}
+																	removeAriaLabel={t('ariaRemoveItem')}
+																/>
+															))}
+														</ul>
+													</MagicCard>
 												</motion.div>
 											)
 										})}
@@ -825,22 +844,27 @@ export default function ShoppingListsPage() {
 
 						{/* Empty state */}
 						{lists.length === 0 ? (
-							<div className='rounded-xl border border-border-subtle bg-bg-card py-20 text-center shadow-card'>
-								<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30' />
-								<h2 className='mb-2 text-lg font-semibold text-text-primary'>
+							<MagicCard
+								mode='orb'
+								glowFrom='var(--color-brand)'
+								glowTo='var(--color-xp)'
+								className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-20 text-center shadow-card overflow-hidden'
+							>
+								<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30 z-10' />
+								<h2 className='mb-2 text-lg font-semibold text-text-primary z-10'>
 									{t('noListsYet')}
 								</h2>
-								<p className='mb-6 text-sm text-text-muted'>
+								<p className='mb-6 text-sm text-text-muted z-10'>
 									{t('noListsDesc')}
 								</p>
 								<button
 									type='button'
 									onClick={() => setShowCreateMenu(true)}
-									className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+									className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 z-10'
 								>
 									{t('createFirst')}
 								</button>
-							</div>
+							</MagicCard>
 						) : (
 							<PremiumSurface
 								eyebrow='Active Lists'
@@ -861,63 +885,82 @@ export default function ShoppingListsPage() {
 										return (
 											<motion.div
 												key={list.id}
-												className='group relative cursor-pointer rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card transition-all hover:shadow-warm md:p-5'
 												whileHover={CARD_HOVER}
 												transition={TRANSITION_SPRING}
 												onClick={() => handleOpenList(list.id)}
+												className='cursor-pointer rounded-xl overflow-hidden'
 											>
-												{/* Source badge */}
-												<div className='mb-3 flex items-center justify-between'>
-													<span
-														className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
-													>
-														<SourceIcon className='size-3' />
-														{list.source}
-													</span>
-													<button
-														type='button'
-														onClick={e => {
-															e.stopPropagation()
-															setConfirmingDeleteId(list.id)
-														}}
-														className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
-														aria-label={t('ariaDeleteList')}
-													>
-														<Trash2 className='size-4' />
-													</button>
-												</div>
-
-												{/* Title */}
-												<h3 className='mb-1 text-base font-semibold text-text-primary'>
-													{list.name}
-												</h3>
-
-												{/* Stats */}
-												<p className='mb-3 text-xs text-text-muted'>
-													{t('itemsStats', {
-														checked: list.checkedItems,
-														total: list.totalItems,
-													})}{' '}
-													&middot; {relativeTime(list.createdAt)}
-												</p>
-
-												{/* Mini progress bar */}
-												{list.totalItems > 0 && (
-													<div className='overflow-hidden rounded-full bg-bg-elevated'>
-														<div
-															className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
-															style={{ width: `${listProgress}%` }}
-														/>
+												<MagicCard
+													mode='orb'
+													glowFrom={
+														list.source === 'Meal Plan'
+															? 'var(--color-info)'
+															: list.source === 'Recipe'
+																? 'var(--color-brand)'
+																: 'var(--color-success)'
+													}
+													glowTo={
+														list.source === 'Meal Plan'
+															? 'var(--color-brand)'
+															: list.source === 'Recipe'
+																? 'var(--color-success)'
+																: 'var(--color-info)'
+													}
+													className='group relative bg-bg-card/75 backdrop-blur-md p-4 shadow-card border border-border-subtle transition-all hover:shadow-warm md:p-5 overflow-hidden'
+												>
+													{/* Source badge */}
+													<div className='mb-3 flex items-center justify-between z-10 relative'>
+														<span
+															className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
+														>
+															<SourceIcon className='size-3' />
+															{list.source}
+														</span>
+														<button
+															type='button'
+															onClick={e => {
+																e.stopPropagation()
+																setConfirmingDeleteId(list.id)
+															}}
+															className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+															aria-label={t('ariaDeleteList')}
+														>
+															<Trash2 className='size-4' />
+														</button>
 													</div>
-												)}
 
-												{/* Completion indicator */}
-												{listProgress === 100 && list.totalItems > 0 && (
-													<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success'>
-														<Check className='size-3' />
-														{t('complete')}
-													</div>
-												)}
+													{/* Title */}
+													<h3 className='mb-1 text-base font-semibold text-text-primary z-10 relative group-hover:text-brand transition-colors duration-300'>
+														{list.name}
+													</h3>
+
+													{/* Stats */}
+													<p className='mb-3 text-xs text-text-muted z-10 relative'>
+														{t('itemsStats', {
+															checked: list.checkedItems,
+															total: list.totalItems,
+														})}{' '}
+														&middot; {relativeTime(list.createdAt)}
+													</p>
+
+													{/* Mini progress bar */}
+													{list.totalItems > 0 && (
+														<div className='overflow-hidden rounded-full bg-bg-elevated z-10 relative'>
+															<div
+																className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
+																style={{ width: `${listProgress}%` }}
+															/>
+														</div>
+													)}
+
+													{/* Completion indicator */}
+													{listProgress === 100 && list.totalItems > 0 && (
+														<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success z-10 relative'>
+															<Check className='size-3' />
+															{t('complete')}
+														</div>
+													)}
+												</MagicCard>
 											</motion.div>
 										)
 									})}

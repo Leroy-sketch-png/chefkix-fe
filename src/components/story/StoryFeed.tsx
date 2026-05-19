@@ -88,7 +88,7 @@ const CreateStoryCard = ({
 }
 
 const shellClassName =
-	'rounded-[1.5rem] border border-border-subtle bg-bg-card/70 p-3 shadow-card backdrop-blur-sm'
+	'rounded-xl border border-border-subtle bg-bg-card/70 p-3 shadow-card backdrop-blur-sm'
 
 export const StoryFeed = ({
 	stories = [],
@@ -174,12 +174,19 @@ export const StoryFeed = ({
 						const isMe =
 							!!currentUser && storyUser.userId === currentUser.userId
 
+						// Prefer explicit hasStories flag when present, fallback to list length
+						const userHasStories =
+							typeof storyUser.hasStories === 'boolean'
+								? storyUser.hasStories
+								: true
+
 						return (
 							<button
 								type='button'
 								key={`${storyUser.userId}-${index}`}
 								className='snap-start shrink-0 text-left'
 								onClick={() => onStoryClick(storyUser)}
+								aria-pressed={userHasStories}
 							>
 								<StoryAvatar user={storyUser} isCurrentUser={isMe} />
 							</button>

@@ -20,6 +20,22 @@ import {
 } from '@/components/dev/demo-config'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
+import { motion, AnimatePresence } from 'framer-motion'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { MagicCard } from '@/components/ui/magic-card'
+import { cn } from '@/lib/utils'
+import {
+	Terminal,
+	RefreshCw,
+	Copy,
+	Check,
+	Key,
+	Shield,
+	ExternalLink,
+	Clock,
+	Play,
+	AlertCircle,
+} from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface ServiceStatus {
@@ -588,380 +604,219 @@ export default function DevDashboard() {
 	const failCount = apiResults.filter(r => r.status === 'fail').length
 
 	return (
-		<div
-			style={{
-				minHeight: '100vh',
-				background: '#0d1117',
-				color: '#e6edf3',
-				fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-			}}
-		>
-			{/* Header */}
-			<div
-				style={{
-					borderBottom: '1px solid #30363d',
-					padding: '16px 24px',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-				}}
-			>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<span style={{ fontSize: 24 }}>🔧</span>
-					<h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-						ChefKix Dev Dashboard
-					</h1>
-					<span
-						style={{
-							background:
-								upCount === SERVICES.length
-									? '#238636'
-									: upCount > 0
-										? '#d29922'
-										: '#f85149',
-							color: '#fff',
-							padding: '2px 8px',
-							borderRadius: 12,
-							fontSize: 11,
-							fontWeight: 600,
-						}}
-					>
-						{upCount}/{SERVICES.length} services
-					</span>
-				</div>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 12,
-						fontSize: 12,
-						color: '#8b949e',
-					}}
-				>
-					{lastCheck && (
-						<span>Last check: {lastCheck.toLocaleTimeString()}</span>
-					)}
-					<button
-						onClick={checkServices}
-						style={{
-							background: '#21262d',
-							border: '1px solid #30363d',
-							color: '#e6edf3',
-							padding: '4px 12px',
-							borderRadius: 6,
-							cursor: 'pointer',
-							fontSize: 12,
-						}}
-					>
-						↻ Refresh
-					</button>
-				</div>
-			</div>
+		<div className='min-h-screen bg-bg text-text-primary font-sans relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8'>
+			{/* Drifting HSL Ambient Radial Glow Orbs */}
+			<div className='pointer-events-none absolute -left-40 -top-40 size-[500px] rounded-full bg-brand/5 blur-[120px] dark:bg-brand/8' />
+			<div className='pointer-events-none absolute -right-40 -bottom-40 size-[500px] rounded-full bg-xp/5 blur-[120px] dark:bg-xp/8' />
+			<div className='pointer-events-none absolute left-1/3 top-1/2 size-[300px] rounded-full bg-streak/5 blur-[100px] dark:bg-streak/8' />
 
-			<div
-				style={{
-					padding: '24px',
-					maxWidth: 1400,
-					margin: '0 auto',
-					display: 'grid',
-					gap: 24,
-				}}
-			>
-				{/* Row 1: Service Status + Test Accounts */}
-				<div
-					style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}
-				>
-					{/* Service Status */}
-					<div
-						style={{
-							background: '#161b22',
-							border: '1px solid #30363d',
-							borderRadius: 8,
-							padding: 16,
-						}}
+			{/* Breathtaking Glassmorphic Header */}
+			<header className='relative z-10 max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 border border-border-subtle/60 bg-bg-card/75 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-card'>
+				<div className='flex items-center gap-3'>
+					<div className='grid size-12 place-items-center rounded-xl bg-brand/10 text-brand shadow-[0_0_15px_rgba(255,90,54,0.1)]'>
+						<Terminal className='size-6' />
+					</div>
+					<div>
+						<h1 className='text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-brand via-streak to-xp bg-clip-text text-transparent'>
+							ChefKix Dev Cockpit
+						</h1>
+						<p className='text-xs text-text-muted mt-0.5 font-medium'>
+							Unified development command room & live pitch beat conductor
+						</p>
+					</div>
+				</div>
+				<div className='flex flex-wrap items-center gap-3'>
+					<span
+						className={cn(
+							'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border',
+							upCount === SERVICES.length
+								? 'bg-success/8 border-success/20 text-success'
+								: upCount > 0
+									? 'bg-warning/8 border-warning/20 text-warning'
+									: 'bg-error/8 border-error/20 text-error',
+						)}
 					>
-						<h2
-							style={{
-								fontSize: 14,
-								fontWeight: 600,
-								marginBottom: 12,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-							}}
-						>
-							Infrastructure Status
-						</h2>
-						<div style={{ display: 'grid', gap: 6 }}>
-							{services.map(svc => (
-								<div
-									key={svc.name}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'space-between',
-										padding: '8px 12px',
-										background: '#0d1117',
-										borderRadius: 6,
-										border: `1px solid ${svc.status === 'up' ? '#238636' : svc.status === 'down' ? '#f85149' : '#30363d'}`,
-									}}
-								>
-									<div
-										style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+						<span className='size-2 rounded-full bg-current animate-pulse' />
+						{upCount}/{SERVICES.length} Services Online
+					</span>
+					{lastCheck && (
+						<span className='text-xs text-text-muted hidden md:inline'>
+							Checked: {lastCheck.toLocaleTimeString()}
+						</span>
+					)}
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						onClick={checkServices}
+						className='inline-flex items-center gap-1.5 rounded-xl border border-border-subtle/80 bg-bg-card hover:bg-bg-elevated text-text-primary px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer'
+					>
+						<RefreshCw className='size-3.5' />
+						Refresh
+					</motion.button>
+				</div>
+			</header>
+
+			{/* Main Grid Workspace */}
+			<main className='relative z-10 max-w-7xl mx-auto space-y-6'>
+				{/* Top Row: Service Health + Persona Sign-In */}
+				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+					{/* Infrastructure Status */}
+					<PremiumSurface
+						tone='brand'
+						showOrbs={true}
+						eyebrow='Infrastructure Status'
+					>
+						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
+							{services.map(svc => {
+								const isUp = svc.status === 'up'
+								const isDown = svc.status === 'down'
+								return (
+									<MagicCard
+										key={svc.name}
+										mode='gradient'
+										className={cn(
+											'relative overflow-hidden rounded-xl border p-3 flex items-center justify-between transition-colors',
+											isUp
+												? 'border-success/15 bg-success/4'
+												: isDown
+													? 'border-error/15 bg-error/4'
+													: 'border-border-subtle bg-bg-card/40',
+										)}
 									>
-										<span
-											style={{
-												width: 8,
-												height: 8,
-												borderRadius: '50%',
-												background:
-													svc.status === 'up'
-														? '#3fb950'
-														: svc.status === 'down'
-															? '#f85149'
-															: '#d29922',
-												display: 'inline-block',
-												animation:
-													svc.status === 'checking'
-														? 'pulse 1s infinite'
-														: undefined,
-											}}
-										/>
-										<span style={{ fontSize: 13 }}>{svc.name}</span>
-									</div>
-									<div
-										style={{
-											display: 'flex',
-											alignItems: 'center',
-											gap: 8,
-											fontSize: 12,
-											color: '#8b949e',
-										}}
-									>
-										<span>:{svc.port}</span>
+										<div className='flex items-center gap-2.5 min-w-0'>
+											<div
+												className={cn(
+													'size-2.5 rounded-full shrink-0',
+													isUp
+														? 'bg-success animate-pulse'
+														: isDown
+															? 'bg-error animate-pulse'
+															: 'bg-warning animate-pulse',
+												)}
+											/>
+											<div className='min-w-0'>
+												<span className='text-xs font-bold text-text-primary block truncate'>
+													{svc.name}
+												</span>
+												<span className='text-[10px] text-text-muted block mt-0.5 font-mono'>
+													Port :{svc.port}
+												</span>
+											</div>
+										</div>
 										{svc.latency !== undefined && svc.latency > 0 && (
 											<span
-												style={{
-													color:
-														svc.latency < 100
-															? '#3fb950'
-															: svc.latency < 500
-																? '#d29922'
-																: '#f85149',
-												}}
+												className={cn(
+													'text-[10px] font-bold px-1.5 py-0.5 rounded bg-bg-elevated font-mono',
+													svc.latency < 100
+														? 'text-success'
+														: svc.latency < 500
+															? 'text-warning'
+															: 'text-error',
+												)}
 											>
 												{svc.latency}ms
 											</span>
 										)}
+									</MagicCard>
+								)
+							})}
+						</div>
+					</PremiumSurface>
+
+					{/* Test Accounts Cockpit */}
+					<PremiumSurface
+						tone='xp'
+						showOrbs={true}
+						eyebrow='Test Personas & Quick Sign-In'
+					>
+						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
+							{DEMO_ACCOUNTS.map(account => (
+								<MagicCard
+									key={account.username}
+									mode='gradient'
+									className='relative overflow-hidden rounded-xl border border-border-subtle/80 bg-bg-card/40 p-3.5 flex flex-col justify-between'
+								>
+									<div className='mb-3'>
+										<div className='flex items-center gap-2 mb-1.5'>
+											<span className='text-base'>👤</span>
+											<span className='text-xs font-black text-text-primary'>
+												{account.label}
+											</span>
+										</div>
+										<p className='text-[10px] text-text-muted leading-relaxed line-clamp-2'>
+											{account.description}
+										</p>
 									</div>
-								</div>
+
+									<div className='space-y-2'>
+										<div className='grid grid-cols-2 gap-1 text-[10px] font-mono bg-bg-elevated/50 rounded-lg p-1.5 border border-border-subtle/50'>
+											<div className='flex items-center gap-1 min-w-0'>
+												<span className='text-text-muted shrink-0'>U:</span>
+												<span className='text-text-secondary truncate font-semibold'>
+													{account.username}
+												</span>
+											</div>
+											<div className='flex items-center gap-1 min-w-0'>
+												<span className='text-text-muted shrink-0'>P:</span>
+												<span className='text-text-secondary truncate font-semibold'>
+													{account.password}
+												</span>
+											</div>
+										</div>
+										<div className='flex gap-2'>
+											<motion.button
+												whileHover={{ scale: 1.03 }}
+												whileTap={{ scale: 0.97 }}
+												onClick={() =>
+													loginToApp(
+														account.username,
+														account.password,
+														account.defaultRoute,
+													)
+												}
+												disabled={isLoggingInToApp}
+												className='flex-1 inline-flex items-center justify-center rounded-lg bg-brand text-white py-1 text-[11px] font-bold shadow-warm hover:bg-brand/90 transition-colors disabled:opacity-50 cursor-pointer'
+											>
+												Sign In →
+											</motion.button>
+											<motion.button
+												whileHover={{ scale: 1.03 }}
+												whileTap={{ scale: 0.97 }}
+												onClick={() =>
+													doLogin(account.username, account.password).then(
+														t => {
+															if (t) copy(t, account.username)
+														},
+													)
+												}
+												className='inline-flex items-center justify-center rounded-lg bg-success/10 border border-success/20 text-success hover:bg-success/20 px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer'
+												title='Copy Bearer Token'
+											>
+												{copied === account.username ? '✓' : '🔑'}
+											</motion.button>
+										</div>
+									</div>
+								</MagicCard>
 							))}
 						</div>
-					</div>
 
-					{/* Test Accounts + Quick Login */}
-					<div
-						style={{
-							background: '#161b22',
-							border: '1px solid #30363d',
-							borderRadius: 8,
-							padding: 16,
-						}}
-					>
-						<h2
-							style={{
-								fontSize: 14,
-								fontWeight: 600,
-								marginBottom: 12,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-							}}
-						>
-							Test Accounts
-						</h2>
-						{DEMO_ACCOUNTS.map(account => (
-							<div
-								key={account.username}
-								style={{
-									background: '#0d1117',
-									border: '1px solid #30363d',
-									borderRadius: 8,
-									padding: 12,
-									marginBottom: 8,
-								}}
-							>
-								<div
-									style={{
-										display: 'flex',
-										justifyContent: 'space-between',
-										alignItems: 'center',
-										marginBottom: 8,
-									}}
+						{/* Keycloak Admin Console Box */}
+						<div className='mt-4 border border-warning/15 bg-warning/5 rounded-xl p-3.5'>
+							<div className='flex items-center justify-between mb-2'>
+								<span className='text-xs font-black text-warning flex items-center gap-1.5'>
+									<Shield className='size-3.5' />
+									Keycloak Admin Console
+								</span>
+								<a
+									href='http://localhost:8180/admin'
+									target='_blank'
+									rel='noopener noreferrer'
+									className='text-[10px] text-text-muted hover:text-warning flex items-center gap-0.5'
 								>
-									<span style={{ fontWeight: 600, fontSize: 14 }}>
-										{account.label}
-									</span>
-									<div style={{ display: 'flex', gap: 6 }}>
-										<button
-											onClick={() =>
-												loginToApp(
-													account.username,
-													account.password,
-													account.defaultRoute,
-												)
-											}
-											disabled={isLoggingInToApp}
-											style={{
-												background: isLoggingInToApp ? '#21262d' : '#1f6feb',
-												border: 'none',
-												color: '#fff',
-												padding: '4px 12px',
-												borderRadius: 6,
-												cursor: isLoggingInToApp ? 'not-allowed' : 'pointer',
-												fontSize: 11,
-												fontWeight: 600,
-											}}
-										>
-											{isLoggingInToApp ? 'Logging in...' : 'Open App →'}
-										</button>
-										<button
-											onClick={() =>
-												doLogin(account.username, account.password).then(t => {
-													if (t) copy(t, 'token')
-												})
-											}
-											style={{
-												background: '#238636',
-												border: 'none',
-												color: '#fff',
-												padding: '4px 12px',
-												borderRadius: 6,
-												cursor: 'pointer',
-												fontSize: 11,
-												fontWeight: 600,
-											}}
-										>
-											Copy Token
-										</button>
-									</div>
-								</div>
-								<div style={{ display: 'grid', gap: 4, fontSize: 12 }}>
-									{[
-										{ label: 'Username', value: account.username },
-										{ label: 'Password', value: account.password },
-										{ label: 'Email', value: account.email },
-									].map(field => (
-										<div
-											key={field.label}
-											style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-										>
-											<span style={{ color: '#8b949e', width: 70 }}>
-												{field.label}:
-											</span>
-											<code
-												style={{
-													background: '#21262d',
-													padding: '2px 6px',
-													borderRadius: 4,
-													flex: 1,
-												}}
-											>
-												{field.value}
-											</code>
-											<button
-												onClick={() => copy(field.value, field.label)}
-												style={{
-													background: 'transparent',
-													border: '1px solid #30363d',
-													color: copied === field.label ? '#3fb950' : '#8b949e',
-													padding: '2px 6px',
-													borderRadius: 4,
-													cursor: 'pointer',
-													fontSize: 11,
-												}}
-											>
-												{copied === field.label ? '✓' : '⎘'}
-											</button>
-										</div>
-									))}
-								</div>
-								<p
-									style={{ margin: '6px 0 0', fontSize: 11, color: '#8b949e' }}
-								>
-									{account.description}
-								</p>
+									Open Console <ExternalLink className='size-2.5' />
+								</a>
 							</div>
-						))}
-
-						{/* Current Token */}
-						{token && (
-							<div
-								style={{
-									background: '#0d1117',
-									border: '1px solid #238636',
-									borderRadius: 8,
-									padding: 12,
-									marginTop: 8,
-								}}
-							>
-								<div
-									style={{
-										display: 'flex',
-										justifyContent: 'space-between',
-										alignItems: 'center',
-										marginBottom: 6,
-									}}
-								>
-									<span
-										style={{ fontSize: 12, fontWeight: 600, color: '#3fb950' }}
-									>
-										Active Token
-									</span>
-									<button
-										onClick={() => copy(token, 'token')}
-										style={{
-											background: copied === 'token' ? '#238636' : '#21262d',
-											border: '1px solid #30363d',
-											color: '#e6edf3',
-											padding: '4px 10px',
-											borderRadius: 4,
-											cursor: 'pointer',
-											fontSize: 11,
-										}}
-									>
-										{copied === 'token' ? '✓ Copied' : 'Copy Token'}
-									</button>
-								</div>
-								<code
-									style={{
-										fontSize: 10,
-										color: '#8b949e',
-										wordBreak: 'break-all',
-										display: 'block',
-									}}
-								>
-									{token.substring(0, 80)}...
-								</code>
-							</div>
-						)}
-
-						{/* Keycloak Admin */}
-						<div
-							style={{
-								background: '#0d1117',
-								border: '1px solid #30363d',
-								borderRadius: 8,
-								padding: 12,
-								marginTop: 8,
-							}}
-						>
-							<span style={{ fontSize: 12, fontWeight: 600, color: '#d29922' }}>
-								Keycloak Admin Console
-							</span>
-							<div
-								style={{ display: 'grid', gap: 4, fontSize: 12, marginTop: 6 }}
-							>
+							<div className='grid grid-cols-3 gap-2 font-mono text-[10px]'>
 								{[
 									{ label: 'URL', value: 'http://localhost:8180/admin' },
 									{ label: 'User', value: 'admin' },
@@ -969,35 +824,15 @@ export default function DevDashboard() {
 								].map(field => (
 									<div
 										key={field.label}
-										style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+										className='bg-bg-elevated/40 border border-border-subtle/50 rounded-lg p-1.5 flex items-center justify-between gap-1'
 									>
-										<span style={{ color: '#8b949e', width: 40 }}>
-											{field.label}:
-										</span>
-										<code
-											style={{
-												background: '#21262d',
-												padding: '2px 6px',
-												borderRadius: 4,
-												flex: 1,
-											}}
-										>
+										<span className='text-text-muted'>CN:</span>
+										<span className='text-text-secondary truncate font-semibold flex-1 text-right mr-1'>
 											{field.value}
-										</code>
+										</span>
 										<button
 											onClick={() => copy(field.value, `kc-${field.label}`)}
-											style={{
-												background: 'transparent',
-												border: '1px solid #30363d',
-												color:
-													copied === `kc-${field.label}`
-														? '#3fb950'
-														: '#8b949e',
-												padding: '2px 6px',
-												borderRadius: 4,
-												cursor: 'pointer',
-												fontSize: 11,
-											}}
+											className='text-[9px] text-text-muted hover:text-text-primary shrink-0'
 										>
 											{copied === `kc-${field.label}` ? '✓' : '⎘'}
 										</button>
@@ -1005,262 +840,123 @@ export default function DevDashboard() {
 								))}
 							</div>
 						</div>
-					</div>
+					</PremiumSurface>
 				</div>
 
-				{/* Demo Flow Shortcuts */}
-				<div
-					style={{
-						background: '#161b22',
-						border: '1px solid #30363d',
-						borderRadius: 8,
-						padding: 16,
-					}}
-				>
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: 12,
-						}}
+				{/* Active Token Banner */}
+				{token && (
+					<motion.div
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						className='border border-success/20 bg-success/5 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 overflow-hidden backdrop-blur-sm'
 					>
-						<div>
-							<h2
-								style={{
-									fontSize: 14,
-									fontWeight: 600,
-									margin: 0,
-									color: '#8b949e',
-									textTransform: 'uppercase',
-									letterSpacing: 1,
-								}}
-							>
-								Investor Demo Shortcuts
-							</h2>
-							<p style={{ margin: '6px 0 0', fontSize: 12, color: '#8b949e' }}>
-								Use these after quick login to move through the safest pitch
-								path.
-							</p>
+						<div className='flex items-center gap-2.5 min-w-0'>
+							<div className='size-7 rounded-lg bg-success/10 text-success grid place-items-center shrink-0'>
+								<Key className='size-4' />
+							</div>
+							<div className='min-w-0'>
+								<span className='text-xs font-bold text-success block'>
+									Active Session Token
+								</span>
+								<code className='text-[10px] text-text-muted truncate block font-mono mt-0.5 max-w-xl'>
+									{token}
+								</code>
+							</div>
 						</div>
-						<span style={{ fontSize: 12, color: '#58a6ff' }}>
-							Ctrl+K also works in the app
-						</span>
-					</div>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-							gap: 8,
-						}}
-					>
-						{DEMO_PITCH_SHORTCUTS.map(shortcut => {
-							const disabled =
-								activeShortcut === shortcut.label ||
-								(Boolean(shortcut.requiresAuth) && !token)
-
-							return (
-								<button
-									key={shortcut.label}
-									onClick={() => openPitchShortcut(shortcut)}
-									disabled={disabled}
-									style={{
-										background: disabled ? '#11161d' : '#0d1117',
-										border: `1px solid ${disabled ? '#21262d' : '#30363d'}`,
-										borderRadius: 8,
-										padding: 12,
-										color: '#e6edf3',
-										textAlign: 'left',
-										cursor: disabled ? 'not-allowed' : 'pointer',
-										display: 'grid',
-										gap: 6,
-									}}
-								>
-									<div
-										style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-									>
-										<span style={{ fontSize: 16 }}>{shortcut.icon}</span>
-										<span style={{ fontSize: 13, fontWeight: 600 }}>
-											{shortcut.label}
-										</span>
-									</div>
-									<span
-										style={{ fontSize: 11, color: '#8b949e', lineHeight: 1.4 }}
-									>
-										{shortcut.description}
-									</span>
-									<span style={{ fontSize: 11, color: '#58a6ff' }}>
-										{activeShortcut === shortcut.label
-											? 'Opening...'
-											: 'Open in app'}
-									</span>
-								</button>
-							)
-						})}
-					</div>
-					{!token && (
-						<p style={{ margin: '10px 0 0', fontSize: 12, color: '#d29922' }}>
-							Log in to unlock the authenticated demo steps.
-						</p>
-					)}
-				</div>
-
-				{/* Pitch Command Board */}
-				<div
-					style={{
-						background: '#161b22',
-						border: '1px solid #30363d',
-						borderRadius: 8,
-						padding: 16,
-					}}
-				>
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'flex-start',
-							gap: 16,
-							marginBottom: 12,
-							flexWrap: 'wrap',
-						}}
-					>
-						<div>
-							<h2
-								style={{
-									fontSize: 14,
-									fontWeight: 600,
-									margin: 0,
-									color: '#8b949e',
-									textTransform: 'uppercase',
-									letterSpacing: 1,
-								}}
-							>
-								Pitch Command Board
-							</h2>
-							<p style={{ margin: '6px 0 0', fontSize: 12, color: '#8b949e' }}>
-								Six live beats. One control room. Click proof, then say the
-								money line.
-							</p>
-						</div>
-						<div
-							style={{
-								display: 'grid',
-								gap: 8,
-								minWidth: 220,
-							}}
+						<motion.button
+							whileHover={{ scale: 1.05 }}
+							whileTap={{ scale: 0.95 }}
+							onClick={() => copy(token, 'token')}
+							className='inline-flex items-center gap-1.5 rounded-xl bg-success text-white px-3.5 py-1.5 text-xs font-bold hover:bg-success/90 transition-colors shrink-0 cursor-pointer'
 						>
-							<div
-								style={{
-									padding: '8px 10px',
-									background: '#0d1117',
-									border: '1px solid #30363d',
-									borderRadius: 8,
-									display: 'grid',
-									gap: 4,
-									fontSize: 12,
-									color: '#e6edf3',
-								}}
-							>
-								<span style={{ color: '#8b949e' }}>Current persona</span>
-								<span style={{ fontWeight: 700 }}>
-									{currentUsername || 'Not authenticated'}
+							{copied === 'token' ? (
+								<Check className='size-3.5' />
+							) : (
+								<Copy className='size-3.5' />
+							)}
+							{copied === 'token' ? 'Copied' : 'Copy Token'}
+						</motion.button>
+					</motion.div>
+				)}
+
+				{/* Timeline Beat Conductor */}
+				<PremiumSurface
+					tone='streak'
+					showOrbs={true}
+					eyebrow='Investor Pitch Beat Conductor'
+					chipText='Timeline'
+				>
+					<div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 mb-6 pb-4 border-b border-border-subtle/50'>
+						<p className='text-xs text-text-secondary leading-relaxed'>
+							Six interactive live beats mapping our pitch flows. Launch
+							credentials, trigger verification screens, and demonstrate visual
+							metrics.
+						</p>
+						<div className='flex items-center gap-3 shrink-0'>
+							<div className='bg-bg-elevated/80 border border-border-subtle rounded-xl p-2 flex items-center gap-2 font-mono text-xs'>
+								<span className='text-text-muted'>User:</span>
+								<span className='text-brand font-bold'>
+									{currentUsername || 'Unauthenticated'}
 								</span>
 							</div>
-							<button
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
 								onClick={() => void loadReadiness(true)}
 								disabled={isRefreshingReadiness}
-								style={{
-									background: isRefreshingReadiness ? '#21262d' : '#1f6feb',
-									border: 'none',
-									color: '#fff',
-									padding: '8px 10px',
-									borderRadius: 8,
-									cursor: isRefreshingReadiness ? 'not-allowed' : 'pointer',
-									fontSize: 12,
-									fontWeight: 700,
-								}}
+								className='inline-flex items-center gap-1.5 rounded-xl bg-brand text-white px-3.5 py-2 text-xs font-bold shadow-warm hover:bg-brand/90 transition-colors disabled:opacity-50 cursor-pointer'
 							>
-								{isRefreshingReadiness
-									? 'Refreshing readiness...'
-									: 'Reload readiness'}
-							</button>
+								<RefreshCw
+									className={cn(
+										'size-3.5',
+										isRefreshingReadiness && 'animate-spin',
+									)}
+								/>
+								Reload readiness
+							</motion.button>
 						</div>
 					</div>
-					<div
-						style={{
-							background: '#0d1117',
-							border: '1px solid #30363d',
-							borderRadius: 10,
-							padding: 12,
-							display: 'grid',
-							gap: 10,
-							marginBottom: 12,
-						}}
-					>
-						<div
-							style={{
-								display: 'flex',
-								justifyContent: 'space-between',
-								alignItems: 'center',
-								gap: 12,
-								flexWrap: 'wrap',
-							}}
-						>
-							<div style={{ display: 'grid', gap: 4 }}>
-								<span
-									style={{
-										fontSize: 11,
-										color: '#8b949e',
-										textTransform: 'uppercase',
-										letterSpacing: 0.8,
-									}}
-								>
-									Scene readiness
+
+					{/* Scene Readiness Checks Summary */}
+					<div className='bg-bg-card/60 border border-border-subtle/80 rounded-2xl p-4 mb-6'>
+						<div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4'>
+							<div className='space-y-0.5'>
+								<span className='text-[10px] font-black tracking-wider text-text-muted uppercase'>
+									Scene Probes & System Readiness
 								</span>
-								<span style={{ fontSize: 13, color: '#e6edf3' }}>
+								<span className='text-xs text-text-secondary block'>
 									{isLoadingReadiness
-										? 'Loading the latest investor-demo report...'
+										? 'Loading system probes report...'
 										: readinessReport
-											? `Generated ${formatReadinessTimestamp(readinessReport.generatedAt)}`
-											: 'Run demo-prep.bat to generate demo-readiness.json'}
+											? `Generated: ${formatReadinessTimestamp(readinessReport.generatedAt)}`
+											: 'Execute demo-prep.bat to generate real-time metrics'}
 								</span>
 							</div>
 							{readinessReport && (
-								<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+								<div className='flex gap-2'>
 									{[
 										{
 											label: 'Ready',
 											value: readinessReport.summary.ready,
-											background: '#23863622',
-											border: '#23863666',
-											color: '#3fb950',
+											color: 'text-success bg-success/8 border-success/20',
 										},
 										{
 											label: 'Warnings',
 											value: readinessReport.summary.warning,
-											background: '#d299221f',
-											border: '#d2992266',
-											color: '#d29922',
+											color: 'text-warning bg-warning/8 border-warning/20',
 										},
 										{
 											label: 'Blocked',
 											value: readinessReport.summary.blocked,
-											background: '#f851491f',
-											border: '#f8514966',
-											color: '#f85149',
+											color: 'text-error bg-error/8 border-error/20',
 										},
 									].map(item => (
 										<span
 											key={item.label}
-											style={{
-												padding: '4px 8px',
-												borderRadius: 999,
-												background: item.background,
-												border: `1px solid ${item.border}`,
-												color: item.color,
-												fontSize: 11,
-												fontWeight: 700,
-											}}
+											className={cn(
+												'text-[10px] font-black px-2.5 py-1 rounded-full border',
+												item.color,
+											)}
 										>
 											{item.label}: {item.value}
 										</span>
@@ -1269,29 +965,17 @@ export default function DevDashboard() {
 							)}
 						</div>
 						{!isLoadingReadiness && !readinessReport && (
-							<div
-								style={{
-									padding: '10px 12px',
-									background: '#1c1510',
-									border: '1px solid #5a3a18',
-									borderRadius: 8,
-									fontSize: 12,
-									color: '#d29922',
-									lineHeight: 1.5,
-								}}
-							>
-								No readiness report is present. Run demo-prep.bat before the
-								investor session so this board can fail closed.
+							<div className='bg-warning/5 border border-warning/15 rounded-xl p-3 text-xs text-warning flex items-start gap-2 leading-relaxed'>
+								<AlertCircle className='size-4 shrink-0 mt-0.5 animate-pulse' />
+								No active readiness report found. Execute demo-prep.bat prior to
+								the live investor slot to ensure structural failures are caught
+								early.
 							</div>
 						)}
 					</div>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-							gap: 12,
-						}}
-					>
+
+					{/* Timeline Timeline Beads */}
+					<div className='grid grid-cols-1 xl:grid-cols-2 gap-6'>
 						{DEMO_PITCH_BEATS.map(beat => {
 							const persona = getDemoAccount(beat.personaUsername)
 							const readinessStatus = getBeatReadinessStatus(
@@ -1307,796 +991,451 @@ export default function DevDashboard() {
 							return (
 								<div
 									key={beat.id}
-									style={{
-										background: '#0d1117',
-										border: `1px solid ${readinessTone.border}`,
-										borderRadius: 10,
-										padding: 14,
-										display: 'grid',
-										gap: 12,
-									}}
+									className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/45 p-5 flex flex-col justify-between gap-4 hover:border-border-medium transition-colors'
 								>
-									<div style={{ display: 'grid', gap: 8 }}>
-										<div
-											style={{
-												display: 'flex',
-												gap: 8,
-												alignItems: 'center',
-												flexWrap: 'wrap',
-											}}
-										>
-											<span
-												style={{
-													background: '#1f6feb22',
-													border: '1px solid #1f6feb66',
-													color: '#79c0ff',
-													padding: '2px 8px',
-													borderRadius: 999,
-													fontSize: 11,
-													fontWeight: 700,
-												}}
-											>
+									{/* Top Header */}
+									<div className='space-y-2'>
+										<div className='flex flex-wrap items-center gap-2 text-[10px] font-black uppercase'>
+											<span className='bg-brand/10 border border-brand/20 text-brand px-2.5 py-0.5 rounded-full tracking-wider'>
 												{beat.phase}
 											</span>
-											<span style={{ fontSize: 11, color: '#8b949e' }}>
-												{beat.minutes}
+											<span className='text-text-muted tracking-wider flex items-center gap-1'>
+												<Clock className='size-3' /> {beat.minutes}
 											</span>
 											{persona && (
 												<span
-													style={{
-														background:
-															currentUsername === persona.username
-																? '#23863622'
-																: '#d299221f',
-														border:
-															currentUsername === persona.username
-																? '1px solid #23863666'
-																: '1px solid #d2992266',
-														color:
-															currentUsername === persona.username
-																? '#3fb950'
-																: '#d29922',
-														padding: '2px 8px',
-														borderRadius: 999,
-														fontSize: 11,
-														fontWeight: 600,
-													}}
+													className={cn(
+														'px-2.5 py-0.5 rounded-full border tracking-wider',
+														currentUsername === persona.username
+															? 'bg-success/8 border-success/20 text-success'
+															: 'bg-warning/8 border-warning/20 text-warning',
+													)}
 												>
 													{persona.label}
 												</span>
 											)}
 											<span
-												style={{
-													background: readinessTone.background,
-													border: `1px solid ${readinessTone.border}`,
-													color: readinessTone.color,
-													padding: '2px 8px',
-													borderRadius: 999,
-													fontSize: 11,
-													fontWeight: 700,
-												}}
+												className={cn(
+													'px-2.5 py-0.5 rounded-full border tracking-wider',
+													readinessStatus === 'ready'
+														? 'bg-success/8 border-success/20 text-success'
+														: readinessStatus === 'warning'
+															? 'bg-warning/8 border-warning/20 text-warning'
+															: 'bg-error/8 border-error/20 text-error',
+												)}
 											>
 												{readinessTone.label}
 											</span>
 										</div>
-										<h3 style={{ margin: 0, fontSize: 18, color: '#e6edf3' }}>
+
+										<h3 className='text-lg font-black text-text-primary leading-tight'>
 											{beat.title}
 										</h3>
 									</div>
 
-									<div>
-										<div
-											style={{
-												fontSize: 11,
-												color: '#8b949e',
-												marginBottom: 4,
-												textTransform: 'uppercase',
-												letterSpacing: 0.8,
-											}}
-										>
-											Live proof
+									{/* Main Narrative Elements */}
+									<div className='space-y-3'>
+										<div className='bg-bg-elevated/40 border border-border-subtle/40 rounded-xl p-3'>
+											<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1'>
+												Narrative Proof
+											</span>
+											<p className='text-xs text-text-secondary leading-relaxed'>
+												{beat.proof}
+											</p>
 										</div>
-										<p
-											style={{
-												margin: 0,
-												fontSize: 13,
-												color: '#e6edf3',
-												lineHeight: 1.55,
-											}}
-										>
-											{beat.proof}
-										</p>
-									</div>
 
-									<div
-										style={{
-											background: '#11161d',
-											border: '1px solid #21262d',
-											borderRadius: 8,
-											padding: 10,
-											display: 'grid',
-											gap: 8,
-										}}
-									>
-										<div>
-											<div
-												style={{
-													fontSize: 11,
-													color: '#8b949e',
-													marginBottom: 4,
-													textTransform: 'uppercase',
-													letterSpacing: 0.8,
-												}}
-											>
-												Presenter line
+										<div className='grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px]'>
+											<div className='bg-bg-elevated/30 border border-border-subtle/30 rounded-xl p-3 flex flex-col justify-between'>
+												<div>
+													<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1'>
+														Presenter Narrative
+													</span>
+													<p className='text-xs text-text-secondary leading-relaxed font-sans'>
+														{beat.presenterLine}
+													</p>
+												</div>
+												<button
+													onClick={() =>
+														copy(beat.presenterLine, `pres-${beat.id}`)
+													}
+													className='text-[10px] text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
+												>
+													{copied === `pres-${beat.id}`
+														? '✓ Copied'
+														: 'Copy line →'}
+												</button>
 											</div>
-											<p
-												style={{
-													margin: 0,
-													fontSize: 13,
-													color: '#e6edf3',
-													lineHeight: 1.55,
-												}}
-											>
-												{beat.presenterLine}
-											</p>
-										</div>
-										<div>
-											<div
-												style={{
-													fontSize: 11,
-													color: '#8b949e',
-													marginBottom: 4,
-													textTransform: 'uppercase',
-													letterSpacing: 0.8,
-												}}
-											>
-												Investor translation
+
+											<div className='bg-brand/4 border border-brand/10 rounded-xl p-3 flex flex-col justify-between'>
+												<div>
+													<span className='text-[9px] font-bold text-brand uppercase tracking-wider block mb-1'>
+														Investor Focus
+													</span>
+													<p className='text-xs text-text-primary leading-relaxed font-sans font-medium'>
+														{beat.investorTranslation}
+													</p>
+												</div>
+												<button
+													onClick={() =>
+														copy(beat.investorTranslation, `inv-${beat.id}`)
+													}
+													className='text-[10px] text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
+												>
+													{copied === `inv-${beat.id}`
+														? '✓ Copied'
+														: 'Copy Focus →'}
+												</button>
 											</div>
-											<p
-												style={{
-													margin: 0,
-													fontSize: 13,
-													color: '#79c0ff',
-													lineHeight: 1.55,
-												}}
-											>
-												{beat.investorTranslation}
-											</p>
 										</div>
 									</div>
 
-									<div
-										style={{
-											background: '#11161d',
-											border: '1px solid #21262d',
-											borderRadius: 8,
-											padding: 10,
-											display: 'grid',
-											gap: 8,
-										}}
-									>
-										<div
-											style={{
-												fontSize: 11,
-												color: '#8b949e',
-												textTransform: 'uppercase',
-												letterSpacing: 0.8,
-											}}
-										>
-											Scene readiness checks
-										</div>
+									{/* Probe Details */}
+									<div className='border-t border-border-subtle/50 pt-4 space-y-2'>
+										<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block'>
+											Pitch Integrity Checkpoints
+										</span>
 										{readinessChecks.length > 0 ? (
-											readinessChecks.map(check => {
-												const checkTone = getReadinessTone(check.status)
-
-												return (
-													<div
-														key={check.id}
-														style={{
-															padding: '8px 10px',
-															borderRadius: 8,
-															background: '#0d1117',
-															border: `1px solid ${checkTone.border}`,
-															display: 'grid',
-															gap: 6,
-														}}
-													>
+											<div className='space-y-1.5'>
+												{readinessChecks.map(check => {
+													const isOk = check.status === 'ready'
+													const isWarn = check.status === 'warning'
+													return (
 														<div
-															style={{
-																display: 'flex',
-																justifyContent: 'space-between',
-																gap: 8,
-																alignItems: 'center',
-																flexWrap: 'wrap',
-															}}
+															key={check.id}
+															className={cn(
+																'border rounded-xl p-2.5 flex items-start gap-2.5 text-xs justify-between',
+																isOk
+																	? 'bg-success/4 border-success/15'
+																	: isWarn
+																		? 'bg-warning/4 border-warning/15'
+																		: 'bg-error/4 border-error/15',
+															)}
 														>
+															<div className='space-y-0.5'>
+																<span className='font-bold text-text-primary block'>
+																	{check.label}
+																</span>
+																<span className='text-text-muted text-[10px] block leading-relaxed'>
+																	{check.detail}
+																</span>
+																{check.target && (
+																	<span className='text-[9px] text-brand block mt-0.5 font-mono'>
+																		{check.target}
+																	</span>
+																)}
+															</div>
 															<span
-																style={{
-																	fontSize: 12,
-																	fontWeight: 700,
-																	color: '#e6edf3',
-																}}
+																className={cn(
+																	'text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 border uppercase tracking-wider',
+																	isOk
+																		? 'bg-success/10 border-success/20 text-success'
+																		: isWarn
+																			? 'bg-warning/10 border-warning/20 text-warning'
+																			: 'bg-error/10 border-error/20 text-error',
+																)}
 															>
-																{check.label}
-															</span>
-															<span
-																style={{
-																	padding: '2px 8px',
-																	borderRadius: 999,
-																	background: checkTone.background,
-																	border: `1px solid ${checkTone.border}`,
-																	color: checkTone.color,
-																	fontSize: 10,
-																	fontWeight: 700,
-																	textTransform: 'uppercase',
-																	letterSpacing: 0.6,
-																}}
-															>
-																{checkTone.label}
+																{check.status}
 															</span>
 														</div>
-														<span
-															style={{
-																fontSize: 12,
-																color: '#8b949e',
-																lineHeight: 1.5,
-															}}
-														>
-															{check.detail}
-														</span>
-														{check.target && (
-															<span style={{ fontSize: 11, color: '#79c0ff' }}>
-																{check.target}
-															</span>
-														)}
-													</div>
-												)
-											})
-										) : (
-											<div
-												style={{
-													fontSize: 12,
-													color: '#8b949e',
-													lineHeight: 1.5,
-												}}
-											>
-												No probe data mapped to this beat yet.
+													)
+												})}
 											</div>
+										) : (
+											<span className='text-xs text-text-muted leading-relaxed italic block'>
+												No active probes mapped.
+											</span>
 										)}
 									</div>
 
-									<div
-										style={{
-											padding: '10px 12px',
-											background:
-												readinessStatus === 'blocked' ? '#2d1117' : '#1c1510',
-											border:
-												readinessStatus === 'blocked'
-													? '1px solid #f8514966'
-													: '1px solid #5a3a18',
-											borderRadius: 8,
-											fontSize: 12,
-											color:
-												readinessStatus === 'blocked' ? '#f85149' : '#d29922',
-											lineHeight: 1.5,
-										}}
-									>
-										<strong>Fallback:</strong> {beat.fallbackNote}
-									</div>
-
-									<div style={{ display: 'grid', gap: 8 }}>
-										<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-											{beat.actions.map(actionId => {
-												const shortcut = getDemoPitchShortcut(actionId)
-												if (!shortcut) {
-													return null
-												}
-
-												const isBusy =
-													activeShortcut === shortcut.label || isLoggingInToApp
-
-												return (
-													<button
-														key={shortcut.id}
-														onClick={() =>
-															openPitchBeatAction(
-																shortcut,
-																beat.personaUsername,
-															)
-														}
-														disabled={isBusy}
-														style={{
-															background: isBusy ? '#21262d' : '#1f6feb',
-															border: 'none',
-															color: '#fff',
-															padding: '8px 12px',
-															borderRadius: 8,
-															cursor: isBusy ? 'not-allowed' : 'pointer',
-															fontSize: 12,
-															fontWeight: 600,
-															display: 'flex',
-															alignItems: 'center',
-															gap: 6,
-														}}
-													>
-														<span>{shortcut.icon}</span>
-														<span>{shortcut.label}</span>
-													</button>
-												)
-											})}
-										</div>
-										<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-											<button
-												onClick={() =>
-													copy(beat.presenterLine, `presenter-${beat.id}`)
-												}
-												style={{
-													background: '#21262d',
-													border: '1px solid #30363d',
-													color:
-														copied === `presenter-${beat.id}`
-															? '#3fb950'
-															: '#e6edf3',
-													padding: '7px 10px',
-													borderRadius: 8,
-													cursor: 'pointer',
-													fontSize: 12,
-													fontWeight: 600,
-												}}
-											>
-												{copied === `presenter-${beat.id}`
-													? 'Presenter line copied'
-													: 'Copy presenter line'}
-											</button>
-											<button
-												onClick={() =>
-													copy(beat.investorTranslation, `investor-${beat.id}`)
-												}
-												style={{
-													background: '#0d1117',
-													border: '1px solid #1f6feb66',
-													color:
-														copied === `investor-${beat.id}`
-															? '#3fb950'
-															: '#79c0ff',
-													padding: '7px 10px',
-													borderRadius: 8,
-													cursor: 'pointer',
-													fontSize: 12,
-													fontWeight: 600,
-												}}
-											>
-												{copied === `investor-${beat.id}`
-													? 'Investor line copied'
-													: 'Copy investor translation'}
-											</button>
-										</div>
+									{/* Timeline Action Trigger Bar */}
+									<div className='border-t border-border-subtle/50 pt-4 flex flex-wrap items-center gap-2'>
+										{beat.actions.map(actionId => {
+											const shortcut = getDemoPitchShortcut(actionId)
+											if (!shortcut) return null
+											const isBusy =
+												activeShortcut === shortcut.label || isLoggingInToApp
+											return (
+												<motion.button
+													key={shortcut.id}
+													whileHover={{ scale: 1.05 }}
+													whileTap={{ scale: 0.95 }}
+													onClick={() =>
+														openPitchBeatAction(shortcut, beat.personaUsername)
+													}
+													disabled={isBusy}
+													className='inline-flex items-center gap-1.5 rounded-xl bg-brand text-white px-3.5 py-2 text-xs font-bold shadow-warm hover:bg-brand/90 transition-colors disabled:opacity-50 cursor-pointer'
+												>
+													<Play className='size-3 fill-current' />
+													<span>{shortcut.label}</span>
+												</motion.button>
+											)
+										})}
 									</div>
 								</div>
 							)
 						})}
 					</div>
-				</div>
+				</PremiumSurface>
 
-				{/* Row 2: API Health Tests */}
-				<div
-					style={{
-						background: '#161b22',
-						border: '1px solid #30363d',
-						borderRadius: 8,
-						padding: 16,
-					}}
+				{/* Row 2: API Playgrounds & Endpoint Tests */}
+				<PremiumSurface
+					tone='success'
+					showOrbs={true}
+					eyebrow='API Endpoint Tests'
+					chipText='Playground'
 				>
-					<div
-						style={{
-							display: 'flex',
-							justifyContent: 'space-between',
-							alignItems: 'center',
-							marginBottom: 12,
-						}}
-					>
-						<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-							<h2
-								style={{
-									fontSize: 14,
-									fontWeight: 600,
-									color: '#8b949e',
-									textTransform: 'uppercase',
-									letterSpacing: 1,
-									margin: 0,
-								}}
-							>
-								API Endpoint Tests
-							</h2>
+					<div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 mb-6 pb-4 border-b border-border-subtle/50'>
+						<div>
+							<p className='text-xs text-text-secondary leading-relaxed'>
+								Run clinical testing suites against our Spring Boot backend.
+								Verify active models, cache nodes, and social hooks.
+							</p>
+						</div>
+						<div className='flex items-center gap-3 shrink-0'>
 							{passCount + failCount > 0 && (
 								<span
-									style={{
-										background: failCount === 0 ? '#238636' : '#f85149',
-										color: '#fff',
-										padding: '2px 8px',
-										borderRadius: 12,
-										fontSize: 11,
-										fontWeight: 600,
-									}}
+									className={cn(
+										'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+										failCount === 0
+											? 'bg-success/8 border-success/20 text-success'
+											: 'bg-error/8 border-error/20 text-error',
+									)}
 								>
-									{passCount}/{API_TESTS.length} passed
+									<span className='size-2 rounded-full bg-current animate-pulse' />
+									{passCount}/{API_TESTS.length} Endpoints Healthy
 								</span>
 							)}
+							<motion.button
+								whileHover={{ scale: 1.05 }}
+								whileTap={{ scale: 0.95 }}
+								onClick={runApiTests}
+								disabled={isRunningApiTests}
+								className='inline-flex items-center gap-1.5 rounded-xl bg-success text-white px-4 py-2 text-xs font-bold hover:bg-success/90 transition-colors disabled:opacity-50 cursor-pointer'
+							>
+								{isRunningApiTests ? (
+									<RefreshCw className='size-3.5 animate-spin' />
+								) : (
+									<Play className='size-3.5 fill-current' />
+								)}
+								Run All Tests
+							</motion.button>
 						</div>
-						<button
-							onClick={runApiTests}
-							disabled={isRunningApiTests}
-							style={{
-								background: isRunningApiTests ? '#21262d' : '#238636',
-								border: 'none',
-								color: '#fff',
-								padding: '6px 16px',
-								borderRadius: 6,
-								cursor: isRunningApiTests ? 'not-allowed' : 'pointer',
-								fontSize: 12,
-								fontWeight: 600,
-							}}
-						>
-							{isRunningApiTests ? 'Running...' : '▶ Run All Tests'}
-						</button>
 					</div>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-							gap: 6,
-						}}
-					>
-						{apiResults.map(result => (
-							<div
-								key={result.name}
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'space-between',
-									padding: '6px 10px',
-									background: '#0d1117',
-									borderRadius: 6,
-									border: `1px solid ${result.status === 'pass' ? '#238636' : result.status === 'fail' ? '#f85149' : '#30363d'}`,
-									fontSize: 12,
-								}}
-							>
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 6,
-										flex: 1,
-										minWidth: 0,
-									}}
-								>
-									<span>
-										{result.status === 'pass'
-											? '✅'
-											: result.status === 'fail'
-												? '❌'
-												: '⏳'}
-									</span>
-									<span style={{ fontWeight: 500 }}>{result.name}</span>
-								</div>
-								<div
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 6,
-										color: '#8b949e',
-										flexShrink: 0,
-									}}
-								>
-									{result.code && <span>{result.code}</span>}
-									{result.latency && (
-										<span
-											style={{
-												color:
-													result.latency < 200
-														? '#3fb950'
-														: result.latency < 1000
-															? '#d29922'
-															: '#f85149',
-											}}
-										>
-											{result.latency}ms
-										</span>
+
+					{/* Test result cards */}
+					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
+						{apiResults.map(result => {
+							const isPass = result.status === 'pass'
+							const isFail = result.status === 'fail'
+							return (
+								<MagicCard
+									key={result.name}
+									mode='gradient'
+									className={cn(
+										'relative overflow-hidden rounded-xl border p-3 flex items-center justify-between gap-3 text-xs',
+										isPass
+											? 'bg-success/4 border-success/15'
+											: isFail
+												? 'bg-error/4 border-error/15'
+												: 'bg-bg-card/40 border-border-subtle',
 									)}
-								</div>
-							</div>
-						))}
+								>
+									<div className='flex items-center gap-2 min-w-0'>
+										<span className='text-base shrink-0'>
+											{isPass ? '🟢' : isFail ? '🔴' : '🟡'}
+										</span>
+										<div className='min-w-0'>
+											<span className='font-bold text-text-primary block truncate'>
+												{result.name}
+											</span>
+											<span className='text-[9px] text-text-muted font-mono block truncate mt-0.5'>
+												{result.path}
+											</span>
+										</div>
+									</div>
+									<div className='flex items-center gap-2 shrink-0 font-mono text-[10px]'>
+										{result.code && (
+											<span className='bg-bg-elevated px-1.5 py-0.5 rounded text-text-secondary'>
+												{result.code}
+											</span>
+										)}
+										{result.latency && (
+											<span
+												className={cn(
+													'font-semibold',
+													result.latency < 200
+														? 'text-success'
+														: result.latency < 1000
+															? 'text-warning'
+															: 'text-error',
+												)}
+											>
+												{result.latency}ms
+											</span>
+										)}
+									</div>
+								</MagicCard>
+							)
+						})}
 					</div>
+
+					{/* failures box */}
 					{failCount > 0 && (
-						<div
-							style={{
-								marginTop: 12,
-								padding: 12,
-								background: '#1c0d12',
-								border: '1px solid #f85149',
-								borderRadius: 6,
-							}}
+						<motion.div
+							initial={{ opacity: 0, height: 0 }}
+							animate={{ opacity: 1, height: 'auto' }}
+							className='mt-6 border border-error/20 bg-error/5 rounded-2xl p-4'
 						>
-							<h3
-								style={{
-									fontSize: 12,
-									fontWeight: 600,
-									color: '#f85149',
-									marginBottom: 8,
-								}}
-							>
-								Failures
-							</h3>
-							{apiResults
-								.filter(r => r.status === 'fail')
-								.map(r => (
-									<div key={r.name} style={{ fontSize: 11, marginBottom: 4 }}>
-										<span style={{ color: '#f85149', fontWeight: 600 }}>
-											{r.name}
-										</span>
-										<span style={{ color: '#8b949e' }}>
-											{' '}
-											— {r.detail || `HTTP ${r.code}`}
-										</span>
-										<code
-											style={{
-												display: 'block',
-												color: '#8b949e',
-												fontSize: 10,
-												marginTop: 2,
-											}}
+							<span className='text-xs font-bold text-error flex items-center gap-1.5 mb-3'>
+								<AlertCircle className='size-4 animate-bounce' />
+								Active Failure Fingerprints ({failCount})
+							</span>
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-3 text-xs'>
+								{apiResults
+									.filter(r => r.status === 'fail')
+									.map(r => (
+										<div
+											key={r.name}
+											className='bg-bg-card/50 border border-error/15 rounded-xl p-3 space-y-1.5'
 										>
-											{r.path}
-										</code>
+											<div className='flex items-center justify-between gap-2'>
+												<span className='font-black text-error'>{r.name}</span>
+												<span className='text-[10px] text-text-muted font-mono bg-bg-elevated px-1.5 py-0.5 rounded'>
+													{r.code || 'TIMEOUT'}
+												</span>
+											</div>
+											<p className='text-[11px] text-text-secondary italic'>
+												{r.detail || 'Connection timed out'}
+											</p>
+											<code className='text-[10px] text-text-muted block font-mono break-all'>
+												{r.path}
+											</code>
+										</div>
+									))}
+							</div>
+						</motion.div>
+					)}
+				</PremiumSurface>
+
+				{/* Row 3: OTP Dev Mode Banner */}
+				<PremiumSurface
+					tone='blue'
+					showOrbs={true}
+					eyebrow='Bypassed Dev Email & OTP Channel'
+				>
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4'>
+						<div className='space-y-4'>
+							<p className='text-xs text-text-secondary leading-relaxed'>
+								Brevo email delivery is bypassed in standard local
+								configurations. When triggered, the verification OTP code is{' '}
+								<strong className='text-brand'>
+									printed directly to the monolith standard log stream
+								</strong>
+								.
+							</p>
+							<div className='bg-bg-card/60 border border-border-subtle rounded-xl p-3.5 space-y-1.5'>
+								<span className='text-[9px] font-black text-text-muted uppercase tracking-wider block'>
+									Monolith Window Output Sample
+								</span>
+								<code className='text-xs text-success block font-mono bg-bg-elevated p-2 rounded border border-border-subtle/50'>
+									[DEV EMAIL BYPASS] *** OTP CODE: 123456 ***
+								</code>
+							</div>
+							<p className='text-[10.5px] text-text-muted leading-relaxed'>
+								To configure full SMTP delivery, set up a Brevo key under{' '}
+								<code className='bg-bg-elevated px-1 py-0.5 rounded font-mono'>
+									BREVO_API_KEY
+								</code>{' '}
+								inside{' '}
+								<code className='bg-bg-elevated px-1 py-0.5 rounded font-mono'>
+									chefkix-monolith/.env
+								</code>
+								.
+							</p>
+						</div>
+
+						{/* Registration Guide */}
+						<div className='bg-bg-card/40 border border-border-subtle rounded-2xl p-4 space-y-3'>
+							<span className='text-xs font-black text-text-primary uppercase tracking-wider block'>
+								Registration Flow (Dev Bypass)
+							</span>
+							<div className='space-y-2'>
+								{[
+									{
+										step: '1',
+										title: 'Register Account',
+										desc: 'Submit email registration form at /register',
+									},
+									{
+										step: '2',
+										title: 'Fetch OTP Log Line',
+										desc: 'Extract the numeric verification code from the monolith output stream',
+									},
+									{
+										step: '3',
+										title: 'Verify Registration',
+										desc: 'Enter the code at /verify-otp to finalize the Keycloak token',
+									},
+								].map(item => (
+									<div
+										key={item.step}
+										className='flex items-start gap-3 p-2.5 rounded-xl bg-bg-elevated/40 border border-border-subtle/40'
+									>
+										<div className='size-6 rounded-full bg-brand text-white text-xs font-black grid place-items-center shrink-0'>
+											{item.step}
+										</div>
+										<div className='space-y-0.5'>
+											<span className='text-xs font-bold text-text-primary block leading-none'>
+												{item.title}
+											</span>
+											<span className='text-[10px] text-text-muted block leading-relaxed'>
+												{item.desc}
+											</span>
+										</div>
 									</div>
 								))}
-						</div>
-					)}
-				</div>
-
-				{/* OTP Dev Mode Banner */}
-				<div
-					style={{
-						background: '#161b22',
-						border: '1px solid #d29922',
-						borderRadius: 8,
-						padding: 16,
-						display: 'grid',
-						gridTemplateColumns: '1fr 1fr',
-						gap: 24,
-					}}
-				>
-					<div>
-						<div
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: 8,
-								marginBottom: 10,
-							}}
-						>
-							<h2
-								style={{
-									fontSize: 14,
-									fontWeight: 600,
-									color: '#d29922',
-									textTransform: 'uppercase',
-									letterSpacing: 1,
-									margin: 0,
-								}}
-							>
-								Dev Email / OTP
-							</h2>
-						</div>
-						<p
-							style={{
-								margin: '0 0 8px',
-								fontSize: 12,
-								color: '#e6edf3',
-								lineHeight: 1.6,
-							}}
-						>
-							Brevo is not configured for local dev. When you register or resend
-							OTP, the code is{' '}
-							<strong style={{ color: '#d29922' }}>
-								printed to the monolith window
-							</strong>{' '}
-							instead of your email inbox.
-						</p>
-						<div
-							style={{
-								background: '#0d1117',
-								border: '1px solid #30363d',
-								borderRadius: 6,
-								padding: 10,
-								marginBottom: 8,
-							}}
-						>
-							<div style={{ fontSize: 11, color: '#8b949e', marginBottom: 4 }}>
-								Look for this line in the monolith window:
 							</div>
-							<code
-								style={{ fontSize: 12, color: '#3fb950', display: 'block' }}
-							>
-								[DEV EMAIL BYPASS] *** OTP CODE: 123456 ***
-							</code>
 						</div>
-						<p style={{ margin: 0, fontSize: 11, color: '#8b949e' }}>
-							To enable real emails: get a key at{' '}
-							<a
-								href='https://app.brevo.com/settings/keys/api'
-								target='_blank'
-								rel='noopener noreferrer'
-								style={{ color: '#58a6ff' }}
-							>
-								app.brevo.com
-							</a>{' '}
-							and set{' '}
-							<code
-								style={{
-									background: '#21262d',
-									padding: '1px 4px',
-									borderRadius: 3,
-								}}
-							>
-								BREVO_API_KEY
-							</code>{' '}
-							in{' '}
-							<code
-								style={{
-									background: '#21262d',
-									padding: '1px 4px',
-									borderRadius: 3,
-								}}
-							>
-								chefkix-monolith/.env
-							</code>
-						</p>
 					</div>
-					<div>
-						<div
-							style={{
-								fontSize: 12,
-								fontWeight: 600,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-								marginBottom: 10,
-							}}
-						>
-							Registration Flow (Dev)
-						</div>
-						{[
-							{ step: '1', text: 'Register at /register with any email' },
-							{
-								step: '2',
-								text: 'Watch the monolith window for [DEV EMAIL BYPASS]',
-							},
-							{ step: '3', text: 'Copy the OTP CODE from the log line' },
-							{
-								step: '4',
-								text: 'Enter OTP at /verify-otp to complete signup',
-							},
-						].map(item => (
-							<div
-								key={item.step}
-								style={{
-									display: 'flex',
-									alignItems: 'flex-start',
-									gap: 10,
-									padding: '6px 0',
-									borderBottom: '1px solid #21262d',
-									fontSize: 12,
-								}}
-							>
-								<span
-									style={{
-										background: '#d29922',
-										color: '#000',
-										width: 18,
-										height: 18,
-										borderRadius: '50%',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										fontSize: 10,
-										fontWeight: 700,
-										flexShrink: 0,
-									}}
-								>
-									{item.step}
-								</span>
-								<span style={{ color: '#e6edf3' }}>{item.text}</span>
-							</div>
-						))}
-					</div>
-				</div>
+				</PremiumSurface>
 
-				{/* Row 3: Quick Links + cURL Generator */}
-				<div
-					style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}
-				>
+				{/* Bottom Row: Commands & Quick Links */}
+				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 					{/* Quick Links */}
-					<div
-						style={{
-							background: '#161b22',
-							border: '1px solid #30363d',
-							borderRadius: 8,
-							padding: 16,
-						}}
-					>
-						<h2
-							style={{
-								fontSize: 14,
-								fontWeight: 600,
-								marginBottom: 12,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-							}}
-						>
-							Quick Links
-						</h2>
-						<div style={{ display: 'grid', gap: 6 }}>
+					<PremiumSurface tone='brand' showOrbs={true} eyebrow='Quick Links'>
+						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
 							{QUICK_LINKS.map(link => (
-								<a
+								<motion.a
+									whileHover={{ scale: 1.03 }}
+									whileTap={{ scale: 0.97 }}
 									key={link.label}
 									href={link.url}
 									target='_blank'
 									rel='noopener noreferrer'
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: 8,
-										padding: '8px 12px',
-										background: '#0d1117',
-										border: '1px solid #30363d',
-										borderRadius: 6,
-										color: '#58a6ff',
-										textDecoration: 'none',
-										fontSize: 13,
-										transition: 'border-color 0.2s',
-									}}
+									className='relative overflow-hidden rounded-xl border border-border-subtle bg-bg-card/40 p-3.5 flex items-center gap-3 hover:border-brand/40 transition-colors'
 								>
-									<span>{link.icon}</span>
-									<span>{link.label}</span>
-									<span
-										style={{
-											color: '#8b949e',
-											fontSize: 11,
-											marginLeft: 'auto',
-										}}
-									>
-										{link.url.replace('http://', '')}
-									</span>
-								</a>
+									<span className='text-2xl shrink-0'>{link.icon}</span>
+									<div className='min-w-0 flex-1'>
+										<span className='text-xs font-bold text-text-primary block truncate'>
+											{link.label}
+										</span>
+										<span className='text-[9px] text-text-muted font-mono block truncate mt-0.5'>
+											{link.url.replace('http://', '')}
+										</span>
+									</div>
+									<ExternalLink className='size-3.5 text-text-muted shrink-0' />
+								</motion.a>
 							))}
 						</div>
-					</div>
+					</PremiumSurface>
 
-					{/* Port Reference + cURL */}
-					<div
-						style={{
-							background: '#161b22',
-							border: '1px solid #30363d',
-							borderRadius: 8,
-							padding: 16,
-						}}
+					{/* Infrastructure Control Panel */}
+					<PremiumSurface
+						tone='depth'
+						showOrbs={true}
+						eyebrow='Dev Commands Reference'
 					>
-						<h2
-							style={{
-								fontSize: 14,
-								fontWeight: 600,
-								marginBottom: 12,
-								color: '#8b949e',
-								textTransform: 'uppercase',
-								letterSpacing: 1,
-							}}
-						>
-							Dev Commands
-						</h2>
-						<div style={{ display: 'grid', gap: 6 }}>
+						<div className='grid grid-cols-1 gap-2 mt-4'>
 							{[
 								{
 									label: 'Investor demo prep',
@@ -2138,44 +1477,21 @@ export default function DevDashboard() {
 							].map(item => (
 								<div
 									key={item.label}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'space-between',
-										padding: '6px 10px',
-										background: '#0d1117',
-										border: '1px solid #30363d',
-										borderRadius: 6,
-										fontSize: 12,
-									}}
+									className='bg-bg-card/40 border border-border-subtle/80 rounded-xl p-3 flex items-center justify-between gap-3 text-xs'
 								>
-									<span style={{ color: '#8b949e' }}>{item.label}</span>
-									<div
-										style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-									>
-										<code
-											style={{
-												background: '#21262d',
-												padding: '2px 8px',
-												borderRadius: 4,
-												color: '#79c0ff',
-											}}
-										>
+									<span className='text-text-muted text-[11px] font-bold'>
+										{item.label}
+									</span>
+									<div className='flex items-center gap-2 shrink-0'>
+										<code className='bg-bg-elevated px-2 py-0.5 rounded font-mono text-[10px] text-brand'>
 											{item.cmd}
 										</code>
 										<button
 											onClick={() =>
 												copy(`cd ${item.dir} && ${item.cmd}`, item.cmd)
 											}
-											style={{
-												background: 'transparent',
-												border: '1px solid #30363d',
-												color: copied === item.cmd ? '#3fb950' : '#8b949e',
-												padding: '2px 6px',
-												borderRadius: 4,
-												cursor: 'pointer',
-												fontSize: 10,
-											}}
+											className='text-[10px] text-text-muted hover:text-text-primary shrink-0'
+											title='Copy Command Line'
 										>
 											{copied === item.cmd ? '✓' : '⎘'}
 										</button>
@@ -2183,78 +1499,42 @@ export default function DevDashboard() {
 								</div>
 							))}
 						</div>
-
-						{/* cURL with token */}
-						{token && (
-							<div style={{ marginTop: 12 }}>
-								<span style={{ fontSize: 11, color: '#8b949e' }}>
-									Quick cURL (with active token):
-								</span>
-								<div
-									style={{
-										background: '#0d1117',
-										border: '1px solid #30363d',
-										borderRadius: 6,
-										padding: 8,
-										marginTop: 4,
-										cursor: 'pointer',
-									}}
-									onClick={() =>
-										copy(
-											`curl -H "Authorization: Bearer ${token}" http://localhost:8080/api/v1/auth/me`,
-											'curl',
-										)
-									}
-								>
-									<code
-										style={{
-											fontSize: 10,
-											color: '#79c0ff',
-											wordBreak: 'break-all',
-										}}
-									>
-										curl -H &quot;Authorization: Bearer {token.substring(0, 30)}
-										...&quot; http://localhost:8080/api/v1/auth/me
-									</code>
-									{copied === 'curl' && (
-										<span
-											style={{ color: '#3fb950', fontSize: 10, marginLeft: 8 }}
-										>
-											✓ Copied
-										</span>
-									)}
-								</div>
-							</div>
-						)}
-					</div>
+					</PremiumSurface>
 				</div>
 
-				{/* Footer */}
-				<div
-					style={{
-						textAlign: 'center',
-						fontSize: 11,
-						color: '#484f58',
-						padding: '8px 0',
-					}}
-				>
-					ChefKix Dev Dashboard — Only visible in development mode — Not shipped
+				{/* Breathtaking cURL Command Playground */}
+				{token && (
+					<PremiumSurface
+						tone='xp'
+						showOrbs={false}
+						eyebrow='cURL Request Generator'
+					>
+						<div
+							onClick={() =>
+								copy(
+									`curl -H "Authorization: Bearer ${token}" http://localhost:8080/api/v1/auth/me`,
+									'curl',
+								)
+							}
+							className='mt-3 bg-bg-card/75 border border-border-subtle rounded-xl p-4 font-mono text-xs text-text-secondary cursor-pointer hover:border-brand/40 transition-colors flex items-start gap-3 justify-between'
+						>
+							<code className='text-brand break-all leading-relaxed'>
+								curl -H &quot;Authorization: Bearer {token.substring(0, 80)}
+								...&quot; http://localhost:8080/api/v1/auth/me
+							</code>
+							<span className='text-[10px] font-bold text-text-muted shrink-0 mt-0.5'>
+								{copied === 'curl' ? '✓ Copied' : 'Copy cURL'}
+							</span>
+						</div>
+					</PremiumSurface>
+				)}
+
+				{/* footer */}
+				<footer className='text-center text-[10px] font-mono text-text-muted/60 pt-8 pb-4'>
+					ChefKix Dev Dashboard · Visible in Development Mode Only · Not shipped
 					to production
-				</div>
-			</div>
-
-			<style>{`
-				@keyframes pulse {
-					0%, 100% { opacity: 1; }
-					50% { opacity: 0.3; }
-				}
-				button:hover {
-					opacity: 0.85;
-				}
-				a:hover {
-					border-color: #58a6ff !important;
-				}
-			`}</style>
+				</footer>
+			</main>
 		</div>
 	)
 }

@@ -49,7 +49,7 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
-import { unifiedSearch } from '@/services/search'
+import { getTrendingSearches, unifiedSearch } from '@/services/search'
 import { toggleFollow } from '@/services/social'
 import { toggleSaveRecipe } from '@/services/recipe'
 import {
@@ -66,10 +66,7 @@ import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { useAuth } from '@/hooks/useAuth'
-import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
+import { SearchCommandDeck } from '@/components/search/SearchCommandDeck'
 
 // ============================================
 // TYPES
@@ -137,16 +134,25 @@ const SEARCH_SUGGESTIONS = [
 	'Baking',
 ]
 
-const TRENDING_SEARCH_TERMS: Array<{
+const TRENDING_TERM_ICON_CLASSES = [
+	'bg-info/10 text-info',
+	'bg-error/10 text-error',
+	'bg-xp/10 text-xp',
+	'bg-warning/10 text-warning',
+]
+
+function mapTrendingTerms(terms: string[]): Array<{
 	term: string
 	icon: React.ComponentType<{ className?: string }>
 	iconClass: string
-}> = [
-	{ term: 'Quick meals', icon: Clock, iconClass: 'bg-info/10 text-info' },
-	{ term: 'High protein', icon: Flame, iconClass: 'bg-error/10 text-error' },
-	{ term: 'Meal prep', icon: Sparkles, iconClass: 'bg-xp/10 text-xp' },
-	{ term: 'Top rated', icon: Star, iconClass: 'bg-warning/10 text-warning' },
-]
+}> {
+	return terms.map((term, index) => ({
+		term,
+		icon: TrendingUp,
+		iconClass:
+			TRENDING_TERM_ICON_CLASSES[index % TRENDING_TERM_ICON_CLASSES.length],
+	}))
+}
 
 // Extended vocabulary for "Did you mean?" fuzzy matching
 const SEARCH_VOCABULARY = [
@@ -554,6 +560,7 @@ function SearchContent() {
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
 	const [recentSearches, setRecentSearches] = useState<string[]>([])
+	const [trendingSearches, setTrendingSearches] = useState<string[]>([])
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [results, setResults] = useState<{
 		recipes: RecipeResult[]
@@ -592,6 +599,32 @@ function SearchContent() {
 	// Load recent searches from localStorage on mount
 	useEffect(() => {
 		setRecentSearches(getRecentSearches())
+	}, [])
+
+	useEffect(() => {
+		let cancelled = false
+
+		const fetchTrendingTerms = async () => {
+			const response = await getTrendingSearches(4)
+			if (!cancelled && response.success && response.data) {
+				setTrendingSearches(
+					response.data
+						.map(term => term.trim())
+						.filter((term, index, terms) => {
+							return (
+								term.length > 0 &&
+								terms.findIndex(item => item === term) === index
+							)
+						}),
+				)
+			}
+		}
+
+		fetchTrendingTerms()
+
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	const handleSearchInputChange = (value: string) => {
@@ -680,14 +713,14 @@ function SearchContent() {
 	if (error && query) {
 		return (
 			<PageTransition>
-				<div data-testid='search-page'>
+				<div data-testid='search-page' data-visual-ready='true'>
 					<PageContainer maxWidth='lg'>
 						<ErrorState
 							title={t('searchFailed')}
 							message={t('searchFailedDesc')}
 							onRetry={() => {
 								setError(false)
-								setIsLoading(true)
+								setRetryKey(k => k + 1)
 							}}
 						/>
 					</PageContainer>
@@ -699,9 +732,11 @@ function SearchContent() {
 	if (!query) {
 		const visibleSuggestionTerms = SEARCH_SUGGESTIONS.filter(
 			term =>
-				!TRENDING_SEARCH_TERMS.some(trendingItem => trendingItem.term === term),
+				!trendingSearches.some(
+					trendingTerm => trendingTerm.toLowerCase() === term.toLowerCase(),
+				),
 		).slice(0, 4)
-		const trendingTermsForDeck = TRENDING_SEARCH_TERMS
+		const trendingTermsForDeck = mapTrendingTerms(trendingSearches)
 
 		const handleSuggestionClick = (term: string) => {
 			setSearchInput(term)
@@ -716,7 +751,10 @@ function SearchContent() {
 
 		return (
 			<PageTransition>
-				<div data-testid='search-page'>
+				<div
+					data-testid='search-page'
+					data-visual-ready={isLoading ? 'false' : 'true'}
+				>
 					<PageContainer maxWidth='2xl'>
 						<div
 							className={cn(
@@ -725,152 +763,28 @@ function SearchContent() {
 							)}
 						>
 							<div className='space-y-6'>
-								<motion.section
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={TRANSITION_SPRING}
-									className='rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-3 shadow-card sm:p-4 md:p-5'
-								>
-									<div className='mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
-										<div>
-											<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
-												{t('discoveryCommandEyebrow')}
-											</p>
-											<h1 className='mt-1 text-lg font-black leading-tight text-text-primary sm:text-xl md:text-2xl'>
-												{t('discoveryCommandHeading')}
-											</h1>
-										</div>
-										<div className='hidden items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
-											<Sparkles className='size-3.5' />
-											{t('liveSuggestions')}
-										</div>
-									</div>
-
-									<div className='relative mb-3 sm:mb-4'>
-										<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
-										<input
-											type='text'
-											value={searchInput}
-											onChange={e => handleSearchInputChange(e.target.value)}
-											placeholder={t('searchPlaceholder')}
-											aria-label={t('searchPlaceholder')}
-											className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-11 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:ring-0 sm:py-3.5'
-										/>
-										{searchInput && (
-											<motion.button
-												type='button'
-												onClick={() => handleSearchInputChange('')}
-												whileTap={BUTTON_TAP}
-												className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-												aria-label={t('clearSearch')}
-											>
-												<X className='size-4' />
-											</motion.button>
-										)}
-									</div>
-
-									<div className='mb-2 flex items-center gap-2 text-text-secondary'>
-										<Sparkles className='size-4 text-brand' />
-										<p className='text-sm font-semibold'>{t('suggestions')}</p>
-									</div>
-
-									<div className='-mx-3 overflow-x-auto pb-1 sm:mx-0 sm:overflow-visible sm:pb-0'>
-										<div className='flex min-w-max gap-2 px-3 sm:flex-wrap sm:px-0'>
-											{visibleSuggestionTerms.map(term => (
-												<motion.button
-													type='button'
-													key={term}
-													onClick={() => handleSuggestionClick(term)}
-													whileTap={BUTTON_TAP}
-													className='min-h-9 shrink-0 rounded-full border border-border-subtle bg-bg-card px-3.5 py-1.5 text-sm font-semibold text-text-primary transition-colors hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:min-h-10 sm:px-4 sm:py-2'
-												>
-													{term}
-												</motion.button>
-											))}
-										</div>
-									</div>
-								</motion.section>
-
-								{recentSearches.length > 0 && (
-									<motion.section
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{ ...TRANSITION_SPRING, delay: 0.05 }}
-										className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'
-									>
-										<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-											<History className='size-4' />
-											<p className='text-sm font-semibold'>
-												{t('recentSearches')}
-											</p>
-										</div>
-										<div className='flex flex-wrap gap-2'>
-											{recentSearches.map(term => (
-												<div
-													key={term}
-													className='inline-flex items-center gap-1 overflow-hidden rounded-full border border-border-subtle bg-bg-elevated pr-1'
-												>
-													<motion.button
-														type='button'
-														onClick={() => handleSuggestionClick(term)}
-														whileTap={BUTTON_TAP}
-														className='px-3 py-1.5 text-sm font-medium text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-													>
-														{term}
-													</motion.button>
-													<motion.button
-														type='button'
-														onClick={() => handleRemoveRecent(term)}
-														whileTap={BUTTON_TAP}
-														className='flex size-7 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-														aria-label={t('removeRecentSearch', { term })}
-													>
-														<X className='size-3' />
-													</motion.button>
-												</div>
-											))}
-										</div>
-									</motion.section>
-								)}
-
-								<motion.section
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-									className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card sm:p-4'
-								>
-									<div className='mb-3 flex items-center gap-2 text-text-secondary'>
-										<Flame className='size-4 text-streak' />
-										<p className='text-sm font-semibold'>
-											{t('trendingSearches')}
-										</p>
-									</div>
-									<div className='grid grid-cols-2 gap-2'>
-										{trendingTermsForDeck.map(
-											({ term, icon: Icon, iconClass }) => (
-												<motion.button
-													type='button'
-													key={term}
-													onClick={() => handleSuggestionClick(term)}
-													whileTap={BUTTON_TAP}
-													className='group flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-elevated px-2 py-2 text-left transition-all hover:border-brand/40 hover:bg-brand/5 focus-visible:ring-2 focus-visible:ring-brand/50 sm:gap-2 sm:p-3'
-												>
-													<span
-														className={cn(
-															'flex size-6 items-center justify-center rounded-lg sm:size-8',
-															iconClass,
-														)}
-													>
-														<Icon className='size-3 sm:size-4' />
-													</span>
-													<span className='text-[13px] font-semibold leading-tight text-text-primary sm:text-sm'>
-														{term}
-													</span>
-												</motion.button>
-											),
-										)}
-									</div>
-								</motion.section>
+								<SearchCommandDeck
+									mode='discovery'
+									eyebrow={t('discoveryCommandEyebrow')}
+									heading={t('discoveryCommandHeading')}
+									modeChipLabel={t('liveSuggestions')}
+									searchValue={searchInput}
+									onSearchChange={handleSearchInputChange}
+									onClear={() => handleSearchInputChange('')}
+									searchPlaceholder={t('searchPlaceholder')}
+									clearLabel={t('clearSearch')}
+									suggestionsLabel={t('suggestions')}
+									suggestionTerms={visibleSuggestionTerms}
+									recentSearchesLabel={t('recentSearches')}
+									recentSearches={recentSearches}
+									onSuggestionClick={handleSuggestionClick}
+									onRemoveRecent={handleRemoveRecent}
+									getRemoveRecentLabel={term =>
+										t('removeRecentSearch', { term })
+									}
+									trendingLabel={t('trendingSearches')}
+									trendingTerms={trendingTermsForDeck}
+								/>
 
 								{/* Bottom breathing room for MobileBottomNav */}
 								<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
@@ -922,7 +836,10 @@ function SearchContent() {
 
 	return (
 		<PageTransition>
-			<div data-testid='search-page'>
+			<div
+				data-testid='search-page'
+				data-visual-ready={isLoading ? 'false' : 'true'}
+			>
 				{/* Global navigation loading indicator */}
 				<AnimatePresence>
 					{isNavigating && (
@@ -946,81 +863,26 @@ function SearchContent() {
 				</AnimatePresence>
 
 				<PageContainer maxWidth='lg'>
-					<PremiumSurface
+					<SearchCommandDeck<SearchTab>
+						mode='results'
 						eyebrow={t('resultsWorkspaceEyebrow')}
-						chipText={t('results', { count: totalResults })}
-						className='mb-6 p-3 md:p-4'
-						tone='blue'
-					>
-						{/* Header - Secondary page pattern with back button */}
-						<div>
-							{/* Editable search input - users can refine from within the page */}
-							<div className='mb-4 flex items-center gap-3'>
-								<motion.button
-									type='button'
-									onClick={() => router.back()}
-									whileTap={BUTTON_TAP}
-									className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('goBack')}
-								>
-									<ArrowLeft className='size-5' />
-								</motion.button>
-								<div className='relative flex-1'>
-									<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
-									<input
-										type='text'
-										value={searchInput}
-										onChange={e => handleSearchInputChange(e.target.value)}
-										placeholder={t('searchPlaceholder')}
-										aria-label={t('searchPlaceholder')}
-										className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-10 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:!outline-none focus-visible:ring-0'
-									/>
-									{searchInput && (
-										<motion.button
-											type='button'
-											onClick={() => handleSearchInputChange('')}
-											whileTap={BUTTON_TAP}
-											className='absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-											aria-label={t('clearSearch')}
-										>
-											<X className='size-4' />
-										</motion.button>
-									)}
-								</div>
-							</div>
-							<div className='mb-2 flex items-center gap-3'>
-								<motion.div
-									initial={{ scale: 0 }}
-									animate={{ scale: 1 }}
-									transition={TRANSITION_SPRING}
-									className='flex size-12 items-center justify-center rounded-2xl bg-gradient-warm shadow-card'
-								>
-									<Search className='size-6 text-white' />
-								</motion.div>
-								<h1 className='text-3xl font-bold text-text-primary'>
-									{t('resultsHeading', { query })}
-								</h1>
-							</div>
-							<p className='flex items-center gap-2 tabular-nums text-text-secondary'>
-								<Sparkles className='size-4 text-streak' />
-								{t('resultsFound', { count: totalResults })}
-							</p>
-						</div>
-					</PremiumSurface>
+						chipLabel={t('results', { count: totalResults })}
+						backLabel={t('goBack')}
+						onBack={() => router.back()}
+						heading={t('resultsHeading', { query })}
+						summary={t('resultsFound', { count: totalResults })}
+						searchValue={searchInput}
+						onSearchChange={handleSearchInputChange}
+						onClear={() => handleSearchInputChange('')}
+						searchPlaceholder={t('searchPlaceholder')}
+						clearLabel={t('clearSearch')}
+						tabs={tabs}
+						activeTab={activeTab}
+						onTabChange={setActiveTab}
+						className='mb-6'
+					/>
 
-					<PremiumSurface
-						eyebrow={t('resultsStreamsEyebrow')}
-						className='p-3 md:p-4'
-					>
-						<FeedTabBar<SearchTab>
-							tabs={tabs}
-							activeTab={activeTab}
-							onTabChange={setActiveTab}
-							variant='underline'
-							size='lg'
-							className='mb-6'
-						/>
-
+					<section className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card md:p-4'>
 						{/* Results */}
 						<AnimatePresence mode='wait'>
 							{isLoading ? (
@@ -1275,7 +1137,7 @@ function SearchContent() {
 								</>
 							)}
 						</AnimatePresence>
-					</PremiumSurface>
+					</section>
 				</PageContainer>
 			</div>
 		</PageTransition>

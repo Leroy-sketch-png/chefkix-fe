@@ -4,8 +4,7 @@ import { useEffect, useState, useRef, useCallback, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Post } from '@/lib/types'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
-import { getStoryFeed } from '@/services/story'
-import { UserStoryFeedResponse } from '@/lib/types/story'
+
 import {
 	getPendingSessions,
 	linkPostToSession,
@@ -14,6 +13,7 @@ import {
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { BlurFade } from '@/components/ui/blur-fade'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { PostCard } from '@/components/social/PostCard'
 import { PollCard } from '@/components/social/PollCard'
@@ -32,6 +32,7 @@ import {
 	Users,
 	MessageSquare,
 	Home,
+	Sparkles,
 	TrendingUp,
 	Loader2,
 	ChefHat,
@@ -54,7 +55,11 @@ import {
 	ActiveChallengesWidget,
 	DashboardCommandDeck,
 } from '@/components/dashboard'
-import { InterestPicker } from '@/components/onboarding/InterestPicker'
+import {
+	InterestPicker,
+	dismissInterestPicker,
+	hasInterestPickerBeenDismissed,
+} from '@/components/onboarding/InterestPicker'
 import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
 import { useRouter } from 'next/navigation'
 import { TRANSITION_SPRING } from '@/lib/motion'
@@ -62,16 +67,11 @@ import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
-import { StoryFeed } from '@/components/story/StoryFeed'
 
 const POSTS_PER_PAGE = 10
 const DASHBOARD_FEED_TIMEOUT_MS = 12000
 const DASHBOARD_AUX_TIMEOUT_MS = 8000
 const DASHBOARD_XP_SYNC_TIMEOUT_MS = 10000
-
-type DashboardStoryUser = UserStoryFeedResponse & {
-	hasStories: boolean
-}
 
 interface PendingPostLink {
 	sessionId: string
@@ -117,59 +117,6 @@ const transformToPendingSession = (
 		status: getPendingStatus(daysRemaining),
 		postId: session.postId || undefined,
 	}
-}
-
-const toObject = (value: unknown): Record<string, unknown> | null => {
-	if (!value || typeof value !== 'object') return null
-	return value as Record<string, unknown>
-}
-
-const normalizeStoryFeed = (payload: unknown): DashboardStoryUser[] => {
-	const root = toObject(payload)
-	const nested = root ? toObject(root.data) : null
-
-	const storyArray = Array.isArray(payload)
-		? payload
-		: Array.isArray(root?.data)
-			? root?.data
-			: Array.isArray(nested?.data)
-				? nested?.data
-				: []
-
-	return storyArray
-		.map(item => {
-			const story = toObject(item)
-			if (!story) return null
-
-			const userId =
-				typeof story.userId === 'string'
-					? story.userId
-					: typeof story.authorId === 'string'
-						? story.authorId
-						: typeof story.id === 'string'
-							? story.id
-							: null
-
-			if (!userId) return null
-
-			return {
-				userId,
-				displayName:
-					typeof story.displayName === 'string'
-						? story.displayName
-						: typeof story.username === 'string'
-							? story.username
-							: 'User',
-				avatarUrl:
-					typeof story.avatarUrl === 'string' ? story.avatarUrl : undefined,
-				hasUnseenStory:
-					typeof story.hasUnseenStory === 'boolean'
-						? story.hasUnseenStory
-						: Boolean(story.hasUnseen),
-				hasStories: true,
-			}
-		})
-		.filter((story): story is DashboardStoryUser => Boolean(story))
 }
 
 function FeedItemErrorFallback({
@@ -219,7 +166,6 @@ export default function DashboardPage() {
 	const router = useRouter()
 	const t = useTranslations('dashboard')
 	const [posts, setPosts] = useState<Post[]>([])
-	const [storyUsers, setStoryUsers] = useState<DashboardStoryUser[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -310,29 +256,6 @@ export default function DashboardPage() {
 	useEffect(() => {
 		let cancelled = false
 
-		const fetchStories = async () => {
-			try {
-				const res = await getStoryFeed({ timeoutMs: DASHBOARD_AUX_TIMEOUT_MS })
-				if (cancelled) return
-				setStoryUsers(normalizeStoryFeed(res))
-			} catch (err) {
-				logDevError('Failed to load story feed:', err)
-				if (!cancelled) {
-					setStoryUsers([])
-				}
-			}
-		}
-
-		fetchStories()
-
-		return () => {
-			cancelled = true
-		}
-	}, [feedRefreshKey])
-
-	useEffect(() => {
-		let cancelled = false
-
 		const loadPendingSessions = async () => {
 			try {
 				const pendingResponse = await getPendingSessions({
@@ -367,9 +290,7 @@ export default function DashboardPage() {
 
 				return {
 					response,
-					feedPosts: (response.data ?? []).filter(
-						post => post.postType !== 'GROUP',
-					),
+					feedPosts: response.data ?? [],
 					usedColdStartFallback: false,
 				}
 			}
@@ -382,9 +303,7 @@ export default function DashboardPage() {
 				},
 				{ timeoutMs: DASHBOARD_FEED_TIMEOUT_MS },
 			)
-			const feedPosts = (response.data ?? []).filter(
-				post => post.postType !== 'GROUP',
-			)
+			const feedPosts = response.data ?? []
 
 			if (feedMode !== 'forYou' || (response.success && feedPosts.length > 0)) {
 				return {
@@ -402,9 +321,7 @@ export default function DashboardPage() {
 				},
 				{ timeoutMs: DASHBOARD_FEED_TIMEOUT_MS },
 			)
-			const trendingPosts = (trendingResponse.data ?? []).filter(
-				post => post.postType !== 'GROUP',
-			)
+			const trendingPosts = trendingResponse.data ?? []
 
 			if (trendingResponse.success) {
 				return {
@@ -535,19 +452,16 @@ export default function DashboardPage() {
 						})
 
 			if (response.success && response.data) {
-				const filteredPosts = response.data.filter(
-					post => post.postType !== 'GROUP',
-				)
 				setPosts(prev => {
 					const existingIds = new Set(prev.map(p => p.id))
-					const newPosts = filteredPosts.filter(p => !existingIds.has(p.id))
+					const newPosts = response.data.filter(p => !existingIds.has(p.id))
 					return [...prev, ...newPosts]
 				})
 				setCurrentPage(nextPage)
 				if (response.pagination) {
 					setHasMore(!response.pagination.last)
 				} else {
-					setHasMore(filteredPosts.length >= POSTS_PER_PAGE)
+					setHasMore(response.data.length >= POSTS_PER_PAGE)
 				}
 			}
 		} catch (err) {
@@ -611,12 +525,70 @@ export default function DashboardPage() {
 		)
 	}, [])
 
-	const showInterestPicker =
-		!isLoading && user && (!user.preferences || user.preferences.length === 0)
-	const [interestPickerDismissed, setInterestPickerDismissed] = useState(false)
+	const needsTasteSetup = Boolean(
+		!isLoading && user && (!user.preferences || user.preferences.length === 0),
+	)
+	const [interestPickerDismissed, setInterestPickerDismissed] = useState(true)
+	const [isInterestPickerOpen, setIsInterestPickerOpen] = useState(false)
+	const shouldShowTasteSetupPrompt = needsTasteSetup && !interestPickerDismissed
+
+	useEffect(() => {
+		setInterestPickerDismissed(hasInterestPickerBeenDismissed())
+	}, [])
 
 	const isNewUser =
 		stats && (stats.currentXP ?? 0) === 0 && (stats.recipeCount ?? 0) === 0
+	const shouldShowProfileBoost = Boolean(
+		!isNewUser &&
+			user &&
+			(!user.avatarUrl ||
+				user.avatarUrl === '/placeholder-avatar.svg' ||
+				!user.bio),
+	)
+	const profileBoostNudge = (
+		<PremiumSurface
+			className='px-4 py-3'
+			eyebrow={t('profileBoost')}
+			chipText={t('actionNeeded')}
+			showOrbs={true}
+		>
+			<div className='flex flex-wrap items-center gap-3'>
+				<span className='text-xs font-semibold text-text-secondary'>
+					{t('obProfileNudge')}
+				</span>
+				{(!user?.avatarUrl || user.avatarUrl === '/placeholder-avatar.svg') && (
+					<Link
+						href='/settings'
+						className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-brand/10 hover:text-brand'
+					>
+						<Camera className='size-3.5' />
+						{t('obAddPhoto')}
+					</Link>
+				)}
+				{!user?.bio && (
+					<Link
+						href='/settings'
+						className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-brand/10 hover:text-brand'
+					>
+						<PenLine className='size-3.5' />
+						{t('obWriteBio')}
+					</Link>
+				)}
+			</div>
+		</PremiumSurface>
+	)
+
+	const handleInterestPickerComplete = useCallback(() => {
+		setIsInterestPickerOpen(false)
+		setInterestPickerDismissed(hasInterestPickerBeenDismissed())
+		setFeedRefreshKey(k => k + 1)
+	}, [])
+
+	const handleDismissTasteSetupPrompt = useCallback(() => {
+		dismissInterestPicker()
+		setInterestPickerDismissed(true)
+		setIsInterestPickerOpen(false)
+	}, [])
 
 	return (
 		<>
@@ -634,281 +606,310 @@ export default function DashboardPage() {
 						</div>
 					</motion.div>
 				)}
-				{showInterestPicker && !interestPickerDismissed && (
-					<InterestPicker
-						onComplete={() => {
-							setInterestPickerDismissed(true)
-							setFeedRefreshKey(k => k + 1)
-						}}
-					/>
+				{isInterestPickerOpen && (
+					<InterestPicker onComplete={handleInterestPickerComplete} />
 				)}
 			</AnimatePresence>
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
-					<DashboardCommandDeck
-						className='mb-6'
-						stats={stats}
-						hasStreakAtRisk={hasStreakAtRisk}
-						pendingSessionCount={pendingSessions.length}
-					/>
-
-					<div className='mb-6'>
-						<StoryFeed
-							stories={storyUsers}
-							isLoading={isLoading}
-							onStoryClick={storyUser => {
-								const isMe = storyUser.userId === user?.userId
-								// Kiểm tra xem user có story không bằng trường hasUnseenStory, hoặc bạn có thể bổ sung hasStories vào DTO nếu cần
-								const hasStory =
-									storyUser.hasUnseenStory || (storyUser as any).hasStories
-
-								if (isMe && !hasStory) {
-									router.push('/story/create')
-								} else {
-									router.push(`/story/view/${storyUser.userId}`)
-								}
-							}}
-						/>
-					</div>
-
-					{isNewUser ? (
-						<motion.div
-							initial={{ opacity: 0, y: 12 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={TRANSITION_SPRING}
-							className='mb-6 overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 shadow-card'
-						>
-							<div className='border-b border-brand/10 bg-brand/5 px-5 py-3'>
-								<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
-									{t('obJoin')}
-								</p>
-								<h2 className='text-base font-bold text-text-primary'>
-									{t('obWelcome', {
-										name:
-											user?.displayName || user?.firstName || user?.username,
-									})}
-								</h2>
-								<p className='mt-0.5 text-sm text-text-secondary'>
-									{t('obHowTo')}
-								</p>
-							</div>
-							<div className='p-4'>
-								<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-3'>
-									<Link
-										href='/explore'
-										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-brand/8 hover:shadow-card'
-									>
-										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 transition-colors group-hover:bg-brand/20'>
-											<BookOpen className='size-[18px] text-brand' />
-										</div>
-										<div>
-											<span className='text-sm font-semibold text-text-primary'>
-												{t('obBrowse')}
-											</span>
-											<p className='text-xs text-text-muted'>
-												{t('obBrowseDesc')}
-											</p>
-										</div>
-									</Link>
-									<Link
-										href='/explore?difficulty=Beginner'
-										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-xp/8 hover:shadow-card'
-									>
-										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-xp/10 transition-colors group-hover:bg-xp/20'>
-											<ChefHat className='size-[18px] text-xp' />
-										</div>
-										<div>
-											<span className='text-sm font-semibold text-text-primary'>
-												{t('obTryFirst')}
-											</span>
-											<p className='text-xs text-text-muted'>
-												{t('obTryFirstDesc')}
-											</p>
-										</div>
-									</Link>
-									<Link
-										href='/community'
-										className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-streak/8 hover:shadow-card'
-									>
-										<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-streak/10 transition-colors group-hover:bg-streak/20'>
-											<Users className='size-[18px] text-streak' />
-										</div>
-										<div>
-											<span className='text-sm font-semibold text-text-primary'>
-												{t('obJoin')}
-											</span>
-											<p className='text-xs text-text-muted'>
-												{t('obJoinDesc')}
-											</p>
-										</div>
-									</Link>
-								</div>
-								{user &&
-									(!user.avatarUrl ||
-										user.avatarUrl === '/placeholder-avatar.svg' ||
-										!user.bio) && (
-										<div className='mt-3.5 flex flex-wrap items-center gap-2 border-t border-border-subtle/60 pt-3.5'>
-											<span className='text-xs font-medium text-text-muted'>
-												{t('obQuickWins')}
-											</span>
-											{(!user.avatarUrl ||
-												user.avatarUrl === '/placeholder-avatar.svg') && (
-												<Link
-													href='/settings'
-													className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
+					<div
+						data-testid='dashboard-page'
+						data-visual-ready={isLoading ? 'false' : 'true'}
+					>
+						<div className='mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]'>
+							<div className='space-y-6'>
+								{!isNewUser ? (
+									<div className='grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)]'>
+										<BlurFade delay={0.05}>
+											<TonightsPick className='mb-0 h-full' />
+										</BlurFade>
+										<div className='space-y-6'>
+											<BlurFade delay={0.09}>
+												<SinceLastVisitCard className='mb-0' />
+											</BlurFade>
+											{shouldShowProfileBoost && (
+												<motion.div
+													initial={{ opacity: 0, y: 12 }}
+													animate={{ opacity: 1, y: 0 }}
+													transition={{ ...TRANSITION_SPRING, delay: 0.12 }}
+													className='hidden xl:block'
 												>
-													<Camera className='size-3.5' />
-
-													{t('obAddPhoto')}
-												</Link>
-											)}
-											{!user.bio && (
-												<Link
-													href='/settings'
-													className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
-												>
-													<PenLine className='size-3.5' />
-
-													{t('obWriteBio')}
-												</Link>
+													{profileBoostNudge}
+												</motion.div>
 											)}
 										</div>
-									)}
-							</div>
-						</motion.div>
-					) : (
-						user &&
-						(!user.avatarUrl ||
-							user.avatarUrl === '/placeholder-avatar.svg' ||
-							!user.bio) && (
-							<motion.div
-								initial={{ opacity: 0, y: 12 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-								className='mb-6'
-							>
-								<PremiumSurface
-									className='px-4 py-3'
-									eyebrow={t('profileBoost')}
-									chipText={t('actionNeeded')}
-									showOrbs={false}
-								>
-									<div className='flex flex-wrap items-center gap-3'>
-										<span className='text-xs font-semibold text-text-secondary'>
-											{t('obProfileNudge')}
-										</span>
-										{(!user.avatarUrl ||
-											user.avatarUrl === '/placeholder-avatar.svg') && (
-											<Link
-												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-brand/10 hover:text-brand'
-											>
-												<Camera className='size-3.5' />
-
-												{t('obAddPhoto')}
-											</Link>
-										)}
-										{!user.bio && (
-											<Link
-												href='/settings'
-												className='inline-flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-brand/10 hover:text-brand'
-											>
-												<PenLine className='size-3.5' />
-
-												{t('obWriteBio')}
-											</Link>
-										)}
 									</div>
-								</PremiumSurface>
-							</motion.div>
-						)
-					)}
+								) : (
+									<BlurFade delay={0.05}>
+										<TonightsPick className='mb-0' />
+									</BlurFade>
+								)}
 
-					{hasPendingXpSync && (
-						<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
-							<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-								<div>
-									<p className='text-sm font-semibold text-brand'>
-										{t('xpSyncingTitle')}
-									</p>
-									<p className='text-sm text-text-secondary'>
-										{t('xpConfirmingText')}
-									</p>
-								</div>
-								<Button
-									variant='outline'
-									size='sm'
-									onClick={handleRetryPendingXpSync}
-									disabled={isRetryingPendingXp}
-									className='sm:w-auto'
-								>
-									{isRetryingPendingXp ? t('syncing') : t('syncNow')}
-								</Button>
+								{isNewUser ? (
+									<motion.div
+										initial={{ opacity: 0, y: 12 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={TRANSITION_SPRING}
+										className='overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 shadow-card'
+									>
+										<div className='border-b border-brand/10 bg-brand/5 px-5 py-3'>
+											<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+												{t('obJoin')}
+											</p>
+											<h2 className='text-base font-bold text-text-primary'>
+												{t('obWelcome', {
+													name:
+														user?.displayName ||
+														user?.firstName ||
+														user?.username,
+												})}
+											</h2>
+											<p className='mt-0.5 text-sm text-text-secondary'>
+												{t('obHowTo')}
+											</p>
+										</div>
+										<div className='p-4'>
+											<div className='grid grid-cols-1 gap-2.5 sm:grid-cols-3'>
+												<Link
+													href='/explore'
+													className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-brand/8 hover:shadow-card'
+												>
+													<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 transition-colors group-hover:bg-brand/20'>
+														<BookOpen className='size-[18px] text-brand' />
+													</div>
+													<div>
+														<span className='text-sm font-semibold text-text-primary'>
+															{t('obBrowse')}
+														</span>
+														<p className='text-xs text-text-muted'>
+															{t('obBrowseDesc')}
+														</p>
+													</div>
+												</Link>
+												<Link
+													href='/explore?difficulty=Beginner'
+													className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-xp/8 hover:shadow-card'
+												>
+													<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-xp/10 transition-colors group-hover:bg-xp/20'>
+														<ChefHat className='size-[18px] text-xp' />
+													</div>
+													<div>
+														<span className='text-sm font-semibold text-text-primary'>
+															{t('obTryFirst')}
+														</span>
+														<p className='text-xs text-text-muted'>
+															{t('obTryFirstDesc')}
+														</p>
+													</div>
+												</Link>
+												<Link
+													href='/community'
+													className='group flex items-center gap-3 rounded-xl bg-bg-elevated p-3 transition-all hover:bg-streak/8 hover:shadow-card'
+												>
+													<div className='grid size-9 shrink-0 place-items-center rounded-xl bg-streak/10 transition-colors group-hover:bg-streak/20'>
+														<Users className='size-[18px] text-streak' />
+													</div>
+													<div>
+														<span className='text-sm font-semibold text-text-primary'>
+															{t('obJoin')}
+														</span>
+														<p className='text-xs text-text-muted'>
+															{t('obJoinDesc')}
+														</p>
+													</div>
+												</Link>
+											</div>
+											{user &&
+												(!user.avatarUrl ||
+													user.avatarUrl === '/placeholder-avatar.svg' ||
+													!user.bio) && (
+													<div className='mt-3.5 flex flex-wrap items-center gap-2 border-t border-border-subtle/60 pt-3.5'>
+														<span className='text-xs font-medium text-text-muted'>
+															{t('obQuickWins')}
+														</span>
+														{(!user.avatarUrl ||
+															user.avatarUrl === '/placeholder-avatar.svg') && (
+															<Link
+																href='/settings'
+																className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
+															>
+																<Camera className='size-3.5' />
+																{t('obAddPhoto')}
+															</Link>
+														)}
+														{!user.bio && (
+															<Link
+																href='/settings'
+																className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all hover:bg-brand/10 hover:text-brand'
+															>
+																<PenLine className='size-3.5' />
+																{t('obWriteBio')}
+															</Link>
+														)}
+													</div>
+												)}
+										</div>
+									</motion.div>
+								) : null}
+
+								<BlurFade delay={0.14}>
+									<DashboardCommandDeck
+										stats={stats}
+										hasStreakAtRisk={hasStreakAtRisk}
+										pendingSessionCount={pendingSessions.length}
+									/>
+								</BlurFade>
 							</div>
+
+							<aside className='space-y-6 xl:sticky xl:top-24 xl:self-start'>
+								<BlurFade delay={0.12}>
+									<FriendsCookingNow className='mb-0' />
+								</BlurFade>
+								{!isNewUser && (
+									<BlurFade delay={0.16}>
+										<ActiveChallengesWidget className='mb-0' />
+									</BlurFade>
+								)}
+								{!isNewUser && (
+									<BlurFade delay={0.2}>
+										<SeasonalBanner className='mb-0' />
+									</BlurFade>
+								)}
+							</aside>
 						</div>
-					)}
-					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]'>
+
+						{hasPendingXpSync && (
+							<div className='mb-4 rounded-radius border border-brand/30 bg-brand/5 p-4'>
+								<div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+									<div>
+										<p className='text-sm font-semibold text-brand'>
+											{t('xpSyncingTitle')}
+										</p>
+										<p className='text-sm text-text-secondary'>
+											{t('xpConfirmingText')}
+										</p>
+									</div>
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={handleRetryPendingXpSync}
+										disabled={isRetryingPendingXp}
+										className='sm:w-auto'
+									>
+										{isRetryingPendingXp ? t('syncing') : t('syncNow')}
+									</Button>
+								</div>
+							</div>
+						)}
+
 						<div className='space-y-6'>
-							<ResumeCookingBanner className='mb-0' />
+							<BlurFade delay={0.3}>
+								<ResumeCookingBanner className='mb-0' />
+							</BlurFade>
 							{!isNewUser && hasStreakAtRisk && showStreakBanner && (
-								<StreakRiskBanner
-									currentStreak={stats?.streakCount ?? 0}
-									timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
-									isUrgent={isUrgent}
-									onQuickCook={() =>
-										startNavigationTransition(() => {
-											router.push('/explore')
-										})
-									}
-									onDismiss={() => setShowStreakBanner(false)}
-								/>
+								<BlurFade delay={0.35}>
+									<StreakRiskBanner
+										currentStreak={stats?.streakCount ?? 0}
+										timeRemaining={{ hours: hoursUntilBreak, minutes: 0 }}
+										isUrgent={isUrgent}
+										onQuickCook={() =>
+											startNavigationTransition(() => {
+												router.push('/explore')
+											})
+										}
+										onDismiss={() => setShowStreakBanner(false)}
+									/>
+								</BlurFade>
 							)}
 							{!isNewUser && pendingSessions.length > 0 && (
-								<PendingPostsSection
-									sessions={pendingSessions}
-									onPost={handlePostFromPending}
-									onDismiss={handleDismissPending}
-									onViewAll={() =>
-										startNavigationTransition(() => {
-											router.push(`/${user?.userId}?tab=cooking`)
-										})
-									}
-								/>
+								<BlurFade delay={0.4}>
+									<PendingPostsSection
+										sessions={pendingSessions}
+										onPost={handlePostFromPending}
+										onDismiss={handleDismissPending}
+										onViewAll={() =>
+											startNavigationTransition(() => {
+												router.push(`/${user?.userId}?tab=cooking`)
+											})
+										}
+									/>
+								</BlurFade>
 							)}
-							<PremiumSurface
-								className='p-3 md:p-4'
-								eyebrow={t('feedControls')}
-								chipText={
-									feedMode === 'following'
-										? t('feedModeFollowing')
-										: t('feedModeForYou')
-								}
-								showOrbs={false}
-							>
-								<FeedModeTabBar
-									activeMode={feedMode}
-									onModeChange={setFeedMode}
-								/>
-							</PremiumSurface>
-							<PremiumSurface
-								className='p-3 md:p-4'
-								eyebrow={t('creatorComposer')}
-								chipText={t('readyToPost')}
-							>
-								<CreatePostForm
-									onPostCreated={handlePostCreated}
-									currentUser={
-										user
-											? {
-													userId: user.userId ?? '',
-													displayName:
-														user.displayName || user.username || 'User',
-													avatarUrl: user.avatarUrl,
-												}
-											: undefined
+							<BlurFade delay={0.45}>
+								<PremiumSurface
+									className='p-3 md:p-4'
+									eyebrow={t('feedControls')}
+									chipText={
+										feedMode === 'following'
+											? t('feedModeFollowing')
+											: t('feedModeForYou')
 									}
-								/>
-							</PremiumSurface>
+									showOrbs={true}
+								>
+									{shouldShowTasteSetupPrompt && (
+										<div className='mb-4 rounded-2xl border border-brand/15 bg-gradient-to-r from-brand/6 via-bg-card to-streak/6 p-4'>
+											<div className='flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
+												<div>
+													<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+														<Sparkles className='size-3.5' />
+														{t('tasteSetupEyebrow')}
+													</div>
+													<h3 className='text-sm font-semibold text-text-primary'>
+														{t('tasteSetupTitle')}
+													</h3>
+													<p className='mt-1 max-w-2xl text-sm text-text-secondary'>
+														{t('tasteSetupDesc')}
+													</p>
+												</div>
+												<div className='flex flex-wrap gap-2'>
+													<Button
+														type='button'
+														size='sm'
+														variant='brand'
+														onClick={() => setIsInterestPickerOpen(true)}
+													>
+														{t('tasteSetupCta')}
+													</Button>
+													<Button
+														type='button'
+														size='sm'
+														variant='ghost'
+														onClick={handleDismissTasteSetupPrompt}
+													>
+														{t('tasteSetupDismiss')}
+													</Button>
+												</div>
+											</div>
+										</div>
+									)}
+									<FeedModeTabBar
+										activeMode={feedMode}
+										onModeChange={setFeedMode}
+									/>
+								</PremiumSurface>
+							</BlurFade>
+							<BlurFade delay={0.5}>
+								<PremiumSurface
+									className='p-3 md:p-4'
+									eyebrow={t('creatorComposer')}
+									chipText={t('readyToPost')}
+									showOrbs={true}
+								>
+									<CreatePostForm
+										onPostCreated={handlePostCreated}
+										currentUser={
+											user
+												? {
+														userId: user.userId ?? '',
+														displayName:
+															user.displayName || user.username || 'User',
+														avatarUrl: user.avatarUrl,
+													}
+												: undefined
+										}
+									/>
+								</PremiumSurface>
+							</BlurFade>
 							<ColdStartExperience
 								isAuthenticated={!!user}
 								onColdStartComplete={() => setFeedRefreshKey(k => k + 1)}
@@ -1074,16 +1075,13 @@ export default function DashboardPage() {
 								)}
 							</ColdStartExperience>
 						</div>
-
-						<aside className='space-y-6 xl:sticky xl:top-24 xl:self-start'>
-							<TonightsPick className='mb-0' />
-							<FriendsCookingNow className='mb-0' />
-							{!isNewUser && <SeasonalBanner className='mb-0' />}
-							{!isNewUser && <ActiveChallengesWidget className='mb-0' />}
-							{!isNewUser && <SinceLastVisitCard className='mb-0' />}
-						</aside>
+						{shouldShowProfileBoost && (
+							<BlurFade delay={0.58} className='mt-6 xl:hidden'>
+								{profileBoostNudge}
+							</BlurFade>
+						)}
+						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
 					</div>
-					<div className='pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-8' />
 				</PageContainer>
 			</PageTransition>
 		</>

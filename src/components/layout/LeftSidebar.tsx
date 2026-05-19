@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
+	Flame,
 	Compass,
 	Target,
 	PlusSquare,
@@ -34,6 +35,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useTranslations } from '@/i18n/hooks'
 import { cn } from '@/lib/utils'
+import { MagicCard } from '@/components/ui/magic-card'
 
 interface NavItem {
 	href: string | ((userId?: string) => string)
@@ -46,6 +48,7 @@ interface NavItem {
 // Primary nav: the 7 items users need most (serves 80% scrollers + 15% cooks)
 const primaryNavItems: NavItem[] = [
 	{ href: '/dashboard', icon: Home, labelKey: 'home', requiresAuth: true },
+	{ href: '/feed', icon: Flame, labelKey: 'feed' },
 	{ href: '/explore', icon: Compass, labelKey: 'explore' },
 	{ href: '/create', icon: PlusSquare, labelKey: 'create', requiresAuth: true },
 	{
@@ -65,6 +68,7 @@ const primaryNavItems: NavItem[] = [
 ]
 
 const guestPrimaryNavItems: NavItem[] = [
+	{ href: '/feed', icon: Flame, labelKey: 'feed' },
 	{ href: '/explore', icon: Compass, labelKey: 'explore' },
 	{ href: '/community', icon: Users, labelKey: 'community' },
 	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
@@ -201,55 +205,63 @@ export const LeftSidebar = () => {
 			<Link
 				key={item.labelKey}
 				href={href}
-				className='group relative flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand'
+				className='group relative flex h-11 w-full items-center rounded-xl text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand overflow-hidden'
 				data-active={active}
 				aria-current={active ? 'page' : undefined}
 				title={label}
 			>
-				{/* Pill background on active/hover */}
-				<motion.div
-					className='pointer-events-none absolute inset-0 rounded-xl'
-					initial={false}
-					animate={{
-						backgroundColor: active
-							? 'rgba(255,90,54,0.12)'
-							: 'rgba(255,90,54,0)',
-					}}
-					transition={{ duration: 0.25 }}
-				/>
-				{/* Left accent bar */}
-				<motion.div
-					className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
-					initial={false}
-					animate={{ height: active ? '55%' : '0%' }}
-					transition={TRANSITION_SPRING}
-				/>
-				{/* Glow halo behind icon on active */}
-				{active && (
-					<div className='pointer-events-none absolute inset-x-2 top-1 h-7 rounded-xl bg-brand/8 blur-md' />
-				)}
-				{/* Icon */}
-				<motion.div
-					whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
-					whileTap={ICON_BUTTON_TAP}
-					transition={TRANSITION_SPRING}
-					className='relative grid size-5 place-items-center'
+				<MagicCard
+					mode='orb'
+					glowFrom={active ? 'rgba(255,90,54,0.22)' : 'rgba(255,90,54,0.08)'}
+					glowTo='rgba(255,90,54,0)'
+					glowSize={120}
+					className='w-full h-full'
 				>
-					<Icon
-						className={cn(
-							'size-4.5 transition-all duration-300',
-							active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+					<div className='flex h-full w-full items-center gap-2 px-3 relative z-10'>
+						{/* Pill background on active/hover */}
+						<motion.div
+							className='pointer-events-none absolute inset-0 rounded-xl bg-brand/6'
+							initial={false}
+							animate={{
+								opacity: active ? 1 : 0,
+							}}
+							transition={{ duration: 0.25 }}
+						/>
+						{/* Left accent bar */}
+						<motion.div
+							className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
+							initial={false}
+							animate={{ height: active ? '55%' : '0%' }}
+							transition={TRANSITION_SPRING}
+						/>
+						{/* Glow halo behind icon on active */}
+						{active && (
+							<div className='pointer-events-none absolute left-2 top-2 size-5 rounded-full bg-brand/12 blur-md' />
 						)}
-					/>
-					{item.showBadge && unreadCount > 0 && (
-						<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-[0_2px_6px_rgba(255,90,54,0.5)]'>
-							{unreadCount > 9 ? '9+' : unreadCount}
-						</span>
-					)}
-				</motion.div>
-				<div className='min-w-0 truncate text-left text-[13px] leading-none'>
-					{label}
-				</div>
+						{/* Icon */}
+						<motion.div
+							whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
+							whileTap={ICON_BUTTON_TAP}
+							transition={TRANSITION_SPRING}
+							className='relative grid size-5 place-items-center'
+						>
+							<Icon
+								className={cn(
+									'size-4.5 transition-all duration-300',
+									active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+								)}
+							/>
+							{item.showBadge && unreadCount > 0 && (
+								<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-[0_2px_6px_rgba(255,90,54,0.5)]'>
+									{unreadCount > 9 ? '9+' : unreadCount}
+								</span>
+							)}
+						</motion.div>
+						<div className='min-w-0 truncate text-left text-[13px] leading-none z-10'>
+							{label}
+						</div>
+					</div>
+				</MagicCard>
 			</Link>
 		)
 	}
@@ -287,43 +299,53 @@ export const LeftSidebar = () => {
 					<button
 						type='button'
 						onClick={() => setShowMore(prev => !prev)}
-						className='group relative flex h-11 w-full items-center gap-2 rounded-xl px-3 text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand'
+						className='group relative flex h-11 w-full items-center rounded-xl text-sm font-semibold leading-none text-text-secondary transition-all duration-300 hover:text-text-primary data-[active=true]:text-brand overflow-hidden'
 						title={showMore ? t('showLess') : t('more')}
 						aria-expanded={showMore}
 						data-active={showMore}
 					>
-						<motion.div
-							className='pointer-events-none absolute inset-0 rounded-xl'
-							initial={false}
-							animate={{
-								backgroundColor: showMore
-									? 'rgba(255,90,54,0.12)'
-									: 'rgba(255,90,54,0)',
-							}}
-							transition={{ duration: 0.25 }}
-						/>
-						<motion.div
-							className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
-							initial={false}
-							animate={{ height: showMore ? '55%' : '0%' }}
-							transition={TRANSITION_SPRING}
-						/>
-						<motion.div
-							whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
-							whileTap={ICON_BUTTON_TAP}
-							transition={TRANSITION_SPRING}
-							className='grid size-5 place-items-center'
+						<MagicCard
+							mode='orb'
+							glowFrom={
+								showMore ? 'rgba(255,90,54,0.22)' : 'rgba(255,90,54,0.08)'
+							}
+							glowTo='rgba(255,90,54,0)'
+							glowSize={120}
+							className='w-full h-full'
 						>
-							<MoreHorizontal
-								className={cn(
-									'size-4.5 transition-all duration-300',
-									showMore && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
-								)}
-							/>
-						</motion.div>
-						<div className='text-[13px] leading-none'>
-							{showMore ? t('less') : t('more')}
-						</div>
+							<div className='flex h-full w-full items-center gap-2 px-3 relative z-10'>
+								<motion.div
+									className='pointer-events-none absolute inset-0 rounded-xl bg-brand/6'
+									initial={false}
+									animate={{
+										opacity: showMore ? 1 : 0,
+									}}
+									transition={{ duration: 0.25 }}
+								/>
+								<motion.div
+									className='absolute left-0 top-1/2 w-0.5 -translate-y-1/2 rounded-r bg-brand'
+									initial={false}
+									animate={{ height: showMore ? '55%' : '0%' }}
+									transition={TRANSITION_SPRING}
+								/>
+								<motion.div
+									whileHover={{ ...ICON_BUTTON_HOVER, scale: 1.15 }}
+									whileTap={ICON_BUTTON_TAP}
+									transition={TRANSITION_SPRING}
+									className='grid size-5 place-items-center'
+								>
+									<MoreHorizontal
+										className={cn(
+											'size-4.5 transition-all duration-300',
+											showMore && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+										)}
+									/>
+								</motion.div>
+								<div className='text-[13px] leading-none z-10'>
+									{showMore ? t('less') : t('more')}
+								</div>
+							</div>
+						</MagicCard>
 					</button>
 				)}
 

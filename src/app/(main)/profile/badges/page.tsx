@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { MagicCard } from '@/components/ui/magic-card'
 import {
 	getAllBadges,
 	resolveBadgesWithFallback,
@@ -137,6 +138,47 @@ const RARITY_ORDER: BadgeRarity[] = [
 	'LEGENDARY',
 ]
 
+const getGlowColors = (rarity: BadgeRarity, isEarned: boolean) => {
+	if (!isEarned) {
+		return {
+			from: 'var(--color-border-subtle, #e8e2db)',
+			to: 'var(--color-border-subtle, #e8e2db)',
+		}
+	}
+	switch (rarity) {
+		case 'COMMON':
+			return {
+				from: 'var(--color-text-secondary, #6b6661)',
+				to: 'var(--color-border, #d1c9bf)',
+			}
+		case 'UNCOMMON':
+			return {
+				from: 'var(--color-success, #10b981)',
+				to: 'var(--color-border, #d1c9bf)',
+			}
+		case 'RARE':
+			return {
+				from: 'var(--color-info, #3b82f6)',
+				to: 'var(--color-border, #d1c9bf)',
+			}
+		case 'EPIC':
+			return {
+				from: 'var(--color-xp, #6366f1)',
+				to: 'var(--color-border, #d1c9bf)',
+			}
+		case 'LEGENDARY':
+			return {
+				from: 'var(--color-brand, #ff5a36)',
+				to: 'var(--color-xp, #6366f1)',
+			}
+		default:
+			return {
+				from: 'var(--color-brand, #ff5a36)',
+				to: 'var(--color-success, #10b981)',
+			}
+	}
+}
+
 // ============================================
 // BADGE CARD COMPONENT
 // ============================================
@@ -151,109 +193,124 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 	const t = useTranslations('badges')
 	const rarityConfig = RARITY_CONFIG[badge.rarity]
 	const isHidden = badge.isHidden && !isEarned
+	const glow = getGlowColors(badge.rarity, isEarned)
 
 	return (
 		<motion.div
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
-			className={cn(
-				'group relative flex flex-col items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-300',
-				isEarned
-					? `${rarityConfig.bgClass} ${rarityConfig.borderClass} shadow-card`
-					: 'border-border-subtle bg-bg-elevated/50 opacity-60 hover:opacity-80',
-				isHidden && 'cursor-help',
-			)}
+			className='group relative flex flex-col h-full rounded-2xl transition-all duration-300'
 		>
 			{/* Earned checkmark */}
 			{isEarned && (
 				<motion.div
 					initial={{ scale: 0 }}
 					animate={{ scale: 1 }}
-					className='absolute -right-1 -top-1 grid size-6 place-items-center rounded-full bg-success text-white shadow-card'
+					className='absolute -right-1 -top-1 z-50 grid size-6 place-items-center rounded-full bg-success text-white shadow-card'
 				>
 					<CheckCircle2 className='size-4' />
 				</motion.div>
 			)}
 
-			{/* Hidden badge mystery */}
-			{isHidden ? (
-				<>
-					<div className='grid size-14 place-items-center rounded-xl bg-bg-hover'>
-						<Lock className='size-6 text-text-muted' />
-					</div>
-					<div className='text-center'>
-						<p className='text-sm font-semibold text-text-muted'>
-							{t('hiddenBadge')}
-						</p>
-						<p className='mt-1 text-xs text-text-muted/70'>
-							{t('discoverUnlock')}
-						</p>
-					</div>
-				</>
-			) : (
-				<>
-					{/* Badge Icon */}
-					<div
-						className={cn(
-							'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110',
-							isEarned ? 'bg-bg-card/80 shadow-card' : 'bg-bg-hover',
-						)}
-					>
-						{badge.icon}
-					</div>
-
-					{/* Badge Info */}
-					<div className='text-center'>
-						<p
-							className={cn(
-								'text-sm font-bold',
-								isEarned ? 'text-text-primary' : 'text-text-muted',
-							)}
-						>
-							{badge.name}
-						</p>
-						<p
-							className={cn(
-								'mt-1 line-clamp-2 text-xs',
-								isEarned ? 'text-text-secondary' : 'text-text-muted/70',
-							)}
-						>
-							{badge.description}
-						</p>
-					</div>
-
-					{/* Rarity Tag */}
-					<span
-						className={cn(
-							'rounded-full px-2.5 py-0.5 text-2xs font-semibold',
-							rarityConfig.bgClass,
-							rarityConfig.textClass,
-						)}
-					>
-						{t(rarityConfig.labelKey)}
-					</span>
-
-					{/* Unlock criteria (for locked badges) */}
-					{!isEarned && badge.unlockCriteria && (
-						<p className='mt-1 text-center text-2xs text-text-muted'>
-							{badge.unlockCriteria}
-						</p>
+			<MagicCard
+				mode='orb'
+				glowFrom={glow.from}
+				glowTo={glow.to}
+				className='h-full w-full'
+			>
+				<div
+					className={cn(
+						'flex flex-col items-center gap-3 h-full w-full text-center p-4 rounded-[inherit]',
+						isEarned
+							? `${rarityConfig.bgClass}`
+							: 'bg-bg-elevated/30 opacity-65 hover:opacity-90',
+						isHidden && 'cursor-help',
 					)}
+				>
+					{/* Hidden badge mystery */}
+					{isHidden ? (
+						<div className='flex flex-col items-center justify-between h-full w-full py-2'>
+							<div className='grid size-14 place-items-center rounded-xl bg-bg-hover'>
+								<Lock className='size-6 text-text-muted' />
+							</div>
+							<div className='text-center mt-2'>
+								<p className='text-sm font-semibold text-text-muted'>
+									{t('hiddenBadge')}
+								</p>
+								<p className='mt-1 text-xs text-text-muted/70'>
+									{t('discoverUnlock')}
+								</p>
+							</div>
+						</div>
+					) : (
+						<div className='flex flex-col items-center justify-between h-full w-full gap-2'>
+							{/* Badge Icon */}
+							<div
+								className={cn(
+									'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110 shadow-sm',
+									isEarned
+										? 'bg-bg-card/90 border border-border-subtle'
+										: 'bg-bg-hover',
+								)}
+							>
+								{badge.icon}
+							</div>
 
-					{/* Earned date (for earned badges) */}
-					{isEarned && earnedAt && (
-						<p className='text-2xs text-text-muted'>
-							{t('earnedDate', {
-								date: new Date(earnedAt).toLocaleDateString('en-US', {
-									month: 'short',
-									day: 'numeric',
-									year: 'numeric',
-								}),
-							})}
-						</p>
+							{/* Badge Info */}
+							<div className='text-center flex-1 flex flex-col justify-center min-h-[4rem]'>
+								<p
+									className={cn(
+										'text-sm font-bold tracking-tight',
+										isEarned ? 'text-text-primary' : 'text-text-muted',
+									)}
+								>
+									{badge.name}
+								</p>
+								<p
+									className={cn(
+										'mt-1 line-clamp-2 text-2xs leading-snug',
+										isEarned ? 'text-text-secondary' : 'text-text-muted/70',
+									)}
+								>
+									{badge.description}
+								</p>
+							</div>
+
+							{/* Rarity Tag */}
+							<span
+								className={cn(
+									'rounded-full px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider',
+									rarityConfig.bgClass,
+									rarityConfig.textClass,
+									'border border-border-subtle/20',
+								)}
+							>
+								{t(rarityConfig.labelKey)}
+							</span>
+
+							{/* Unlock criteria (for locked badges) */}
+							{!isEarned && badge.unlockCriteria && (
+								<p className='mt-1 text-center text-3xs text-text-muted/80 leading-tight italic'>
+									{badge.unlockCriteria}
+								</p>
+							)}
+
+							{/* Earned date (for earned badges) */}
+							{isEarned && earnedAt && (
+								<p className='text-3xs text-text-muted mt-1'>
+									{t('earnedDate', {
+										date: new Date(earnedAt).toLocaleDateString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											year: 'numeric',
+										}),
+									})}
+								</p>
+							)}
+						</div>
 					)}
-				</>
-			)}
+				</div>
+			</MagicCard>
 		</motion.div>
 	)
 }
@@ -392,24 +449,31 @@ export default function BadgeCatalogPage() {
 								>
 									<ArrowLeft className='size-5' />
 								</motion.button>
-								<div className='flex-1 rounded-2xl border border-border-subtle bg-bg-card px-4 py-5 shadow-card'>
-									<div className='flex items-center gap-3'>
-										<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-[0_6px_18px_rgba(255,90,54,0.28)]'>
-											<Trophy className='size-5' />
+								<div className='flex-1 rounded-2xl overflow-hidden shadow-card'>
+									<MagicCard
+										mode='orb'
+										glowFrom='var(--color-brand)'
+										glowTo='var(--color-xp)'
+										className='h-full w-full'
+									>
+										<div className='flex items-center gap-3 p-4 bg-bg-card'>
+											<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-[0_6px_18px_rgba(255,90,54,0.28)]'>
+												<Trophy className='size-5' />
+											</div>
+											<div className='min-w-0'>
+												<h1 className='text-3xl font-black tracking-tight text-text-primary'>
+													{t('title')}
+												</h1>
+												<p className='mt-1 text-sm text-text-secondary'>
+													{t('subtitle', {
+														earned: earnedCount,
+														total: totalBadges,
+														percent: progressPercent,
+													})}
+												</p>
+											</div>
 										</div>
-										<div className='min-w-0'>
-											<h1 className='text-3xl font-black tracking-tight text-text-primary'>
-												{t('title')}
-											</h1>
-											<p className='mt-1 text-sm text-text-secondary'>
-												{t('subtitle', {
-													earned: earnedCount,
-													total: totalBadges,
-													percent: progressPercent,
-												})}
-											</p>
-										</div>
-									</div>
+									</MagicCard>
 								</div>
 							</div>
 

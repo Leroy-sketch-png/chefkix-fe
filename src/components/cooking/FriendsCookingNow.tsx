@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChefHat, Users, Eye, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getFriendsActiveRooms } from '@/services/cookingRoom'
 import { getFriendsActiveCooking } from '@/services/heartbeat'
 import type { FriendsActiveRoom } from '@/lib/types/room'
@@ -13,6 +14,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
+import { MagicCard } from '@/components/ui/magic-card'
 
 interface FriendsCookingNowProps {
 	className?: string
@@ -72,26 +74,15 @@ export function FriendsCookingNow({
 
 	const totalActive = rooms.length + soloFriends.length
 
-	// Don't render anything if nobody is cooking
-	if (!isLoading && totalActive === 0) return null
-
-	// Loading skeleton
-	if (isLoading) return null // Don't show skeleton for this widget -- it appears asynchronously
-
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: -10 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={TRANSITION_SPRING}
+		<MagicCard
+			mode='gradient'
 			className={cn(
-				'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card md:p-5',
+				'overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0',
 				className,
 			)}
 		>
-			<div className='pointer-events-none absolute -left-10 -top-12 size-32 rounded-full bg-brand/10 blur-3xl' />
-			<div className='pointer-events-none absolute -bottom-14 -right-12 size-40 rounded-full bg-success/10 blur-3xl' />
-
-			<div className='relative z-10'>
+			<div className='p-4 md:p-5'>
 				<div className='mb-3 flex items-center gap-2'>
 					<div className='grid size-8 place-items-center rounded-xl bg-success/20'>
 						<ChefHat className='size-4 text-success' />
@@ -104,10 +95,42 @@ export function FriendsCookingNow({
 					</span>
 				</div>
 
-				{rooms.length > 0 && (
+				{isLoading && (
+					<div className='space-y-2'>
+						<div className='h-16 animate-pulse rounded-xl border border-border-subtle/70 bg-bg-elevated/60' />
+						<div className='h-16 animate-pulse rounded-xl border border-border-subtle/70 bg-bg-elevated/60' />
+					</div>
+				)}
+
+				{!isLoading && totalActive === 0 && (
+					<div className='rounded-xl border border-border-subtle/70 bg-bg-elevated/50 p-3'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{t('friendsCookingEmptyTitle')}
+						</p>
+						<p className='mt-1 text-xs text-text-secondary'>
+							{t('friendsCookingEmptyDesc')}
+						</p>
+						<div className='mt-3 flex gap-2'>
+							<Link
+								href='/community'
+								className='inline-flex items-center rounded-xl border border-border-subtle bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
+							>
+								{t('friendsCookingDiscoverFriends')}
+							</Link>
+							<Link
+								href='/cook-together'
+								className='inline-flex items-center rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/90'
+							>
+								{t('friendsCookingStartCocooking')}
+							</Link>
+						</div>
+					</div>
+				)}
+
+				{!isLoading && rooms.length > 0 && (
 					<div className='mb-2 space-y-2'>
 						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-							Live Rooms
+							{t('friendsCookingLiveRooms')}
 						</p>
 						<AnimatePresence mode='popLayout'>
 							{rooms.map(room => (
@@ -181,10 +204,10 @@ export function FriendsCookingNow({
 					</div>
 				)}
 
-				{soloFriends.length > 0 && (
+				{!isLoading && soloFriends.length > 0 && (
 					<div className='space-y-2'>
 						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
-							Solo Sessions
+							{t('friendsCookingSoloSessions')}
 						</p>
 						<AnimatePresence mode='popLayout'>
 							{soloFriends.map(friend => (
@@ -247,7 +270,7 @@ export function FriendsCookingNow({
 					</div>
 				)}
 			</div>
-		</motion.div>
+		</MagicCard>
 	)
 }
 

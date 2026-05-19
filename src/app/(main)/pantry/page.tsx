@@ -32,6 +32,8 @@ import {
 import { PantryCommandDeck } from '@/components/pantry/PantryCommandDeck'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
+import { MagicCard } from '@/components/ui/magic-card'
+import { GlowCard } from '@/components/ui/glow-card'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	TRANSITION_SPRING,
@@ -493,230 +495,257 @@ export default function PantryPage() {
 							<motion.div
 								initial={{ opacity: 0, y: -8 }}
 								animate={{ opacity: 1, y: 0 }}
-								className='space-y-2'
+								className='space-y-3'
 							>
 								{expiredCount > 0 && (
-									<div className='flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-4 py-3'>
-										<div className='flex items-center gap-2.5'>
-											<AlertTriangle className='size-4 flex-shrink-0 text-destructive' />
-											<p className='text-sm font-semibold text-destructive'>
-												{t('expiringItems', { count: expiredCount })}{' '}
-												{t('expiredLabel')}
-											</p>
+									<GlowCard
+										color='var(--color-destructive)'
+										radius={180}
+										intensity={0.28}
+										className='rounded-xl overflow-hidden shadow-card'
+									>
+										<div className='flex items-center justify-between gap-3 px-4 py-3 bg-destructive/8 border-none'>
+											<div className='flex items-center gap-2.5'>
+												<AlertTriangle className='size-4 flex-shrink-0 text-destructive animate-pulse' />
+												<p className='text-sm font-semibold text-destructive'>
+													{t('expiringItems', { count: expiredCount })}{' '}
+													{t('expiredLabel')}
+												</p>
+											</div>
+											<motion.button
+												type='button'
+												onClick={() => setShowClearExpiredConfirm(true)}
+												whileTap={BUTTON_TAP}
+												className='flex-shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
+											>
+												{t('clearExpiredTitle')}
+											</motion.button>
 										</div>
-										<motion.button
-											type='button'
-											onClick={() => setShowClearExpiredConfirm(true)}
-											whileTap={BUTTON_TAP}
-											className='flex-shrink-0 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive transition-colors hover:bg-destructive/20 focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											{t('clearExpiredTitle')}
-										</motion.button>
-									</div>
+									</GlowCard>
 								)}
 								{expiringCount > 0 && (
-									<div className='flex items-center justify-between gap-3 rounded-xl border border-warning/30 bg-warning/8 px-4 py-3'>
-										<div className='flex items-center gap-2.5'>
-											<AlertTriangle className='size-4 flex-shrink-0 text-warning' />
-											<p className='text-sm font-semibold text-warning'>
-												{t('expiringItems', { count: expiringCount })}{' '}
-												{t('expiresLabel')}
-											</p>
+									<GlowCard
+										color='var(--color-warning)'
+										radius={180}
+										intensity={0.22}
+										className='rounded-xl overflow-hidden shadow-card'
+									>
+										<div className='flex items-center justify-between gap-3 px-4 py-3 bg-warning/8 border-none'>
+											<div className='flex items-center gap-2.5'>
+												<AlertTriangle className='size-4 flex-shrink-0 text-warning' />
+												<p className='text-sm font-semibold text-warning'>
+													{t('expiringItems', { count: expiringCount })}{' '}
+													{t('expiresLabel')}
+												</p>
+											</div>
+											<motion.button
+												type='button'
+												onClick={loadSuggestions}
+												whileTap={BUTTON_TAP}
+												className='flex-shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning transition-colors hover:bg-warning/20 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
+											>
+												{t('findRecipesToUse')}
+											</motion.button>
 										</div>
-										<motion.button
-											type='button'
-											onClick={loadSuggestions}
-											whileTap={BUTTON_TAP}
-											className='flex-shrink-0 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-bold text-warning transition-colors hover:bg-warning/20 focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											{t('findRecipesToUse')}
-										</motion.button>
-									</div>
+									</GlowCard>
 								)}
 							</motion.div>
 						)}
 
 						{/* ── Quick Add Bar ─────────────────── */}
-						<motion.div>
-							<PremiumSurface tone='success' className='bg-bg-card/85 sm:p-4'>
-								<div className='space-y-3'>
-									<div className='flex items-center justify-between gap-3'>
-										<div>
-											<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-success'>
-												{t('quickAddEyebrow')}
-											</p>
-											<p className='mt-1 text-sm font-semibold text-text-primary'>
-												{t('quickAddHeading')}
-											</p>
-										</div>
-										<motion.button
-											type='button'
-											onClick={() => setShowQuickAddDetails(prev => !prev)}
-											whileTap={BUTTON_SUBTLE_TAP}
-											className='inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											{showQuickAddDetails ? (
-												<ChevronUp className='size-3.5' />
-											) : (
-												<ChevronDown className='size-3.5' />
-											)}
-											{showQuickAddDetails
-												? t('hideDetails')
-												: t('showDetails')}
-										</motion.button>
-									</div>
-
-									<div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end'>
-										<div>
-											<label
-												htmlFor='pantry-ingredient'
-												className='mb-0.5 block text-xs font-medium text-text-secondary'
-											>
-												{t('labelIngredient')}
-											</label>
-											<AsyncCombobox
-												id='pantry-ingredient'
-												ref={quickAddRef}
-												value={quickAddName}
-												onChange={setQuickAddName}
-												onSelect={option => {
-													setQuickAddName(option.label)
-													const cat =
-														option.category || suggestCategory(option.label)
-													if (cat !== 'other') setQuickAddCategory(cat)
-												}}
-												fetchOptions={fetchIngredientOptions}
-												minChars={1}
-												onKeyDown={e => {
-													if (e.key === 'Enter') handleQuickAdd()
-												}}
-												placeholder={t('ingredientPlaceholder')}
-											/>
-										</div>
-										<motion.button
-											type='button'
-											onClick={handleQuickAdd}
-											whileTap={BUTTON_TAP}
-											disabled={!quickAddName.trim() || isAdding}
-											className='inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-										>
-											<Plus className='size-4' />
-											{t('addButton')}
-										</motion.button>
-									</div>
-
-									<AnimatePresence initial={false}>
-										{showQuickAddDetails && (
-											<motion.div
-												initial={{ opacity: 0, height: 0 }}
-												animate={{ opacity: 1, height: 'auto' }}
-												exit={{ opacity: 0, height: 0 }}
-												transition={TRANSITION_SPRING}
-												className='space-y-2 overflow-hidden rounded-xl border border-border-subtle bg-bg p-3'
-											>
-												<p className='text-xs text-text-muted'>
-													{t('quickAddDetailsHint')}
+						<motion.div className='overflow-visible rounded-3xl'>
+							<MagicCard
+								mode='orb'
+								glowFrom='var(--color-success)'
+								glowTo='var(--color-brand)'
+								className='overflow-visible rounded-3xl shadow-card'
+							>
+								<PremiumSurface
+									tone='success'
+									showOrbs={false}
+									className='bg-bg-card/85 sm:p-4 border-none shadow-none backdrop-blur-none'
+								>
+									<div className='space-y-3'>
+										<div className='flex items-center justify-between gap-3'>
+											<div>
+												<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-success'>
+													{t('quickAddEyebrow')}
 												</p>
-												<div className='grid grid-cols-1 gap-2 sm:grid-cols-4'>
-													<div>
-														<label
-															htmlFor='pantry-qty'
-															className='mb-0.5 block text-xs font-medium text-text-secondary'
-														>
-															{t('labelQty')}
-														</label>
-														<input
-															id='pantry-qty'
-															value={quickAddQty}
-															onChange={e => setQuickAddQty(e.target.value)}
-															onKeyDown={e =>
-																e.key === 'Enter' && handleQuickAdd()
-															}
-															placeholder={t('qtyPlaceholder')}
-															type='number'
-															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-														/>
+												<p className='mt-1 text-sm font-semibold text-text-primary'>
+													{t('quickAddHeading')}
+												</p>
+											</div>
+											<motion.button
+												type='button'
+												onClick={() => setShowQuickAddDetails(prev => !prev)}
+												whileTap={BUTTON_SUBTLE_TAP}
+												className='inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												{showQuickAddDetails ? (
+													<ChevronUp className='size-3.5' />
+												) : (
+													<ChevronDown className='size-3.5' />
+												)}
+												{showQuickAddDetails
+													? t('hideDetails')
+													: t('showDetails')}
+											</motion.button>
+										</div>
+
+										<div className='grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end'>
+											<div>
+												<label
+													htmlFor='pantry-ingredient'
+													className='mb-0.5 block text-xs font-medium text-text-secondary'
+												>
+													{t('labelIngredient')}
+												</label>
+												<AsyncCombobox
+													id='pantry-ingredient'
+													ref={quickAddRef}
+													value={quickAddName}
+													onChange={setQuickAddName}
+													onSelect={option => {
+														setQuickAddName(option.label)
+														const cat =
+															option.category || suggestCategory(option.label)
+														if (cat !== 'other') setQuickAddCategory(cat)
+													}}
+													fetchOptions={fetchIngredientOptions}
+													minChars={1}
+													onKeyDown={e => {
+														if (e.key === 'Enter') handleQuickAdd()
+													}}
+													placeholder={t('ingredientPlaceholder')}
+												/>
+											</div>
+											<motion.button
+												type='button'
+												onClick={handleQuickAdd}
+												whileTap={BUTTON_TAP}
+												disabled={!quickAddName.trim() || isAdding}
+												className='inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												<Plus className='size-4' />
+												{t('addButton')}
+											</motion.button>
+										</div>
+
+										<AnimatePresence initial={false}>
+											{showQuickAddDetails && (
+												<motion.div
+													initial={{ opacity: 0, height: 0 }}
+													animate={{ opacity: 1, height: 'auto' }}
+													exit={{ opacity: 0, height: 0 }}
+													transition={TRANSITION_SPRING}
+													className='space-y-2 overflow-hidden rounded-xl border border-border-subtle bg-bg p-3'
+												>
+													<p className='text-xs text-text-muted'>
+														{t('quickAddDetailsHint')}
+													</p>
+													<div className='grid grid-cols-1 gap-2 sm:grid-cols-4'>
+														<div>
+															<label
+																htmlFor='pantry-qty'
+																className='mb-0.5 block text-xs font-medium text-text-secondary'
+															>
+																{t('labelQty')}
+															</label>
+															<input
+																id='pantry-qty'
+																value={quickAddQty}
+																onChange={e => setQuickAddQty(e.target.value)}
+																onKeyDown={e =>
+																	e.key === 'Enter' && handleQuickAdd()
+																}
+																placeholder={t('qtyPlaceholder')}
+																type='number'
+																className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+															/>
+														</div>
+														<div>
+															<label
+																htmlFor='pantry-unit'
+																className='mb-0.5 block text-xs font-medium text-text-secondary'
+															>
+																{t('labelUnit')}
+															</label>
+															<input
+																id='pantry-unit'
+																value={quickAddUnit}
+																onChange={e => setQuickAddUnit(e.target.value)}
+																onKeyDown={e =>
+																	e.key === 'Enter' && handleQuickAdd()
+																}
+																placeholder={t('unitPlaceholder')}
+																className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+															/>
+														</div>
+														<div>
+															<label
+																htmlFor='pantry-category'
+																className='mb-0.5 block text-xs font-medium text-text-secondary'
+															>
+																{t('labelCategory')}
+															</label>
+															<select
+																id='pantry-category'
+																value={quickAddCategory}
+																onChange={e =>
+																	setQuickAddCategory(e.target.value)
+																}
+																className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+															>
+																{CATEGORIES.map(c => (
+																	<option
+																		key={c.key}
+																		value={c.key}
+																		className='bg-bg-card text-text-primary'
+																	>
+																		{c.emoji} {t(c.labelKey)}
+																	</option>
+																))}
+															</select>
+														</div>
+														<div>
+															<label
+																htmlFor='pantry-expiry'
+																className='mb-0.5 block text-xs font-medium text-text-secondary'
+															>
+																{t('labelExpiry')}
+															</label>
+															<input
+																id='pantry-expiry'
+																type='date'
+																value={quickAddExpiry}
+																onChange={e =>
+																	setQuickAddExpiry(e.target.value)
+																}
+																className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+															/>
+														</div>
 													</div>
-													<div>
-														<label
-															htmlFor='pantry-unit'
-															className='mb-0.5 block text-xs font-medium text-text-secondary'
+													<div className='flex justify-end'>
+														<motion.button
+															type='button'
+															onClick={() => {
+																setQuickAddQty('')
+																setQuickAddUnit('')
+																setQuickAddCategory('other')
+																setQuickAddExpiry('')
+															}}
+															whileTap={BUTTON_SUBTLE_TAP}
+															className='inline-flex h-8 items-center rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
-															{t('labelUnit')}
-														</label>
-														<input
-															id='pantry-unit'
-															value={quickAddUnit}
-															onChange={e => setQuickAddUnit(e.target.value)}
-															onKeyDown={e =>
-																e.key === 'Enter' && handleQuickAdd()
-															}
-															placeholder={t('unitPlaceholder')}
-															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-														/>
+															{t('resetDetails')}
+														</motion.button>
 													</div>
-													<div>
-														<label
-															htmlFor='pantry-category'
-															className='mb-0.5 block text-xs font-medium text-text-secondary'
-														>
-															{t('labelCategory')}
-														</label>
-														<select
-															id='pantry-category'
-															value={quickAddCategory}
-															onChange={e =>
-																setQuickAddCategory(e.target.value)
-															}
-															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-														>
-															{CATEGORIES.map(c => (
-																<option
-																	key={c.key}
-																	value={c.key}
-																	className='bg-bg-card text-text-primary'
-																>
-																	{c.emoji} {t(c.labelKey)}
-																</option>
-															))}
-														</select>
-													</div>
-													<div>
-														<label
-															htmlFor='pantry-expiry'
-															className='mb-0.5 block text-xs font-medium text-text-secondary'
-														>
-															{t('labelExpiry')}
-														</label>
-														<input
-															id='pantry-expiry'
-															type='date'
-															value={quickAddExpiry}
-															onChange={e => setQuickAddExpiry(e.target.value)}
-															className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
-														/>
-													</div>
-												</div>
-												<div className='flex justify-end'>
-													<motion.button
-														type='button'
-														onClick={() => {
-															setQuickAddQty('')
-															setQuickAddUnit('')
-															setQuickAddCategory('other')
-															setQuickAddExpiry('')
-														}}
-														whileTap={BUTTON_SUBTLE_TAP}
-														className='inline-flex h-8 items-center rounded-lg border border-border-subtle bg-bg-elevated px-3 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-													>
-														{t('resetDetails')}
-													</motion.button>
-												</div>
-											</motion.div>
-										)}
-									</AnimatePresence>
-								</div>
-							</PremiumSurface>
+												</motion.div>
+											)}
+										</AnimatePresence>
+									</div>
+								</PremiumSurface>
+							</MagicCard>
 						</motion.div>
 
 						{/* ── Items by Category ─────────────── */}

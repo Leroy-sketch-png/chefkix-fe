@@ -230,13 +230,24 @@ export function DraftsList({
 				{drafts.length === 0 && (
 					<EmptyStateGamified
 						variant='custom'
-						title={t('noDraftsYet')}
-						description={t('noDraftsDescription')}
+						title={t('noDraftsTitlePrime')}
+						description={t('noDraftsDescriptionPrime')}
 						illustration={
 							<FileText className='size-16 text-brand opacity-50' />
 						}
-						primaryAction={{ label: t('createRecipe'), href: '/create' }}
-					/>
+						primaryAction={{ label: t('createRecipeNow'), href: '/create' }}
+						secondaryActions={[
+							{
+								label: t('browseRecipeInspiration'),
+								href: '/explore',
+								icon: <Clock className='size-4' />,
+							},
+						]}
+					>
+						<p className='mx-auto mt-2 max-w-sm rounded-full border border-brand/25 bg-brand/8 px-3 py-1 text-xs font-semibold text-brand'>
+							{t('creatorMilestoneHint')}
+						</p>
+					</EmptyStateGamified>
 				)}
 			</motion.div>
 

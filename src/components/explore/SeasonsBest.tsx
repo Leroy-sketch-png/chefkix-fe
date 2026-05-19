@@ -1,8 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, ChefHat, ArrowRight, BookOpen } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import {
+	Sparkles,
+	ChefHat,
+	ArrowRight,
+	BookOpen,
+	CalendarDays,
+	RefreshCw,
+	Clock3,
+	Users,
+} from 'lucide-react'
 import Link from 'next/link'
 import { Collection } from '@/lib/types/collection'
 import { getFeaturedCollections } from '@/services/collection'
@@ -34,87 +43,178 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 	const t = useTranslations('explore')
 	const [collections, setCollections] = useState<Collection[]>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const [hasError, setHasError] = useState(false)
+	const [showAllCollections, setShowAllCollections] = useState(false)
 
-	useEffect(() => {
+	const loadCollections = useCallback(() => {
 		let cancelled = false
+
 		const fetchFeatured = async () => {
+			setIsLoading(true)
+			setHasError(false)
 			try {
 				const res = await getFeaturedCollections()
 				if (cancelled) return
 				if (res.success && res.data && res.data.length > 0) {
 					setCollections(res.data)
+				} else if (!res.success) {
+					setHasError(true)
+					setCollections([])
+				} else {
+					setCollections([])
 				}
 			} catch (err) {
+				if (!cancelled) {
+					setHasError(true)
+					setCollections([])
+				}
 				logDevError('Failed to fetch featured collections:', err)
 			} finally {
 				if (!cancelled) setIsLoading(false)
 			}
 		}
+
 		fetchFeatured()
 		return () => {
 			cancelled = true
 		}
 	}, [])
 
-	// Graceful degradation: nothing to show = render nothing
-	if (!isLoading && collections.length === 0) return null
+	useEffect(() => {
+		const cleanup = loadCollections()
+		return cleanup
+	}, [])
 
-	// Skeleton while loading
 	if (isLoading) {
+		return <SeasonsBestSkeleton className={className} />
+	}
+
+	if (hasError) {
 		return (
-			<div className={cn('mb-6', className)}>
-				<div className='mb-3 flex items-center gap-2'>
-					<Skeleton className='size-5 rounded' />
-					<Skeleton className='h-5 w-32 rounded' />
+			<section
+				className={cn(
+					'rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card',
+					className,
+				)}
+			>
+				<div className='flex items-start gap-3'>
+					<div className='flex size-10 items-center justify-center rounded-2xl bg-brand/10 text-brand'>
+						<CalendarDays className='size-5' />
+					</div>
+					<div className='flex-1'>
+						<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+							{t('seasonalEventLabel')}
+						</p>
+						<h3 className='mt-1 text-base font-bold text-text-primary'>
+							{t('seasonsBestLoadFailedTitle')}
+						</h3>
+						<p className='mt-1 text-sm leading-relaxed text-text-secondary'>
+							{t('seasonsBestLoadFailedBody')}
+						</p>
+					</div>
 				</div>
-				<div className='flex gap-4 overflow-hidden'>
-					{[1, 2, 3].map(i => (
-						<Skeleton key={i} className='h-48 w-72 flex-shrink-0 rounded-2xl' />
-					))}
-				</div>
-			</div>
+				<button
+					type='button'
+					onClick={loadCollections}
+					className='mt-4 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:border-brand/35 hover:bg-brand/10 hover:text-brand'
+				>
+					<RefreshCw className='size-3.5' />
+					{t('tryAgainButton')}
+				</button>
+			</section>
 		)
 	}
+
+	if (collections.length === 0) {
+		return (
+			<section
+				className={cn(
+					'rounded-2xl border border-dashed border-border-medium bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-4 shadow-card',
+					className,
+				)}
+			>
+				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					{t('seasonalEventLabel')}
+				</p>
+				<h3 className='mt-1 text-lg font-black leading-tight text-text-primary'>
+					{t('seasonsBestEmptyTitle')}
+				</h3>
+				<p className='mt-2 text-sm leading-relaxed text-text-secondary'>
+					{t('seasonsBestEmptyBody')}
+				</p>
+				<Link
+					href='/explore?mode=trending'
+					className='mt-4 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-colors hover:border-brand/35 hover:bg-brand/10 hover:text-brand'
+				>
+					<Sparkles className='size-3.5' />
+					{t('commandModeTrending')}
+					<ArrowRight className='size-3.5' />
+				</Link>
+			</section>
+		)
+	}
+
+	const [featuredCollection, ...supportingCollections] = collections
+	const hasOverflowCollections = supportingCollections.length > 2
+	const visibleSupportingCollections = showAllCollections
+		? supportingCollections
+		: supportingCollections.slice(0, 2)
 
 	return (
 		<motion.section
 			initial={{ opacity: 0, y: 12 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
-			className={cn('mb-6', className)}
+			className={cn(
+				'rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card',
+				className,
+			)}
 			aria-label={t('seasonsBestTitle')}
 		>
-			{/* Section header */}
-			<div className='mb-3 flex items-center justify-between'>
+			<div className='mb-4 flex items-start justify-between gap-3'>
 				<div className='flex items-center gap-2'>
-					<Sparkles className='size-5 text-brand' />
-					<h2 className='text-lg font-bold text-text-primary'>
-						{t('seasonsBestTitle')}
-					</h2>
+					<div className='flex size-10 items-center justify-center rounded-2xl bg-brand/10 text-brand'>
+						<Sparkles className='size-5' />
+					</div>
+					<div>
+						<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+							{t('seasonalEventLabel')}
+						</p>
+						<h2 className='text-lg font-black leading-tight text-text-primary'>
+							{t('seasonsBestTitle')}
+						</h2>
+						<p className='mt-1 text-xs font-medium leading-relaxed text-text-secondary'>
+							{t('seasonsBestSubtitle')}
+						</p>
+					</div>
 				</div>
-				<Link
-					href='/explore?view=collections'
-					className='flex items-center gap-1 text-sm font-medium text-text-secondary transition-colors hover:text-brand'
-				>
-					{t('seasonsBestViewAll')}
-					<ArrowRight className='size-3.5' />
-				</Link>
+				{hasOverflowCollections && (
+					<button
+						type='button'
+						onClick={() => setShowAllCollections(current => !current)}
+						className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-brand/30 hover:text-brand'
+					>
+						{showAllCollections
+							? t('seasonsBestShowLess')
+							: t('seasonsBestViewAll')}
+						<ArrowRight className='size-3.5' />
+					</button>
+				)}
 			</div>
 
-			{/* Scrollable card strip */}
-			<div
-				className='flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pr-1 scrollbar-thin scrollbar-thumb-border-medium'
-				role='list'
-			>
-				<AnimatePresence>
-					{collections.map((collection, index) => (
-						<FeaturedCollectionCard
-							key={collection.id}
-							collection={collection}
-							index={index}
-						/>
-					))}
-				</AnimatePresence>
+			<div className='space-y-3' role='list'>
+				<FeaturedCollectionCard
+					collection={featuredCollection}
+					index={0}
+					featured
+				/>
+				{visibleSupportingCollections.map((collection, index) => (
+					<FeaturedCollectionCard
+						key={collection.id}
+						collection={collection}
+						index={index + 1}
+					/>
+				))}
 			</div>
 		</motion.section>
 	)
@@ -127,15 +227,43 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 interface FeaturedCollectionCardProps {
 	collection: Collection
 	index: number
+	featured?: boolean
 }
 
 function FeaturedCollectionCard({
 	collection,
 	index,
+	featured = false,
 }: FeaturedCollectionCardProps) {
 	const t = useTranslations('explore')
 	const itemCount =
 		(collection.recipeIds?.length || 0) + (collection.postIds?.length || 0)
+	const stats = [
+		itemCount > 0
+			? {
+					icon: BookOpen,
+					label: t('collectionItemCount', { count: itemCount }),
+				}
+			: null,
+		collection.totalXp && collection.totalXp > 0
+			? {
+					icon: ChefHat,
+					label: t('xpLabel', { xp: collection.totalXp }),
+				}
+			: null,
+		collection.estimatedTotalMinutes && collection.estimatedTotalMinutes > 0
+			? {
+					icon: Clock3,
+					label: `${collection.estimatedTotalMinutes} ${t('unitMin')}`,
+				}
+			: null,
+		collection.enrolledCount && collection.enrolledCount > 0
+			? {
+					icon: Users,
+					label: `${collection.enrolledCount}`,
+				}
+			: null,
+	].filter(Boolean) as Array<{ icon: typeof BookOpen; label: string }>
 
 	return (
 		<motion.div
@@ -145,71 +273,108 @@ function FeaturedCollectionCard({
 			whileHover={CARD_FEED_HOVER}
 			role='listitem'
 		>
-			<Link
-				href={`/collections/${collection.id}`}
-				className='group block w-72 snap-start flex-shrink-0'
-			>
-				<div className='relative h-48 overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card to-bg-elevated/60 text-transparent shadow-card transition-shadow duration-300 group-hover:shadow-warm'>
-					{/* Cover image or gradient fallback -- text-transparent hides alt text on slow/broken images */}
+			<Link href={`/collections/${collection.id}`} className='group block'>
+				<div
+					className={cn(
+						'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card shadow-card transition-shadow duration-300 group-hover:shadow-warm',
+						featured ? 'min-h-[240px]' : 'min-h-[164px]',
+					)}
+				>
 					<ImageWithFallback
 						src={collection.coverImageUrl}
 						alt={collection.name}
 						fill
 						className='object-cover transition-transform duration-500 group-hover:scale-105'
-						sizes='288px'
+						sizes={featured ? '360px' : '320px'}
 						fallbackComponent={
 							<div className='absolute inset-0 bg-gradient-to-br from-brand/20 via-brand/10 to-transparent' />
 						}
 					/>
 
-					{/* Gradient overlay for text readability */}
 					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
-					{/* Emoji badge (top-left) */}
 					{collection.emoji && (
-						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-bg-card/90 text-lg shadow-sm backdrop-blur-sm'>
+						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-bg-card/90 text-lg shadow-sm backdrop-blur-sm z-40'>
 							{collection.emoji}
 						</div>
 					)}
 
-					{/* Season tag (top-right) */}
 					{collection.seasonTag && (
-						<span className='absolute right-3 top-3 rounded-full bg-brand/90 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm'>
+						<span className='absolute right-3 top-3 rounded-full bg-brand/90 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur-sm z-40'>
 							{formatSeasonTag(collection.seasonTag)}
 						</span>
 					)}
 
-					{/* Content (bottom) */}
-					<div className='absolute bottom-0 left-0 right-0 p-4'>
-						<h3 className='line-clamp-1 text-base font-bold text-white'>
+					<div
+						className={cn(
+							'absolute inset-x-0 bottom-0 p-4 z-40',
+							featured && 'p-5',
+						)}
+					>
+						<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-white/72'>
+							{featured ? t('featured') : t('seasonalEventLabel')}
+						</p>
+						<h3
+							className={cn(
+								'line-clamp-2 font-bold text-white',
+								featured ? 'mt-1 text-lg leading-tight' : 'mt-1 text-base',
+							)}
+						>
 							{collection.name}
 						</h3>
 						{collection.tagline && (
-							<p className='mt-0.5 line-clamp-1 text-sm text-white/80'>
+							<p
+								className={cn(
+									'line-clamp-2 text-sm text-white/82',
+									featured ? 'mt-1.5 leading-relaxed' : 'mt-1',
+								)}
+							>
 								{collection.tagline}
 							</p>
 						)}
-						<div className='mt-2 flex items-center gap-3 text-xs text-white/70'>
-							{itemCount > 0 && (
-								<span className='flex items-center gap-1'>
-									<BookOpen className='size-3' />
-									<span className='tabular-nums'>{itemCount}</span>{' '}
-									{itemCount === 1
-										? t('recipeCountSingle')
-										: t('recipeCountPlural')}
-								</span>
-							)}
-							{collection.totalXp && collection.totalXp > 0 && (
-								<span className='flex items-center gap-1 tabular-nums'>
-									<ChefHat className='size-3' />
-									{t('xpLabel', { xp: collection.totalXp })}
-								</span>
-							)}
+						<div className='mt-3 flex flex-wrap gap-2 text-xs text-white/72'>
+							{stats.slice(0, featured ? 4 : 3).map(stat => {
+								const Icon = stat.icon
+								return (
+									<span
+										key={`${collection.id}-${stat.label}`}
+										className='inline-flex items-center gap-1 rounded-full bg-white/14 px-2 py-1 backdrop-blur-sm'
+									>
+										<Icon className='size-3' />
+										<span className='tabular-nums'>{stat.label}</span>
+									</span>
+								)
+							})}
 						</div>
 					</div>
 				</div>
 			</Link>
 		</motion.div>
+	)
+}
+
+function SeasonsBestSkeleton({ className }: SeasonsBestProps) {
+	return (
+		<div
+			className={cn(
+				'rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card',
+				className,
+			)}
+		>
+			<div className='mb-4 flex items-center gap-3'>
+				<Skeleton className='size-10 rounded-2xl' />
+				<div className='space-y-2'>
+					<Skeleton className='h-3 w-20 rounded-full' />
+					<Skeleton className='h-5 w-32 rounded-full' />
+				</div>
+			</div>
+			<Skeleton className='h-60 w-full rounded-2xl' />
+			<div className='mt-3 grid gap-3'>
+				{[1, 2].map(item => (
+					<Skeleton key={item} className='h-40 w-full rounded-2xl' />
+				))}
+			</div>
+		</div>
 	)
 }
 
