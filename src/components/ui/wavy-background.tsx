@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 // ── Props ──────────────────────────────────────────────────────────────
@@ -46,6 +47,14 @@ export function WavyBackground({
 	waveHeight = 30,
 	className,
 }: WavyBackgroundProps) {
+	const prefersReducedMotion = useReducedMotion()
+	const shouldAnimate = animate && !prefersReducedMotion
+
+	const overscan = 35
+	const startX = -overscan
+	const endX = 100 + overscan
+	const viewBoxWidth = 100 + overscan * 2
+
 	const wavePaths = React.useMemo(() => {
 		return Array.from({ length: Math.min(layers, colors.length) }, (_, i) => {
 			const yOffset = 100 - waveHeight + i * (waveHeight / layers) * 0.6
@@ -53,60 +62,68 @@ export function WavyBackground({
 			const frequency = 1.5 + i * 0.5
 			// Generate a smooth sine-wave path
 			const points: string[] = []
-			for (let x = 0; x <= 100; x += 2) {
+			for (let x = startX; x <= endX; x += 2) {
 				const y =
 					yOffset +
 					Math.sin((x / 100) * Math.PI * frequency) * amplitude +
 					Math.sin((x / 100) * Math.PI * frequency * 2.3) * (amplitude * 0.4)
-				points.push(`${x === 0 ? 'M' : 'L'} ${x} ${y}`)
+				points.push(`${x === startX ? 'M' : 'L'} ${x} ${y}`)
 			}
-			return `${points.join(' ')} L 100 100 L 0 100 Z`
+			return `${points.join(' ')} L ${endX} 100 L ${startX} 100 Z`
 		})
-	}, [layers, colors.length, waveHeight])
+	}, [layers, colors.length, waveHeight, startX, endX])
 
 	return (
 		<div
 			className={cn(
-				'relative flex items-center justify-center overflow-hidden bg-background',
+				'relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-background',
 				className,
 			)}
 		>
 			{/* Waves */}
-			<svg
-				className={cn(
-					'absolute inset-x-0 bottom-0 size-full',
-					animate && 'animate-wave',
-				)}
-				viewBox='0 0 100 100'
+			<motion.svg
+				className='pointer-events-none absolute inset-x-1/2 bottom-0 h-full w-[calc(100vw+16rem)] max-w-none -translate-x-1/2'
+				viewBox={`${startX} 0 ${viewBoxWidth} 100`}
 				preserveAspectRatio='none'
+				animate={
+					shouldAnimate
+						? {
+								x: [-40, 40, -40],
+								y: [8, -8, 8],
+							}
+						: undefined
+				}
+				transition={
+					shouldAnimate
+						? {
+								duration: 8,
+								ease: 'easeInOut',
+								repeat: Number.POSITIVE_INFINITY,
+							}
+						: undefined
+				}
 				aria-hidden
 			>
 				{wavePaths.map((d, i) => (
-					<path
-						key={i}
-						d={d}
-						fill={colors[i] ?? colors[colors.length - 1]}
-						style={
-							animate
-								? {
-										animation: `wave-shift ${12 + i * 3}s ease-in-out infinite alternate`,
-										transformOrigin: 'center',
-									}
-								: undefined
-						}
-					/>
+					<path key={i} d={d} fill={colors[i] ?? colors[colors.length - 1]}>
+						{shouldAnimate && (
+							<animate
+								attributeName='opacity'
+								values='1;0.93;1'
+								dur={`${6 + i * 1.4}s`}
+								repeatCount='indefinite'
+							/>
+						)}
+					</path>
 				))}
-			</svg>
+			</motion.svg>
 
 			{/* Content */}
-			{children && <div className='relative z-10'>{children}</div>}
+			{children && (
+				<div className='relative z-10 flex w-full items-center justify-center'>
+					{children}
+				</div>
+			)}
 		</div>
 	)
 }
-
-/* Required CSS (add to globals.css):
-@keyframes wave-shift {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-5%); }
-}
-*/

@@ -133,3 +133,36 @@ export const PRIMARY_PAGES = [
 
 // Primary pages: NO back button (user navigates away via sidebar)
 // Secondary pages (everything else): MUST have back button
+
+/**
+ * Dev-only checker for forbidden utility usage in rendered class names.
+ * This is a lightweight runtime guard, not a full static linter.
+ */
+export function validateTokenUsage(): void {
+	if (typeof window === 'undefined' || process.env.NODE_ENV !== 'development') {
+		return
+	}
+
+	try {
+		const violations = new Set<string>()
+		const nodes = document.querySelectorAll<HTMLElement>('[class]')
+
+		nodes.forEach(node => {
+			const className = node.className
+			if (typeof className !== 'string') return
+
+			FORBIDDEN_PATTERNS.forEach(rule => {
+				if (rule.pattern.test(className)) {
+					violations.add(`${rule.message} :: "${className}"`)
+				}
+			})
+		})
+
+		if (violations.size > 0) {
+			console.warn('[ChefKix Design System] Forbidden token usage detected:')
+			violations.forEach(message => console.warn(`- ${message}`))
+		}
+	} catch {
+		// Guard should never break the app in development.
+	}
+}

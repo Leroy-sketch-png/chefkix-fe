@@ -101,7 +101,7 @@ function buildRadarPath(profile: TasteProfile, size: number) {
  * TasteDetector — Passive taste detection UI for cold-start onboarding.
  *
  * Shows a mini radar chart that "forms" as the user browses recipes.
- * Uses semantic tokens per DESIGN_SYSTEM.md.
+ * Uses semantic tokens per 30-frontend-design-system.md.
  *
  * Usage:
  * ```tsx

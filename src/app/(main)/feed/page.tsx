@@ -319,7 +319,7 @@ export default function FeedPage() {
 														>
 															<Link href='/explore'>
 																<Sparkles className='size-4' />
-																Explore trending
+																{t('emptyExploreAction')}
 															</Link>
 														</Button>
 														<Button
@@ -327,7 +327,7 @@ export default function FeedPage() {
 															variant='outline'
 															className='h-10 gap-2 rounded-xl px-5'
 														>
-															<Link href='/search'>Find people to follow</Link>
+															<Link href='/search'>{t('emptyFindAction')}</Link>
 														</Button>
 													</div>
 												</div>
@@ -335,15 +335,15 @@ export default function FeedPage() {
 													<div className='flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted'>
 														<span className='flex items-center gap-1.5'>
 															<span className='inline-block size-2 rounded-full bg-success' />
-															Community of home cooks
+															{t('emptyProofCommunity')}
 														</span>
 														<span className='flex items-center gap-1.5'>
 															<span className='inline-block size-2 rounded-full bg-brand' />
-															Recipes shared every day
+															{t('emptyProofRecipes')}
 														</span>
 														<span className='flex items-center gap-1.5'>
 															<span className='inline-block size-2 rounded-full bg-xp' />
-															Real kitchen experiences
+															{t('emptyProofTips')}
 														</span>
 													</div>
 												</div>

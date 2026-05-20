@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { NumberTicker } from '@/components/ui/number-ticker'
+import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { Statistics } from '@/lib/types/profile'
@@ -130,7 +131,7 @@ function ActionCard({
 			<Link
 				href={href}
 				className={cn(
-					'group flex h-full flex-col rounded-2xl border p-4 shadow-card transition-all duration-300 hover:shadow-warm sm:p-5',
+					'group flex h-full flex-col rounded-3xl border p-4 shadow-card transition-all duration-300 hover:shadow-warm sm:p-5',
 					actionSurface[tone],
 				)}
 			>
@@ -263,7 +264,7 @@ export function DashboardCommandDeck({
 							</p>
 						</div>
 
-						<div className='rounded-2xl border border-border-subtle bg-bg-card/85 p-4 shadow-card sm:p-5'>
+						<div className='rounded-3xl border border-border-subtle bg-bg-card/85 p-4 shadow-card sm:p-5'>
 							<div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
 								<div className='space-y-1.5'>
 									<p className='text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted'>
@@ -279,13 +280,22 @@ export function DashboardCommandDeck({
 										{t('cmdRhythmDesc')}
 									</p>
 								</div>
-								<div className='shrink-0'>
-									<p className='text-right text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted'>
-										{t('cmdProgressRemaining')}
-									</p>
-									<p className='text-right text-3xl font-black tracking-tight text-text-primary sm:text-[2.2rem]'>
-										<NumberTicker value={xpRemaining} locale='en-US' />
-									</p>
+								<div className='flex items-center gap-4 self-start sm:self-end'>
+									<AnimatedCircularProgressBar
+										value={xp}
+										max={xpGoal}
+										gaugePrimaryColor='var(--color-xp)'
+										gaugeSecondaryColor='color-mix(in oklch, var(--color-xp) 20%, transparent)'
+										className='size-16 text-sm'
+									/>
+									<div className='shrink-0'>
+										<p className='text-right text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+											{t('cmdProgressRemaining')}
+										</p>
+										<p className='text-right text-3xl font-black tracking-tight text-text-primary sm:text-[2.2rem]'>
+											<NumberTicker value={xpRemaining} locale='en-US' />
+										</p>
+									</div>
 								</div>
 							</div>
 

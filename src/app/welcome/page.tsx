@@ -10,6 +10,7 @@ import {
 	Flame,
 	Users,
 	BookOpen,
+	Share2,
 	Sparkles,
 	TrendingUp,
 	Clock,
@@ -37,6 +38,12 @@ import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { MagicCard } from '@/components/ui/magic-card'
 import { BlurFade } from '@/components/ui/blur-fade'
 import { ShinyButton } from '@/components/ui/shiny-button'
+import { WordRotate } from '@/components/ui/word-rotate'
+import {
+	ScrollVelocityContainer,
+	ScrollVelocityRow,
+} from '@/components/ui/scroll-velocity'
+import { StackedCards } from '@/components/ui/stacked-cards'
 
 // ============================================
 // HERO SECTION
@@ -78,7 +85,16 @@ const HeroSection = () => {
 								duration={6}
 								className='drop-shadow-sm font-black'
 							>
-								{t('heroTitlePro')}
+								<WordRotate
+									words={[
+										t('heroPro'),
+										t('heroChef'),
+										t('heroLegend'),
+										t('heroStar'),
+									]}
+									className='text-brand font-black'
+									duration={2500}
+								/>
 							</AnimatedGradientText>
 							<br />
 							{t('heroTitle2')}{' '}
@@ -135,6 +151,26 @@ const HeroSection = () => {
 							</motion.div>
 						</div>
 
+						<ScrollVelocityContainer className='mt-10 border-y border-border-subtle/40 py-3'>
+							<ScrollVelocityRow
+								baseVelocity={3}
+								className='gap-8 text-sm font-medium text-text-muted'
+							>
+								<span className='flex items-center gap-2 px-4'>
+									🍳 {t('socialProofMeals')}
+								</span>
+								<span className='flex items-center gap-2 px-4'>
+									⭐ {t('socialProofRating')}
+								</span>
+								<span className='flex items-center gap-2 px-4'>
+									🔥 {t('socialProofStreaks')}
+								</span>
+								<span className='flex items-center gap-2 px-4'>
+									👨‍🍳 {t('socialProofChefs')}
+								</span>
+							</ScrollVelocityRow>
+						</ScrollVelocityContainer>
+
 						{/* Social Proof */}
 						<motion.div
 							initial={{ opacity: 0 }}
@@ -184,7 +220,7 @@ const HeroSection = () => {
 									{t('heroTagline')}
 								</span>
 								<div className='mt-3 font-bold text-xl'>
-									Authentic Cacio e Pepe
+									{t('heroFoodCacio')}
 								</div>
 							</div>
 						</motion.div>
@@ -202,14 +238,14 @@ const HeroSection = () => {
 						>
 							<Image
 								src='/images/hero/miso-ramen.png'
-								alt='Miso Ramen'
+								alt='Tonkotsu Ramen'
 								fill
 								className='object-cover'
 							/>
 							<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 							<div className='absolute bottom-5 left-5 text-white'>
 								<span className='font-bold text-lg drop-shadow-md'>
-									Tonkotsu Ramen
+									{t('heroFoodRamen')}
 								</span>
 							</div>
 						</motion.div>
@@ -234,7 +270,7 @@ const HeroSection = () => {
 							<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 							<div className='absolute bottom-5 left-5 text-white'>
 								<span className='font-bold text-lg drop-shadow-md'>
-									Avocado Toast
+									{t('heroFoodAvocado')}
 								</span>
 							</div>
 						</motion.div>
@@ -381,32 +417,6 @@ const FeaturesSection = () => {
 
 const HowItWorksSection = () => {
 	const t = useTranslations('welcome')
-	const steps = [
-		{
-			number: '01',
-			titleKey: 'step01Title' as const,
-			descriptionKey: 'step01Desc' as const,
-			icon: BookOpen,
-		},
-		{
-			number: '02',
-			titleKey: 'step02Title' as const,
-			descriptionKey: 'step02Desc' as const,
-			icon: ChefHat,
-		},
-		{
-			number: '03',
-			titleKey: 'step03Title' as const,
-			descriptionKey: 'step03Desc' as const,
-			icon: Trophy,
-		},
-		{
-			number: '04',
-			titleKey: 'step04Title' as const,
-			descriptionKey: 'step04Desc' as const,
-			icon: Zap,
-		},
-	]
 
 	return (
 		<section className='bg-bg-elevated py-24'>
@@ -426,41 +436,41 @@ const HowItWorksSection = () => {
 					</p>
 				</motion.div>
 
-				<div className='grid gap-12 md:grid-cols-2 lg:grid-cols-4'>
-					{steps.map((step, index) => {
-						const Icon = step.icon
-						return (
-							<motion.div
-								key={step.number}
-								initial={{ opacity: 0, y: 30 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true }}
-								transition={{ delay: index * 0.1, ...TRANSITION_SPRING }}
-								className='relative'
-							>
-								{/* Connector line (except last) */}
-								{index < steps.length - 1 && (
-									<div className='absolute left-1/2 top-12 hidden h-0.5 w-full -translate-x-1/2 bg-gradient-to-r from-brand/50 to-transparent lg:block' />
-								)}
-
-								<div className='relative text-center'>
-									<div className='relative mx-auto mb-6 inline-flex size-20 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/40'>
-										<Icon className='size-10 text-white' />
-										<span className='absolute -right-2 -top-2 flex size-8 items-center justify-center rounded-full bg-xp text-xs font-bold text-white shadow-card'>
-											{step.number}
-										</span>
-									</div>
-									<h3 className='mb-3 text-xl font-bold text-text-primary'>
-										{t(step.titleKey)}
-									</h3>
-									<p className='text-text-secondary'>
-										{t(step.descriptionKey)}
-									</p>
-								</div>
-							</motion.div>
-						)
-					})}
-				</div>
+				<StackedCards stackOffset={20} scaleStep={0.04}>
+					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-brand/10 to-xp/10 p-12'>
+						<div className='max-w-lg text-center'>
+							<ChefHat className='mx-auto mb-4 size-12 text-brand' />
+							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+								{t('featureCookingTitle')}
+							</h3>
+							<p className='text-lg text-text-secondary'>
+								{t('featureCookingDesc')}
+							</p>
+						</div>
+					</div>
+					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-xp/10 to-level/10 p-12'>
+						<div className='max-w-lg text-center'>
+							<Share2 className='mx-auto mb-4 size-12 text-xp' />
+							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+								{t('featureCreatorTitle')}
+							</h3>
+							<p className='text-lg text-text-secondary'>
+								{t('featureCreatorDesc')}
+							</p>
+						</div>
+					</div>
+					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-streak/10 to-brand/10 p-12'>
+						<div className='max-w-lg text-center'>
+							<Trophy className='mx-auto mb-4 size-12 text-streak' />
+							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+								{t('featureXpTitle')}
+							</h3>
+							<p className='text-lg text-text-secondary'>
+								{t('featureXpDesc')}
+							</p>
+						</div>
+					</div>
+				</StackedCards>
 			</div>
 		</section>
 	)
@@ -477,12 +487,15 @@ const CTASection = () => {
 
 	return (
 		<WavyBackground
+			layers={4}
+			waveHeight={62}
 			colors={[
-				'oklch(from var(--color-brand) l c h / 20%)',
-				'oklch(from var(--color-xp) l c h / 15%)',
-				'oklch(from var(--color-combo) l c h / 10%)',
+				'oklch(from var(--color-brand) l c h / 32%)',
+				'oklch(from var(--color-xp) l c h / 24%)',
+				'oklch(from var(--color-combo) l c h / 18%)',
+				'oklch(from var(--color-streak) l c h / 12%)',
 			]}
-			className='relative py-24 overflow-hidden bg-bg border-t border-border-subtle w-full flex items-center justify-center'
+			className='relative min-h-[30rem] py-24 overflow-hidden bg-bg border-t border-border-subtle flex items-center justify-center'
 		>
 			<div className='container relative mx-auto max-w-4xl px-6 text-center z-10'>
 				<motion.div
@@ -545,7 +558,7 @@ const CTASection = () => {
 						exit={{ opacity: 0 }}
 						className='fixed left-1/2 top-20 z-toast -translate-x-1/2'
 					>
-						<div className='flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand shadow-warm'>
+						<div className='flex items-center gap-2 rounded-full bg-bg-card px-4 py-2 text-sm font-semibold text-brand shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
 							{t('loading')}
 						</div>

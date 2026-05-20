@@ -23,7 +23,7 @@ export function StickyHeader({
 	return (
 		<header
 			className={cn(
-				'sticky top-0 z-sticky w-full shrink-0 border-b border-border-subtle/60 bg-bg/90 dark:bg-bg-card/75 backdrop-blur-sm shadow-sm transition-colors',
+				'sticky top-0 z-sticky w-full shrink-0 border-b border-border-subtle/60 bg-bg/90 dark:bg-bg-card/75 backdrop-blur-sm shadow-card transition-colors',
 				height,
 				className,
 			)}

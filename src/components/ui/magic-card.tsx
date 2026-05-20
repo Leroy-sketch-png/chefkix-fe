@@ -130,19 +130,25 @@ export function MagicCard(props: MagicCardProps) {
 		gradientFrom = 'var(--color-brand)',
 		gradientTo = 'var(--color-streak)',
 		mode = 'gradient',
+		glowFrom: glowFromProp,
+		glowTo: glowToProp,
+		glowAngle: glowAngleProp,
+		glowSize: glowSizeProp,
+		glowBlur: glowBlurProp,
+		glowOpacity: glowOpacityProp,
 		...restProps
 	} = props
 
 	const glowFrom = isOrbMode(props)
-		? (props.glowFrom ?? 'var(--color-brand)')
+		? (glowFromProp ?? 'var(--color-brand)')
 		: 'var(--color-brand)'
 	const glowTo = isOrbMode(props)
-		? (props.glowTo ?? 'var(--color-streak)')
+		? (glowToProp ?? 'var(--color-streak)')
 		: 'var(--color-streak)'
-	const glowAngle = isOrbMode(props) ? (props.glowAngle ?? 90) : 90
-	const glowSize = isOrbMode(props) ? (props.glowSize ?? 360) : 360
-	const glowBlur = isOrbMode(props) ? (props.glowBlur ?? 50) : 50
-	const glowOpacity = isOrbMode(props) ? (props.glowOpacity ?? 0.25) : 0.25
+	const glowAngleValue = isOrbMode(props) ? (glowAngleProp ?? 90) : 90
+	const glowSizeValue = isOrbMode(props) ? (glowSizeProp ?? 360) : 360
+	const glowBlurValue = isOrbMode(props) ? (glowBlurProp ?? 50) : 50
+	const glowOpacityValue = isOrbMode(props) ? (glowOpacityProp ?? 0.25) : 0.25
 
 	const mouseX = useMotionValue(-gradientSize)
 	const mouseY = useMotionValue(-gradientSize)
@@ -151,15 +157,15 @@ export function MagicCard(props: MagicCardProps) {
 	const orbVisible = useSpring(0, { stiffness: 300, damping: 35 })
 
 	const modeRef = useRef(mode)
-	const glowOpacityRef = useRef(glowOpacity)
+	const glowOpacityRef = useRef(glowOpacityValue)
 	const gradientSizeRef = useRef(gradientSize)
 
 	useEffect(() => {
 		modeRef.current = mode
 	}, [mode])
 	useEffect(() => {
-		glowOpacityRef.current = glowOpacity
-	}, [glowOpacity])
+		glowOpacityRef.current = glowOpacityValue
+	}, [glowOpacityValue])
 	useEffect(() => {
 		gradientSizeRef.current = gradientSize
 	}, [gradientSize])
@@ -242,16 +248,16 @@ export function MagicCard(props: MagicCardProps) {
 					aria-hidden='true'
 					className='pointer-events-none absolute z-30'
 					style={{
-						width: glowSize,
-						height: glowSize,
+						width: glowSizeValue,
+						height: glowSizeValue,
 						x: orbX,
 						y: orbY,
 						translateX: '-50%',
 						translateY: '-50%',
 						borderRadius: 9999,
-						filter: `blur(${glowBlur}px)`,
+						filter: `blur(${glowBlurValue}px)`,
 						opacity: orbVisible,
-						background: `linear-gradient(${glowAngle}deg, ${glowFrom}, ${glowTo})`,
+						background: `linear-gradient(${glowAngleValue}deg, ${glowFrom}, ${glowTo})`,
 						willChange: 'transform, opacity',
 					}}
 				/>

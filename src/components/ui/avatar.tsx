@@ -10,7 +10,7 @@ const Avatar = React.forwardRef<
 		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 	}
 >(({ className, size = 'sm', ...props }, ref) => {
-	// Matches DESIGN_SYSTEM.md avatar token scale exactly
+	// Matches 30-frontend-design-system.md avatar token scale exactly
 	const sizeClasses = {
 		xs: 'size-avatar-xs', // 32px - tiny contexts, inline mentions
 		sm: 'size-avatar-sm', // 42px - comments, chat, sidebar items

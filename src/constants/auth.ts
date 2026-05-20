@@ -14,6 +14,7 @@ export const PUBLIC_ROUTES = [
 	PATHS.SEARCH, // Search recipes/users without auth
 	PATHS.COMMUNITY, // Community / discover feed
 	PATHS.LEADERBOARD, // Leaderboard (backend allows guest GET)
+	PATHS.COOK, // Command palette launcher should be reachable without auth gate
 ]
 
 const DEV_ONLY_PUBLIC_ROUTES =
@@ -69,6 +70,7 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
 	'collections',
 	'community',
 	'cook-card',
+	'cook',
 	'cook-together',
 	'create',
 	'creator',

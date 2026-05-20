@@ -896,14 +896,17 @@ export default function HomePage() {
 
 				{/* Bottom CTA */}
 				<WavyBackground
+					layers={4}
+					waveHeight={62}
 					colors={[
-						'oklch(from var(--color-brand) l c h / 20%)',
-						'oklch(from var(--color-xp) l c h / 15%)',
-						'oklch(from var(--color-combo) l c h / 10%)',
+						'oklch(from var(--color-brand) l c h / 32%)',
+						'oklch(from var(--color-xp) l c h / 24%)',
+						'oklch(from var(--color-combo) l c h / 18%)',
+						'oklch(from var(--color-streak) l c h / 12%)',
 					]}
-					className='relative py-24 overflow-hidden bg-bg border-t border-border-subtle w-full flex items-center justify-center'
+					className='relative min-h-[30rem] py-24 overflow-hidden bg-bg border-t border-border-subtle flex items-center justify-center'
 				>
-					<div className='mx-auto max-w-3xl rounded-3xl border border-border-subtle bg-bg-card/40 backdrop-blur-md p-8 sm:p-12 shadow-warm relative overflow-hidden z-10'>
+					<div className='mx-auto w-full max-w-5xl rounded-3xl border border-border-subtle bg-bg-card/25 backdrop-blur-md p-8 sm:p-12 shadow-warm relative overflow-hidden z-10 px-4 sm:px-6'>
 						{/* Subtle glowing radial background blobs */}
 						<div className='absolute -left-20 -top-20 size-60 rounded-full bg-brand/5 blur-[60px] pointer-events-none' />
 						<div className='absolute -right-20 -bottom-20 size-60 rounded-full bg-xp/5 blur-[60px] pointer-events-none' />

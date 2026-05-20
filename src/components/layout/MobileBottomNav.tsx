@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Home,
-	Flame,
 	Compass,
 	PlusSquare,
 	User,
@@ -36,6 +35,7 @@ import { Portal } from '@/components/ui/portal'
 import { ShinyButton } from '@/components/ui/shiny-button'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
+import { useScrollDirection } from '@/hooks/useScrollDirection'
 
 interface NavItem {
 	href: string
@@ -61,11 +61,6 @@ const navItems: NavItem[] = [
 		labelKey: 'home',
 	},
 	{
-		href: '/feed',
-		icon: Flame,
-		labelKey: 'feed',
-	},
-	{
 		href: '/explore',
 		icon: Compass,
 		labelKey: 'explore',
@@ -85,11 +80,6 @@ const navItems: NavItem[] = [
 
 // Guest bottom nav: only public routes + sign-in CTA
 const guestNavItems: NavItem[] = [
-	{
-		href: '/feed',
-		icon: Flame,
-		labelKey: 'feed',
-	},
 	{
 		href: '/explore',
 		icon: Compass,
@@ -133,6 +123,8 @@ export const MobileBottomNav = () => {
 	const [drawerQuery, setDrawerQuery] = useState('')
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
+	const scrollDirection = useScrollDirection()
+	const isHidden = scrollDirection === 'down'
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
@@ -204,7 +196,10 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(255,90,54,0.08)] backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden'
+				className={cn(
+					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(255,90,54,0.08)] backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 transition-transform duration-300 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden',
+					isHidden && 'translate-y-full',
+				)}
 				aria-label={t('ariaMobileNavigation')}
 			>
 				<div

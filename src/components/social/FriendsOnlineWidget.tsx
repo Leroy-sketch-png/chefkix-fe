@@ -10,6 +10,7 @@ import { getFriendsPresence, PresenceInfo } from '@/services/presence'
 import { logDevError } from '@/lib/dev-log'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Ripple } from '@/components/ui/ripple'
 
 const POLL_INTERVAL_MS = 30_000 // 30s
 
@@ -118,7 +119,8 @@ export function FriendsOnlineWidget() {
 								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
-								<div className='relative'>
+								<div className='relative flex size-7 items-center justify-center'>
+									<Ripple mainCircleSize={48} numCircles={4} />
 									<Avatar className='size-7'>
 										<AvatarImage
 											src={friend.avatarUrl || undefined}

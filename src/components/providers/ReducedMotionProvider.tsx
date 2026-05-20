@@ -8,6 +8,8 @@ import {
 	ReactNode,
 	useMemo,
 } from 'react'
+import { MotionConfig } from 'framer-motion'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface ReducedMotionContextValue {
 	/** True when user prefers reduced motion (OS setting OR app setting) */
@@ -27,20 +29,10 @@ const ReducedMotionContext = createContext<ReducedMotionContextValue>({
 const STORAGE_KEY = 'chefkix-motion-preference'
 
 export function ReducedMotionProvider({ children }: { children: ReactNode }) {
-	const [osPreference, setOsPreference] = useState(false)
+	const osPreference = useReducedMotion()
 	const [motionPreference, setMotionPreferenceState] = useState<
 		'auto' | 'reduced' | 'full'
 	>('auto')
-
-	// Read OS preference
-	useEffect(() => {
-		const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-		setOsPreference(mq.matches)
-
-		const handler = (e: MediaQueryListEvent) => setOsPreference(e.matches)
-		mq.addEventListener('change', handler)
-		return () => mq.removeEventListener('change', handler)
-	}, [])
 
 	// Read stored preference
 	useEffect(() => {
@@ -80,7 +72,9 @@ export function ReducedMotionProvider({ children }: { children: ReactNode }) {
 
 	return (
 		<ReducedMotionContext.Provider value={value}>
-			{children}
+			<MotionConfig reducedMotion={shouldReduceMotion ? 'always' : 'never'}>
+				{children}
+			</MotionConfig>
 		</ReducedMotionContext.Provider>
 	)
 }

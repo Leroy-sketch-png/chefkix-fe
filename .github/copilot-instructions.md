@@ -101,7 +101,7 @@ cd chefkix-fe; npm test
 | BE security | chefkix-monolith/application/.../config/SecurityConfig.java |
 | FE endpoints | chefkix-fe/src/constants/api.ts |
 | FE axios+auth | chefkix-fe/src/lib/axios.ts |
-| Design system | chefkix-fe/DESIGN_SYSTEM.md |
+| Design system | vision_and_spec/30-frontend-design-system.md |
 
 ## §FRONTEND_UX_PATTERNS
 
@@ -129,7 +129,7 @@ cd chefkix-fe; npm test
 - Backgrounds: Warm parchment (`--bg: #f8f4ef`), cream cards (`--bg-card: #fdfbf8`)
 - Text: Espresso browns (`--text: #2c2420`)
 - Tailwind: `bg-brand`, `text-primary`, `bg-bg-card`, etc.
-- **Master Reference**: `DESIGN_SYSTEM.md`
+- **Master Reference**: `vision_and_spec/30-frontend-design-system.md`
 
 ## §WORKSPACE_STRUCTURE
 This workspace contains:

@@ -261,7 +261,7 @@ export const RightSidebar = () => {
 						)}
 					>
 						<p className='mb-2 text-2xs font-bold uppercase tracking-[0.18em] text-text-muted'>
-							Guest Mode
+							{t('guestMode')}
 						</p>
 						<div className='mb-4 flex items-center gap-2'>
 							<ChefHat className='size-5 text-brand' />
@@ -300,7 +300,7 @@ export const RightSidebar = () => {
 								</Link>
 							</div>
 						</div>
-						{!isDiscoverySurface && (
+						{
 							<div className='mb-5 flex flex-col gap-2.5'>
 								{[
 									{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
@@ -321,12 +321,13 @@ export const RightSidebar = () => {
 									</div>
 								))}
 							</div>
-						)}
+						}
 						<Link
 							href={guestSignUpHref}
-							className='flex h-10 w-full items-center justify-center rounded-xl bg-brand text-sm font-bold text-white transition-colors hover:bg-brand/90'
+							className='flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)] hover:from-brand/95 hover:to-brand/80'
 						>
 							{t('guestSidebarCta')}
+							<ArrowRight className='size-4' />
 						</Link>
 						<p className='mt-2 text-center text-xs text-text-muted'>
 							<Link

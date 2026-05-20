@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Clock,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
+import { useCountdown } from '@/hooks/useCountdown'
 import {
 	TRANSITION_SPRING,
 	DURATIONS,
@@ -76,6 +78,20 @@ export function StreakRiskBanner({
 	className,
 }: StreakRiskBannerProps) {
 	const t = useTranslations('streak')
+	const initialSeconds = Math.max(
+		timeRemaining.hours * 3600 + timeRemaining.minutes * 60,
+		0,
+	)
+	const { seconds, restart } = useCountdown(initialSeconds, true)
+
+	useEffect(() => {
+		restart(initialSeconds)
+	}, [initialSeconds, restart])
+
+	const countdownHours = Math.floor(seconds / 3600)
+	const countdownMinutes = Math.floor((seconds % 3600) / 60)
+	const countdownSeconds = seconds % 60
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: -10 }}
@@ -146,7 +162,7 @@ export function StreakRiskBanner({
 				>
 					<Clock className='size-4' />
 					<span className='font-bold tabular-nums'>
-						{timeRemaining.hours}h {timeRemaining.minutes}m
+						{countdownHours}h {countdownMinutes}m {countdownSeconds}s
 					</span>
 					{!isUrgent && (
 						<span className='text-xs opacity-80'>{t('srLeftToday')}</span>

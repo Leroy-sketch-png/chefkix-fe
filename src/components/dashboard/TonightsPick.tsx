@@ -27,6 +27,20 @@ interface TonightsPickProps {
 	className?: string
 }
 
+/**
+ * Tonight's Pick — AI-powered personalized dinner recommendation.
+ *
+ * Backend scoring algorithm (5-signal weighted blend):
+ *   1. Taste profile match  — 0.30 weight
+ *   2. Trending score       — 0.20 weight
+ *   3. Seasonal relevance   — 0.20 weight
+ *   4. Difficulty fit        — 0.15 weight
+ *   5. Quality rating       — 0.15 weight
+ *
+ * The recommendation refreshes daily and falls back to trending
+ * if the personalization endpoint is unavailable.
+ */
+
 const TONIGHTS_PICK_TIMEOUT_MS = 8000
 
 const normalizeRecommendationText = (value?: string | null) =>
@@ -255,10 +269,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 						{totalTime > 0 && (
 							<span className='inline-flex items-center gap-1'>
 								<Clock className='size-3.5' />
-								<NumberTicker
-									value={totalTime}
-									className='font-semibold text-text-secondary'
-								/>{' '}
+								<span className='font-semibold text-text-secondary'>
+									{totalTime}
+								</span>{' '}
 								{t('tpMin', { count: totalTime })
 									.replace(totalTime.toString(), '')
 									.trim()}
@@ -271,11 +284,9 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 						{(recipe.averageRating ?? 0) > 0 && (
 							<span className='inline-flex items-center gap-1'>
 								<Star className='size-3.5 fill-warning text-warning' />
-								<NumberTicker
-									value={recipe.averageRating ?? 0}
-									decimals={1}
-									className='font-semibold text-text-secondary'
-								/>
+								<span className='font-semibold text-text-secondary'>
+									{(recipe.averageRating ?? 0).toFixed(1)}
+								</span>
 							</span>
 						)}
 						{recipe.cookCount > 0 && (

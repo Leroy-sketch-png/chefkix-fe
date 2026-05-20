@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Share2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { TextScramble } from '@/components/ui/text-scramble'
+import { SparklesText } from '@/components/ui/sparkles-text'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { triggerAchievementConfetti } from '@/lib/confetti'
@@ -303,7 +304,16 @@ export const LevelUpCelebration = ({
 									transition={{ duration: 1.5, repeat: Infinity }}
 									className='mb-3 bg-gradient-gold bg-clip-text text-4xl font-black text-transparent max-md:text-3xl'
 								>
-									<TextScramble text={t('levelUp')} duration={1200} trigger />
+									<SparklesText
+										colors={{
+											first: 'var(--color-xp)',
+											second: 'var(--color-brand)',
+										}}
+										sparklesCount={14}
+										className='text-4xl font-black max-md:text-3xl'
+									>
+										<TextScramble text={t('levelUp')} duration={1200} trigger />
+									</SparklesText>
 								</motion.h1>
 								<p className='text-lg text-white/80'>
 									{t('youreNowLevel', { level: newLevel })}

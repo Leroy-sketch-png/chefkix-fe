@@ -105,6 +105,70 @@ export function jsonLd(data: Record<string, unknown>) {
 	}
 }
 
+interface RecipeJsonLdInput {
+	id: string
+	title: string
+	description: string
+	imageUrl?: string
+	authorName?: string
+	datePublished?: string
+	dateModified?: string
+	cookTimeMinutes?: number
+	prepTimeMinutes?: number
+	totalTimeMinutes?: number
+	servings?: number
+	ingredients?: string[]
+	instructions?: string[]
+	cuisine?: string
+	keywords?: string[]
+}
+
+function minutesToIsoDuration(minutes?: number): string | undefined {
+	if (!minutes || minutes <= 0) return undefined
+	return `PT${Math.round(minutes)}M`
+}
+
+export function generateRecipeJsonLd(
+	recipe: RecipeJsonLdInput,
+): Record<string, unknown> {
+	const totalTime = minutesToIsoDuration(recipe.totalTimeMinutes)
+	const cookTime = minutesToIsoDuration(recipe.cookTimeMinutes)
+	const prepTime = minutesToIsoDuration(recipe.prepTimeMinutes)
+
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'Recipe',
+		'@id': `${defaults.siteUrl}/recipes/${recipe.id}`,
+		name: recipe.title,
+		description: recipe.description,
+		...(recipe.imageUrl ? { image: [recipe.imageUrl] } : {}),
+		...(recipe.authorName
+			? { author: { '@type': 'Person', name: recipe.authorName } }
+			: {}),
+		...(recipe.datePublished ? { datePublished: recipe.datePublished } : {}),
+		...(recipe.dateModified ? { dateModified: recipe.dateModified } : {}),
+		...(prepTime ? { prepTime } : {}),
+		...(cookTime ? { cookTime } : {}),
+		...(totalTime ? { totalTime } : {}),
+		...(recipe.servings ? { recipeYield: recipe.servings.toString() } : {}),
+		...(recipe.cuisine ? { recipeCuisine: recipe.cuisine } : {}),
+		...(recipe.keywords?.length
+			? { keywords: recipe.keywords.join(', ') }
+			: {}),
+		...(recipe.ingredients?.length
+			? { recipeIngredient: recipe.ingredients }
+			: {}),
+		...(recipe.instructions?.length
+			? {
+					recipeInstructions: recipe.instructions.map(step => ({
+						'@type': 'HowToStep',
+						text: step,
+					})),
+				}
+			: {}),
+	}
+}
+
 // ─── Template title ─────────────────────────────────────
 /** Creates "Page Title | ChefKix" format */
 export function titleTemplate(page: string): string {

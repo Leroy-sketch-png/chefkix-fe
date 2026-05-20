@@ -74,7 +74,9 @@ import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPick
 import { cn } from '@/lib/utils'
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { Lens } from '@/components/ui/lens'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import {
 	socialCardSurface,
 	socialCardTopAccent,
@@ -227,6 +229,7 @@ const PostCardContent = ({
 
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
+	const isDesktop = useMediaQuery('(min-width: 768px)')
 	const { requireAuth, guardAction } = useAuthGate()
 	const t = useTranslations('post')
 
@@ -1228,22 +1231,41 @@ const PostCardContent = ({
 									}}
 									aria-label={t('postByUser', { name: post.displayName })}
 								>
-									{/* Use ImageCarousel for multi-image support */}
-									<ImageCarousel
-										images={
-											post.photoUrls && post.photoUrls.length > 0
-												? post.photoUrls
-												: post.photoUrl
-													? [post.photoUrl]
-													: []
-										}
-										alt={t('postByUser', { name: post.displayName })}
-										aspectRatio='video'
-										showControls={true}
-										showIndicators={true}
-										enableSwipe={true}
-										enableKeyboard={true}
-									/>
+									{isDesktop ? (
+										<Lens zoomFactor={1.4} lensSize={170}>
+											<ImageCarousel
+												images={
+													post.photoUrls && post.photoUrls.length > 0
+														? post.photoUrls
+														: post.photoUrl
+															? [post.photoUrl]
+															: []
+												}
+												alt={t('postByUser', { name: post.displayName })}
+												aspectRatio='video'
+												showControls={true}
+												showIndicators={true}
+												enableSwipe={true}
+												enableKeyboard={true}
+											/>
+										</Lens>
+									) : (
+										<ImageCarousel
+											images={
+												post.photoUrls && post.photoUrls.length > 0
+													? post.photoUrls
+													: post.photoUrl
+														? [post.photoUrl]
+														: []
+											}
+											alt={t('postByUser', { name: post.displayName })}
+											aspectRatio='video'
+											showControls={true}
+											showIndicators={true}
+											enableSwipe={true}
+											enableKeyboard={true}
+										/>
+									)}
 
 									{/* Double-tap heart animation overlay */}
 									<AnimatePresence>

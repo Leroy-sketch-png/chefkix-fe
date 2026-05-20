@@ -108,6 +108,7 @@ import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { MagicCard } from '@/components/ui/magic-card'
+import { generateRecipeJsonLd } from '@/lib/seo'
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -778,9 +779,33 @@ function RecipeDetailContent() {
 	}
 	const diffConfig =
 		difficultyConfig[recipe.difficulty] || difficultyConfig.Beginner
+	const recipeJsonLd = generateRecipeJsonLd({
+		id: recipe.id,
+		title: recipe.title,
+		description: recipe.description,
+		imageUrl: getRecipeImage(recipe),
+		authorName: recipe.author.displayName || recipe.author.username,
+		datePublished: recipe.createdAt,
+		dateModified: recipe.updatedAt,
+		prepTimeMinutes: recipe.prepTimeMinutes,
+		cookTimeMinutes: recipe.cookTimeMinutes,
+		totalTimeMinutes: recipe.totalTimeMinutes,
+		servings: recipe.servings,
+		ingredients: recipe.fullIngredientList?.map(
+			ingredient =>
+				`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`,
+		),
+		instructions: recipe.steps?.map(step => step.description),
+		cuisine: recipe.cuisineType,
+		keywords: recipe.dietaryTags,
+	})
 
 	return (
 		<PageTransition>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeJsonLd) }}
+			/>
 			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>
 				<PremiumSurface
