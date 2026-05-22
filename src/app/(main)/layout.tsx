@@ -13,6 +13,7 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
 import { PushNotificationProvider } from '@/components/providers/PushNotificationProvider'
+import { PresenceProvider } from '@/components/providers/PresenceProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -70,6 +71,7 @@ export default function MainAppLayout({
 				<NotificationSocketProvider />
 			</ErrorBoundary>
 			<PushNotificationProvider />
+			<PresenceProvider />
 			{SHOW_DEMO_WIDGET ? <DemoWidget /> : null}
 		</>
 	)

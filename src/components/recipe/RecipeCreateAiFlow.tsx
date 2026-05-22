@@ -1406,6 +1406,7 @@ export const RecipeCreateAiFlow = ({
 
 									<motion.button
 										type='button'
+										data-testid='recipe-ai-parse'
 										onClick={handleParse}
 										disabled={!rawText.trim()}
 										whileHover={rawText.trim() ? BUTTON_HOVER : undefined}
@@ -1871,6 +1872,7 @@ export const RecipeCreateAiFlow = ({
 						<div className='sticky bottom-5 pt-4'>
 							<motion.button
 								type='button'
+								data-testid='recipe-ai-preview-xp'
 								onClick={handlePreviewXp}
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}

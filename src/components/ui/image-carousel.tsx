@@ -63,9 +63,6 @@ export function ImageCarousel({
 		setFailedIndices([])
 	}, [imageSetKey, normalizedImages.length])
 	const [loadedIndices, setLoadedIndices] = useState<number[]>([])
-	const allFailed =
-		normalizedImages.length > 0 &&
-		failedIndices.length === normalizedImages.length
 	const currentImageIsLoading =
 		!loadedIndices.includes(currentIndex) &&
 		!failedIndices.includes(currentIndex)
@@ -163,9 +160,6 @@ export function ImageCarousel({
 	}
 
 	if (normalizedImages.length === 0) return null
-
-	// Collapse entirely if every image has definitively failed — prevents dead zone
-	if (allFailed) return null
 
 	return (
 		<div

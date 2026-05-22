@@ -252,6 +252,7 @@ export function SignInForm() {
 									</FormLabel>
 									<FormControl>
 										<Input
+											data-testid='signin-username'
 											placeholder={t('emailOrUsernamePlaceholder')}
 											autoComplete='username'
 											autoCapitalize='none'
@@ -277,6 +278,7 @@ export function SignInForm() {
 									</FormLabel>
 									<FormControl>
 										<PasswordInput
+											data-testid='signin-password'
 											placeholder={t('passwordPlaceholder')}
 											autoComplete='current-password'
 											{...field}
@@ -300,6 +302,7 @@ export function SignInForm() {
 					</motion.div>
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
+							data-testid='signin-submit'
 							type='submit'
 							className='h-11 w-full rounded-xl bg-brand text-base font-semibold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow sm:h-12'
 							isLoading={isSubmitting}

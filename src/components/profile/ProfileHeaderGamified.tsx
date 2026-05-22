@@ -631,7 +631,8 @@ const OwnProfileHeader = ({
 					src={user.coverUrl || '/default-cover.svg'}
 					alt={t('coverAlt')}
 					fill
-					sizes='100vw'
+					priority
+					sizes='(max-width: 768px) 100vw, 1000px'
 					className='object-cover'
 					onError={e => {
 						;(e.target as HTMLImageElement).src = '/default-cover.svg'
@@ -672,6 +673,7 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
+						sizes='96px'
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
@@ -856,7 +858,8 @@ const OtherUserProfileHeader = ({
 					src={user.coverUrl || '/default-cover.svg'}
 					alt={t('coverAlt')}
 					fill
-					sizes='100vw'
+					priority
+					sizes='(max-width: 768px) 100vw, 1000px'
 					className='object-cover'
 					onError={e => {
 						;(e.target as HTMLImageElement).src = '/default-cover.svg'
@@ -884,6 +887,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
+						sizes='96px'
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
@@ -1037,6 +1041,7 @@ const MiniProfileHeader = ({
 					alt={user.displayName}
 					width={48}
 					height={48}
+					sizes='48px'
 					className='size-12 rounded-full object-cover'
 				/>
 				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-bold tracking-tight text-white'>

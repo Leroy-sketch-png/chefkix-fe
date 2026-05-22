@@ -614,6 +614,7 @@ function CreatePostContent() {
 							{/* Content textarea */}
 							<div className='px-4 pb-4'>
 								<textarea
+									data-testid='post-composer-caption'
 									value={content}
 									onChange={e => setContent(e.target.value)}
 									onKeyDown={e => {
@@ -694,6 +695,7 @@ function CreatePostContent() {
 									<Camera className='size-5' />
 									{t('addPhotosCount', { count: photoFiles.length })}
 									<input
+										data-testid='post-composer-upload'
 										type='file'
 										accept='image/*'
 										multiple
@@ -707,6 +709,7 @@ function CreatePostContent() {
 								</label>
 
 								<AnimatedButton
+									data-testid='post-composer-submit'
 									onClick={handleSubmit}
 									disabled={
 										isSubmitting || (!content.trim() && photoFiles.length === 0)

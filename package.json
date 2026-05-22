@@ -22,6 +22,7 @@
 		"visual:review:next": "node tests/visual/ai-review.mjs next-batch",
 		"visual:export": "node tests/visual/export-audit.mjs",
 		"visual:report": "npx playwright show-report tests/visual/report",
+		"demo:autopilot": "node scripts/live-demo-orchestrator.mjs",
 		"prepare": "husky"
 	},
 	"dependencies": {
@@ -83,6 +84,7 @@
 		"@types/node": "^24.5.2",
 		"@types/react": "^19.1.13",
 		"@types/react-dom": "^19.1.9",
+		"cross-env": "^10.1.0",
 		"eslint": "^9",
 		"eslint-config-next": "15.4.6",
 		"husky": "^9.1.7",

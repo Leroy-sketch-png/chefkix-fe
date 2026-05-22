@@ -4,6 +4,7 @@ import {
 	useState,
 	useEffect,
 	useCallback,
+	useRef,
 	createContext,
 	useContext,
 	ReactNode,
@@ -201,6 +202,25 @@ function HintOverlay() {
 	if (!context) return null
 
 	const { activeHint, dismissHint, dismissAllHints } = context
+	const isHintOpenRef = useRef(false)
+
+	useEffect(() => {
+		isHintOpenRef.current = !!activeHint
+	}, [activeHint])
+
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (!isHintOpenRef.current) return
+			if (event.key !== 'Escape') return
+			event.preventDefault()
+			dismissHint()
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [dismissHint])
 
 	return (
 		<AnimatePresence>

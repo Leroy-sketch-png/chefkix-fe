@@ -20,7 +20,6 @@ import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
 import { cn } from '@/lib/utils'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
-import { usePresence } from '@/hooks/usePresence'
 import { toast } from 'sonner'
 import {
 	AlertTriangle,
@@ -98,7 +97,6 @@ export const RightSidebar = () => {
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
-	usePresence() // Send heartbeat while sidebar is mounted
 	const isDiscoverySurface =
 		pathname.startsWith('/search') ||
 		pathname.startsWith('/explore') ||

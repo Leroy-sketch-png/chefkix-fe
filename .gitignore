@@ -60,3 +60,8 @@ tests/visual/ai-review/
 tests/visual/test-results/
 tests/visual/report/
 tests/visual/_audit*/
+
+# Demo driver generated artifacts (keep only canonical latest cert)
+test-results/demo-driver/run-*/
+test-results/demo-driver/certify-*.json
+!test-results/demo-driver/certify-latest.json

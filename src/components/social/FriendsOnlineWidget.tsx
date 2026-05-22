@@ -29,8 +29,11 @@ export function FriendsOnlineWidget() {
 		const fetchPresence = async () => {
 			try {
 				const res = await getFriendsPresence()
-				if (mounted && res.success && res.data) {
-					setFriends(res.data.filter(f => f.online))
+				if (mounted && res.success) {
+					const onlineFriends = Array.isArray(res.data)
+						? res.data.filter(friend => friend.online)
+						: []
+					setFriends(onlineFriends)
 				}
 			} catch (err) {
 				logDevError('FriendsOnlineWidget fetch failed:', err)

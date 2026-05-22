@@ -112,6 +112,7 @@ export function CreateCommandDeck({
 				</div>
 				<button
 					type='button'
+					data-testid='create-start-new-recipe'
 					onClick={onNewRecipe}
 					className='inline-flex min-h-9 items-center justify-center gap-2 rounded-xl border border-brand/20 bg-brand/8 px-3.5 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/12'
 				>
