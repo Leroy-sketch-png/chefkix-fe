@@ -294,7 +294,7 @@ function FeaturedCollectionCard({
 					<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent' />
 
 					{collection.emoji && (
-						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-bg-card/90 text-lg shadow-sm backdrop-blur-sm z-40'>
+						<div className='absolute left-3 top-3 flex size-10 items-center justify-center rounded-xl bg-bg-card/90 text-lg shadow-card backdrop-blur-sm z-40'>
 							{collection.emoji}
 						</div>
 					)}

@@ -33,12 +33,9 @@ export const FORBIDDEN_PATTERNS = [
 	},
 
 	// Generic shadows (use semantic tokens)
-	{ pattern: /\bshadow-sm\b/, message: 'Use shadow-card instead of shadow-sm' },
-	{
-		pattern: /\bshadow-md\b/,
-		message: 'Use shadow-card or shadow-warm instead of shadow-md',
-	},
-	{ pattern: /\bshadow-lg\b/, message: 'Use shadow-warm instead of shadow-lg' },
+	{ pattern: /(?<!drop-)\bshadow-sm\b/, message: 'Use shadow-card instead of shadow-sm' },
+	{ pattern: /(?<!drop-)shadow-md/, message: 'Use shadow-card or shadow-warm instead of shadow-md' },
+	{ pattern: /(?<!drop-)shadow-lg/, message: 'Use shadow-warm instead of shadow-lg' },
 
 	// Arbitrary z-index (use tokens)
 	{

@@ -88,7 +88,7 @@ function SignalChip({ label, value, icon: Icon, tone }: SignalChipProps) {
 	return (
 		<div
 			className={cn(
-				'flex items-center gap-3 rounded-2xl border p-3 shadow-sm transition-shadow duration-200 hover:shadow-card sm:p-4',
+				'flex items-center gap-3 rounded-2xl border p-3 shadow-card transition-shadow duration-200 hover:shadow-warm sm:p-4',
 				signalSurface[tone],
 			)}
 		>

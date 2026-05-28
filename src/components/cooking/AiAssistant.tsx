@@ -28,6 +28,7 @@ import {
 	AiAssistantChatMessage,
 	AiAssistantMessage,
 } from './AiAssistantChatMessage'
+import { demoInjector } from '@/lib/demo-injector'
 
 // ============================================
 // WEB SPEECH API (not in all TS lib versions)
@@ -205,6 +206,30 @@ export const AiAssistant = ({
 		const id = setTimeout(() => inputRef.current?.focus(), 300)
 		return () => clearTimeout(id)
 	}, [isOpen])
+
+	// Listen to Cheat Engine Injector
+	useEffect(() => {
+		return demoInjector.subscribe((event) => {
+			if (event.type === 'AI_OVERRIDE') {
+				const forcedAiMessage: AiAssistantMessage = {
+					id: `ai-forced-${Date.now()}`,
+					role: 'assistant',
+					type: 'substitution',
+					content: event.data.text,
+					timestamp: new Date(),
+					metadata: {
+						substitution: {
+							original: 'ingredient',
+							replacement: 'alternative',
+							ratio: '1:1 ratio'
+						}
+					}
+				}
+				setMessages(prev => [...prev, forcedAiMessage])
+				setIsTyping(false)
+			}
+		})
+	}, [])
 
 	// Initial welcome message
 	useEffect(() => {

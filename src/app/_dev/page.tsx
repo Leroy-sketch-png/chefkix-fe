@@ -7,6 +7,7 @@ import {
 	DEMO_BASE_URL,
 	DEMO_PITCH_BEATS,
 	DEMO_PITCH_SHORTCUTS,
+	DEMO_ROUTES,
 	getBeatReadinessChecks,
 	getBeatReadinessStatus,
 	getDemoAccount,
@@ -35,6 +36,13 @@ import {
 	Clock,
 	Play,
 	AlertCircle,
+	SlidersHorizontal,
+	ChevronsDown,
+	ChevronsUp,
+	Zap,
+	StopCircle,
+	Trash2,
+	ShieldAlert,
 } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -53,6 +61,28 @@ interface ApiTestResult {
 	code?: number
 	detail?: string
 	latency?: number
+}
+
+interface OrchestratorProgressSnapshot {
+	status: string | null
+	strictAssertionFailures: number | null
+	renderAnomalies: number | null
+	beatsWithEvidence: number | null
+	beatsWithValueArc: number | null
+}
+
+interface OrchestratorTaskSnapshot {
+	taskId: string
+	mode: 'single-strict' | 'certify-strict'
+	startedAt: string
+	endedAt: string | null
+	status: 'running' | 'passed' | 'failed' | 'stopped'
+	exitCode: number | null
+	command: string
+	artifactDir: string | null
+	runId: string | null
+	recentOutput: string[]
+	errorMessage: string | null
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -170,6 +200,66 @@ const QUICK_LINKS = [
 	{ label: 'Mongo Express', url: 'http://localhost:8081', icon: '🗄️' },
 ]
 
+const ORCHESTRATOR_PROFILES = [
+	{
+		id: 'deep-strict',
+		label: 'Deep Strict',
+		scenario: 'demo-cockpit-deep',
+		headless: true,
+		strict: true,
+		selectorPreflight: true,
+		strictSceneFallback: false,
+		captureScreenshots: false,
+		continueOnError: false,
+		checkpointMode: 'off',
+		hostFailover: false,
+		scenarioTimeoutMs: 360000,
+	},
+	{
+		id: 'smoke-fast',
+		label: 'Smoke Fast',
+		scenario: 'demo-cockpit-deep',
+		headless: true,
+		strict: false,
+		selectorPreflight: false,
+		strictSceneFallback: true,
+		captureScreenshots: false,
+		continueOnError: true,
+		checkpointMode: 'off',
+		hostFailover: false,
+		scenarioTimeoutMs: 240000,
+	},
+	{
+		id: 'forensics',
+		label: 'Forensics',
+		scenario: 'demo-cockpit-deep',
+		headless: true,
+		strict: true,
+		selectorPreflight: true,
+		strictSceneFallback: true,
+		captureScreenshots: true,
+		continueOnError: false,
+		checkpointMode: 'prompt',
+		hostFailover: false,
+		scenarioTimeoutMs: 420000,
+	},
+] as const
+
+const CHEAT_ENGINE_STORAGE_KEY = 'chefkix-dev-cheat-engine-state-v1'
+
+const STRICT_BASELINE = {
+	scenario: 'demo-cockpit-deep',
+	headless: true,
+	strict: true,
+	selectorPreflight: true,
+	strictSceneFallback: false,
+	captureScreenshots: false,
+	continueOnError: false,
+	checkpointMode: 'off',
+	hostFailover: false,
+	scenarioTimeoutMs: 360000,
+} as const
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 const BASE = DEMO_BASE_URL
 
@@ -278,10 +368,47 @@ export default function DevDashboard() {
 	const [isLoggingInToApp, setIsLoggingInToApp] = useState(false)
 	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
+	const [cheatPanelCollapsed, setCheatPanelCollapsed] = useState(false)
+	const [orchestratorScenario, setOrchestratorScenario] = useState(
+		'demo-cockpit-deep',
+	)
+	const [orchestratorHeadless, setOrchestratorHeadless] = useState(true)
+	const [orchestratorStrict, setOrchestratorStrict] = useState(true)
+	const [orchestratorSelectorPreflight, setOrchestratorSelectorPreflight] =
+		useState(true)
+	const [orchestratorStrictSceneFallback, setOrchestratorStrictSceneFallback] =
+		useState(false)
+	const [orchestratorCaptureScreenshots, setOrchestratorCaptureScreenshots] =
+		useState(false)
+	const [orchestratorContinueOnError, setOrchestratorContinueOnError] =
+		useState(false)
+	const [orchestratorCheckpointMode, setOrchestratorCheckpointMode] = useState(
+		'off',
+	)
+	const [orchestratorHostFailover, setOrchestratorHostFailover] =
+		useState(false)
+	const [orchestratorScenarioTimeoutMs, setOrchestratorScenarioTimeoutMs] =
+		useState(360000)
+	const [selectedCheatBeatId, setSelectedCheatBeatId] = useState(
+		DEMO_PITCH_BEATS[0]?.id ?? '',
+	)
 	const [readinessReport, setReadinessReport] =
 		useState<DemoReadinessReport | null>(null)
 	const [isLoadingReadiness, setIsLoadingReadiness] = useState(true)
 	const [isRefreshingReadiness, setIsRefreshingReadiness] = useState(false)
+	const [cheatStateHydrated, setCheatStateHydrated] = useState(false)
+	const [orchestratorTask, setOrchestratorTask] =
+		useState<OrchestratorTaskSnapshot | null>(null)
+	const [orchestratorProgress, setOrchestratorProgress] =
+		useState<OrchestratorProgressSnapshot | null>(null)
+	const [isLaunchingOrchestrator, setIsLaunchingOrchestrator] = useState(false)
+	const [cheatHardBlockMode, setCheatHardBlockMode] = useState(true)
+	const [orchestratorTaskList, setOrchestratorTaskList] = useState<
+		OrchestratorTaskSnapshot[]
+	>([])
+	const [isRefreshingTaskList, setIsRefreshingTaskList] = useState(false)
+	const [isStoppingAllTasks, setIsStoppingAllTasks] = useState(false)
+	const [isCleaningTaskHistory, setIsCleaningTaskHistory] = useState(false)
 	const autorunShortcutRef = useRef<string | null>(null)
 	const accessToken = useAuthStore(state => state.accessToken)
 	const authHydrated = useAuthStore(state => state.isHydrated)
@@ -318,6 +445,121 @@ export default function DevDashboard() {
 			// Ignore malformed dev auth storage and allow manual login flow.
 		}
 	}, [accessToken, authHydrated, token])
+
+	useEffect(() => {
+		if (typeof window === 'undefined' || cheatStateHydrated) {
+			return
+		}
+
+		try {
+			const raw = window.localStorage.getItem(CHEAT_ENGINE_STORAGE_KEY)
+			if (!raw) {
+				setCheatStateHydrated(true)
+				return
+			}
+
+			const parsed = JSON.parse(raw) as Partial<{
+				cheatPanelCollapsed: boolean
+				cheatHardBlockMode: boolean
+				orchestratorScenario: string
+				orchestratorHeadless: boolean
+				orchestratorStrict: boolean
+				orchestratorSelectorPreflight: boolean
+				orchestratorStrictSceneFallback: boolean
+				orchestratorCaptureScreenshots: boolean
+				orchestratorContinueOnError: boolean
+				orchestratorCheckpointMode: string
+				orchestratorHostFailover: boolean
+				orchestratorScenarioTimeoutMs: number
+				selectedCheatBeatId: string
+			}>
+
+			if (typeof parsed.cheatPanelCollapsed === 'boolean') {
+				setCheatPanelCollapsed(parsed.cheatPanelCollapsed)
+			}
+			if (typeof parsed.cheatHardBlockMode === 'boolean') {
+				setCheatHardBlockMode(parsed.cheatHardBlockMode)
+			}
+			if (typeof parsed.orchestratorScenario === 'string') {
+				setOrchestratorScenario(parsed.orchestratorScenario)
+			}
+			if (typeof parsed.orchestratorHeadless === 'boolean') {
+				setOrchestratorHeadless(parsed.orchestratorHeadless)
+			}
+			if (typeof parsed.orchestratorStrict === 'boolean') {
+				setOrchestratorStrict(parsed.orchestratorStrict)
+			}
+			if (typeof parsed.orchestratorSelectorPreflight === 'boolean') {
+				setOrchestratorSelectorPreflight(parsed.orchestratorSelectorPreflight)
+			}
+			if (typeof parsed.orchestratorStrictSceneFallback === 'boolean') {
+				setOrchestratorStrictSceneFallback(parsed.orchestratorStrictSceneFallback)
+			}
+			if (typeof parsed.orchestratorCaptureScreenshots === 'boolean') {
+				setOrchestratorCaptureScreenshots(parsed.orchestratorCaptureScreenshots)
+			}
+			if (typeof parsed.orchestratorContinueOnError === 'boolean') {
+				setOrchestratorContinueOnError(parsed.orchestratorContinueOnError)
+			}
+			if (typeof parsed.orchestratorCheckpointMode === 'string') {
+				setOrchestratorCheckpointMode(parsed.orchestratorCheckpointMode)
+			}
+			if (typeof parsed.orchestratorHostFailover === 'boolean') {
+				setOrchestratorHostFailover(parsed.orchestratorHostFailover)
+			}
+			if (typeof parsed.orchestratorScenarioTimeoutMs === 'number') {
+				setOrchestratorScenarioTimeoutMs(
+					Math.max(120000, parsed.orchestratorScenarioTimeoutMs),
+				)
+			}
+			if (typeof parsed.selectedCheatBeatId === 'string') {
+				setSelectedCheatBeatId(parsed.selectedCheatBeatId)
+			}
+		} catch {
+			// Ignore malformed stored state and continue with defaults.
+		} finally {
+			setCheatStateHydrated(true)
+		}
+	}, [cheatStateHydrated])
+
+	useEffect(() => {
+		if (typeof window === 'undefined' || !cheatStateHydrated) {
+			return
+		}
+
+		const state = {
+			cheatPanelCollapsed,
+			cheatHardBlockMode,
+			orchestratorScenario,
+			orchestratorHeadless,
+			orchestratorStrict,
+			orchestratorSelectorPreflight,
+			orchestratorStrictSceneFallback,
+			orchestratorCaptureScreenshots,
+			orchestratorContinueOnError,
+			orchestratorCheckpointMode,
+			orchestratorHostFailover,
+			orchestratorScenarioTimeoutMs,
+			selectedCheatBeatId,
+		}
+
+		window.localStorage.setItem(CHEAT_ENGINE_STORAGE_KEY, JSON.stringify(state))
+	}, [
+		cheatPanelCollapsed,
+		cheatHardBlockMode,
+		orchestratorScenario,
+		orchestratorHeadless,
+		orchestratorStrict,
+		orchestratorSelectorPreflight,
+		orchestratorStrictSceneFallback,
+		orchestratorCaptureScreenshots,
+		orchestratorContinueOnError,
+		orchestratorCheckpointMode,
+		orchestratorHostFailover,
+		orchestratorScenarioTimeoutMs,
+		selectedCheatBeatId,
+		cheatStateHydrated,
+	])
 
 	// Copy to clipboard
 	const copy = useCallback((text: string, label: string) => {
@@ -451,6 +693,35 @@ export default function DevDashboard() {
 				window.location.href = resolved.path
 			} catch (err) {
 				toast.error(err instanceof Error ? err.message : 'Demo shortcut failed')
+				console.error(
+					'Demo shortcut failed:',
+					err instanceof Error ? err.message : 'Unknown error',
+				)
+			} finally {
+				setActiveShortcut(null)
+			}
+		},
+		[token],
+	)
+
+	const openPitchShortcutInNewTab = useCallback(
+		async (shortcut: DemoPitchShortcut) => {
+			setActiveShortcut(`${shortcut.label}-tab`)
+			try {
+				const resolved = await resolveDemoShortcut(shortcut, token)
+				if (resolved.copiedText) {
+					await navigator.clipboard.writeText(resolved.copiedText)
+				}
+				if (resolved.watchUrl) {
+					toast.success('Watch URL copied for second screen')
+				} else if (resolved.notice) {
+					toast.success(resolved.notice)
+				}
+				window.open(resolved.path, '_blank', 'noopener,noreferrer')
+			} catch (err) {
+				toast.error(
+					err instanceof Error ? err.message : 'Demo shortcut failed',
+				)
 				console.error(
 					'Demo shortcut failed:',
 					err instanceof Error ? err.message : 'Unknown error',
@@ -599,9 +870,441 @@ export default function DevDashboard() {
 		checkServices()
 	}, [checkServices])
 
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (
+				event.ctrlKey &&
+				event.shiftKey &&
+				event.key.toLowerCase() === 'm'
+			) {
+				event.preventDefault()
+				setCheatPanelCollapsed(previous => !previous)
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [])
+
+	const selectedCheatBeat =
+		DEMO_PITCH_BEATS.find(beat => beat.id === selectedCheatBeatId) ?? null
+	const selectedCheatActionShortcut = selectedCheatBeat
+		? getDemoPitchShortcut(selectedCheatBeat.actions[0])
+		: null
+	const selectedCheatBeatReadinessStatus = selectedCheatBeat
+		? getBeatReadinessStatus(selectedCheatBeat, readinessReport)
+		: null
+	const beatRequiresAuth = selectedCheatActionShortcut?.requiresAuth === true
+	const beatBlockedByAuth = beatRequiresAuth && !token
+	const beatBlockedByReadiness = selectedCheatBeatReadinessStatus === 'blocked'
+	const hardBlockActive =
+		cheatHardBlockMode && (beatBlockedByAuth || beatBlockedByReadiness)
+
+	const launchBeatFromCheat = useCallback(
+		async (beatId: string) => {
+			if (hardBlockActive) {
+				toast.error('Hard block active: resolve beat prerequisites first')
+				return
+			}
+
+			const beat = DEMO_PITCH_BEATS.find(item => item.id === beatId)
+			if (!beat || beat.actions.length === 0) {
+				toast.error('No actions mapped for selected beat')
+				return
+			}
+
+			const shortcut = getDemoPitchShortcut(beat.actions[0])
+			if (!shortcut) {
+				toast.error('Missing shortcut mapping for selected beat')
+				return
+			}
+
+			await openPitchBeatAction(shortcut, beat.personaUsername)
+		},
+		[hardBlockActive, openPitchBeatAction],
+	)
+
+	const copyBeatAutorunFromCheat = useCallback(
+		(beatId: string) => {
+			const beat = DEMO_PITCH_BEATS.find(item => item.id === beatId)
+			if (!beat || beat.actions.length === 0) {
+				toast.error('No autorun action available for selected beat')
+				return
+			}
+
+			copy(`/demo-cockpit?autorun=${beat.actions[0]}`, `autorun-${beatId}`)
+		},
+		[copy],
+	)
+
+	const launchBeatInNewTabFromCheat = useCallback(
+		async (beatId: string) => {
+			if (hardBlockActive) {
+				toast.error('Hard block active: resolve beat prerequisites first')
+				return
+			}
+
+			const beat = DEMO_PITCH_BEATS.find(item => item.id === beatId)
+			if (!beat || beat.actions.length === 0) {
+				toast.error('No actions mapped for selected beat')
+				return
+			}
+
+			const shortcut = getDemoPitchShortcut(beat.actions[0])
+			if (!shortcut) {
+				toast.error('Missing shortcut mapping for selected beat')
+				return
+			}
+
+			await openPitchShortcutInNewTab(shortcut)
+		},
+		[hardBlockActive, openPitchShortcutInNewTab],
+	)
+
+	const applyOrchestratorProfile = useCallback(
+		(profileId: (typeof ORCHESTRATOR_PROFILES)[number]['id']) => {
+			const profile = ORCHESTRATOR_PROFILES.find(item => item.id === profileId)
+			if (!profile) {
+				return
+			}
+
+			setOrchestratorScenario(profile.scenario)
+			setOrchestratorHeadless(profile.headless)
+			setOrchestratorStrict(profile.strict)
+			setOrchestratorSelectorPreflight(profile.selectorPreflight)
+			setOrchestratorStrictSceneFallback(profile.strictSceneFallback)
+			setOrchestratorCaptureScreenshots(profile.captureScreenshots)
+			setOrchestratorContinueOnError(profile.continueOnError)
+			setOrchestratorCheckpointMode(profile.checkpointMode)
+			setOrchestratorHostFailover(profile.hostFailover)
+			setOrchestratorScenarioTimeoutMs(profile.scenarioTimeoutMs)
+		},
+		[],
+	)
+
+	const applyStrictBaseline = useCallback(() => {
+		setOrchestratorScenario(STRICT_BASELINE.scenario)
+		setOrchestratorHeadless(STRICT_BASELINE.headless)
+		setOrchestratorStrict(STRICT_BASELINE.strict)
+		setOrchestratorSelectorPreflight(STRICT_BASELINE.selectorPreflight)
+		setOrchestratorStrictSceneFallback(STRICT_BASELINE.strictSceneFallback)
+		setOrchestratorCaptureScreenshots(STRICT_BASELINE.captureScreenshots)
+		setOrchestratorContinueOnError(STRICT_BASELINE.continueOnError)
+		setOrchestratorCheckpointMode(STRICT_BASELINE.checkpointMode)
+		setOrchestratorHostFailover(STRICT_BASELINE.hostFailover)
+		setOrchestratorScenarioTimeoutMs(STRICT_BASELINE.scenarioTimeoutMs)
+	}, [])
+
+	const resetCheatEngineState = useCallback(() => {
+		setCheatPanelCollapsed(false)
+		setCheatHardBlockMode(true)
+		setSelectedCheatBeatId(DEMO_PITCH_BEATS[0]?.id ?? '')
+		applyStrictBaseline()
+		setOrchestratorTask(null)
+		setOrchestratorProgress(null)
+		if (typeof window !== 'undefined') {
+			window.localStorage.removeItem(CHEAT_ENGINE_STORAGE_KEY)
+		}
+	}, [applyStrictBaseline])
+
+	const refreshOrchestratorTask = useCallback(async (taskId: string) => {
+		const response = await fetch(
+			`/api/dev/orchestrator/status?taskId=${encodeURIComponent(taskId)}`,
+			{
+				method: 'GET',
+				cache: 'no-store',
+			},
+		)
+
+		const payload = (await response.json()) as {
+			success?: boolean
+			message?: string
+			data?: {
+				task?: OrchestratorTaskSnapshot
+				progress?: OrchestratorProgressSnapshot | null
+			}
+		}
+
+		if (!response.ok || !payload.success || !payload.data?.task) {
+			throw new Error(payload.message || 'Failed to fetch orchestrator status')
+		}
+
+		setOrchestratorTask(payload.data.task)
+		setOrchestratorProgress(payload.data.progress ?? null)
+		return payload.data.task
+	}, [])
+
+	const refreshOrchestratorTaskList = useCallback(async () => {
+		setIsRefreshingTaskList(true)
+		try {
+			const response = await fetch('/api/dev/orchestrator/list', {
+				method: 'GET',
+				cache: 'no-store',
+			})
+
+			const payload = (await response.json()) as {
+				success?: boolean
+				message?: string
+				data?: { tasks?: OrchestratorTaskSnapshot[] }
+			}
+
+			if (!response.ok || !payload.success || !payload.data?.tasks) {
+				throw new Error(payload.message || 'Failed to fetch orchestrator task list')
+			}
+
+			setOrchestratorTaskList(payload.data.tasks)
+		} catch {
+			// Keep last known list if polling fails.
+		} finally {
+			setIsRefreshingTaskList(false)
+		}
+	}, [])
+
+	const stopOrchestratorTask = useCallback(
+		async (taskId: string) => {
+			try {
+				const response = await fetch('/api/dev/orchestrator/stop', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ taskId }),
+				})
+
+				const payload = (await response.json()) as {
+					success?: boolean
+					message?: string
+					data?: OrchestratorTaskSnapshot
+				}
+
+				if (!response.ok || !payload.success || !payload.data) {
+					throw new Error(payload.message || 'Failed to stop orchestrator task')
+				}
+
+				if (orchestratorTask?.taskId === taskId) {
+					setOrchestratorTask(payload.data)
+				}
+				void refreshOrchestratorTaskList()
+				toast.success('Orchestrator task stopped')
+			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : 'Failed to stop orchestrator task'
+				toast.error(message)
+			}
+		},
+		[orchestratorTask, refreshOrchestratorTaskList],
+	)
+
+	const stopAllOrchestratorTasks = useCallback(async () => {
+		setIsStoppingAllTasks(true)
+		try {
+			const response = await fetch('/api/dev/orchestrator/stop-all', {
+				method: 'POST',
+			})
+
+			const payload = (await response.json()) as {
+				success?: boolean
+				message?: string
+				data?: { stoppedTaskIds?: string[] }
+			}
+
+			if (!response.ok || !payload.success) {
+				throw new Error(payload.message || 'Failed to stop all orchestrator tasks')
+			}
+
+			const stoppedCount = payload.data?.stoppedTaskIds?.length ?? 0
+			await refreshOrchestratorTaskList()
+			if (orchestratorTask?.status === 'running') {
+				await refreshOrchestratorTask(orchestratorTask.taskId).catch(() => undefined)
+			}
+			toast.success(`Stop-all completed (${stoppedCount} task(s) stopped)`)
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Failed to stop all orchestrator tasks'
+			toast.error(message)
+		} finally {
+			setIsStoppingAllTasks(false)
+		}
+	}, [orchestratorTask, refreshOrchestratorTask, refreshOrchestratorTaskList])
+
+	const cleanupOrchestratorTasks = useCallback(async (keepLatest = 8) => {
+		setIsCleaningTaskHistory(true)
+		try {
+			const response = await fetch('/api/dev/orchestrator/cleanup', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ keepLatest }),
+			})
+
+			const payload = (await response.json()) as {
+				success?: boolean
+				message?: string
+				data?: { removedTaskIds?: string[] }
+			}
+
+			if (!response.ok || !payload.success) {
+				throw new Error(payload.message || 'Failed to cleanup orchestrator history')
+			}
+
+			const removedCount = payload.data?.removedTaskIds?.length ?? 0
+			await refreshOrchestratorTaskList()
+			toast.success(`Cleanup completed (${removedCount} task(s) removed)`)
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: 'Failed to cleanup orchestrator history'
+			toast.error(message)
+		} finally {
+			setIsCleaningTaskHistory(false)
+		}
+	}, [refreshOrchestratorTaskList])
+
+	const launchOrchestratorRun = useCallback(
+		async (mode: 'single-strict' | 'certify-strict') => {
+			if (cheatHardBlockMode) {
+				const launchRiskFlags = [
+					!orchestratorStrict ? 'Strict mode disabled' : null,
+					orchestratorContinueOnError ? 'Continue-on-error enabled' : null,
+					!orchestratorSelectorPreflight ? 'Selector preflight disabled' : null,
+					orchestratorStrictSceneFallback ? 'Strict scene fallback enabled' : null,
+				].filter((item): item is string => item !== null)
+
+				if (launchRiskFlags.length > 0) {
+					toast.error(`Hard block active: ${launchRiskFlags.join(' • ')}`)
+					return
+				}
+			}
+
+			setIsLaunchingOrchestrator(true)
+			try {
+				const response = await fetch('/api/dev/orchestrator/launch', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						mode,
+						hostFailover: orchestratorHostFailover,
+					}),
+				})
+
+				const payload = (await response.json()) as {
+					success?: boolean
+					message?: string
+					data?: OrchestratorTaskSnapshot
+				}
+
+				if (!response.ok || !payload.success || !payload.data) {
+					throw new Error(payload.message || 'Failed to launch orchestrator')
+				}
+
+				setOrchestratorTask(payload.data)
+				setOrchestratorProgress(null)
+				void refreshOrchestratorTaskList()
+				toast.success(
+					mode === 'certify-strict'
+						? 'Strict certify run started'
+						: 'Strict run started',
+				)
+			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : 'Failed to launch orchestrator'
+				toast.error(message)
+			} finally {
+				setIsLaunchingOrchestrator(false)
+			}
+		},
+		[
+			cheatHardBlockMode,
+			orchestratorContinueOnError,
+			orchestratorHostFailover,
+			orchestratorSelectorPreflight,
+			orchestratorStrict,
+			orchestratorStrictSceneFallback,
+			refreshOrchestratorTaskList,
+		],
+	)
+
+	useEffect(() => {
+		if (!orchestratorTask || orchestratorTask.status !== 'running') {
+			return
+		}
+
+		let cancelled = false
+		const interval = window.setInterval(() => {
+			void refreshOrchestratorTask(orchestratorTask.taskId)
+				.then(nextTask => {
+					if (cancelled || nextTask.status === 'running') {
+						return
+					}
+
+					if (nextTask.status === 'passed') {
+						toast.success('Orchestrator run passed')
+					} else {
+						toast.error('Orchestrator run failed')
+					}
+				})
+				.catch(() => {
+					// Keep polling until the next successful status call.
+				})
+		}, 2000)
+
+		return () => {
+			cancelled = true
+			window.clearInterval(interval)
+		}
+	}, [orchestratorTask, refreshOrchestratorTask])
+
+	useEffect(() => {
+		void refreshOrchestratorTaskList()
+	}, [refreshOrchestratorTaskList])
+
+	useEffect(() => {
+		const interval = window.setInterval(() => {
+			void refreshOrchestratorTaskList()
+		}, 4000)
+
+		return () => {
+			window.clearInterval(interval)
+		}
+	}, [refreshOrchestratorTaskList])
+
+	const orchestratorArgs = [
+		`--scenario ${orchestratorScenario}`,
+		`--headless ${String(orchestratorHeadless)}`,
+		`--strict ${String(orchestratorStrict)}`,
+		`--selector-preflight ${String(orchestratorSelectorPreflight)}`,
+		`--strict-scene-fallback ${String(orchestratorStrictSceneFallback)}`,
+		`--capture-screenshots ${String(orchestratorCaptureScreenshots)}`,
+		`--continue-on-error ${String(orchestratorContinueOnError)}`,
+		`--checkpoint-mode ${orchestratorCheckpointMode}`,
+		`--scenario-timeout-ms ${String(orchestratorScenarioTimeoutMs)}`,
+	].join(' ')
+
+	const orchestratorCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs ${orchestratorArgs}`
+	const strictCertifyCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 360000 --integrity-threshold 95 --certify-runs 3 --certify-min-passes 3 --certify-max-strict-failures 0 --certify-max-render-anomalies 0 --certify-max-console-errors 0 --certify-max-page-errors 0 --certify-max-http5xx-responses 0 --certify-max-request-failures 0 --certify-max-beat-fallbacks 1 --certify-max-beat-scene-fallbacks 1 --certify-max-beat-route-fallbacks 0 --certify-min-beat-evidence-rate 1 --certify-min-demo-confidence-score 95`
+	const strictSingleRunCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 360000 --integrity-threshold 95`
+
+	const orchestrationRiskFlags = [
+		!orchestratorStrict ? 'Strict mode disabled' : null,
+		orchestratorContinueOnError ? 'Continue-on-error enabled' : null,
+		!orchestratorSelectorPreflight ? 'Selector preflight disabled' : null,
+		orchestratorStrictSceneFallback ? 'Strict scene fallback enabled' : null,
+	].filter((item): item is string => item !== null)
+	const runningOrchestratorTaskCount = orchestratorTaskList.filter(
+		task => task.status === 'running',
+	).length
+
 	const upCount = services.filter(s => s.status === 'up').length
 	const passCount = apiResults.filter(r => r.status === 'pass').length
 	const failCount = apiResults.filter(r => r.status === 'fail').length
+	const topShortcuts = DEMO_PITCH_SHORTCUTS.slice(0, 6)
+	const cheatTeleportRoutes = DEMO_ROUTES.slice(0, 8)
+	const orchestratorRunStateTone =
+		orchestratorTask?.status === 'passed'
+			? 'text-success border-success/30 bg-success/10'
+			: orchestratorTask?.status === 'failed'
+				? 'text-error border-error/30 bg-error/10'
+				: orchestratorTask?.status === 'stopped'
+					? 'text-warning border-warning/30 bg-warning/10'
+				: 'text-warning border-warning/30 bg-warning/10'
 
 	return (
 		<div className='min-h-screen bg-bg text-text-primary font-sans relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8'>
@@ -1535,6 +2238,574 @@ export default function DevDashboard() {
 					to production
 				</footer>
 			</main>
+
+			{/* Floating Cheat Engine Panel */}
+			<div className='fixed bottom-5 right-5 z-notification w-[min(92vw,360px)]'>
+				<div className='rounded-2xl border border-border-subtle/80 bg-bg-card/95 shadow-2xl backdrop-blur-md'>
+					<div className='flex items-center justify-between gap-2 border-b border-border-subtle/60 px-3 py-2.5'>
+						<div className='flex items-center gap-2 text-xs font-black uppercase tracking-wide text-text-primary'>
+							<SlidersHorizontal className='size-4 text-brand' />
+							Demo Cheat Engine
+						</div>
+						<button
+							type='button'
+							onClick={() => setCheatPanelCollapsed(prev => !prev)}
+							className='inline-flex items-center rounded-lg border border-border-subtle bg-bg-elevated px-2 py-1 text-[11px] font-semibold text-text-secondary hover:text-text-primary'
+						>
+							{cheatPanelCollapsed ? (
+								<ChevronsUp className='size-3.5' />
+							) : (
+								<ChevronsDown className='size-3.5' />
+							)}
+						</button>
+					</div>
+
+					<AnimatePresence initial={false}>
+						{!cheatPanelCollapsed && (
+							<motion.div
+								initial={{ opacity: 0, y: 8 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: 8 }}
+								className='space-y-3 p-3'
+							>
+								<div className='rounded-xl border border-warning/30 bg-warning/10 p-2 text-[10px] font-semibold text-warning'>
+									Ctrl+Shift+M toggles this panel
+								</div>
+								<div className='grid grid-cols-2 gap-1.5'>
+									<button
+										type='button'
+										onClick={() => setCheatHardBlockMode(prev => !prev)}
+										className={cn(
+											'rounded-lg border px-1.5 py-1 text-[10px] font-bold',
+											cheatHardBlockMode
+												? 'border-success/30 bg-success/10 text-success'
+												: 'border-warning/30 bg-warning/10 text-warning',
+										)}
+									>
+										Hard Block: {cheatHardBlockMode ? 'ON' : 'OFF'}
+									</button>
+									<div className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-[10px] text-text-muted'>
+										Beat readiness:{' '}
+										{selectedCheatBeatReadinessStatus ?? 'unknown'}
+									</div>
+								</div>
+								{hardBlockActive && (
+									<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-[10px] text-error'>
+										Launch blocked: {beatBlockedByAuth ? 'auth required' : 'readiness blocked'}
+									</div>
+								)}
+
+								<div className='grid grid-cols-2 gap-2'>
+									<button
+										type='button'
+										onClick={() => void checkServices()}
+										className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary hover:bg-bg-card'
+									>
+										Infra Probe
+									</button>
+									<button
+										type='button'
+										onClick={() => void runApiTests()}
+										disabled={isRunningApiTests}
+										className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand disabled:opacity-50'
+									>
+										API Sweep
+									</button>
+								</div>
+
+								<div className='grid grid-cols-2 gap-2'>
+									<div className='rounded-xl border border-success/25 bg-success/10 px-2 py-1.5 text-center'>
+										<div className='text-[9px] uppercase tracking-wide text-success/80'>
+											Services
+										</div>
+										<div className='text-xs font-black text-success'>
+											{upCount}/{SERVICES.length}
+										</div>
+									</div>
+									<div className='rounded-xl border border-brand/25 bg-brand/10 px-2 py-1.5 text-center'>
+										<div className='text-[9px] uppercase tracking-wide text-brand/80'>
+											API Pass
+										</div>
+										<div className='text-xs font-black text-brand'>
+											{passCount}/{API_TESTS.length}
+										</div>
+									</div>
+								</div>
+
+								<div className='space-y-1.5'>
+									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+										Persona Hot Swap
+									</span>
+									<div className='grid grid-cols-2 gap-2'>
+										{DEMO_ACCOUNTS.slice(0, 4).map(account => (
+											<button
+												type='button'
+												key={`cheat-${account.username}`}
+												onClick={() =>
+													void loginToApp(
+														account.username,
+														account.password,
+														account.defaultRoute,
+													)
+												}
+												disabled={isLoggingInToApp}
+												className='rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
+											>
+												{account.username}
+											</button>
+										))}
+									</div>
+								</div>
+
+								<div className='space-y-1.5'>
+									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+										Route Teleport
+									</span>
+									<div className='grid grid-cols-2 gap-2'>
+										{cheatTeleportRoutes.map(route => (
+											<button
+												type='button'
+												key={`teleport-${route.path}`}
+												onClick={() => {
+													window.open(route.path, '_blank', 'noopener,noreferrer')
+												}}
+												className='rounded-xl border border-border-subtle bg-bg-card px-2 py-2 text-[10px] font-semibold text-text-secondary hover:text-text-primary'
+											>
+												{route.icon} {route.label}
+											</button>
+										))}
+									</div>
+								</div>
+
+								<div className='space-y-1.5'>
+									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+										Beat Control
+									</span>
+									<select
+										value={selectedCheatBeatId}
+										onChange={event => setSelectedCheatBeatId(event.target.value)}
+										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-primary'
+									>
+										{DEMO_PITCH_BEATS.map(beat => (
+											<option key={`beat-selector-${beat.id}`} value={beat.id}>
+												{beat.phase} · {beat.title}
+											</option>
+										))}
+									</select>
+									<div className='grid grid-cols-2 gap-2'>
+										<button
+											type='button'
+											onClick={() =>
+												selectedCheatBeat &&
+												void launchBeatFromCheat(selectedCheatBeat.id)
+											}
+											disabled={!selectedCheatBeat || hardBlockActive}
+											className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand disabled:opacity-50'
+										>
+											Run Beat
+										</button>
+										<button
+											type='button'
+											onClick={() =>
+												selectedCheatBeat &&
+												void launchBeatInNewTabFromCheat(selectedCheatBeat.id)
+											}
+											disabled={!selectedCheatBeat || hardBlockActive}
+											className='rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-[11px] font-bold text-xp disabled:opacity-50'
+										>
+											Run In Tab
+										</button>
+									</div>
+									<div className='grid grid-cols-2 gap-2'>
+										<button
+											type='button'
+											onClick={() =>
+												selectedCheatBeat &&
+												copyBeatAutorunFromCheat(selectedCheatBeat.id)
+											}
+											disabled={!selectedCheatBeat}
+											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary disabled:opacity-50'
+										>
+											Copy Autorun
+										</button>
+										<button
+											type='button'
+											onClick={() => {
+												window.open('/demo-cockpit', '_blank', 'noopener,noreferrer')
+											}}
+											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary'
+										>
+											Open Cockpit
+										</button>
+									</div>
+									{selectedCheatActionShortcut && (
+										<div className='rounded-xl border border-border-subtle/70 bg-bg-elevated/50 px-2.5 py-2 text-[10px] text-text-muted'>
+											Primary action: {selectedCheatActionShortcut.label}
+										</div>
+									)}
+									<div className='grid grid-cols-1 gap-1.5 max-h-40 overflow-auto pr-1'>
+										{topShortcuts.map(shortcut => (
+											<button
+												type='button'
+												key={`cheat-shortcut-${shortcut.id}`}
+												onClick={() => void openPitchShortcut(shortcut)}
+												disabled={activeShortcut === shortcut.label}
+												className='inline-flex items-center justify-between rounded-xl border border-border-subtle/80 bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
+											>
+												<span className='truncate'>{shortcut.label}</span>
+												<Play className='size-3.5 shrink-0 text-brand' />
+											</button>
+										))}
+									</div>
+								</div>
+
+								<div className='space-y-1.5 rounded-xl border border-border-subtle/70 bg-bg-elevated/50 p-2.5'>
+									<div className='flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+										<Zap className='size-3.5 text-brand' />
+										Orchestrator Profile
+									</div>
+									<div className='grid grid-cols-2 gap-1.5'>
+										<button
+											type='button'
+											onClick={applyStrictBaseline}
+											className='rounded-lg border border-success/30 bg-success/10 px-1.5 py-1 text-[10px] font-bold text-success'
+										>
+											Harden
+										</button>
+										<button
+											type='button'
+											onClick={resetCheatEngineState}
+											className='rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-[10px] font-bold text-warning'
+										>
+											Reset
+										</button>
+									</div>
+									<div className='grid grid-cols-2 gap-1.5'>
+										<button
+											type='button'
+											onClick={() => void launchOrchestratorRun('single-strict')}
+											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
+											className='rounded-lg border border-brand/30 bg-brand/10 px-1.5 py-1 text-[10px] font-bold text-brand disabled:opacity-50'
+										>
+											Run Strict
+										</button>
+										<button
+											type='button'
+											onClick={() => void launchOrchestratorRun('certify-strict')}
+											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
+											className='rounded-lg border border-xp/30 bg-xp/10 px-1.5 py-1 text-[10px] font-bold text-xp disabled:opacity-50'
+										>
+											Run Certify x3
+										</button>
+									</div>
+									<div className='grid grid-cols-2 gap-1.5'>
+										<button
+											type='button'
+											onClick={() => void stopAllOrchestratorTasks()}
+											disabled={isStoppingAllTasks || runningOrchestratorTaskCount === 0}
+											className='inline-flex items-center justify-center gap-1 rounded-lg border border-error/30 bg-error/10 px-1.5 py-1 text-[10px] font-bold text-error disabled:opacity-50'
+										>
+											<StopCircle className='size-3' />
+											Stop All
+										</button>
+										<button
+											type='button'
+											onClick={() => void cleanupOrchestratorTasks(8)}
+											disabled={isCleaningTaskHistory}
+											className='inline-flex items-center justify-center gap-1 rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-[10px] font-bold text-warning disabled:opacity-50'
+										>
+											<Trash2 className='size-3' />
+											Cleanup
+										</button>
+									</div>
+									{orchestrationRiskFlags.length > 0 ? (
+										<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-[10px] text-error'>
+											Risk: {orchestrationRiskFlags.join(' • ')}
+										</div>
+									) : (
+										<div className='rounded-lg border border-success/30 bg-success/10 px-2 py-1.5 text-[10px] text-success'>
+											Strict profile armed
+										</div>
+									)}
+									{cheatHardBlockMode && orchestrationRiskFlags.length > 0 && (
+										<div className='inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[10px] text-warning'>
+											<ShieldAlert className='mt-0.5 size-3 shrink-0' />
+											<span>Hard block prevents orchestrator launch until risks are removed.</span>
+										</div>
+									)}
+									{orchestratorTask && (
+										<div
+											className={cn(
+												'rounded-lg border px-2 py-1.5 text-[10px]',
+												orchestratorRunStateTone,
+											)}
+										>
+											<div className='font-bold'>
+												Task {orchestratorTask.mode} • {orchestratorTask.status}
+											</div>
+											<div className='font-mono text-[9px] opacity-80'>
+												{orchestratorTask.taskId}
+											</div>
+											{orchestratorTask.runId && (
+												<div className='font-mono text-[9px] opacity-80'>
+													{orchestratorTask.runId}
+												</div>
+											)}
+											{orchestratorProgress && (
+												<div className='mt-1 text-[9px] opacity-80'>
+													strict:{' '}
+													{orchestratorProgress.strictAssertionFailures ?? 'n/a'} ·
+													render:{' '}
+													{orchestratorProgress.renderAnomalies ?? 'n/a'} · evidence:{' '}
+													{orchestratorProgress.beatsWithEvidence ?? 'n/a'} · arcs:{' '}
+													{orchestratorProgress.beatsWithValueArc ?? 'n/a'}
+												</div>
+											)}
+											{orchestratorTask.recentOutput.length > 0 && (
+												<div className='mt-1 rounded border border-border-subtle/70 bg-bg-card/70 px-1.5 py-1 font-mono text-[9px] text-text-secondary max-h-20 overflow-auto'>
+													{orchestratorTask.recentOutput.slice(-6).join('\n')}
+												</div>
+											)}
+											{orchestratorTask.errorMessage && (
+												<div className='mt-1 text-[9px] text-error'>
+													{orchestratorTask.errorMessage}
+												</div>
+											)}
+										</div>
+									)}
+									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-[10px] text-text-secondary'>
+										<div className='flex items-center justify-between gap-2'>
+											<span className='font-bold uppercase tracking-wide text-text-muted'>
+												Task Timeline
+											</span>
+											<div className='flex items-center gap-1.5'>
+												<span className='text-[9px] text-text-muted'>run:{runningOrchestratorTaskCount}</span>
+												<button
+													type='button'
+													onClick={() => void refreshOrchestratorTaskList()}
+													disabled={isRefreshingTaskList}
+													className='rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-[9px] font-semibold text-text-secondary disabled:opacity-50'
+												>
+													Refresh
+												</button>
+											</div>
+										</div>
+										<div className='mt-1.5 max-h-28 space-y-1 overflow-auto'>
+											{orchestratorTaskList.length === 0 ? (
+												<div className='text-[9px] text-text-muted'>No tasks yet</div>
+											) : (
+												orchestratorTaskList.slice(0, 8).map(task => (
+													<div
+														key={`task-row-${task.taskId}`}
+														className='rounded border border-border-subtle/70 bg-bg-elevated/60 px-1.5 py-1'
+													>
+														<div className='flex items-center justify-between gap-2'>
+															<span className='font-mono text-[9px] text-text-muted'>
+																{task.taskId.slice(0, 8)}
+															</span>
+															<span
+																className={cn(
+																	'text-[9px] font-bold',
+																	task.status === 'passed'
+																		? 'text-success'
+																		: task.status === 'failed'
+																			? 'text-error'
+																			: task.status === 'stopped'
+																				? 'text-warning'
+																				: 'text-brand',
+																)}
+															>
+																{task.status}
+															</span>
+														</div>
+														<div className='mt-0.5 flex items-center justify-between gap-2'>
+															<span className='text-[9px] text-text-muted'>
+																{task.mode}
+															</span>
+															{task.status === 'running' && (
+																<button
+																	type='button'
+																	onClick={() => void stopOrchestratorTask(task.taskId)}
+																	className='rounded border border-error/30 bg-error/10 px-1 py-0.5 text-[9px] font-bold text-error'
+																>
+																	Stop
+																</button>
+															)}
+														</div>
+													</div>
+												))
+											)}
+										</div>
+									</div>
+									<div className='grid grid-cols-3 gap-1.5'>
+										{ORCHESTRATOR_PROFILES.map(profile => (
+											<button
+												type='button'
+												key={`profile-${profile.id}`}
+												onClick={() => applyOrchestratorProfile(profile.id)}
+												className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-[10px] font-bold text-text-primary hover:border-brand/40'
+											>
+												{profile.label}
+											</button>
+										))}
+									</div>
+									<select
+										value={orchestratorScenario}
+										onChange={event => setOrchestratorScenario(event.target.value)}
+										className='w-full rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary'
+									>
+										{['demo-cockpit-deep', 'quick-post', 'route-sweep'].map(item => (
+											<option key={`orchestrator-scenario-${item}`} value={item}>
+												{item}
+											</option>
+										))}
+									</select>
+									<div className='grid grid-cols-2 gap-1.5 text-[10px]'>
+										{[
+											{
+												label: 'Headless',
+												value: orchestratorHeadless,
+												toggle: () => setOrchestratorHeadless(prev => !prev),
+											},
+											{
+												label: 'Strict',
+												value: orchestratorStrict,
+												toggle: () => setOrchestratorStrict(prev => !prev),
+											},
+											{
+												label: 'Selector Preflight',
+												value: orchestratorSelectorPreflight,
+												toggle: () =>
+													setOrchestratorSelectorPreflight(prev => !prev),
+											},
+											{
+												label: 'Scene Fallback',
+												value: orchestratorStrictSceneFallback,
+												toggle: () =>
+													setOrchestratorStrictSceneFallback(prev => !prev),
+											},
+											{
+												label: 'Screenshots',
+												value: orchestratorCaptureScreenshots,
+												toggle: () =>
+													setOrchestratorCaptureScreenshots(prev => !prev),
+											},
+											{
+												label: 'Host Failover',
+												value: orchestratorHostFailover,
+												toggle: () => setOrchestratorHostFailover(prev => !prev),
+											},
+										].map(toggle => (
+											<button
+												type='button'
+												key={`toggle-${toggle.label}`}
+												onClick={toggle.toggle}
+												className={cn(
+													'rounded-lg border px-1.5 py-1 font-semibold transition-colors',
+													toggle.value
+														? 'border-success/30 bg-success/10 text-success'
+														: 'border-border-subtle bg-bg-card text-text-muted',
+												)}
+											>
+												{toggle.label}
+											</button>
+										))}
+									</div>
+
+									<div className='grid grid-cols-2 gap-1.5'>
+										<select
+											value={orchestratorCheckpointMode}
+											onChange={event =>
+												setOrchestratorCheckpointMode(event.target.value)
+											}
+											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary'
+										>
+											{['off', 'prompt'].map(mode => (
+												<option key={`checkpoint-${mode}`} value={mode}>
+													checkpoint:{mode}
+												</option>
+											))}
+										</select>
+										<input
+											type='number'
+											min={120000}
+											step={15000}
+											value={orchestratorScenarioTimeoutMs}
+											onChange={event =>
+												setOrchestratorScenarioTimeoutMs(
+													Math.max(120000, Number(event.target.value) || 120000),
+												)
+											}
+											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+										/>
+									</div>
+
+									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-[10px] font-mono text-text-secondary break-all'>
+										{orchestratorCommand}
+									</div>
+									<div className='rounded-lg border border-brand/30 bg-brand/10 px-2 py-1.5 text-[10px] font-mono text-brand break-all'>
+										{strictSingleRunCommand}
+									</div>
+									<div className='rounded-lg border border-xp/30 bg-xp/10 px-2 py-1.5 text-[10px] font-mono text-xp break-all'>
+										{strictCertifyCommand}
+									</div>
+									<button
+										type='button'
+										onClick={() =>
+											copy(
+												`Set-Location d:\\code\\chefkix\\chefkix-fe; ${orchestratorCommand}`,
+												'cheat-run-command-windows',
+											)
+										}
+										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand'
+									>
+										{copied === 'cheat-run-command-windows'
+											? 'Windows Command Copied'
+											: 'Copy Windows Command'}
+									</button>
+									<button
+										type='button'
+										onClick={() =>
+											copy(
+												`Set-Location d:\\code\\chefkix\\chefkix-fe; ${strictSingleRunCommand}`,
+												'cheat-strict-single-command',
+											)
+										}
+										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand'
+									>
+										{copied === 'cheat-strict-single-command'
+											? 'Strict Single Copied'
+											: 'Copy Strict Single'}
+									</button>
+									<button
+										type='button'
+										onClick={() =>
+											copy(
+												`Set-Location d:\\code\\chefkix\\chefkix-fe; ${strictCertifyCommand}`,
+												'cheat-strict-certify-command',
+											)
+										}
+										className='w-full rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-[11px] font-bold text-xp'
+									>
+										{copied === 'cheat-strict-certify-command'
+											? 'Strict Certify Copied'
+											: 'Copy Strict Certify x3'}
+									</button>
+									<button
+										type='button'
+										onClick={() => copy(orchestratorCommand, 'cheat-run-command')}
+										className='w-full rounded-xl border border-success/30 bg-success/10 px-2.5 py-2 text-[11px] font-bold text-success'
+									>
+										{copied === 'cheat-run-command'
+											? 'Command Copied'
+											: 'Copy Orchestrator Command'}
+									</button>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
+			</div>
 		</div>
 	)
 }

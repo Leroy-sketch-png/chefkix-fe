@@ -44,11 +44,11 @@ export const StoryAvatar = ({
 					</div>
 
 					{isAddButton ? (
-						<div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-sm'>
+						<div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-card'>
 							<Plus className='h-3 w-3' strokeWidth={3} />
 						</div>
 					) : hasUnseen ? (
-						<div className='absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-bg-card bg-brand shadow-sm' />
+						<div className='absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-bg-card bg-brand shadow-card' />
 					) : null}
 				</div>
 			</div>

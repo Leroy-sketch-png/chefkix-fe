@@ -57,7 +57,7 @@ const SignUpPage = () => {
 							<div className='mb-4 flex items-center justify-between'>
 								<Link
 									href={PATHS.HOME}
-									className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand sm:size-12'
+									className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-all hover:border-brand hover:text-brand sm:size-12'
 									title={t('backToWelcome')}
 								>
 									<ArrowLeft className='size-5' />

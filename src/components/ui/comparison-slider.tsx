@@ -107,7 +107,7 @@ export function ComparisonSlider({
 
 			{/* Divider */}
 			<div
-				className='absolute inset-y-0 z-10 w-0.5 bg-white shadow-md'
+				className='absolute inset-y-0 z-10 w-0.5 bg-white shadow-card'
 				style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
 			>
 				<div className='absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-bg-card shadow-card'>

@@ -27,7 +27,7 @@ const CircleBtn = ({
 	isDanger?: boolean
 }) => {
 	const baseStyle =
-		'size-14 rounded-full flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50 outline-none shadow-sm'
+		'size-14 rounded-full flex items-center justify-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand/50 outline-none shadow-card'
 	const colorStyle = isDanger
 		? 'bg-error text-white hover:bg-error-dark shadow-error/30'
 		: active

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -654,7 +654,7 @@ function CreatePostContent() {
 										>
 											{previewUrls.map((url, index) => (
 												<motion.div
-													key={url}
+													key={index}
 													initial={{ opacity: 0, scale: 0.8 }}
 													animate={{ opacity: 1, scale: 1 }}
 													exit={{ opacity: 0, scale: 0.8 }}

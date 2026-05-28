@@ -1672,7 +1672,7 @@ function RecipeDetailContent() {
 											className={cn(
 												'mt-0.5 size-5 flex-shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer',
 												checkedIngredients[index]
-													? 'bg-success border-success text-white scale-110 shadow-sm'
+													? 'bg-success border-success text-white scale-110 shadow-card'
 													: 'border-border-medium hover:border-brand/50 bg-transparent',
 											)}
 										>

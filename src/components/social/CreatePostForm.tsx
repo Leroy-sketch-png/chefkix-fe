@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
@@ -292,7 +292,7 @@ export const CreatePostForm = ({
 							>
 								{previewUrls.map((url, index) => (
 									<motion.div
-										key={url}
+										key={index}
 										initial={{ opacity: 0, scale: 0.8 }}
 										animate={{ opacity: 1, scale: 1 }}
 										exit={{ opacity: 0, scale: 0.8 }}

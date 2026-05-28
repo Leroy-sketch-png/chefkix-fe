@@ -95,6 +95,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 	if (isLoading) {
 		return (
 			<div
+				data-testid='tonights-pick'
 				className={cn(
 					'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card sm:p-5',
 					className,
@@ -127,6 +128,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 	if (!recommendation?.recipe) {
 		return (
 			<div
+				data-testid='tonights-pick'
 				className={cn(
 					'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card sm:p-5',
 					className,
@@ -204,6 +206,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 
 	return (
 		<MagicCard
+			data-testid='tonights-pick'
 			mode='orb'
 			glowFrom='var(--color-brand)'
 			glowTo='var(--color-xp)'
@@ -215,6 +218,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			<Link
 				href={`/recipes/${recipe.id}?cook=true`}
 				className='group block relative z-40'
+				data-testid='tonights-pick-link'
 				aria-label={t('tpCookAriaLabel', { title: recipe.title })}
 			>
 				<div className='relative h-44 w-full overflow-hidden'>

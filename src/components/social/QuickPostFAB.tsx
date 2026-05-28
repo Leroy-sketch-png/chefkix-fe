@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
@@ -647,7 +647,7 @@ export const QuickPostFAB = ({
 												<div className='grid grid-cols-3 gap-2'>
 													{previewUrls.map((url, index) => (
 														<div
-															key={url}
+															key={index}
 															className='group relative aspect-square overflow-hidden rounded-xl'
 														>
 															<Image
@@ -858,7 +858,7 @@ export const QuickPostFAB = ({
 												<div className='grid grid-cols-3 gap-2'>
 													{previewUrls.map((url, index) => (
 														<div
-															key={url}
+															key={index}
 															className='group relative aspect-square overflow-hidden rounded-xl'
 														>
 															<Image

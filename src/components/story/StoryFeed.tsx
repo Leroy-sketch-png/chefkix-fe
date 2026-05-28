@@ -57,7 +57,7 @@ const CreateStoryCard = ({
 							: 'flex items-start justify-between gap-2'
 					}
 				>
-					<div className='flex size-10 items-center justify-center rounded-xl border border-brand/15 bg-bg-card shadow-sm'>
+					<div className='flex size-10 items-center justify-center rounded-xl border border-brand/15 bg-bg-card shadow-card'>
 						<img
 							src={avatarUrl}
 							alt='Your story avatar'
@@ -65,7 +65,7 @@ const CreateStoryCard = ({
 						/>
 					</div>
 					{!fullWidth ? (
-						<div className='flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm'>
+						<div className='flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-card'>
 							<Plus className='size-4' strokeWidth={2.8} />
 						</div>
 					) : null}

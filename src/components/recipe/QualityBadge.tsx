@@ -133,7 +133,7 @@ const QualityBadgeComponent = ({
 			className={cn(
 				'inline-flex items-center rounded-full border font-medium',
 				config.colors,
-				config.bgGlow && `shadow-sm ${config.bgGlow}`,
+				config.bgGlow && `shadow-card ${config.bgGlow}`,
 				sizeConfig.wrapper,
 				className,
 			)}

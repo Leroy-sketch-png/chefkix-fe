@@ -43,7 +43,7 @@ export const RatingSelector = ({
 					className={cn(
 						'flex cursor-pointer items-center gap-2 rounded-xl border border-border-subtle px-4 py-3 transition-all hover:border-brand hover:bg-brand/5',
 						value === rating &&
-							'border-brand bg-brand/10 shadow-sm ring-1 ring-brand/20',
+							'border-brand bg-brand/10 shadow-card ring-1 ring-brand/20',
 					)}
 				>
 					<input

@@ -159,6 +159,7 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 	return (
 		<div className='flex items-center justify-center overflow-visible'>
 			<svg
+				data-testid='taste-radar'
 				className='h-auto w-full max-w-[220px] sm:max-w-[280px]'
 				overflow='visible'
 				width={svgSize}

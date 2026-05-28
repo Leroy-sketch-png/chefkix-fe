@@ -247,7 +247,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 							{/* Badge Icon */}
 							<div
 								className={cn(
-									'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110 shadow-sm',
+									'grid size-14 place-items-center rounded-xl text-3xl transition-transform duration-300 group-hover:scale-110 shadow-card',
 									isEarned
 										? 'bg-bg-card/90 border border-border-subtle'
 										: 'bg-bg-hover',

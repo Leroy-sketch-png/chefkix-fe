@@ -116,7 +116,7 @@ export function NotificationsCommandDeck({
 							className={cn(
 								'inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',
 								isActive
-									? 'border-brand/25 bg-brand/12 text-brand shadow-sm'
+									? 'border-brand/25 bg-brand/12 text-brand shadow-card'
 									: 'border-border-subtle bg-bg-elevated text-text-secondary hover:bg-bg-hover hover:text-text-primary',
 							)}
 						>

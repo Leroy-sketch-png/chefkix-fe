@@ -497,7 +497,7 @@ export default function ShoppingListsPage() {
 										mode='orb'
 										glowFrom='var(--color-brand)'
 										glowTo='var(--color-warning)'
-										className='flex items-center gap-3 rounded-xl border border-brand/20 bg-bg-card/75 backdrop-blur-md px-4 py-3 shadow-lg overflow-hidden'
+										className='flex items-center gap-3 rounded-xl border border-brand/20 bg-bg-card/75 backdrop-blur-md px-4 py-3 shadow-warm overflow-hidden'
 									>
 										<ShoppingCart className='size-5 flex-shrink-0 text-brand z-10' />
 										<div className='flex-1 min-w-0 z-10'>
