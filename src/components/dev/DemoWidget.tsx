@@ -5,10 +5,17 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import {
 	DEMO_BASE_URL,
+	DEMO_PITCH_BEATS,
 	DEMO_PITCH_SHORTCUTS,
 	DEMO_ROUTES,
 	DEMO_WIDGET_ACCOUNTS,
+	getBeatReadinessStatus,
+	getDemoPitchShortcut,
+	loadDemoReadinessReport,
+	resetDemoReadinessCache,
 	resolveDemoShortcut,
+	type DemoReadinessReport,
+	type DemoReadinessStatus,
 	type DemoPitchShortcut,
 } from './demo-config'
 
@@ -23,6 +30,22 @@ interface OrchestratorProgressSnapshot {
 	renderAnomalies: number | null
 	beatsWithEvidence: number | null
 	beatsWithValueArc: number | null
+	beatsWithPhaseCoverage: number | null
+	expectedBeats: number | null
+	beatFallbacks: number | null
+	beatSceneFallbacks: number | null
+	beatRouteFallbacks: number | null
+	consoleErrors: number | null
+	pageErrors: number | null
+	requestFailures: number | null
+	http5xxResponses: number | null
+	warningCount: number | null
+	errorCount: number | null
+	preflightCoreStatus: string | null
+	beatEvidenceRate: number | null
+	beatValueArcRate: number | null
+	beatPhaseCoverageRate: number | null
+	criticalFindings: string[]
 }
 
 interface OrchestratorTaskSnapshot {
@@ -37,6 +60,25 @@ interface OrchestratorTaskSnapshot {
 	runId: string | null
 	recentOutput: string[]
 	errorMessage: string | null
+	runtimeAgeSec: number
+	lastOutputAgeSec: number
+	maxRuntimeSec: number
+	watchdogRisk: 'healthy' | 'warning' | 'critical'
+}
+
+interface OrchestratorPreflightSnapshot {
+	backendBaseUrl: string
+	backendHealthUrl: string
+	authProbeUrl: string
+	runningTaskCount: number
+	maxConcurrentRunningTasks: number
+	launchCapacityAvailable: boolean
+	backendHealthOk: boolean
+	authProbeOk: boolean
+	backendHealthStatusCode: number | null
+	authProbeStatusCode: number | null
+	errorMessage: string | null
+	checkedAt: string
 }
 
 function OriginalDemoWidget() {
@@ -59,6 +101,10 @@ function OriginalDemoWidget() {
 	const [isLaunchingOrchestrator, setIsLaunchingOrchestrator] = useState(false)
 	const [isRefreshingTasks, setIsRefreshingTasks] = useState(false)
 	const [isStoppingAllTasks, setIsStoppingAllTasks] = useState(false)
+	const [readinessReport, setReadinessReport] =
+		useState<DemoReadinessReport | null>(null)
+	const [orchestratorPreflight, setOrchestratorPreflight] =
+		useState<OrchestratorPreflightSnapshot | null>(null)
 	const panelRef = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const pathname = usePathname()
@@ -200,6 +246,56 @@ function OriginalDemoWidget() {
 		[accessToken, flash, navigateTo],
 	)
 
+	const getReadinessTone = useCallback((status: DemoReadinessStatus | null) => {
+		switch (status) {
+			case 'ready':
+				return { label: 'Ready', color: '#3fb950', border: '#23863666', bg: '#23863622' }
+			case 'warning':
+				return { label: 'Watch', color: '#d29922', border: '#d2992266', bg: '#d299221f' }
+			case 'blocked':
+				return { label: 'Blocked', color: '#f85149', border: '#f8514966', bg: '#f851491f' }
+			default:
+				return { label: 'Unknown', color: '#8b949e', border: '#30363d', bg: '#11161d' }
+		}
+	}, [])
+
+	const refreshReadinessReport = useCallback(async () => {
+		try {
+			resetDemoReadinessCache()
+			const report = await loadDemoReadinessReport()
+			setReadinessReport(report)
+		} catch {
+			setReadinessReport(null)
+		}
+	}, [])
+
+	const refreshOrchestratorPreflight = useCallback(async () => {
+		try {
+			const response = await fetch('/api/dev/orchestrator/preflight', {
+				method: 'GET',
+				cache: 'no-store',
+			})
+
+			const payload = (await response.json()) as {
+				success?: boolean
+				message?: string
+				data?: { preflight?: OrchestratorPreflightSnapshot }
+			}
+
+			if (!payload.data?.preflight) {
+				setOrchestratorPreflight(null)
+				return
+			}
+
+			setOrchestratorPreflight(payload.data.preflight)
+			if (!response.ok || !payload.success) {
+				flash(payload.message || 'Orchestrator preflight failed')
+			}
+		} catch {
+			setOrchestratorPreflight(null)
+		}
+	}, [flash])
+
 	const refreshOrchestratorTaskList = useCallback(async () => {
 		setIsRefreshingTasks(true)
 		try {
@@ -323,8 +419,22 @@ function OriginalDemoWidget() {
 
 	const launchOrchestratorRun = useCallback(
 		async (mode: 'single-strict' | 'certify-strict') => {
+			const preflightBlocked =
+				hardBlockMode &&
+				orchestratorPreflight !== null &&
+				(!orchestratorPreflight.backendHealthOk ||
+					!orchestratorPreflight.authProbeOk ||
+					!orchestratorPreflight.launchCapacityAvailable)
+
 			if (hardBlockMode && backendStatus !== 'up') {
 				flash('Hard block active: backend must be UP before launch')
+				return
+			}
+
+			if (preflightBlocked) {
+				flash(
+					`Hard block active: ${orchestratorPreflight?.errorMessage || 'server preflight failed'}`,
+				)
 				return
 			}
 
@@ -339,14 +449,23 @@ function OriginalDemoWidget() {
 				const payload = (await response.json()) as {
 					success?: boolean
 					message?: string
-					data?: OrchestratorTaskSnapshot
+					data?: {
+						task?: OrchestratorTaskSnapshot
+						preflight?: OrchestratorPreflightSnapshot
+					}
 				}
 
-				if (!response.ok || !payload.success || !payload.data) {
+				if (!response.ok || !payload.success || !payload.data?.task) {
+					if (payload.data?.preflight) {
+						setOrchestratorPreflight(payload.data.preflight)
+					}
 					throw new Error(payload.message || 'Failed to launch orchestrator')
 				}
 
-				setOrchestratorTask(payload.data)
+				setOrchestratorTask(payload.data.task)
+				if (payload.data.preflight) {
+					setOrchestratorPreflight(payload.data.preflight)
+				}
 				setOrchestratorProgress(null)
 				await refreshOrchestratorTaskList()
 				flash(mode === 'certify-strict' ? 'Strict certify launched' : 'Strict run launched')
@@ -360,7 +479,13 @@ function OriginalDemoWidget() {
 				setIsLaunchingOrchestrator(false)
 			}
 		},
-		[backendStatus, flash, hardBlockMode, refreshOrchestratorTaskList],
+		[
+			backendStatus,
+			flash,
+			hardBlockMode,
+			orchestratorPreflight,
+			refreshOrchestratorTaskList,
+		],
 	)
 
 	useEffect(() => {
@@ -377,6 +502,23 @@ function OriginalDemoWidget() {
 			window.clearInterval(interval)
 		}
 	}, [isOpen, refreshOrchestratorTaskList])
+
+	useEffect(() => {
+		if (!isOpen) {
+			return
+		}
+
+		void refreshReadinessReport()
+		void refreshOrchestratorPreflight()
+		const interval = window.setInterval(() => {
+			void refreshReadinessReport()
+			void refreshOrchestratorPreflight()
+		}, 20000)
+
+		return () => {
+			window.clearInterval(interval)
+		}
+	}, [isOpen, refreshOrchestratorPreflight, refreshReadinessReport])
 
 	useEffect(() => {
 		if (!isOpen || !orchestratorTask || orchestratorTask.status !== 'running') {
@@ -770,6 +912,84 @@ function OriginalDemoWidget() {
 							)}
 						</div>
 
+						{/* Beat Board */}
+						<div style={{ padding: '8px', borderTop: '1px solid #21262d' }}>
+							<div
+								style={{
+									fontSize: 10,
+									color: '#8b949e',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+									padding: '4px 8px',
+									fontWeight: 600,
+								}}
+							>
+								Beat Board
+							</div>
+							<div style={{ display: 'grid', gap: 4 }}>
+								{DEMO_PITCH_BEATS.map(beat => {
+									const status = getBeatReadinessStatus(beat, readinessReport)
+									const tone = getReadinessTone(status)
+									const firstAction = beat.actions[0]
+									const shortcut = firstAction
+										? getDemoPitchShortcut(firstAction)
+										: undefined
+
+									return (
+										<div
+											key={beat.id}
+											style={{
+												padding: '8px 10px',
+												borderRadius: 6,
+												border: `1px solid ${tone.border}`,
+												background: tone.bg,
+											}}
+										>
+											<div
+												style={{
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'space-between',
+													gap: 8,
+												}}
+											>
+												<div style={{ fontSize: 10, fontWeight: 600, color: '#e6edf3' }}>
+													{beat.phase} · {beat.title}
+												</div>
+												<span style={{ fontSize: 9, fontWeight: 700, color: tone.color }}>
+													{tone.label}
+												</span>
+											</div>
+											<div style={{ fontSize: 9, color: '#8b949e', marginTop: 4 }}>
+												{beat.minutes} · persona {beat.personaUsername}
+											</div>
+											{shortcut && (
+												<button
+													onClick={() => void openPitchShortcut(shortcut)}
+													disabled={Boolean(shortcut.requiresAuth) && !isAuthenticated}
+													style={{
+														...btnAction,
+														marginTop: 6,
+														padding: '5px 8px',
+														fontSize: 10,
+														background: '#0d1117',
+														border: '1px solid #30363d',
+														opacity:
+															Boolean(shortcut.requiresAuth) && !isAuthenticated ? 0.5 : 1,
+													}}
+												>
+													Open Beat
+												</button>
+											)}
+										</div>
+									)
+								})}
+							</div>
+							<div style={{ fontSize: 9, color: '#8b949e', padding: '6px 8px 0' }}>
+								Readiness source: /demo-readiness.json
+							</div>
+						</div>
+
 						{/* Orchestrator Control Plane */}
 						<div style={{ padding: '8px', borderTop: '1px solid #21262d' }}>
 							<div
@@ -803,6 +1023,46 @@ function OriginalDemoWidget() {
 									{backendStatus === 'up' ? 'backend ready' : 'backend down'}
 								</span>
 							</div>
+
+							{orchestratorPreflight && (
+								<div
+									style={{
+										margin: '0 8px 8px',
+										padding: '6px 8px',
+										borderRadius: 8,
+										border: `1px solid ${orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable ? '#23863666' : '#f8514966'}`,
+										background:
+											orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable
+												? '#23863622'
+												: '#f851491f',
+										fontSize: 9,
+										color:
+											orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable
+												? '#3fb950'
+												: '#f85149',
+										lineHeight: 1.35,
+									}}
+								>
+									<div>
+										preflight backend/auth:{' '}
+										{orchestratorPreflight.backendHealthOk ? 'ok' : 'fail'}/
+										{orchestratorPreflight.authProbeOk ? 'ok' : 'fail'}
+									</div>
+									<div>
+										status codes:{' '}
+										{orchestratorPreflight.backendHealthStatusCode ?? 'n/a'}/
+										{orchestratorPreflight.authProbeStatusCode ?? 'n/a'}
+									</div>
+									<div>
+										capacity:{' '}
+										{orchestratorPreflight.runningTaskCount}/
+										{orchestratorPreflight.maxConcurrentRunningTasks} ({orchestratorPreflight.launchCapacityAvailable ? 'available' : 'full'})
+									</div>
+									{orchestratorPreflight.errorMessage && (
+										<div>{orchestratorPreflight.errorMessage}</div>
+									)}
+								</div>
+							)}
 
 							<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: '0 8px 8px' }}>
 								<button
@@ -869,12 +1129,57 @@ function OriginalDemoWidget() {
 											{orchestratorTask.status}
 										</span>
 									</div>
+											<div style={{ marginTop: 4, fontSize: 9, color: '#8b949e' }}>
+												watchdog:{orchestratorTask.watchdogRisk} · runtime:{orchestratorTask.runtimeAgeSec}s/{orchestratorTask.maxRuntimeSec}s · idle:{orchestratorTask.lastOutputAgeSec}s
+											</div>
 									{orchestratorProgress && (
 										<div style={{ marginTop: 6, fontSize: 10, color: '#8b949e' }}>
-											strict:{orchestratorProgress.strictAssertionFailures ?? 'n/a'} · render:{' '}
-											{orchestratorProgress.renderAnomalies ?? 'n/a'} · evidence:{' '}
-											{orchestratorProgress.beatsWithEvidence ?? 'n/a'} · arcs:{' '}
-											{orchestratorProgress.beatsWithValueArc ?? 'n/a'}
+											<div>
+												strict:{orchestratorProgress.strictAssertionFailures ?? 'n/a'} · render:{' '}
+												{orchestratorProgress.renderAnomalies ?? 'n/a'} · 5xx:{' '}
+												{orchestratorProgress.http5xxResponses ?? 'n/a'} · page:{' '}
+												{orchestratorProgress.pageErrors ?? 'n/a'}
+											</div>
+											<div>
+												beats e/a/p:{orchestratorProgress.beatsWithEvidence ?? 'n/a'}/
+												{orchestratorProgress.beatsWithValueArc ?? 'n/a'}/
+												{orchestratorProgress.beatsWithPhaseCoverage ?? 'n/a'} of{' '}
+												{orchestratorProgress.expectedBeats ?? 'n/a'}
+											</div>
+											<div>
+												rates e/a/p:{orchestratorProgress.beatEvidenceRate ?? 'n/a'}%/{' '}
+												{orchestratorProgress.beatValueArcRate ?? 'n/a'}%/{' '}
+												{orchestratorProgress.beatPhaseCoverageRate ?? 'n/a'}%
+											</div>
+											<div>
+												fallbacks total/scene/route:{' '}
+												{orchestratorProgress.beatFallbacks ?? 'n/a'}/
+												{orchestratorProgress.beatSceneFallbacks ?? 'n/a'}/
+												{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} · reqFail:{' '}
+												{orchestratorProgress.requestFailures ?? 'n/a'} · console:{' '}
+												{orchestratorProgress.consoleErrors ?? 'n/a'}
+											</div>
+											<div>
+												preflight:{orchestratorProgress.preflightCoreStatus ?? 'n/a'} · warnings:{' '}
+												{orchestratorProgress.warningCount ?? 'n/a'} · errors:{' '}
+												{orchestratorProgress.errorCount ?? 'n/a'}
+											</div>
+											{orchestratorProgress.criticalFindings.length > 0 && (
+												<div
+													style={{
+														marginTop: 6,
+														padding: '5px 6px',
+														borderRadius: 6,
+														border: '1px solid #f8514966',
+														background: '#f851491f',
+														color: '#f85149',
+														fontSize: 9,
+														lineHeight: 1.35,
+													}}
+												>
+													{orchestratorProgress.criticalFindings.slice(0, 3).join(' | ')}
+												</div>
+											)}
 										</div>
 									)}
 									{orchestratorTask.recentOutput.length > 0 && (
@@ -951,7 +1256,7 @@ function OriginalDemoWidget() {
 																		: '#58a6ff',
 													}}
 												>
-													{task.status}
+																			{task.status} · {task.runtimeAgeSec}s/{task.maxRuntimeSec}s
 												</span>
 											</div>
 										))
@@ -1308,6 +1613,7 @@ function CheatEngine() {
 								[▶] Co-Cook Join
 							</button>
 						</div>
+					</div>
 				</div>
 				
 				<div style={{ fontSize: 10, color: '#8b949e', textAlign: 'center', marginTop: 8 }}>

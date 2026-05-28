@@ -69,6 +69,22 @@ interface OrchestratorProgressSnapshot {
 	renderAnomalies: number | null
 	beatsWithEvidence: number | null
 	beatsWithValueArc: number | null
+	beatsWithPhaseCoverage: number | null
+	expectedBeats: number | null
+	beatFallbacks: number | null
+	beatSceneFallbacks: number | null
+	beatRouteFallbacks: number | null
+	consoleErrors: number | null
+	pageErrors: number | null
+	requestFailures: number | null
+	http5xxResponses: number | null
+	warningCount: number | null
+	errorCount: number | null
+	preflightCoreStatus: string | null
+	beatEvidenceRate: number | null
+	beatValueArcRate: number | null
+	beatPhaseCoverageRate: number | null
+	criticalFindings: string[]
 }
 
 interface OrchestratorTaskSnapshot {
@@ -83,6 +99,25 @@ interface OrchestratorTaskSnapshot {
 	runId: string | null
 	recentOutput: string[]
 	errorMessage: string | null
+	runtimeAgeSec: number
+	lastOutputAgeSec: number
+	maxRuntimeSec: number
+	watchdogRisk: 'healthy' | 'warning' | 'critical'
+}
+
+interface OrchestratorPreflightSnapshot {
+	backendBaseUrl: string
+	backendHealthUrl: string
+	authProbeUrl: string
+	runningTaskCount: number
+	maxConcurrentRunningTasks: number
+	launchCapacityAvailable: boolean
+	backendHealthOk: boolean
+	authProbeOk: boolean
+	backendHealthStatusCode: number | null
+	authProbeStatusCode: number | null
+	errorMessage: string | null
+	checkedAt: string
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -188,7 +223,7 @@ const API_TESTS = [
 const QUICK_LINKS = [
 	{
 		label: 'Swagger UI',
-		url: 'http://localhost:8080/api/v1/swagger-ui.html',
+		url: `${DEMO_BASE_URL}/api/v1/swagger-ui.html`,
 		icon: '📄',
 	},
 	{
@@ -213,7 +248,7 @@ const ORCHESTRATOR_PROFILES = [
 		continueOnError: false,
 		checkpointMode: 'off',
 		hostFailover: false,
-		scenarioTimeoutMs: 360000,
+		scenarioTimeoutMs: 660000,
 	},
 	{
 		id: 'smoke-fast',
@@ -241,7 +276,7 @@ const ORCHESTRATOR_PROFILES = [
 		continueOnError: false,
 		checkpointMode: 'prompt',
 		hostFailover: false,
-		scenarioTimeoutMs: 420000,
+		scenarioTimeoutMs: 780000,
 	},
 ] as const
 
@@ -257,7 +292,7 @@ const STRICT_BASELINE = {
 	continueOnError: false,
 	checkpointMode: 'off',
 	hostFailover: false,
-	scenarioTimeoutMs: 360000,
+	scenarioTimeoutMs: 660000,
 } as const
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -406,6 +441,8 @@ export default function DevDashboard() {
 	const [orchestratorTaskList, setOrchestratorTaskList] = useState<
 		OrchestratorTaskSnapshot[]
 	>([])
+	const [orchestratorPreflight, setOrchestratorPreflight] =
+		useState<OrchestratorPreflightSnapshot | null>(null)
 	const [isRefreshingTaskList, setIsRefreshingTaskList] = useState(false)
 	const [isStoppingAllTasks, setIsStoppingAllTasks] = useState(false)
 	const [isCleaningTaskHistory, setIsCleaningTaskHistory] = useState(false)
@@ -1060,6 +1097,33 @@ export default function DevDashboard() {
 		}
 	}, [])
 
+	const refreshOrchestratorPreflight = useCallback(async () => {
+		try {
+			const response = await fetch('/api/dev/orchestrator/preflight', {
+				method: 'GET',
+				cache: 'no-store',
+			})
+
+			const payload = (await response.json()) as {
+				success?: boolean
+				message?: string
+				data?: { preflight?: OrchestratorPreflightSnapshot }
+			}
+
+			if (!payload.data?.preflight) {
+				setOrchestratorPreflight(null)
+				return
+			}
+
+			setOrchestratorPreflight(payload.data.preflight)
+			if (!response.ok || !payload.success) {
+				toast.error(payload.message || 'Orchestrator preflight failed')
+			}
+		} catch {
+			setOrchestratorPreflight(null)
+		}
+	}, [])
+
 	const stopOrchestratorTask = useCallback(
 		async (taskId: string) => {
 			try {
@@ -1160,18 +1224,35 @@ export default function DevDashboard() {
 
 	const launchOrchestratorRun = useCallback(
 		async (mode: 'single-strict' | 'certify-strict') => {
+			const preflightBlocked =
+				cheatHardBlockMode &&
+				orchestratorPreflight !== null &&
+				(!orchestratorPreflight.backendHealthOk ||
+					!orchestratorPreflight.authProbeOk ||
+					!orchestratorPreflight.launchCapacityAvailable)
+
 			if (cheatHardBlockMode) {
 				const launchRiskFlags = [
 					!orchestratorStrict ? 'Strict mode disabled' : null,
 					orchestratorContinueOnError ? 'Continue-on-error enabled' : null,
 					!orchestratorSelectorPreflight ? 'Selector preflight disabled' : null,
 					orchestratorStrictSceneFallback ? 'Strict scene fallback enabled' : null,
+					orchestratorPreflight && !orchestratorPreflight.launchCapacityAvailable
+						? `Capacity full (${orchestratorPreflight.runningTaskCount}/${orchestratorPreflight.maxConcurrentRunningTasks})`
+						: null,
 				].filter((item): item is string => item !== null)
 
 				if (launchRiskFlags.length > 0) {
 					toast.error(`Hard block active: ${launchRiskFlags.join(' • ')}`)
 					return
 				}
+			}
+
+			if (preflightBlocked) {
+				toast.error(
+					`Hard block active: ${orchestratorPreflight?.errorMessage || 'server preflight failed'}`,
+				)
+				return
 			}
 
 			setIsLaunchingOrchestrator(true)
@@ -1188,14 +1269,23 @@ export default function DevDashboard() {
 				const payload = (await response.json()) as {
 					success?: boolean
 					message?: string
-					data?: OrchestratorTaskSnapshot
+					data?: {
+						task?: OrchestratorTaskSnapshot
+						preflight?: OrchestratorPreflightSnapshot
+					}
 				}
 
-				if (!response.ok || !payload.success || !payload.data) {
+				if (!response.ok || !payload.success || !payload.data?.task) {
+					if (payload.data?.preflight) {
+						setOrchestratorPreflight(payload.data.preflight)
+					}
 					throw new Error(payload.message || 'Failed to launch orchestrator')
 				}
 
-				setOrchestratorTask(payload.data)
+				setOrchestratorTask(payload.data.task)
+				if (payload.data.preflight) {
+					setOrchestratorPreflight(payload.data.preflight)
+				}
 				setOrchestratorProgress(null)
 				void refreshOrchestratorTaskList()
 				toast.success(
@@ -1215,6 +1305,7 @@ export default function DevDashboard() {
 			cheatHardBlockMode,
 			orchestratorContinueOnError,
 			orchestratorHostFailover,
+			orchestratorPreflight,
 			orchestratorSelectorPreflight,
 			orchestratorStrict,
 			orchestratorStrictSceneFallback,
@@ -1254,17 +1345,19 @@ export default function DevDashboard() {
 
 	useEffect(() => {
 		void refreshOrchestratorTaskList()
+		void refreshOrchestratorPreflight()
 	}, [refreshOrchestratorTaskList])
 
 	useEffect(() => {
 		const interval = window.setInterval(() => {
 			void refreshOrchestratorTaskList()
+			void refreshOrchestratorPreflight()
 		}, 4000)
 
 		return () => {
 			window.clearInterval(interval)
 		}
-	}, [refreshOrchestratorTaskList])
+	}, [refreshOrchestratorPreflight, refreshOrchestratorTaskList])
 
 	const orchestratorArgs = [
 		`--scenario ${orchestratorScenario}`,
@@ -1279,8 +1372,8 @@ export default function DevDashboard() {
 	].join(' ')
 
 	const orchestratorCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs ${orchestratorArgs}`
-	const strictCertifyCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 360000 --integrity-threshold 95 --certify-runs 3 --certify-min-passes 3 --certify-max-strict-failures 0 --certify-max-render-anomalies 0 --certify-max-console-errors 0 --certify-max-page-errors 0 --certify-max-http5xx-responses 0 --certify-max-request-failures 0 --certify-max-beat-fallbacks 1 --certify-max-beat-scene-fallbacks 1 --certify-max-beat-route-fallbacks 0 --certify-min-beat-evidence-rate 1 --certify-min-demo-confidence-score 95`
-	const strictSingleRunCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 360000 --integrity-threshold 95`
+	const strictCertifyCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 660000 --integrity-threshold 95 --preflight-backend-health-url ${BASE}/api/v1/actuator/health --preflight-auth-probe-url ${BASE}/api/v1/auth/check-username?username=testuser --certify-runs 3 --certify-min-passes 3 --certify-max-strict-failures 0 --certify-max-render-anomalies 0 --certify-max-console-errors 50 --certify-max-page-errors 0 --certify-max-http5xx-responses 2 --certify-max-request-failures 50 --certify-max-beat-fallbacks 2 --certify-max-beat-scene-fallbacks 2 --certify-max-beat-route-fallbacks 0 --certify-min-beat-evidence-rate 100 --certify-min-demo-confidence-score 85`
+	const strictSingleRunCommand = `${orchestratorHostFailover ? 'set ORCH_ENABLE_HOST_FAILOVER=1 && ' : ''}node scripts/live-demo-orchestrator.mjs --scenario demo-cockpit-deep --headless true --strict true --selector-preflight true --strict-scene-fallback false --capture-screenshots false --continue-on-error false --checkpoint-mode off --scenario-timeout-ms 660000 --integrity-threshold 95 --preflight-backend-health-url ${BASE}/api/v1/actuator/health --preflight-auth-probe-url ${BASE}/api/v1/auth/check-username?username=testuser`
 
 	const orchestrationRiskFlags = [
 		!orchestratorStrict ? 'Strict mode disabled' : null,
@@ -2215,7 +2308,7 @@ export default function DevDashboard() {
 						<div
 							onClick={() =>
 								copy(
-									`curl -H "Authorization: Bearer ${token}" http://localhost:8080/api/v1/auth/me`,
+									`curl -H "Authorization: Bearer ${token}" ${BASE}/api/v1/auth/me`,
 									'curl',
 								)
 							}
@@ -2223,7 +2316,7 @@ export default function DevDashboard() {
 						>
 							<code className='text-brand break-all leading-relaxed'>
 								curl -H &quot;Authorization: Bearer {token.substring(0, 80)}
-								...&quot; http://localhost:8080/api/v1/auth/me
+								...&quot; {BASE}/api/v1/auth/me
 							</code>
 							<span className='text-[10px] font-bold text-text-muted shrink-0 mt-0.5'>
 								{copied === 'curl' ? '✓ Copied' : 'Copy cURL'}
@@ -2527,6 +2620,35 @@ export default function DevDashboard() {
 											Strict profile armed
 										</div>
 									)}
+									{orchestratorPreflight && (
+										<div
+											className={cn(
+												'rounded-lg border px-2 py-1.5 text-[10px]',
+												orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk
+													? 'border-success/30 bg-success/10 text-success'
+													: 'border-error/30 bg-error/10 text-error',
+											)}
+										>
+											<div>
+												preflight backend/auth:{' '}
+												{orchestratorPreflight.backendHealthOk ? 'ok' : 'fail'}/
+												{orchestratorPreflight.authProbeOk ? 'ok' : 'fail'}
+											</div>
+											<div>
+												status codes:{' '}
+												{orchestratorPreflight.backendHealthStatusCode ?? 'n/a'}/
+												{orchestratorPreflight.authProbeStatusCode ?? 'n/a'}
+											</div>
+											<div>
+												capacity:{' '}
+												{orchestratorPreflight.runningTaskCount}/
+												{orchestratorPreflight.maxConcurrentRunningTasks} ({orchestratorPreflight.launchCapacityAvailable ? 'available' : 'full'})
+											</div>
+											{orchestratorPreflight.errorMessage && (
+												<div>{orchestratorPreflight.errorMessage}</div>
+											)}
+										</div>
+									)}
 									{cheatHardBlockMode && orchestrationRiskFlags.length > 0 && (
 										<div className='inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[10px] text-warning'>
 											<ShieldAlert className='mt-0.5 size-3 shrink-0' />
@@ -2551,14 +2673,53 @@ export default function DevDashboard() {
 													{orchestratorTask.runId}
 												</div>
 											)}
+											<div className='mt-1 text-[9px] opacity-80'>
+												watchdog:{' '}
+												{orchestratorTask.watchdogRisk} · runtime:{' '}
+												{orchestratorTask.runtimeAgeSec}s/{orchestratorTask.maxRuntimeSec}s · idle:{' '}
+												{orchestratorTask.lastOutputAgeSec}s
+											</div>
 											{orchestratorProgress && (
 												<div className='mt-1 text-[9px] opacity-80'>
-													strict:{' '}
-													{orchestratorProgress.strictAssertionFailures ?? 'n/a'} ·
-													render:{' '}
-													{orchestratorProgress.renderAnomalies ?? 'n/a'} · evidence:{' '}
-													{orchestratorProgress.beatsWithEvidence ?? 'n/a'} · arcs:{' '}
-													{orchestratorProgress.beatsWithValueArc ?? 'n/a'}
+													<div>
+														strict:{' '}
+														{orchestratorProgress.strictAssertionFailures ?? 'n/a'} ·
+														render:{' '}
+														{orchestratorProgress.renderAnomalies ?? 'n/a'} · 5xx:{' '}
+														{orchestratorProgress.http5xxResponses ?? 'n/a'} · page:{' '}
+														{orchestratorProgress.pageErrors ?? 'n/a'}
+													</div>
+													<div>
+														beats e/a/p:{' '}
+														{orchestratorProgress.beatsWithEvidence ?? 'n/a'}/
+														{orchestratorProgress.beatsWithValueArc ?? 'n/a'}/
+														{orchestratorProgress.beatsWithPhaseCoverage ?? 'n/a'} of{' '}
+														{orchestratorProgress.expectedBeats ?? 'n/a'}
+													</div>
+													<div>
+														rates e/a/p:{' '}
+														{orchestratorProgress.beatEvidenceRate ?? 'n/a'}%/
+														{orchestratorProgress.beatValueArcRate ?? 'n/a'}%/
+														{orchestratorProgress.beatPhaseCoverageRate ?? 'n/a'}%
+													</div>
+													<div>
+														fallback total/scene/route:{' '}
+														{orchestratorProgress.beatFallbacks ?? 'n/a'}/
+														{orchestratorProgress.beatSceneFallbacks ?? 'n/a'}/
+														{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} · reqFail:{' '}
+														{orchestratorProgress.requestFailures ?? 'n/a'} · console:{' '}
+														{orchestratorProgress.consoleErrors ?? 'n/a'}
+													</div>
+													<div>
+														preflight:{orchestratorProgress.preflightCoreStatus ?? 'n/a'} · warnings:{' '}
+														{orchestratorProgress.warningCount ?? 'n/a'} · errors:{' '}
+														{orchestratorProgress.errorCount ?? 'n/a'}
+													</div>
+													{orchestratorProgress.criticalFindings.length > 0 && (
+														<div className='mt-1 rounded border border-error/35 bg-error/15 px-1.5 py-1 text-[9px] text-error'>
+															{orchestratorProgress.criticalFindings.slice(0, 3).join(' | ')}
+														</div>
+													)}
 												</div>
 											)}
 											{orchestratorTask.recentOutput.length > 0 && (
@@ -2621,6 +2782,18 @@ export default function DevDashboard() {
 														<div className='mt-0.5 flex items-center justify-between gap-2'>
 															<span className='text-[9px] text-text-muted'>
 																{task.mode}
+															</span>
+															<span
+																className={cn(
+																	'text-[9px] font-semibold',
+																	task.watchdogRisk === 'critical'
+																		? 'text-error'
+																		: task.watchdogRisk === 'warning'
+																			? 'text-warning'
+																			: 'text-success',
+																)}
+															>
+																{task.runtimeAgeSec}s/{task.maxRuntimeSec}s
 															</span>
 															{task.status === 'running' && (
 																<button

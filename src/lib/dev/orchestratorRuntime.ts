@@ -17,70 +17,210 @@ export interface OrchestratorTask {
 	runId: string | null
 	recentOutput: string[]
 	errorMessage: string | null
+	runtimeAgeSec: number
+	lastOutputAgeSec: number
+	maxRuntimeSec: number
+	watchdogRisk: 'healthy' | 'warning' | 'critical'
 }
 
 interface OrchestratorTaskInternal extends OrchestratorTask {
 	pid: number | null
 	updatedAt: string
+	lastOutputAt: string
+	maxRuntimeMs: number
 	child: ChildProcessWithoutNullStreams | null
+}
+
+export interface OrchestratorProgressSummary {
+	status: string | null
+	strictAssertionFailures: number | null
+	renderAnomalies: number | null
+	beatsWithEvidence: number | null
+	beatsWithValueArc: number | null
+	beatsWithPhaseCoverage: number | null
+	expectedBeats: number | null
+	beatFallbacks: number | null
+	beatSceneFallbacks: number | null
+	beatRouteFallbacks: number | null
+	consoleErrors: number | null
+	pageErrors: number | null
+	requestFailures: number | null
+	http5xxResponses: number | null
+	warningCount: number | null
+	errorCount: number | null
+	preflightCoreStatus: string | null
+	beatEvidenceRate: number | null
+	beatValueArcRate: number | null
+	beatPhaseCoverageRate: number | null
+	criticalFindings: string[]
+}
+
+export interface OrchestratorPreflightSummary {
+	backendBaseUrl: string
+	backendHealthUrl: string
+	authProbeUrl: string
+	runningTaskCount: number
+	maxConcurrentRunningTasks: number
+	launchCapacityAvailable: boolean
+	backendHealthOk: boolean
+	authProbeOk: boolean
+	backendHealthStatusCode: number | null
+	authProbeStatusCode: number | null
+	errorMessage: string | null
+	checkedAt: string
 }
 
 const MAX_OUTPUT_LINES = 120
 const MAX_TASKS = 20
 const MAX_CONCURRENT_RUNNING_TASKS = 2
+const RUNNING_TASK_SILENCE_TIMEOUT_MS = 120000
+const RUNNING_TASK_RUNTIME_GRACE_MS = 120000
+const STRICT_SCENARIO_TIMEOUT_MS = 660000
+const STRICT_INTEGRITY_THRESHOLD = 95
+const DEMO_COCKPIT_EXPECTED_BEATS = 6
 
-const singleStrictArgs = [
-	'--scenario',
-	'demo-cockpit-deep',
-	'--headless',
-	'true',
-	'--strict',
-	'true',
-	'--selector-preflight',
-	'true',
-	'--strict-scene-fallback',
-	'false',
-	'--capture-screenshots',
-	'false',
-	'--continue-on-error',
-	'false',
-	'--checkpoint-mode',
-	'off',
-	'--scenario-timeout-ms',
-	'360000',
-	'--integrity-threshold',
-	'95',
-]
+function getTaskMaxRuntimeMs(mode: OrchestratorLaunchMode): number {
+	if (mode === 'certify-strict') {
+		return STRICT_SCENARIO_TIMEOUT_MS * 3 + 300000
+	}
 
-const certifyStrictArgs = [
-	...singleStrictArgs,
-	'--certify-runs',
-	'3',
-	'--certify-min-passes',
-	'3',
-	'--certify-max-strict-failures',
-	'0',
-	'--certify-max-render-anomalies',
-	'0',
-	'--certify-max-console-errors',
-	'0',
-	'--certify-max-page-errors',
-	'0',
-	'--certify-max-http5xx-responses',
-	'0',
-	'--certify-max-request-failures',
-	'0',
-	'--certify-max-beat-fallbacks',
-	'1',
-	'--certify-max-beat-scene-fallbacks',
-	'1',
-	'--certify-max-beat-route-fallbacks',
-	'0',
-	'--certify-min-beat-evidence-rate',
-	'1',
-	'--certify-min-demo-confidence-score',
-	'95',
-]
+	return STRICT_SCENARIO_TIMEOUT_MS + RUNNING_TASK_RUNTIME_GRACE_MS
+}
+
+function getBackendBaseUrl(): string {
+	const configured = (process.env.NEXT_PUBLIC_BASE_URL || '').trim()
+	if (configured.length > 0) {
+		return configured.replace(/\/+$/, '')
+	}
+
+	return 'http://localhost:8080'
+}
+
+async function probeUrl(url: string): Promise<{
+	ok: boolean
+	statusCode: number | null
+	errorMessage: string | null
+}> {
+	try {
+		const response = await fetch(url, {
+			method: 'GET',
+			cache: 'no-store',
+			signal: AbortSignal.timeout(5000),
+		})
+
+		return {
+			ok: response.ok,
+			statusCode: response.status,
+			errorMessage: response.ok ? null : `HTTP ${response.status}`,
+		}
+	} catch (error) {
+		return {
+			ok: false,
+			statusCode: null,
+			errorMessage:
+				error instanceof Error ? error.message : 'Network or timeout failure',
+		}
+	}
+}
+
+export async function runOrchestratorPreflight(): Promise<OrchestratorPreflightSummary> {
+	const backendBaseUrl = getBackendBaseUrl()
+	const backendHealthUrl = `${backendBaseUrl}/api/v1/actuator/health`
+	const authProbeUrl = `${backendBaseUrl}/api/v1/auth/check-username?username=testuser`
+	const runningTaskCount = getRunningTaskCount()
+	const launchCapacityAvailable = runningTaskCount < MAX_CONCURRENT_RUNNING_TASKS
+
+	const [backendHealth, authProbe] = await Promise.all([
+		probeUrl(backendHealthUrl),
+		probeUrl(authProbeUrl),
+	])
+
+	const errorMessage = !backendHealth.ok
+		? `backend health failed: ${backendHealth.errorMessage || 'unknown error'}`
+		: !authProbe.ok
+			? `auth probe failed: ${authProbe.errorMessage || 'unknown error'}`
+			: null
+
+	return {
+		backendBaseUrl,
+		backendHealthUrl,
+		authProbeUrl,
+		runningTaskCount,
+		maxConcurrentRunningTasks: MAX_CONCURRENT_RUNNING_TASKS,
+		launchCapacityAvailable,
+		backendHealthOk: backendHealth.ok,
+		authProbeOk: authProbe.ok,
+		backendHealthStatusCode: backendHealth.statusCode,
+		authProbeStatusCode: authProbe.statusCode,
+		errorMessage,
+		checkedAt: new Date().toISOString(),
+	}
+}
+
+function buildSingleStrictArgs(): string[] {
+	const backendBaseUrl = getBackendBaseUrl()
+	const backendHealthUrl = `${backendBaseUrl}/api/v1/actuator/health`
+	const authProbeUrl = `${backendBaseUrl}/api/v1/auth/check-username?username=testuser`
+
+	return [
+		'--scenario',
+		'demo-cockpit-deep',
+		'--headless',
+		'true',
+		'--strict',
+		'true',
+		'--selector-preflight',
+		'true',
+		'--strict-scene-fallback',
+		'false',
+		'--capture-screenshots',
+		'false',
+		'--continue-on-error',
+		'false',
+		'--checkpoint-mode',
+		'off',
+		'--scenario-timeout-ms',
+		String(STRICT_SCENARIO_TIMEOUT_MS),
+		'--integrity-threshold',
+		String(STRICT_INTEGRITY_THRESHOLD),
+		'--preflight-backend-health-url',
+		backendHealthUrl,
+		'--preflight-auth-probe-url',
+		authProbeUrl,
+	]
+}
+
+function buildCertifyStrictArgs(): string[] {
+	return [
+		...buildSingleStrictArgs(),
+		'--certify-runs',
+		'3',
+		'--certify-min-passes',
+		'3',
+		'--certify-max-strict-failures',
+		'0',
+		'--certify-max-render-anomalies',
+		'0',
+		'--certify-max-console-errors',
+		'50',
+		'--certify-max-page-errors',
+		'0',
+		'--certify-max-http5xx-responses',
+		'2',
+		'--certify-max-request-failures',
+		'50',
+		'--certify-max-beat-fallbacks',
+		'2',
+		'--certify-max-beat-scene-fallbacks',
+		'2',
+		'--certify-max-beat-route-fallbacks',
+		'0',
+		'--certify-min-beat-evidence-rate',
+		'100',
+		'--certify-min-demo-confidence-score',
+		'85',
+	]
+}
 
 function getTaskStore(): Map<string, OrchestratorTaskInternal> {
 	const globalKey = '__chefkixOrchestratorTaskStore'
@@ -111,6 +251,8 @@ function trimTaskStore(): void {
 }
 
 function getRunningTaskCount(): number {
+	enforceRunningTaskHealth()
+
 	let count = 0
 	for (const task of getTaskStore().values()) {
 		if (task.status === 'running') {
@@ -171,6 +313,7 @@ function pushOutput(task: OrchestratorTaskInternal, chunk: string): void {
 
 	task.recentOutput = [...task.recentOutput, ...lines].slice(-MAX_OUTPUT_LINES)
 	task.updatedAt = new Date().toISOString()
+	task.lastOutputAt = task.updatedAt
 
 	for (const line of lines) {
 		const match = line.match(/Run artifacts written:\s*(.+)$/i)
@@ -184,11 +327,67 @@ function pushOutput(task: OrchestratorTaskInternal, chunk: string): void {
 	}
 }
 
+function enforceRunningTaskHealth(): void {
+	const now = Date.now()
+
+	for (const task of getTaskStore().values()) {
+		if (task.status !== 'running' || !task.child) {
+			continue
+		}
+
+		const lastOutputAtMs = Date.parse(task.lastOutputAt)
+		if (!Number.isFinite(lastOutputAtMs)) {
+			continue
+		}
+
+		const silenceMs = now - lastOutputAtMs
+		if (silenceMs <= RUNNING_TASK_SILENCE_TIMEOUT_MS) {
+			const startedAtMs = Date.parse(task.startedAt)
+			if (Number.isFinite(startedAtMs)) {
+				const runtimeMs = now - startedAtMs
+				if (runtimeMs > task.maxRuntimeMs) {
+					killTaskProcess(task, true)
+					task.status = 'failed'
+					task.exitCode = task.exitCode ?? 1
+					task.errorMessage = `Task watchdog timeout: runtime ${Math.round(
+						runtimeMs / 1000,
+					)}s exceeded limit ${Math.round(task.maxRuntimeMs / 1000)}s`
+					task.recentOutput = [
+						...task.recentOutput,
+						`[runtime][error] ${task.errorMessage}`,
+					].slice(-MAX_OUTPUT_LINES)
+					task.child = null
+					task.pid = null
+					task.endedAt = task.endedAt ?? new Date().toISOString()
+					task.updatedAt = new Date().toISOString()
+				}
+			}
+
+			continue
+		}
+
+		killTaskProcess(task, true)
+		task.status = 'failed'
+		task.exitCode = task.exitCode ?? 1
+		task.errorMessage = `Task watchdog timeout: no output for ${Math.round(
+			silenceMs / 1000,
+		)}s`
+		task.recentOutput = [
+			...task.recentOutput,
+			`[runtime][error] ${task.errorMessage}`,
+		].slice(-MAX_OUTPUT_LINES)
+		task.child = null
+		task.pid = null
+		task.endedAt = task.endedAt ?? new Date().toISOString()
+		task.updatedAt = new Date().toISOString()
+	}
+}
+
 function buildArgs(mode: OrchestratorLaunchMode): string[] {
 	if (mode === 'certify-strict') {
-		return certifyStrictArgs
+		return buildCertifyStrictArgs()
 	}
-	return singleStrictArgs
+	return buildSingleStrictArgs()
 }
 
 export function launchOrchestratorTask(
@@ -218,8 +417,14 @@ export function launchOrchestratorTask(
 		runId: null,
 		recentOutput: [],
 		errorMessage: null,
+		runtimeAgeSec: 0,
+		lastOutputAgeSec: 0,
+		maxRuntimeSec: Math.round(getTaskMaxRuntimeMs(mode) / 1000),
+		watchdogRisk: 'healthy',
 		pid: null,
 		updatedAt: now,
+		lastOutputAt: now,
+		maxRuntimeMs: getTaskMaxRuntimeMs(mode),
 		child: null,
 	}
 
@@ -282,10 +487,33 @@ export function launchOrchestratorTask(
 		runId: task.runId,
 		recentOutput: task.recentOutput,
 		errorMessage: task.errorMessage,
+		runtimeAgeSec: 0,
+		lastOutputAgeSec: 0,
+		maxRuntimeSec: Math.round(task.maxRuntimeMs / 1000),
+		watchdogRisk: 'healthy',
 	}
 }
 
 function toPublicTask(task: OrchestratorTaskInternal): OrchestratorTask {
+	const now = Date.now()
+	const startedAtMs = Date.parse(task.startedAt)
+	const lastOutputAtMs = Date.parse(task.lastOutputAt)
+	const runtimeAgeSec = Number.isFinite(startedAtMs)
+		? Math.max(0, Math.round((now - startedAtMs) / 1000))
+		: 0
+	const lastOutputAgeSec = Number.isFinite(lastOutputAtMs)
+		? Math.max(0, Math.round((now - lastOutputAtMs) / 1000))
+		: 0
+	const silenceRatio = RUNNING_TASK_SILENCE_TIMEOUT_MS > 0
+		? (lastOutputAgeSec * 1000) / RUNNING_TASK_SILENCE_TIMEOUT_MS
+		: 0
+	const runtimeRatio = task.maxRuntimeMs > 0
+		? (runtimeAgeSec * 1000) / task.maxRuntimeMs
+		: 0
+	const riskRatio = Math.max(silenceRatio, runtimeRatio)
+	const watchdogRisk: OrchestratorTask['watchdogRisk'] =
+		riskRatio >= 0.9 ? 'critical' : riskRatio >= 0.75 ? 'warning' : 'healthy'
+
 	return {
 		taskId: task.taskId,
 		mode: task.mode,
@@ -298,10 +526,16 @@ function toPublicTask(task: OrchestratorTaskInternal): OrchestratorTask {
 		runId: task.runId,
 		recentOutput: task.recentOutput,
 		errorMessage: task.errorMessage,
+		runtimeAgeSec,
+		lastOutputAgeSec,
+		maxRuntimeSec: Math.round(task.maxRuntimeMs / 1000),
+		watchdogRisk,
 	}
 }
 
 export function listOrchestratorTasks(): OrchestratorTask[] {
+	enforceRunningTaskHealth()
+
 	const tasks = [...getTaskStore().values()].sort((a, b) =>
 		b.startedAt.localeCompare(a.startedAt),
 	)
@@ -365,16 +599,9 @@ export function cleanupOrchestratorTasks(keepLatest = 10): {
 	}
 }
 
-async function readProgressSummary(artifactDir: string | null): Promise<
-	| {
-		status: string | null
-		strictAssertionFailures: number | null
-		renderAnomalies: number | null
-		beatsWithEvidence: number | null
-		beatsWithValueArc: number | null
-	  }
-	| null
-> {
+async function readProgressSummary(
+	artifactDir: string | null,
+): Promise<OrchestratorProgressSummary | null> {
 	if (!artifactDir) {
 		return null
 	}
@@ -389,27 +616,140 @@ async function readProgressSummary(artifactDir: string | null): Promise<
 				renderAnomalies?: number
 				beatsWithEvidence?: number
 				beatsWithValueArc?: number
+				beatsWithPhaseCoverage?: number
+				beatFallbacks?: number
+				beatSceneFallbacks?: number
+				beatRouteFallbacks?: number
+				consoleErrors?: number
+				pageErrors?: number
+				requestFailures?: number
+				http5xxResponses?: number
+			}
+			warnings?: string[]
+			errors?: string[]
+			preflight?: {
+				core?: string
 			}
 		}
 		const latestScenario = parsed.scenarioResults?.[parsed.scenarioResults.length - 1]
+		const expectedBeats = DEMO_COCKPIT_EXPECTED_BEATS
+		const beatsWithEvidence =
+			typeof parsed.forensics?.beatsWithEvidence === 'number'
+				? parsed.forensics.beatsWithEvidence
+				: null
+		const beatsWithValueArc =
+			typeof parsed.forensics?.beatsWithValueArc === 'number'
+				? parsed.forensics.beatsWithValueArc
+				: null
+		const beatsWithPhaseCoverage =
+			typeof parsed.forensics?.beatsWithPhaseCoverage === 'number'
+				? parsed.forensics.beatsWithPhaseCoverage
+				: null
+		const strictAssertionFailures =
+			typeof parsed.forensics?.strictAssertionFailures === 'number'
+				? parsed.forensics.strictAssertionFailures
+				: null
+		const renderAnomalies =
+			typeof parsed.forensics?.renderAnomalies === 'number'
+				? parsed.forensics.renderAnomalies
+				: null
+		const beatFallbacks =
+			typeof parsed.forensics?.beatFallbacks === 'number'
+				? parsed.forensics.beatFallbacks
+				: null
+		const beatSceneFallbacks =
+			typeof parsed.forensics?.beatSceneFallbacks === 'number'
+				? parsed.forensics.beatSceneFallbacks
+				: null
+		const beatRouteFallbacks =
+			typeof parsed.forensics?.beatRouteFallbacks === 'number'
+				? parsed.forensics.beatRouteFallbacks
+				: null
+		const consoleErrors =
+			typeof parsed.forensics?.consoleErrors === 'number'
+				? parsed.forensics.consoleErrors
+				: null
+		const pageErrors =
+			typeof parsed.forensics?.pageErrors === 'number'
+				? parsed.forensics.pageErrors
+				: null
+		const requestFailures =
+			typeof parsed.forensics?.requestFailures === 'number'
+				? parsed.forensics.requestFailures
+				: null
+		const http5xxResponses =
+			typeof parsed.forensics?.http5xxResponses === 'number'
+				? parsed.forensics.http5xxResponses
+				: null
+		const warningCount = Array.isArray(parsed.warnings) ? parsed.warnings.length : null
+		const errorCount = Array.isArray(parsed.errors) ? parsed.errors.length : null
+		const preflightCoreStatus =
+			typeof parsed.preflight?.core === 'string' ? parsed.preflight.core : null
+
+		const computeRate = (value: number | null): number | null => {
+			if (value == null || expectedBeats <= 0) {
+				return null
+			}
+			return Math.round((value / expectedBeats) * 100)
+		}
+
+		const criticalFindings: string[] = []
+		if ((strictAssertionFailures ?? 0) > 0) {
+			criticalFindings.push(`strict assertion failures: ${strictAssertionFailures}`)
+		}
+		if ((renderAnomalies ?? 0) > 0) {
+			criticalFindings.push(`render anomalies: ${renderAnomalies}`)
+		}
+		if (beatsWithEvidence != null && beatsWithEvidence < expectedBeats) {
+			criticalFindings.push(
+				`beat evidence incomplete: ${beatsWithEvidence}/${expectedBeats}`,
+			)
+		}
+		if (beatsWithValueArc != null && beatsWithValueArc < expectedBeats) {
+			criticalFindings.push(
+				`value arcs incomplete: ${beatsWithValueArc}/${expectedBeats}`,
+			)
+		}
+		if (beatsWithPhaseCoverage != null && beatsWithPhaseCoverage < expectedBeats) {
+			criticalFindings.push(
+				`phase coverage incomplete: ${beatsWithPhaseCoverage}/${expectedBeats}`,
+			)
+		}
+		if ((beatRouteFallbacks ?? 0) > 0) {
+			criticalFindings.push(`route fallbacks detected: ${beatRouteFallbacks}`)
+		}
+		if ((pageErrors ?? 0) > 0) {
+			criticalFindings.push(`page errors: ${pageErrors}`)
+		}
+		if ((http5xxResponses ?? 0) > 0) {
+			criticalFindings.push(`http 5xx responses: ${http5xxResponses}`)
+		}
+		if (preflightCoreStatus && preflightCoreStatus !== 'passed') {
+			criticalFindings.push(`preflight core status: ${preflightCoreStatus}`)
+		}
+
 		return {
 			status: latestScenario?.status ?? null,
-			strictAssertionFailures:
-				typeof parsed.forensics?.strictAssertionFailures === 'number'
-					? parsed.forensics.strictAssertionFailures
-					: null,
-			renderAnomalies:
-				typeof parsed.forensics?.renderAnomalies === 'number'
-					? parsed.forensics.renderAnomalies
-					: null,
-			beatsWithEvidence:
-				typeof parsed.forensics?.beatsWithEvidence === 'number'
-					? parsed.forensics.beatsWithEvidence
-					: null,
-			beatsWithValueArc:
-				typeof parsed.forensics?.beatsWithValueArc === 'number'
-					? parsed.forensics.beatsWithValueArc
-					: null,
+			strictAssertionFailures,
+			renderAnomalies,
+			beatsWithEvidence,
+			beatsWithValueArc,
+			beatsWithPhaseCoverage,
+			expectedBeats,
+			beatFallbacks,
+			beatSceneFallbacks,
+			beatRouteFallbacks,
+			consoleErrors,
+			pageErrors,
+			requestFailures,
+			http5xxResponses,
+			warningCount,
+			errorCount,
+			preflightCoreStatus,
+			beatEvidenceRate: computeRate(beatsWithEvidence),
+			beatValueArcRate: computeRate(beatsWithValueArc),
+			beatPhaseCoverageRate: computeRate(beatsWithPhaseCoverage),
+			criticalFindings,
 		}
 	} catch {
 		return null
@@ -419,16 +759,12 @@ async function readProgressSummary(artifactDir: string | null): Promise<
 export async function getOrchestratorTask(taskId: string): Promise<
 	| {
 		task: OrchestratorTask
-		progress: {
-			status: string | null
-			strictAssertionFailures: number | null
-			renderAnomalies: number | null
-			beatsWithEvidence: number | null
-			beatsWithValueArc: number | null
-		} | null
+		progress: OrchestratorProgressSummary | null
 	  }
 	| null
 > {
+	enforceRunningTaskHealth()
+
 	const task = getTaskStore().get(taskId)
 	if (!task) {
 		return null
