@@ -87,7 +87,7 @@ export function FeedTabBar<T extends string = string>({
 			className={cn(
 				'flex',
 				sizes.container,
-				scrollable && 'overflow-x-auto scrollbar-hide',
+				scrollable && 'overflow-x-auto hkx-x-rail',
 				!isPill && 'border-b-2 border-border-subtle',
 				className,
 			)}
@@ -137,7 +137,7 @@ export function FeedTabBar<T extends string = string>({
 						{!isPill && isActive && (
 							<motion.div
 								layoutId='feed-tab-underline'
-								className='absolute inset-x-0 -bottom-[2px] h-[3px] rounded-full bg-brand'
+								className='absolute inset-x-0 -bottom-0.5 h-1 rounded-full bg-brand'
 								transition={{ type: 'spring', stiffness: 400, damping: 30 }}
 							/>
 						)}

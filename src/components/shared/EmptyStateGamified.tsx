@@ -780,7 +780,7 @@ export function EmptyState({
 			</h3>
 			<p
 				className={cn(
-					'mx-auto mb-6 max-w-xs text-[15px] leading-relaxed text-text-secondary',
+					'mx-auto mb-6 max-w-xs text-label leading-relaxed text-text-secondary',
 					isSearchVariant && 'mb-5',
 				)}
 			>
@@ -816,7 +816,7 @@ export function EmptyState({
 							href={primaryAction.href}
 							className={cn(
 								'inline-flex items-center gap-2 rounded-xl px-7 py-3.5',
-								'bg-brand text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+								'bg-brand text-base font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow',
 							)}
 						>
 							{primaryAction.icon}
@@ -828,7 +828,7 @@ export function EmptyState({
 							onClick={primaryAction.onClick}
 							className={cn(
 								'inline-flex items-center gap-2 rounded-xl px-7 py-3.5',
-								'bg-brand text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+								'bg-brand text-base font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow',
 								isPositive && 'animate-pulse',
 							)}
 						>

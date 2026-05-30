@@ -58,7 +58,7 @@ const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
 	{
 		orange: {
 			bg: 'bg-brand',
-			shadow: 'shadow-[0_2px_8px_rgba(255,90,54,0.35)]',
+			shadow: 'shadow-glow',
 		},
 		yellow: {
 			bg: 'bg-gradient-streak',
@@ -82,7 +82,7 @@ const gradientMap: Record<PageHeaderGradient, { bg: string; shadow: string }> =
 		},
 		warm: {
 			bg: 'bg-brand',
-			shadow: 'shadow-[0_2px_8px_rgba(255,90,54,0.35)]',
+			shadow: 'shadow-glow',
 		},
 		pink: {
 			bg: 'bg-gradient-social',

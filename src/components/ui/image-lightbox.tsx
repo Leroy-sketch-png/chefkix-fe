@@ -113,7 +113,7 @@ export function ImageLightbox({
 								className='transition-transform duration-200'
 								style={{ transform: `scale(${zoom})` }}
 							>
-								{/* eslint-disable-next-line @next/next/no-img-element */}
+
 								<img
 									src={src}
 									alt={alt}

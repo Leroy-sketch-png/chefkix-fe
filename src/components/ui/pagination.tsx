@@ -3,6 +3,13 @@
 import * as React from 'react'
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 /**
@@ -161,21 +168,21 @@ export function PageSizeSelector({
 	return (
 		<div className={cn('flex items-center gap-2 text-sm', className)}>
 			<span className='text-text-muted'>Rows per page</span>
-			<select
-				value={pageSize}
-				onChange={e => onPageSizeChange(Number(e.target.value))}
-				className='h-8 rounded-md border border-border-subtle bg-bg-card px-2 text-sm text-text-primary'
+			<Select
+				value={pageSize.toString()}
+				onValueChange={v => onPageSizeChange(Number(v))}
 			>
-				{options.map(opt => (
-					<option
-						key={opt}
-						value={opt}
-						className='bg-bg-card text-text-primary'
-					>
-						{opt}
-					</option>
-				))}
-			</select>
+				<SelectTrigger className='h-8 w-20'>
+					<SelectValue />
+				</SelectTrigger>
+				<SelectContent>
+					{options.map(opt => (
+						<SelectItem key={opt} value={opt.toString()}>
+							{opt}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 		</div>
 	)
 }

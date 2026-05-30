@@ -21,7 +21,7 @@ export interface SlideTabsProps {
 }
 
 const sizeClass = {
-	sm: 'text-[11px] px-2.5 py-1.5 sm:text-sm sm:px-4 sm:py-2',
+	sm: 'text-2xs px-2.5 py-1.5 sm:text-sm sm:px-4 sm:py-2',
 	md: 'text-sm px-3.5 py-1.5 sm:text-base sm:px-5 sm:py-2',
 	lg: 'text-base px-5 py-2.5',
 }

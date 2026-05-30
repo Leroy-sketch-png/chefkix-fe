@@ -27,7 +27,7 @@ interface ImageCarouselProps {
  * - Left/right arrows (hidden on single image)
  * - Dot indicators
  * - Swipe gesture support (mobile)
- * - Keyboard navigation (â† →)
+ * - Keyboard navigation (Left/Right)
  * - Accessible: aria labels, focus management
  */
 export function ImageCarousel({

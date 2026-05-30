@@ -10,7 +10,7 @@ const buttonVariants = cva(
 		variants: {
 			variant: {
 				default:
-					'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+					'bg-brand text-white shadow-glow hover:bg-brand/90 hover:shadow-glow',
 				destructive: 'bg-error text-white hover:bg-error/90',
 				outline:
 					'border border-border-medium bg-bg-card hover:bg-bg-elevated hover:text-text-primary',
@@ -19,10 +19,10 @@ const buttonVariants = cva(
 				link: 'text-brand underline-offset-4 hover:underline',
 				// Brand button - primary CTA, coral tones
 				brand:
-					'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+					'bg-brand text-white shadow-glow hover:bg-brand/90 hover:shadow-glow',
 				// Gaming/XP button - purple tones for gamification actions
 				gaming:
-					'bg-xp text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] hover:bg-xp/90 hover:shadow-[0_4px_16px_rgba(99,102,241,0.4)]',
+					'bg-xp text-white shadow-md hover:bg-xp/90 hover:shadow-lg',
 				// Success button - green tones for confirmations
 				success: 'bg-success text-white hover:bg-success/90',
 			},

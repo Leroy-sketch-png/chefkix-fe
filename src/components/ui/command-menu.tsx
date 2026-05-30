@@ -151,7 +151,7 @@ export function CommandMenu({
 
 							{filteredGroups.map(group => (
 								<div key={group.heading} className='mb-2'>
-									<div className='px-2 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-text-muted'>
+									<div className='px-2 py-1.5 text-xs font-semibold uppercase tracking-widest text-text-muted'>
 										{group.heading}
 									</div>
 									{group.items.map(item => {
