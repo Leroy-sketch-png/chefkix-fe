@@ -1346,7 +1346,7 @@ export default function DevDashboard() {
 	useEffect(() => {
 		void refreshOrchestratorTaskList()
 		void refreshOrchestratorPreflight()
-	}, [refreshOrchestratorTaskList])
+	}, [refreshOrchestratorPreflight, refreshOrchestratorTaskList])
 
 	useEffect(() => {
 		const interval = window.setInterval(() => {
@@ -1409,7 +1409,7 @@ export default function DevDashboard() {
 			{/* Breathtaking Glassmorphic Header */}
 			<header className='relative z-10 max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 border border-border-subtle/60 bg-bg-card/75 backdrop-blur-md rounded-2xl p-4 sm:p-6 shadow-card'>
 				<div className='flex items-center gap-3'>
-					<div className='grid size-12 place-items-center rounded-xl bg-brand/10 text-brand shadow-[0_0_15px_rgba(255,90,54,0.1)]'>
+					<div className='grid size-12 place-items-center rounded-xl bg-brand/10 text-brand shadow-glow'>
 						<Terminal className='size-6' />
 					</div>
 					<div>
@@ -1494,7 +1494,7 @@ export default function DevDashboard() {
 												<span className='text-xs font-bold text-text-primary block truncate'>
 													{svc.name}
 												</span>
-												<span className='text-[10px] text-text-muted block mt-0.5 font-mono'>
+												<span className='text-2xs text-text-muted block mt-0.5 font-mono'>
 													Port :{svc.port}
 												</span>
 											</div>
@@ -1502,7 +1502,7 @@ export default function DevDashboard() {
 										{svc.latency !== undefined && svc.latency > 0 && (
 											<span
 												className={cn(
-													'text-[10px] font-bold px-1.5 py-0.5 rounded bg-bg-elevated font-mono',
+													'text-2xs font-bold px-1.5 py-0.5 rounded bg-bg-elevated font-mono',
 													svc.latency < 100
 														? 'text-success'
 														: svc.latency < 500
@@ -1539,13 +1539,13 @@ export default function DevDashboard() {
 												{account.label}
 											</span>
 										</div>
-										<p className='text-[10px] text-text-muted leading-relaxed line-clamp-2'>
+										<p className='text-2xs text-text-muted leading-relaxed line-clamp-2'>
 											{account.description}
 										</p>
 									</div>
 
 									<div className='space-y-2'>
-										<div className='grid grid-cols-2 gap-1 text-[10px] font-mono bg-bg-elevated/50 rounded-lg p-1.5 border border-border-subtle/50'>
+										<div className='grid grid-cols-2 gap-1 text-2xs font-mono bg-bg-elevated/50 rounded-lg p-1.5 border border-border-subtle/50'>
 											<div className='flex items-center gap-1 min-w-0'>
 												<span className='text-text-muted shrink-0'>U:</span>
 												<span className='text-text-secondary truncate font-semibold'>
@@ -1571,7 +1571,7 @@ export default function DevDashboard() {
 													)
 												}
 												disabled={isLoggingInToApp}
-												className='flex-1 inline-flex items-center justify-center rounded-lg bg-brand text-white py-1 text-[11px] font-bold shadow-warm hover:bg-brand/90 transition-colors disabled:opacity-50 cursor-pointer'
+												className='flex-1 inline-flex items-center justify-center rounded-lg bg-brand text-white py-1 text-2xs font-bold shadow-warm hover:bg-brand/90 transition-colors disabled:opacity-50 cursor-pointer'
 											>
 												Sign In →
 											</motion.button>
@@ -1585,7 +1585,7 @@ export default function DevDashboard() {
 														},
 													)
 												}
-												className='inline-flex items-center justify-center rounded-lg bg-success/10 border border-success/20 text-success hover:bg-success/20 px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer'
+												className='inline-flex items-center justify-center rounded-lg bg-success/10 border border-success/20 text-success hover:bg-success/20 px-2 py-1 text-2xs font-bold transition-colors cursor-pointer'
 												title='Copy Bearer Token'
 											>
 												{copied === account.username ? '✓' : '🔑'}
@@ -1607,12 +1607,12 @@ export default function DevDashboard() {
 									href='http://localhost:8180/admin'
 									target='_blank'
 									rel='noopener noreferrer'
-									className='text-[10px] text-text-muted hover:text-warning flex items-center gap-0.5'
+									className='text-2xs text-text-muted hover:text-warning flex items-center gap-0.5'
 								>
 									Open Console <ExternalLink className='size-2.5' />
 								</a>
 							</div>
-							<div className='grid grid-cols-3 gap-2 font-mono text-[10px]'>
+							<div className='grid grid-cols-3 gap-2 font-mono text-2xs'>
 								{[
 									{ label: 'URL', value: 'http://localhost:8180/admin' },
 									{ label: 'User', value: 'admin' },
@@ -1628,7 +1628,7 @@ export default function DevDashboard() {
 										</span>
 										<button
 											onClick={() => copy(field.value, `kc-${field.label}`)}
-											className='text-[9px] text-text-muted hover:text-text-primary shrink-0'
+											className='text-2xs text-text-muted hover:text-text-primary shrink-0'
 										>
 											{copied === `kc-${field.label}` ? '✓' : '⎘'}
 										</button>
@@ -1654,7 +1654,7 @@ export default function DevDashboard() {
 								<span className='text-xs font-bold text-success block'>
 									Active Session Token
 								</span>
-								<code className='text-[10px] text-text-muted truncate block font-mono mt-0.5 max-w-xl'>
+								<code className='text-2xs text-text-muted truncate block font-mono mt-0.5 max-w-xl'>
 									{token}
 								</code>
 							</div>
@@ -1717,7 +1717,7 @@ export default function DevDashboard() {
 					<div className='bg-bg-card/60 border border-border-subtle/80 rounded-2xl p-4 mb-6'>
 						<div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4'>
 							<div className='space-y-0.5'>
-								<span className='text-[10px] font-black tracking-wider text-text-muted uppercase'>
+								<span className='text-2xs font-black tracking-wider text-text-muted uppercase'>
 									Scene Probes & System Readiness
 								</span>
 								<span className='text-xs text-text-secondary block'>
@@ -1750,7 +1750,7 @@ export default function DevDashboard() {
 										<span
 											key={item.label}
 											className={cn(
-												'text-[10px] font-black px-2.5 py-1 rounded-full border',
+												'text-2xs font-black px-2.5 py-1 rounded-full border',
 												item.color,
 											)}
 										>
@@ -1791,7 +1791,7 @@ export default function DevDashboard() {
 								>
 									{/* Top Header */}
 									<div className='space-y-2'>
-										<div className='flex flex-wrap items-center gap-2 text-[10px] font-black uppercase'>
+										<div className='flex flex-wrap items-center gap-2 text-2xs font-black uppercase'>
 											<span className='bg-brand/10 border border-brand/20 text-brand px-2.5 py-0.5 rounded-full tracking-wider'>
 												{beat.phase}
 											</span>
@@ -1832,7 +1832,7 @@ export default function DevDashboard() {
 									{/* Main Narrative Elements */}
 									<div className='space-y-3'>
 										<div className='bg-bg-elevated/40 border border-border-subtle/40 rounded-xl p-3'>
-											<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1'>
+											<span className='text-2xs font-bold text-text-muted uppercase tracking-wider block mb-1'>
 												Narrative Proof
 											</span>
 											<p className='text-xs text-text-secondary leading-relaxed'>
@@ -1840,10 +1840,10 @@ export default function DevDashboard() {
 											</p>
 										</div>
 
-										<div className='grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px]'>
+										<div className='grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-2xs'>
 											<div className='bg-bg-elevated/30 border border-border-subtle/30 rounded-xl p-3 flex flex-col justify-between'>
 												<div>
-													<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block mb-1'>
+													<span className='text-2xs font-bold text-text-muted uppercase tracking-wider block mb-1'>
 														Presenter Narrative
 													</span>
 													<p className='text-xs text-text-secondary leading-relaxed font-sans'>
@@ -1854,7 +1854,7 @@ export default function DevDashboard() {
 													onClick={() =>
 														copy(beat.presenterLine, `pres-${beat.id}`)
 													}
-													className='text-[10px] text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
+													className='text-2xs text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
 												>
 													{copied === `pres-${beat.id}`
 														? '✓ Copied'
@@ -1864,7 +1864,7 @@ export default function DevDashboard() {
 
 											<div className='bg-brand/4 border border-brand/10 rounded-xl p-3 flex flex-col justify-between'>
 												<div>
-													<span className='text-[9px] font-bold text-brand uppercase tracking-wider block mb-1'>
+													<span className='text-2xs font-bold text-brand uppercase tracking-wider block mb-1'>
 														Investor Focus
 													</span>
 													<p className='text-xs text-text-primary leading-relaxed font-sans font-medium'>
@@ -1875,7 +1875,7 @@ export default function DevDashboard() {
 													onClick={() =>
 														copy(beat.investorTranslation, `inv-${beat.id}`)
 													}
-													className='text-[10px] text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
+													className='text-2xs text-brand hover:text-brand-hover mt-2 flex items-center gap-1 font-semibold'
 												>
 													{copied === `inv-${beat.id}`
 														? '✓ Copied'
@@ -1887,7 +1887,7 @@ export default function DevDashboard() {
 
 									{/* Probe Details */}
 									<div className='border-t border-border-subtle/50 pt-4 space-y-2'>
-										<span className='text-[9px] font-bold text-text-muted uppercase tracking-wider block'>
+										<span className='text-2xs font-bold text-text-muted uppercase tracking-wider block'>
 											Pitch Integrity Checkpoints
 										</span>
 										{readinessChecks.length > 0 ? (
@@ -1911,18 +1911,18 @@ export default function DevDashboard() {
 																<span className='font-bold text-text-primary block'>
 																	{check.label}
 																</span>
-																<span className='text-text-muted text-[10px] block leading-relaxed'>
+																<span className='text-text-muted text-2xs block leading-relaxed'>
 																	{check.detail}
 																</span>
 																{check.target && (
-																	<span className='text-[9px] text-brand block mt-0.5 font-mono'>
+																	<span className='text-2xs text-brand block mt-0.5 font-mono'>
 																		{check.target}
 																	</span>
 																)}
 															</div>
 															<span
 																className={cn(
-																	'text-[9px] font-bold px-2 py-0.5 rounded-full shrink-0 border uppercase tracking-wider',
+																	'text-2xs font-bold px-2 py-0.5 rounded-full shrink-0 border uppercase tracking-wider',
 																	isOk
 																		? 'bg-success/10 border-success/20 text-success'
 																		: isWarn
@@ -1991,7 +1991,7 @@ export default function DevDashboard() {
 							{passCount + failCount > 0 && (
 								<span
 									className={cn(
-										'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+										'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-sm',
 										failCount === 0
 											? 'bg-success/8 border-success/20 text-success'
 											: 'bg-error/8 border-error/20 text-error',
@@ -2044,12 +2044,12 @@ export default function DevDashboard() {
 											<span className='font-bold text-text-primary block truncate'>
 												{result.name}
 											</span>
-											<span className='text-[9px] text-text-muted font-mono block truncate mt-0.5'>
+											<span className='text-2xs text-text-muted font-mono block truncate mt-0.5'>
 												{result.path}
 											</span>
 										</div>
 									</div>
-									<div className='flex items-center gap-2 shrink-0 font-mono text-[10px]'>
+									<div className='flex items-center gap-2 shrink-0 font-mono text-2xs'>
 										{result.code && (
 											<span className='bg-bg-elevated px-1.5 py-0.5 rounded text-text-secondary'>
 												{result.code}
@@ -2096,14 +2096,14 @@ export default function DevDashboard() {
 										>
 											<div className='flex items-center justify-between gap-2'>
 												<span className='font-black text-error'>{r.name}</span>
-												<span className='text-[10px] text-text-muted font-mono bg-bg-elevated px-1.5 py-0.5 rounded'>
+												<span className='text-2xs text-text-muted font-mono bg-bg-elevated px-1.5 py-0.5 rounded'>
 													{r.code || 'TIMEOUT'}
 												</span>
 											</div>
-											<p className='text-[11px] text-text-secondary italic'>
+											<p className='text-2xs text-text-secondary italic'>
 												{r.detail || 'Connection timed out'}
 											</p>
-											<code className='text-[10px] text-text-muted block font-mono break-all'>
+											<code className='text-2xs text-text-muted block font-mono break-all'>
 												{r.path}
 											</code>
 										</div>
@@ -2130,14 +2130,14 @@ export default function DevDashboard() {
 								.
 							</p>
 							<div className='bg-bg-card/60 border border-border-subtle rounded-xl p-3.5 space-y-1.5'>
-								<span className='text-[9px] font-black text-text-muted uppercase tracking-wider block'>
+								<span className='text-2xs font-black text-text-muted uppercase tracking-wider block'>
 									Monolith Window Output Sample
 								</span>
 								<code className='text-xs text-success block font-mono bg-bg-elevated p-2 rounded border border-border-subtle/50'>
 									[DEV EMAIL BYPASS] *** OTP CODE: 123456 ***
 								</code>
 							</div>
-							<p className='text-[10.5px] text-text-muted leading-relaxed'>
+							<p className='text-2xs text-text-muted leading-relaxed'>
 								To configure full SMTP delivery, set up a Brevo key under{' '}
 								<code className='bg-bg-elevated px-1 py-0.5 rounded font-mono'>
 									BREVO_API_KEY
@@ -2184,7 +2184,7 @@ export default function DevDashboard() {
 											<span className='text-xs font-bold text-text-primary block leading-none'>
 												{item.title}
 											</span>
-											<span className='text-[10px] text-text-muted block leading-relaxed'>
+											<span className='text-2xs text-text-muted block leading-relaxed'>
 												{item.desc}
 											</span>
 										</div>
@@ -2215,7 +2215,7 @@ export default function DevDashboard() {
 										<span className='text-xs font-bold text-text-primary block truncate'>
 											{link.label}
 										</span>
-										<span className='text-[9px] text-text-muted font-mono block truncate mt-0.5'>
+										<span className='text-2xs text-text-muted font-mono block truncate mt-0.5'>
 											{link.url.replace('http://', '')}
 										</span>
 									</div>
@@ -2275,18 +2275,18 @@ export default function DevDashboard() {
 									key={item.label}
 									className='bg-bg-card/40 border border-border-subtle/80 rounded-xl p-3 flex items-center justify-between gap-3 text-xs'
 								>
-									<span className='text-text-muted text-[11px] font-bold'>
+									<span className='text-text-muted text-2xs font-bold'>
 										{item.label}
 									</span>
 									<div className='flex items-center gap-2 shrink-0'>
-										<code className='bg-bg-elevated px-2 py-0.5 rounded font-mono text-[10px] text-brand'>
+										<code className='bg-bg-elevated px-2 py-0.5 rounded font-mono text-2xs text-brand'>
 											{item.cmd}
 										</code>
 										<button
 											onClick={() =>
 												copy(`cd ${item.dir} && ${item.cmd}`, item.cmd)
 											}
-											className='text-[10px] text-text-muted hover:text-text-primary shrink-0'
+											className='text-2xs text-text-muted hover:text-text-primary shrink-0'
 											title='Copy Command Line'
 										>
 											{copied === item.cmd ? '✓' : '⎘'}
@@ -2318,7 +2318,7 @@ export default function DevDashboard() {
 								curl -H &quot;Authorization: Bearer {token.substring(0, 80)}
 								...&quot; {BASE}/api/v1/auth/me
 							</code>
-							<span className='text-[10px] font-bold text-text-muted shrink-0 mt-0.5'>
+							<span className='text-2xs font-bold text-text-muted shrink-0 mt-0.5'>
 								{copied === 'curl' ? '✓ Copied' : 'Copy cURL'}
 							</span>
 						</div>
@@ -2326,7 +2326,7 @@ export default function DevDashboard() {
 				)}
 
 				{/* footer */}
-				<footer className='text-center text-[10px] font-mono text-text-muted/60 pt-8 pb-4'>
+				<footer className='text-center text-2xs font-mono text-text-muted/60 pt-8 pb-4'>
 					ChefKix Dev Dashboard · Visible in Development Mode Only · Not shipped
 					to production
 				</footer>
@@ -2343,7 +2343,7 @@ export default function DevDashboard() {
 						<button
 							type='button'
 							onClick={() => setCheatPanelCollapsed(prev => !prev)}
-							className='inline-flex items-center rounded-lg border border-border-subtle bg-bg-elevated px-2 py-1 text-[11px] font-semibold text-text-secondary hover:text-text-primary'
+							className='inline-flex items-center rounded-lg border border-border-subtle bg-bg-elevated px-2 py-1 text-2xs font-semibold text-text-secondary hover:text-text-primary'
 						>
 							{cheatPanelCollapsed ? (
 								<ChevronsUp className='size-3.5' />
@@ -2361,7 +2361,7 @@ export default function DevDashboard() {
 								exit={{ opacity: 0, y: 8 }}
 								className='space-y-3 p-3'
 							>
-								<div className='rounded-xl border border-warning/30 bg-warning/10 p-2 text-[10px] font-semibold text-warning'>
+								<div className='rounded-xl border border-warning/30 bg-warning/10 p-2 text-2xs font-semibold text-warning'>
 									Ctrl+Shift+M toggles this panel
 								</div>
 								<div className='grid grid-cols-2 gap-1.5'>
@@ -2369,7 +2369,7 @@ export default function DevDashboard() {
 										type='button'
 										onClick={() => setCheatHardBlockMode(prev => !prev)}
 										className={cn(
-											'rounded-lg border px-1.5 py-1 text-[10px] font-bold',
+											'rounded-lg border px-1.5 py-1 text-2xs font-bold',
 											cheatHardBlockMode
 												? 'border-success/30 bg-success/10 text-success'
 												: 'border-warning/30 bg-warning/10 text-warning',
@@ -2377,13 +2377,13 @@ export default function DevDashboard() {
 									>
 										Hard Block: {cheatHardBlockMode ? 'ON' : 'OFF'}
 									</button>
-									<div className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-[10px] text-text-muted'>
+									<div className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-2xs text-text-muted'>
 										Beat readiness:{' '}
 										{selectedCheatBeatReadinessStatus ?? 'unknown'}
 									</div>
 								</div>
 								{hardBlockActive && (
-									<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-[10px] text-error'>
+									<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-2xs text-error'>
 										Launch blocked: {beatBlockedByAuth ? 'auth required' : 'readiness blocked'}
 									</div>
 								)}
@@ -2392,7 +2392,7 @@ export default function DevDashboard() {
 									<button
 										type='button'
 										onClick={() => void checkServices()}
-										className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary hover:bg-bg-card'
+										className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-2xs font-bold text-text-primary hover:bg-bg-card'
 									>
 										Infra Probe
 									</button>
@@ -2400,7 +2400,7 @@ export default function DevDashboard() {
 										type='button'
 										onClick={() => void runApiTests()}
 										disabled={isRunningApiTests}
-										className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand disabled:opacity-50'
+										className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-2xs font-bold text-brand disabled:opacity-50'
 									>
 										API Sweep
 									</button>
@@ -2408,7 +2408,7 @@ export default function DevDashboard() {
 
 								<div className='grid grid-cols-2 gap-2'>
 									<div className='rounded-xl border border-success/25 bg-success/10 px-2 py-1.5 text-center'>
-										<div className='text-[9px] uppercase tracking-wide text-success/80'>
+										<div className='text-2xs uppercase tracking-wide text-success/80'>
 											Services
 										</div>
 										<div className='text-xs font-black text-success'>
@@ -2416,7 +2416,7 @@ export default function DevDashboard() {
 										</div>
 									</div>
 									<div className='rounded-xl border border-brand/25 bg-brand/10 px-2 py-1.5 text-center'>
-										<div className='text-[9px] uppercase tracking-wide text-brand/80'>
+										<div className='text-2xs uppercase tracking-wide text-brand/80'>
 											API Pass
 										</div>
 										<div className='text-xs font-black text-brand'>
@@ -2426,7 +2426,7 @@ export default function DevDashboard() {
 								</div>
 
 								<div className='space-y-1.5'>
-									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+									<span className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 										Persona Hot Swap
 									</span>
 									<div className='grid grid-cols-2 gap-2'>
@@ -2442,7 +2442,7 @@ export default function DevDashboard() {
 													)
 												}
 												disabled={isLoggingInToApp}
-												className='rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
+												className='rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-2xs font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
 											>
 												{account.username}
 											</button>
@@ -2451,7 +2451,7 @@ export default function DevDashboard() {
 								</div>
 
 								<div className='space-y-1.5'>
-									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+									<span className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 										Route Teleport
 									</span>
 									<div className='grid grid-cols-2 gap-2'>
@@ -2462,7 +2462,7 @@ export default function DevDashboard() {
 												onClick={() => {
 													window.open(route.path, '_blank', 'noopener,noreferrer')
 												}}
-												className='rounded-xl border border-border-subtle bg-bg-card px-2 py-2 text-[10px] font-semibold text-text-secondary hover:text-text-primary'
+												className='rounded-xl border border-border-subtle bg-bg-card px-2 py-2 text-2xs font-semibold text-text-secondary hover:text-text-primary'
 											>
 												{route.icon} {route.label}
 											</button>
@@ -2471,13 +2471,13 @@ export default function DevDashboard() {
 								</div>
 
 								<div className='space-y-1.5'>
-									<span className='text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+									<span className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 										Beat Control
 									</span>
 									<select
 										value={selectedCheatBeatId}
 										onChange={event => setSelectedCheatBeatId(event.target.value)}
-										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-primary'
+										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-2xs font-semibold text-text-primary'
 									>
 										{DEMO_PITCH_BEATS.map(beat => (
 											<option key={`beat-selector-${beat.id}`} value={beat.id}>
@@ -2493,7 +2493,7 @@ export default function DevDashboard() {
 												void launchBeatFromCheat(selectedCheatBeat.id)
 											}
 											disabled={!selectedCheatBeat || hardBlockActive}
-											className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand disabled:opacity-50'
+											className='rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-2xs font-bold text-brand disabled:opacity-50'
 										>
 											Run Beat
 										</button>
@@ -2504,7 +2504,7 @@ export default function DevDashboard() {
 												void launchBeatInNewTabFromCheat(selectedCheatBeat.id)
 											}
 											disabled={!selectedCheatBeat || hardBlockActive}
-											className='rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-[11px] font-bold text-xp disabled:opacity-50'
+											className='rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-2xs font-bold text-xp disabled:opacity-50'
 										>
 											Run In Tab
 										</button>
@@ -2517,7 +2517,7 @@ export default function DevDashboard() {
 												copyBeatAutorunFromCheat(selectedCheatBeat.id)
 											}
 											disabled={!selectedCheatBeat}
-											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary disabled:opacity-50'
+											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-2xs font-bold text-text-primary disabled:opacity-50'
 										>
 											Copy Autorun
 										</button>
@@ -2526,13 +2526,13 @@ export default function DevDashboard() {
 											onClick={() => {
 												window.open('/demo-cockpit', '_blank', 'noopener,noreferrer')
 											}}
-											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-[11px] font-bold text-text-primary'
+											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-2xs font-bold text-text-primary'
 										>
 											Open Cockpit
 										</button>
 									</div>
 									{selectedCheatActionShortcut && (
-										<div className='rounded-xl border border-border-subtle/70 bg-bg-elevated/50 px-2.5 py-2 text-[10px] text-text-muted'>
+										<div className='rounded-xl border border-border-subtle/70 bg-bg-elevated/50 px-2.5 py-2 text-2xs text-text-muted'>
 											Primary action: {selectedCheatActionShortcut.label}
 										</div>
 									)}
@@ -2543,7 +2543,7 @@ export default function DevDashboard() {
 												key={`cheat-shortcut-${shortcut.id}`}
 												onClick={() => void openPitchShortcut(shortcut)}
 												disabled={activeShortcut === shortcut.label}
-												className='inline-flex items-center justify-between rounded-xl border border-border-subtle/80 bg-bg-card px-2.5 py-2 text-[11px] font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
+												className='inline-flex items-center justify-between rounded-xl border border-border-subtle/80 bg-bg-card px-2.5 py-2 text-2xs font-semibold text-text-secondary hover:text-text-primary disabled:opacity-50'
 											>
 												<span className='truncate'>{shortcut.label}</span>
 												<Play className='size-3.5 shrink-0 text-brand' />
@@ -2553,7 +2553,7 @@ export default function DevDashboard() {
 								</div>
 
 								<div className='space-y-1.5 rounded-xl border border-border-subtle/70 bg-bg-elevated/50 p-2.5'>
-									<div className='flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-text-muted'>
+									<div className='flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wide text-text-muted'>
 										<Zap className='size-3.5 text-brand' />
 										Orchestrator Profile
 									</div>
@@ -2561,14 +2561,14 @@ export default function DevDashboard() {
 										<button
 											type='button'
 											onClick={applyStrictBaseline}
-											className='rounded-lg border border-success/30 bg-success/10 px-1.5 py-1 text-[10px] font-bold text-success'
+											className='rounded-lg border border-success/30 bg-success/10 px-1.5 py-1 text-2xs font-bold text-success'
 										>
 											Harden
 										</button>
 										<button
 											type='button'
 											onClick={resetCheatEngineState}
-											className='rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-[10px] font-bold text-warning'
+											className='rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-2xs font-bold text-warning'
 										>
 											Reset
 										</button>
@@ -2578,7 +2578,7 @@ export default function DevDashboard() {
 											type='button'
 											onClick={() => void launchOrchestratorRun('single-strict')}
 											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
-											className='rounded-lg border border-brand/30 bg-brand/10 px-1.5 py-1 text-[10px] font-bold text-brand disabled:opacity-50'
+											className='rounded-lg border border-brand/30 bg-brand/10 px-1.5 py-1 text-2xs font-bold text-brand disabled:opacity-50'
 										>
 											Run Strict
 										</button>
@@ -2586,7 +2586,7 @@ export default function DevDashboard() {
 											type='button'
 											onClick={() => void launchOrchestratorRun('certify-strict')}
 											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
-											className='rounded-lg border border-xp/30 bg-xp/10 px-1.5 py-1 text-[10px] font-bold text-xp disabled:opacity-50'
+											className='rounded-lg border border-xp/30 bg-xp/10 px-1.5 py-1 text-2xs font-bold text-xp disabled:opacity-50'
 										>
 											Run Certify x3
 										</button>
@@ -2596,7 +2596,7 @@ export default function DevDashboard() {
 											type='button'
 											onClick={() => void stopAllOrchestratorTasks()}
 											disabled={isStoppingAllTasks || runningOrchestratorTaskCount === 0}
-											className='inline-flex items-center justify-center gap-1 rounded-lg border border-error/30 bg-error/10 px-1.5 py-1 text-[10px] font-bold text-error disabled:opacity-50'
+											className='inline-flex items-center justify-center gap-1 rounded-lg border border-error/30 bg-error/10 px-1.5 py-1 text-2xs font-bold text-error disabled:opacity-50'
 										>
 											<StopCircle className='size-3' />
 											Stop All
@@ -2605,25 +2605,25 @@ export default function DevDashboard() {
 											type='button'
 											onClick={() => void cleanupOrchestratorTasks(8)}
 											disabled={isCleaningTaskHistory}
-											className='inline-flex items-center justify-center gap-1 rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-[10px] font-bold text-warning disabled:opacity-50'
+											className='inline-flex items-center justify-center gap-1 rounded-lg border border-warning/30 bg-warning/10 px-1.5 py-1 text-2xs font-bold text-warning disabled:opacity-50'
 										>
 											<Trash2 className='size-3' />
 											Cleanup
 										</button>
 									</div>
 									{orchestrationRiskFlags.length > 0 ? (
-										<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-[10px] text-error'>
+										<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-2xs text-error'>
 											Risk: {orchestrationRiskFlags.join(' • ')}
 										</div>
 									) : (
-										<div className='rounded-lg border border-success/30 bg-success/10 px-2 py-1.5 text-[10px] text-success'>
+										<div className='rounded-lg border border-success/30 bg-success/10 px-2 py-1.5 text-2xs text-success'>
 											Strict profile armed
 										</div>
 									)}
 									{orchestratorPreflight && (
 										<div
 											className={cn(
-												'rounded-lg border px-2 py-1.5 text-[10px]',
+												'rounded-lg border px-2 py-1.5 text-2xs',
 												orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk
 													? 'border-success/30 bg-success/10 text-success'
 													: 'border-error/30 bg-error/10 text-error',
@@ -2650,7 +2650,7 @@ export default function DevDashboard() {
 										</div>
 									)}
 									{cheatHardBlockMode && orchestrationRiskFlags.length > 0 && (
-										<div className='inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[10px] text-warning'>
+										<div className='inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-2xs text-warning'>
 											<ShieldAlert className='mt-0.5 size-3 shrink-0' />
 											<span>Hard block prevents orchestrator launch until risks are removed.</span>
 										</div>
@@ -2658,29 +2658,29 @@ export default function DevDashboard() {
 									{orchestratorTask && (
 										<div
 											className={cn(
-												'rounded-lg border px-2 py-1.5 text-[10px]',
+												'rounded-lg border px-2 py-1.5 text-2xs',
 												orchestratorRunStateTone,
 											)}
 										>
 											<div className='font-bold'>
 												Task {orchestratorTask.mode} • {orchestratorTask.status}
 											</div>
-											<div className='font-mono text-[9px] opacity-80'>
+											<div className='font-mono text-2xs opacity-80'>
 												{orchestratorTask.taskId}
 											</div>
 											{orchestratorTask.runId && (
-												<div className='font-mono text-[9px] opacity-80'>
+												<div className='font-mono text-2xs opacity-80'>
 													{orchestratorTask.runId}
 												</div>
 											)}
-											<div className='mt-1 text-[9px] opacity-80'>
+											<div className='mt-1 text-2xs opacity-80'>
 												watchdog:{' '}
 												{orchestratorTask.watchdogRisk} · runtime:{' '}
 												{orchestratorTask.runtimeAgeSec}s/{orchestratorTask.maxRuntimeSec}s · idle:{' '}
 												{orchestratorTask.lastOutputAgeSec}s
 											</div>
 											{orchestratorProgress && (
-												<div className='mt-1 text-[9px] opacity-80'>
+												<div className='mt-1 text-2xs opacity-80'>
 													<div>
 														strict:{' '}
 														{orchestratorProgress.strictAssertionFailures ?? 'n/a'} ·
@@ -2716,36 +2716,36 @@ export default function DevDashboard() {
 														{orchestratorProgress.errorCount ?? 'n/a'}
 													</div>
 													{orchestratorProgress.criticalFindings.length > 0 && (
-														<div className='mt-1 rounded border border-error/35 bg-error/15 px-1.5 py-1 text-[9px] text-error'>
+														<div className='mt-1 rounded border border-error/35 bg-error/15 px-1.5 py-1 text-2xs text-error'>
 															{orchestratorProgress.criticalFindings.slice(0, 3).join(' | ')}
 														</div>
 													)}
 												</div>
 											)}
 											{orchestratorTask.recentOutput.length > 0 && (
-												<div className='mt-1 rounded border border-border-subtle/70 bg-bg-card/70 px-1.5 py-1 font-mono text-[9px] text-text-secondary max-h-20 overflow-auto'>
+												<div className='mt-1 rounded border border-border-subtle/70 bg-bg-card/70 px-1.5 py-1 font-mono text-2xs text-text-secondary max-h-20 overflow-auto'>
 													{orchestratorTask.recentOutput.slice(-6).join('\n')}
 												</div>
 											)}
 											{orchestratorTask.errorMessage && (
-												<div className='mt-1 text-[9px] text-error'>
+												<div className='mt-1 text-2xs text-error'>
 													{orchestratorTask.errorMessage}
 												</div>
 											)}
 										</div>
 									)}
-									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-[10px] text-text-secondary'>
+									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-2xs text-text-secondary'>
 										<div className='flex items-center justify-between gap-2'>
 											<span className='font-bold uppercase tracking-wide text-text-muted'>
 												Task Timeline
 											</span>
 											<div className='flex items-center gap-1.5'>
-												<span className='text-[9px] text-text-muted'>run:{runningOrchestratorTaskCount}</span>
+												<span className='text-2xs text-text-muted'>run:{runningOrchestratorTaskCount}</span>
 												<button
 													type='button'
 													onClick={() => void refreshOrchestratorTaskList()}
 													disabled={isRefreshingTaskList}
-													className='rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-[9px] font-semibold text-text-secondary disabled:opacity-50'
+													className='rounded border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-2xs font-semibold text-text-secondary disabled:opacity-50'
 												>
 													Refresh
 												</button>
@@ -2753,7 +2753,7 @@ export default function DevDashboard() {
 										</div>
 										<div className='mt-1.5 max-h-28 space-y-1 overflow-auto'>
 											{orchestratorTaskList.length === 0 ? (
-												<div className='text-[9px] text-text-muted'>No tasks yet</div>
+												<div className='text-2xs text-text-muted'>No tasks yet</div>
 											) : (
 												orchestratorTaskList.slice(0, 8).map(task => (
 													<div
@@ -2761,12 +2761,12 @@ export default function DevDashboard() {
 														className='rounded border border-border-subtle/70 bg-bg-elevated/60 px-1.5 py-1'
 													>
 														<div className='flex items-center justify-between gap-2'>
-															<span className='font-mono text-[9px] text-text-muted'>
+															<span className='font-mono text-2xs text-text-muted'>
 																{task.taskId.slice(0, 8)}
 															</span>
 															<span
 																className={cn(
-																	'text-[9px] font-bold',
+																	'text-2xs font-bold',
 																	task.status === 'passed'
 																		? 'text-success'
 																		: task.status === 'failed'
@@ -2780,12 +2780,12 @@ export default function DevDashboard() {
 															</span>
 														</div>
 														<div className='mt-0.5 flex items-center justify-between gap-2'>
-															<span className='text-[9px] text-text-muted'>
+															<span className='text-2xs text-text-muted'>
 																{task.mode}
 															</span>
 															<span
 																className={cn(
-																	'text-[9px] font-semibold',
+																	'text-2xs font-semibold',
 																	task.watchdogRisk === 'critical'
 																		? 'text-error'
 																		: task.watchdogRisk === 'warning'
@@ -2799,7 +2799,7 @@ export default function DevDashboard() {
 																<button
 																	type='button'
 																	onClick={() => void stopOrchestratorTask(task.taskId)}
-																	className='rounded border border-error/30 bg-error/10 px-1 py-0.5 text-[9px] font-bold text-error'
+																	className='rounded border border-error/30 bg-error/10 px-1 py-0.5 text-2xs font-bold text-error'
 																>
 																	Stop
 																</button>
@@ -2816,7 +2816,7 @@ export default function DevDashboard() {
 												type='button'
 												key={`profile-${profile.id}`}
 												onClick={() => applyOrchestratorProfile(profile.id)}
-												className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-[10px] font-bold text-text-primary hover:border-brand/40'
+												className='rounded-lg border border-border-subtle bg-bg-card px-1.5 py-1 text-2xs font-bold text-text-primary hover:border-brand/40'
 											>
 												{profile.label}
 											</button>
@@ -2825,7 +2825,7 @@ export default function DevDashboard() {
 									<select
 										value={orchestratorScenario}
 										onChange={event => setOrchestratorScenario(event.target.value)}
-										className='w-full rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary'
+										className='w-full rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-2xs font-semibold text-text-primary'
 									>
 										{['demo-cockpit-deep', 'quick-post', 'route-sweep'].map(item => (
 											<option key={`orchestrator-scenario-${item}`} value={item}>
@@ -2833,7 +2833,7 @@ export default function DevDashboard() {
 											</option>
 										))}
 									</select>
-									<div className='grid grid-cols-2 gap-1.5 text-[10px]'>
+									<div className='grid grid-cols-2 gap-1.5 text-2xs'>
 										{[
 											{
 												label: 'Headless',
@@ -2891,7 +2891,7 @@ export default function DevDashboard() {
 											onChange={event =>
 												setOrchestratorCheckpointMode(event.target.value)
 											}
-											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary'
+											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-2xs font-semibold text-text-primary'
 										>
 											{['off', 'prompt'].map(mode => (
 												<option key={`checkpoint-${mode}`} value={mode}>
@@ -2909,17 +2909,17 @@ export default function DevDashboard() {
 													Math.max(120000, Number(event.target.value) || 120000),
 												)
 											}
-											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-[11px] font-semibold text-text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-2xs font-semibold text-text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 										/>
 									</div>
 
-									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-[10px] font-mono text-text-secondary break-all'>
+									<div className='rounded-lg border border-border-subtle/80 bg-bg-card px-2 py-1.5 text-2xs font-mono text-text-secondary break-all'>
 										{orchestratorCommand}
 									</div>
-									<div className='rounded-lg border border-brand/30 bg-brand/10 px-2 py-1.5 text-[10px] font-mono text-brand break-all'>
+									<div className='rounded-lg border border-brand/30 bg-brand/10 px-2 py-1.5 text-2xs font-mono text-brand break-all'>
 										{strictSingleRunCommand}
 									</div>
-									<div className='rounded-lg border border-xp/30 bg-xp/10 px-2 py-1.5 text-[10px] font-mono text-xp break-all'>
+									<div className='rounded-lg border border-xp/30 bg-xp/10 px-2 py-1.5 text-2xs font-mono text-xp break-all'>
 										{strictCertifyCommand}
 									</div>
 									<button
@@ -2930,7 +2930,7 @@ export default function DevDashboard() {
 												'cheat-run-command-windows',
 											)
 										}
-										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand'
+										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-2xs font-bold text-brand'
 									>
 										{copied === 'cheat-run-command-windows'
 											? 'Windows Command Copied'
@@ -2944,7 +2944,7 @@ export default function DevDashboard() {
 												'cheat-strict-single-command',
 											)
 										}
-										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-[11px] font-bold text-brand'
+										className='w-full rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-2 text-2xs font-bold text-brand'
 									>
 										{copied === 'cheat-strict-single-command'
 											? 'Strict Single Copied'
@@ -2958,7 +2958,7 @@ export default function DevDashboard() {
 												'cheat-strict-certify-command',
 											)
 										}
-										className='w-full rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-[11px] font-bold text-xp'
+										className='w-full rounded-xl border border-xp/30 bg-xp/10 px-2.5 py-2 text-2xs font-bold text-xp'
 									>
 										{copied === 'cheat-strict-certify-command'
 											? 'Strict Certify Copied'
@@ -2967,7 +2967,7 @@ export default function DevDashboard() {
 									<button
 										type='button'
 										onClick={() => copy(orchestratorCommand, 'cheat-run-command')}
-										className='w-full rounded-xl border border-success/30 bg-success/10 px-2.5 py-2 text-[11px] font-bold text-success'
+										className='w-full rounded-xl border border-success/30 bg-success/10 px-2.5 py-2 text-2xs font-bold text-success'
 									>
 										{copied === 'cheat-run-command'
 											? 'Command Copied'
