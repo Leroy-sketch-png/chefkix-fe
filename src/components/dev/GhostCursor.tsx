@@ -7,7 +7,8 @@ export function GhostCursor({ driverName = 'main', color = '#ff5a36' }: { driver
 
 	useEffect(() => {
 		const driver = getGhostDriver(driverName)
-		return driver.subscribe(setState)
+		const unsubscribe = driver.subscribe(setState as any)
+		return () => { unsubscribe() }
 	}, [driverName])
 
 	if (!state.visible) return null

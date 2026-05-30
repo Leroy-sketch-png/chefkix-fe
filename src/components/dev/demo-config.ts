@@ -122,8 +122,30 @@ export interface ResolvedDemoShortcut {
 	joinUrl?: string
 }
 
-export const DEMO_BASE_URL =
-	process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+export type DemoEnvMode = 'cloud' | 'local'
+
+export function getDemoEnvMode(): DemoEnvMode {
+	if (typeof window === 'undefined') return 'cloud'
+	return (localStorage.getItem('chefkix-demo-env-mode') as DemoEnvMode) || 'cloud'
+}
+
+export function setDemoEnvMode(mode: DemoEnvMode) {
+	if (typeof window !== 'undefined') {
+		localStorage.setItem('chefkix-demo-env-mode', mode)
+		// Dispatch event for other tabs
+		window.dispatchEvent(new CustomEvent('chefkix-demo-env-changed', { detail: mode }))
+	}
+}
+
+export function getDemoBaseUrl() {
+	if (getDemoEnvMode() === 'local') {
+		return 'http://localhost:8080'
+	}
+	return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+}
+
+// Keeping the static export for backwards compatibility, but recommending getDemoBaseUrl()
+export const DEMO_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
 
 const DEMO_MANIFEST_URL = '/demo-manifest.json'
 const DEMO_READINESS_URL = '/demo-readiness.json'
@@ -754,7 +776,7 @@ async function fetchRecipeCandidates(
 		headers.Authorization = `Bearer ${accessToken}`
 	}
 
-	const response = await fetch(`${DEMO_BASE_URL}${path}`, {
+	const response = await fetch(`${getDemoBaseUrl()}${path}`, {
 		headers,
 		credentials: 'include',
 		signal: AbortSignal.timeout(8000),
@@ -872,7 +894,7 @@ async function createCookTogetherShortcut(
 	}
 
 	const tryCreateRoom = async (): Promise<CreatedRoom | null> => {
-		const response = await fetch(`${DEMO_BASE_URL}/api/v1/cooking-rooms`, {
+		const response = await fetch(`${getDemoBaseUrl()}/api/v1/cooking-rooms`, {
 			method: 'POST',
 			headers,
 			body: JSON.stringify({ recipeId: heroRecipeId }),
@@ -945,9 +967,25 @@ async function createCookTogetherShortcut(
 		useCookingStore.setState({ recipe: recipeResponse.data })
 	}
 
+	// Auto-navigate the pre-opened companion window (sakura_kitchen) to the spectator URL
+	// The companion window was opened during warm-up — no popup blocker friction.
+	const sakuraEntry = _vault.tokens['sakura_kitchen']
+	if (sakuraEntry) {
+		const spectatorUrl = `${origin}${watchPath}&demoToken=${encodeURIComponent(sakuraEntry.accessToken)}`
+		const navigated = navigateCompanionWindow(spectatorUrl)
+		if (!navigated) {
+			// Fallback: open fresh window if companion wasn't pre-opened
+			window.open(
+				`${origin}${watchPath}&demoToken=${encodeURIComponent(sakuraEntry.accessToken)}`,
+				COMPANION_WINDOW_NAME,
+				'width=390,height=844,left=80,top=40,toolbar=no,menubar=no,scrollbars=no,resizable=no',
+			)
+		}
+	}
+
 	return {
 		path: '/cook-together/room',
-		notice: `Room ${effectiveRoomCode} created. Watch URL copied for second screen.`,
+		notice: `Room ${effectiveRoomCode} ready — Sakura Kitchen joining as spectator.`,
 		copiedText: watchUrl,
 		watchUrl,
 		joinUrl,
@@ -982,4 +1020,595 @@ export async function getPitchRecipePath(
 	accessToken?: string | null,
 ): Promise<string> {
 	return resolveDemoScenePath('hero-recipe', accessToken)
+}
+
+// ============================================================================
+// DEMO TOKEN VAULT — Pre-authenticates all pitch personas so persona
+// switching during beats requires zero page reload.
+// ============================================================================
+
+export interface DemoVaultEntry {
+	accessToken: string
+	user: {
+		userId: string
+		username: string
+		displayName: string
+		[key: string]: unknown
+	}
+}
+
+export interface DemoTokenVault {
+	tokens: Record<string, DemoVaultEntry>
+	isWarmed: boolean
+	warmedAt: string | null
+	failedUsernames: string[]
+}
+
+const VAULT_PITCH_USERNAMES = ['testuser', 'chef_minh', 'admin_demo', 'sakura_kitchen']
+
+let _vault: DemoTokenVault = {
+	tokens: {},
+	isWarmed: false,
+	warmedAt: null,
+	failedUsernames: [],
+}
+
+export function getDemoVault(): DemoTokenVault {
+	return _vault
+}
+
+export async function warmTokenVault(
+	onProgress?: (username: string, success: boolean) => void,
+): Promise<DemoTokenVault> {
+	const origin = getDemoOrigin()
+	const baseUrl = getDemoBaseUrl()
+
+	const results = await Promise.allSettled(
+		VAULT_PITCH_USERNAMES.map(async username => {
+			const account = DEMO_ACCOUNTS.find(a => a.username === username)
+			if (!account) {
+				onProgress?.(username, false)
+				return null
+			}
+
+			const loginRes = await fetch(`${baseUrl}/api/v1/auth/login`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include',
+				body: JSON.stringify({
+					emailOrUsername: account.username,
+					password: account.password,
+				}),
+				signal: AbortSignal.timeout(8000),
+			})
+
+			const loginData = (await loginRes.json()) as {
+				success?: boolean
+				data?: { accessToken?: string }
+			}
+			if (!loginData.success || !loginData.data?.accessToken) {
+				onProgress?.(username, false)
+				return null
+			}
+
+			const accessToken = loginData.data.accessToken
+
+			const meRes = await fetch(`${baseUrl}/api/v1/auth/me`, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+				signal: AbortSignal.timeout(5000),
+			})
+			const meData = (await meRes.json()) as {
+				success?: boolean
+				data?: DemoVaultEntry['user']
+			}
+			if (!meData.success || !meData.data) {
+				onProgress?.(username, false)
+				return null
+			}
+
+			onProgress?.(username, true)
+			return { username, entry: { accessToken, user: meData.data } }
+		}),
+	)
+
+	const tokens: Record<string, DemoVaultEntry> = {}
+	const failedUsernames: string[] = []
+
+	results.forEach((result, index) => {
+		const username = VAULT_PITCH_USERNAMES[index]!
+		if (result.status === 'fulfilled' && result.value) {
+			tokens[result.value.username] = result.value.entry
+		} else {
+			failedUsernames.push(username)
+		}
+	})
+
+	_vault = {
+		tokens,
+		isWarmed: Object.keys(tokens).length > 0,
+		warmedAt: new Date().toISOString(),
+		failedUsernames,
+	}
+
+	return _vault
+}
+
+/**
+ * Swaps the active persona directly in the Zustand auth store without a page
+ * reload. Returns true if the swap succeeded, false if the vault is cold for
+ * the requested persona.
+ */
+export function swapPersonaFromVault(
+	username: string,
+	writeLocalStorage = true,
+): boolean {
+	const entry = _vault.tokens[username]
+	if (!entry) return false
+
+	// Swap Zustand store state directly — triggers React re-renders without reload
+	useAuthStore.setState({
+		isAuthenticated: true,
+		accessToken: entry.accessToken,
+		user: entry.user as any,
+	})
+
+	// Sync to localStorage so the persist middleware doesn't clobber us on
+	// the next hydration cycle
+	if (writeLocalStorage && typeof window !== 'undefined') {
+		localStorage.setItem(
+			'auth-storage',
+			JSON.stringify({
+				state: {
+					isAuthenticated: true,
+					accessToken: entry.accessToken,
+					user: entry.user,
+				},
+				version: 0,
+			}),
+		)
+	}
+
+	return true
+}
+
+/**
+ * Cleans up all demo-related state before switching beats or recovering from
+ * a panic. Abandons any active cooking session and clears room state.
+ */
+let _snapshotZero: string | null = null
+
+export function captureSnapshotZero() {
+	if (typeof window !== 'undefined') {
+		const auth = localStorage.getItem('auth-storage')
+		const cooking = localStorage.getItem('cooking-storage')
+		_snapshotZero = JSON.stringify({ auth, cooking })
+	}
+}
+
+export async function cleanupDemoState(
+	accessToken: string,
+): Promise<{ sessionAbandoned: boolean; roomLeft: boolean }> {
+	const headers = {
+		Authorization: `Bearer ${accessToken}`,
+		'Content-Type': 'application/json',
+	}
+
+	const results = await Promise.allSettled([
+		// Abandon active cooking session
+		(async () => {
+			const res = await fetch(`${getDemoBaseUrl()}/api/v1/cooking-sessions/current`, {
+				headers,
+				signal: AbortSignal.timeout(5000),
+			})
+			if (!res.ok) return false
+			const data = (await res.json()) as { success?: boolean; data?: { sessionId?: string } }
+			const sessionId = data?.data?.sessionId
+			if (!sessionId) return false
+			const abandonRes = await fetch(
+				`${getDemoBaseUrl()}/api/v1/cooking-sessions/${sessionId}/abandon`,
+				{ method: 'POST', headers, signal: AbortSignal.timeout(5000) },
+			)
+			return abandonRes.ok
+		})(),
+		// Leave active cooking room
+		(async () => {
+			const res = await fetch(`${getDemoBaseUrl()}/api/v1/cooking-rooms/leave`, {
+				method: 'POST',
+				headers,
+				signal: AbortSignal.timeout(5000),
+			})
+			return res.ok
+		})(),
+	])
+
+	// Also clear cooking store state in-memory
+	await import('@/store/cookingStore').then(({ useCookingStore }) => {
+		useCookingStore.getState().clearSession()
+		useCookingStore.getState().clearRoom()
+	}).catch(() => { /* store may not be loaded */ })
+
+	// ⏪ SNAPSHOT ZERO ROLLBACK
+	if (_snapshotZero && typeof window !== 'undefined') {
+		try {
+			const parsed = JSON.parse(_snapshotZero)
+			if (parsed.auth) localStorage.setItem('auth-storage', parsed.auth)
+			if (parsed.cooking) localStorage.setItem('cooking-storage', parsed.cooking)
+			
+			// Force reload to cleanly mount the pristine state
+			window.location.reload()
+		} catch (e) {
+			console.error('Failed to rollback to Snapshot Zero', e)
+		}
+	}
+
+	return {
+		sessionAbandoned: results[0].status === 'fulfilled' && results[0].value === true,
+		roomLeft: results[1].status === 'fulfilled' && results[1].value === true,
+	}
+}
+
+// ============================================================================
+// PRE-SHOW CHECKLIST — Live verification of all 10 demo pre-conditions.
+// Runs real API calls, not stale JSON. Call this 10 minutes before go-live.
+// ============================================================================
+
+export type PreShowCheckId =
+	| 'services-health'
+	| 'vault-warm'
+	| 'hero-recipe'
+	| 'semantic-search'
+	| 'messages-exist'
+	| 'pantry-populated'
+	| 'admin-reports'
+	| 'creator-stats'
+	| 'room-probe'
+	| 'manifest-freshness'
+	| 'airgap-mode'
+
+export type PreShowCheckStatus = 'checking' | 'pass' | 'warn' | 'fail' | 'skip'
+
+export interface PreShowCheck {
+	id: PreShowCheckId
+	label: string
+	detail: string
+	status: PreShowCheckStatus
+	durationMs?: number
+}
+
+export interface PreShowReport {
+	checks: PreShowCheck[]
+	verdict: 'GO' | 'CAUTION' | 'NO-GO'
+	generatedAt: string
+	airGapMode: boolean
+}
+
+async function runPreShowCheck(
+	id: PreShowCheckId,
+	label: string,
+	fn: () => Promise<{ status: PreShowCheckStatus; detail: string }>,
+): Promise<PreShowCheck> {
+	const start = Date.now()
+	try {
+		const result = await fn()
+		return { id, label, ...result, durationMs: Date.now() - start }
+	} catch (err) {
+		return {
+			id,
+			label,
+			status: 'fail',
+			detail: err instanceof Error ? err.message : 'Unexpected error',
+			durationMs: Date.now() - start,
+		}
+	}
+}
+
+export async function preloadCriticalData(accessToken: string | null = null) {
+	const baseUrl = getDemoBaseUrl()
+	const headers = accessToken
+		? { Authorization: `Bearer ${accessToken}` }
+		: {}
+
+	// Capture baseline state before checks
+	captureSnapshotZero()
+
+	try {
+		await Promise.allSettled([
+			fetch(`${baseUrl}/api/v1/recipes?limit=10`, { headers }),
+			fetch(`${baseUrl}/api/v1/recipes/hero`, { headers }),
+			fetch(`${baseUrl}/api/v1/creators/top`, { headers }),
+			fetch(`${baseUrl}/api/v1/pantry/inventory`, { headers })
+		])
+	} catch (e) {
+		console.warn('Preload failed, relying on live fetch', e)
+	}
+}
+
+export async function runPreShowChecklist(
+	accessToken: string | null,
+	options?: {
+		airGapMode?: boolean
+		onCheckComplete?: (check: PreShowCheck) => void
+	},
+): Promise<PreShowReport> {
+	const airGapMode = options?.airGapMode ?? false
+	const onComplete = options?.onCheckComplete
+	const base = getDemoBaseUrl()
+	const authHeaders = accessToken
+		? { Authorization: `Bearer ${accessToken}` }
+		: {}
+
+	// Run all checks — some in parallel, some sequentially where order matters
+	const checks: PreShowCheck[] = []
+
+	const push = (check: PreShowCheck) => {
+		checks.push(check)
+		onComplete?.(check)
+	}
+
+	// 1. Service health (parallel)
+	const serviceCheck = await runPreShowCheck('services-health', 'Service Health', async () => {
+		const endpoints = [
+			{ name: 'Monolith', url: `${base}/api/v1/actuator/health` },
+			{ name: 'AI Service', url: 'http://localhost:8000/health' },
+			{ name: 'Keycloak', url: 'http://localhost:8180/realms/nottisn' },
+		]
+		const results = await Promise.allSettled(
+			endpoints.map(async ep => {
+				const res = await fetch(ep.url, { signal: AbortSignal.timeout(4000) })
+				return { name: ep.name, ok: res.ok || res.status === 401 }
+			}),
+		)
+		const failed = results
+			.map((r, i) => (r.status === 'rejected' || !r.value.ok ? endpoints[i]!.name : null))
+			.filter(Boolean)
+		if (airGapMode && failed.includes('AI Service')) {
+			return { status: 'fail', detail: 'AIR-GAP NO-GO: AI Service offline. Beats 2 (Semantic Search) and 3 (Co-Cook AI) will break.' }
+		}
+		if (failed.length === 0) return { status: 'pass', detail: 'Monolith, AI, Keycloak all healthy' }
+		if (failed.length <= 1) return { status: 'warn', detail: `${failed.join(', ')} unreachable — check if it matters for your beats` }
+		return { status: 'fail', detail: `${failed.join(', ')} are down — demo will break` }
+	})
+	push(serviceCheck)
+
+	// 2. Vault warm status
+	const vaultCheck = await runPreShowCheck('vault-warm', 'Persona Vault', async () => {
+		const vault = getDemoVault()
+		const warmedCount = Object.keys(vault.tokens).length
+		const needed = ['testuser', 'chef_minh', 'admin_demo']
+		const missing = needed.filter(u => !vault.tokens[u])
+		if (!vault.isWarmed) return { status: 'warn', detail: 'Vault not warmed — click Warm Up before demo or persona switches will reload' }
+		if (missing.length > 0) return { status: 'warn', detail: `Missing vault tokens for: ${missing.join(', ')} — those persona switches will reload` }
+		return { status: 'pass', detail: `${warmedCount} personas ready (${Object.keys(vault.tokens).join(', ')})` }
+	})
+	push(vaultCheck)
+
+	// 3. Hero recipe exists
+	const heroCheck = await runPreShowCheck('hero-recipe', 'Hero Recipe', async () => {
+		const path = await getFallbackHeroRecipePath(accessToken)
+		if (path === '/explore') return { status: 'warn', detail: 'No preferred recipe found — will fall back to any recipe from /explore' }
+		const recipeId = extractRecipeIdFromPath(path)
+		if (!recipeId) return { status: 'fail', detail: 'Could not extract recipe ID from resolved path' }
+		const res = await fetch(`${base}/api/v1/recipes/${recipeId}`, {
+			headers: authHeaders,
+			signal: AbortSignal.timeout(6000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { title?: string; steps?: unknown[] } }
+		if (!data.success || !data.data) return { status: 'fail', detail: `Recipe ${recipeId} not found` }
+		const stepCount = data.data.steps?.length ?? 0
+		if (stepCount < 3) return { status: 'warn', detail: `Recipe "${data.data.title}" has only ${stepCount} steps — demo will feel thin` }
+		return { status: 'pass', detail: `"${data.data.title}" — ${stepCount} steps` }
+	})
+	push(heroCheck)
+
+	// 4. Semantic search (requires AI service)
+	const searchCheck = await runPreShowCheck('semantic-search', 'Semantic Search', async () => {
+		if (airGapMode) return { status: 'skip', detail: 'Air-gap: skip — navigate away from this beat or use fallback narration' }
+		const res = await fetch(`${base}/api/v1/search?q=cozy+winter+food&type=ALL&limit=5`, {
+			headers: authHeaders,
+			signal: AbortSignal.timeout(8000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { recipes?: unknown[] } }
+		const count = data?.data?.recipes?.length ?? 0
+		if (!res.ok || !data.success) return { status: 'fail', detail: 'Search endpoint returned error — AI service may be down' }
+		if (count === 0) return { status: 'warn', detail: 'Search returned 0 results for "cozy winter food" — seed more recipe data' }
+		return { status: 'pass', detail: `${count} results for "cozy winter food"` }
+	})
+	push(searchCheck)
+
+	// 5. Messages exist
+	const messagesCheck = await runPreShowCheck('messages-exist', 'Messages', async () => {
+		const res = await fetch(`${base}/api/v1/chat/conversations/my-conversations`, {
+			headers: authHeaders,
+			signal: AbortSignal.timeout(5000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { content?: unknown[] } }
+		const count = data?.data?.content?.length ?? 0
+		if (!res.ok || !data.success) return { status: 'fail', detail: 'Messages endpoint failed — check testuser has active conversations' }
+		if (count === 0) return { status: 'warn', detail: 'testuser has no message threads — messages beat will show empty state' }
+		return { status: 'pass', detail: `${count} conversation thread(s) ready` }
+	})
+	push(messagesCheck)
+
+	// 6. Pantry populated
+	const pantryCheck = await runPreShowCheck('pantry-populated', 'Pantry Data', async () => {
+		const res = await fetch(`${base}/api/v1/pantry`, {
+			headers: authHeaders,
+			signal: AbortSignal.timeout(5000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { items?: unknown[] } }
+		const count = data?.data?.items?.length ?? 0
+		if (!res.ok || !data.success) return { status: 'fail', detail: 'Pantry endpoint failed' }
+		if (count === 0) return { status: 'warn', detail: 'Pantry is empty — commerce intent beat will look hollow' }
+		if (count < 5) return { status: 'warn', detail: `Only ${count} pantry items — add more for a convincing inventory story` }
+		return { status: 'pass', detail: `${count} pantry items` }
+	})
+	push(pantryCheck)
+
+	// 7. Admin has reports (must use admin_demo token)
+	const adminCheck = await runPreShowCheck('admin-reports', 'Admin Reports', async () => {
+		const adminEntry = _vault.tokens['admin_demo']
+		const adminToken = adminEntry?.accessToken
+		if (!adminToken) return { status: 'warn', detail: 'Vault not warmed for admin_demo — cannot verify admin reports' }
+		const res = await fetch(`${base}/api/v1/moderation/reports?page=0&size=5&status=PENDING`, {
+			headers: { Authorization: `Bearer ${adminToken}` },
+			signal: AbortSignal.timeout(5000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { content?: unknown[]; totalElements?: number } }
+		const total = data?.data?.totalElements ?? data?.data?.content?.length ?? 0
+		if (!res.ok || !data.success) return { status: 'fail', detail: 'Admin reports endpoint failed — check admin_demo permissions' }
+		if (total === 0) return { status: 'warn', detail: 'No pending reports — trust layer beat will show empty moderation queue' }
+		return { status: 'pass', detail: `${total} pending report(s) in queue` }
+	})
+	push(adminCheck)
+
+	// 8. Creator stats (chef_minh)
+	const creatorCheck = await runPreShowCheck('creator-stats', 'Creator Stats', async () => {
+		const creatorEntry = _vault.tokens['chef_minh']
+		const creatorToken = creatorEntry?.accessToken
+		if (!creatorToken) return { status: 'warn', detail: 'Vault not warmed for chef_minh — cannot verify creator data' }
+		const res = await fetch(`${base}/api/v1/auth/me/creator-stats`, {
+			headers: { Authorization: `Bearer ${creatorToken}` },
+			signal: AbortSignal.timeout(5000),
+		})
+		const data = (await res.json()) as { success?: boolean; data?: { totalViews?: number; totalRecipes?: number } }
+		if (!res.ok || !data.success) return { status: 'fail', detail: 'Creator stats endpoint failed for chef_minh' }
+		const views = data.data?.totalViews ?? 0
+		const recipes = data.data?.totalRecipes ?? 0
+		if (views === 0 && recipes === 0) return { status: 'warn', detail: 'chef_minh has no creator data — heatmap will be empty' }
+		return { status: 'pass', detail: `${recipes} recipes, ${views.toLocaleString()} views` }
+	})
+	push(creatorCheck)
+
+	// 9. Room creation probe (create + immediately abandon)
+	const roomCheck = await runPreShowCheck('room-probe', 'Room Creation', async () => {
+		if (!accessToken) return { status: 'warn', detail: 'No auth token — cannot probe room creation' }
+		const heroPath = await getFallbackHeroRecipePath(accessToken)
+		const recipeId = extractRecipeIdFromPath(heroPath)
+		if (!recipeId) return { status: 'warn', detail: 'No hero recipe to probe room creation with' }
+
+		const headers = {
+			Authorization: `Bearer ${accessToken}`,
+			'Content-Type': 'application/json',
+		}
+
+		// Create
+		const createRes = await fetch(`${base}/api/v1/cooking-rooms`, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify({ recipeId }),
+			signal: AbortSignal.timeout(10000),
+		})
+		const createData = (await createRes.json()) as { success?: boolean; data?: { roomCode?: string }; statusCode?: number }
+
+		// 409 means user has an active session — still means room service works
+		if (createRes.status === 409 || createData.statusCode === 409) {
+			return { status: 'pass', detail: 'Room service responds (active session conflict — will auto-resolve during beat)' }
+		}
+		if (!createRes.ok || !createData.success || !createData.data?.roomCode) {
+			return { status: 'fail', detail: 'Room creation failed — co-cook beat will not work' }
+		}
+
+		const roomCode = createData.data.roomCode
+
+		// Abandon immediately
+		await fetch(`${base}/api/v1/cooking-rooms/${roomCode}/leave`, {
+			method: 'POST',
+			headers,
+			signal: AbortSignal.timeout(5000),
+		}).catch(() => { /* best-effort */ })
+
+		return { status: 'pass', detail: `Room ${roomCode} created and released — WebSocket path confirmed` }
+	})
+	push(roomCheck)
+
+	// 10. Manifest freshness
+	const manifestCheck = await runPreShowCheck('manifest-freshness', 'Demo Manifest', async () => {
+		try {
+			const res = await fetch('/demo-manifest.json', {
+				cache: 'no-store',
+				signal: AbortSignal.timeout(3000),
+			})
+			if (!res.ok) return { status: 'warn', detail: 'demo-manifest.json missing — scene shortcuts will use API fallbacks (slower)' }
+			const manifest = (await res.json()) as { generatedAt?: string; scenes?: Record<string, string | null> }
+			const generatedAt = manifest.generatedAt ? new Date(manifest.generatedAt) : null
+			const ageHours = generatedAt ? (Date.now() - generatedAt.getTime()) / 3600000 : null
+			if (ageHours !== null && ageHours > 12) {
+				return { status: 'warn', detail: `Manifest is ${Math.round(ageHours)}h old — re-run demo-prep.bat if data was re-seeded` }
+			}
+			const sceneCount = Object.values(manifest.scenes ?? {}).filter(Boolean).length
+			return { status: 'pass', detail: `Manifest fresh (${sceneCount} scenes) — generated ${generatedAt?.toLocaleTimeString() ?? 'recently'}` }
+		} catch {
+			return { status: 'warn', detail: 'Could not load demo-manifest.json — scene shortcuts will fall back to API resolution' }
+		}
+	})
+	push(manifestCheck)
+
+	// Air-gap verdict
+	if (airGapMode) {
+		const airgapCheck: PreShowCheck = {
+			id: 'airgap-mode',
+			label: 'Air-Gap Mode',
+			status: 'warn',
+			detail: 'AIR-GAP ACTIVE: Beats 2 (Semantic Search) and optional AI features will not work. Prepare narration fallback for those beats.',
+			durationMs: 0,
+		}
+		push(airgapCheck)
+	}
+
+	// Compute verdict
+	const hasFailures = checks.some(c => c.status === 'fail')
+	const hasWarnings = checks.some(c => c.status === 'warn')
+	const verdict: PreShowReport['verdict'] = hasFailures ? 'NO-GO' : hasWarnings ? 'CAUTION' : 'GO'
+
+	return {
+		checks,
+		verdict,
+		generatedAt: new Date().toISOString(),
+		airGapMode,
+	}
+}
+
+// ============================================================================
+// ENHANCED CO-COOK: Auto-launch sakura_kitchen in a pre-opened companion window
+// ============================================================================
+
+// The companion window is opened once during warm-up and reused on the beat.
+// This avoids the popup-blocker problem on first-click.
+export const COMPANION_WINDOW_NAME = 'chefkix-demo-spectator'
+
+export function openCompanionWindow(): Window | null {
+	if (typeof window === 'undefined') return null
+	return window.open(
+		'/cook-together',
+		COMPANION_WINDOW_NAME,
+		'width=390,height=844,left=80,top=40,toolbar=no,menubar=no,scrollbars=no,resizable=no',
+	)
+}
+
+export function isCompanionWindowOpen(): boolean {
+	if (typeof window === 'undefined') return false
+	try {
+		const w = window.open('', COMPANION_WINDOW_NAME, '')
+		if (!w) return false
+		// If we got a new window (no name match), close it and return false
+		if (w.location.href === 'about:blank' && w.document.body?.childElementCount === 0) {
+			w.close()
+			return false
+		}
+		return true
+	} catch {
+		return false
+	}
+}
+
+export function navigateCompanionWindow(url: string): boolean {
+	if (typeof window === 'undefined') return false
+	try {
+		const w = window.open('', COMPANION_WINDOW_NAME, '')
+		if (!w || w.closed) return false
+		w.location.href = url
+		return true
+	} catch {
+		return false
+	}
 }

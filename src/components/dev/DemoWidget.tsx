@@ -14,10 +14,16 @@ import {
 	loadDemoReadinessReport,
 	resetDemoReadinessCache,
 	resolveDemoShortcut,
+	getDemoVault,
+	swapPersonaFromVault,
+	warmTokenVault,
+	cleanupDemoState,
 	type DemoReadinessReport,
 	type DemoReadinessStatus,
 	type DemoPitchShortcut,
 } from './demo-config'
+import { usePaceTimer, PaceTimer } from './PaceTimer'
+import { PhantomConductor } from './PhantomConductor'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -109,6 +115,7 @@ function OriginalDemoWidget() {
 	const router = useRouter()
 	const pathname = usePathname()
 	const { isAuthenticated, user, accessToken, logout } = useAuthStore()
+	const paceTimer = usePaceTimer()
 
 	// Check backend on mount and when widget opens
 	useEffect(() => {
@@ -163,6 +170,16 @@ function OriginalDemoWidget() {
 		async (username: string, password: string, redirectTo = '/dashboard') => {
 			setIsLoggingIn(true)
 			try {
+				const vault = getDemoVault()
+				if (vault.isWarmed) {
+					const swapped = swapPersonaFromVault(username, true)
+					if (swapped) {
+						flash(`⚡ Vault swap: ${username}`)
+						setTimeout(() => { window.location.href = redirectTo }, 50)
+						return
+					}
+				}
+
 				const loginRes = await fetch(`${BASE}/api/v1/auth/login`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -726,6 +743,18 @@ function OriginalDemoWidget() {
 											📋
 										</button>
 										<button
+											onClick={async () => {
+												if (!accessToken) return
+												flash('Cleaning Demo State...')
+												await cleanupDemoState(accessToken)
+												flash('Cleaned & Ready.')
+											}}
+											style={{ ...btnSmall, color: '#d29922' }}
+											title="Panic Cleanup"
+										>
+											🧹
+										</button>
+										<button
 											onClick={() => {
 												logout()
 												flash('Logged out')
@@ -788,6 +817,47 @@ function OriginalDemoWidget() {
 											Backend is {backendStatus}. Start monolith first.
 										</div>
 									)}
+									<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 8 }}>
+										<button
+											onClick={async () => {
+												flash('Warming Vault...')
+												await warmTokenVault()
+												flash('Vault Warmed! 🚀')
+											}}
+											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+										>
+											🔥 Warm Vault
+										</button>
+										<button
+											onClick={async () => {
+												if (!accessToken) return
+												flash('Cleaning Demo State...')
+												await cleanupDemoState(accessToken)
+												flash('Cleaned & Ready.')
+											}}
+											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+										>
+											🧹 Cleanup State
+										</button>
+										<button
+											onClick={() => {
+												flash('Pace Timer Started')
+												paceTimer.start()
+											}}
+											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+										>
+											⏱ Start Timer
+										</button>
+										<button
+											onClick={() => {
+												flash('Safe Harbor')
+												navigateTo('/dashboard')
+											}}
+											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+										>
+											⚓ Safe Harbor
+										</button>
+									</div>
 								</div>
 							)}
 						</div>
@@ -1626,11 +1696,16 @@ function CheatEngine() {
 
 export function DemoWidget() {
 	const [autoRunActive, setAutoRunActive] = useState(false)
+	const [showDebugUI, setShowDebugUI] = useState(false)
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const urlParams = new URLSearchParams(window.location.search)
 			
+			if (urlParams.get('debug') === 'true') {
+				setShowDebugUI(true)
+			}
+
 			if (urlParams.get('airgap') === 'true') {
 				initializeAirGap()
 			}
@@ -1647,15 +1722,17 @@ export function DemoWidget() {
 
 	return (
 		<>
-			<OriginalDemoWidget />
+			{showDebugUI && <OriginalDemoWidget />}
 			{(IS_DEV || autoRunActive) && (
 				<>
-					{!autoRunActive && <CheatEngine />}
+					{!autoRunActive && showDebugUI && <CheatEngine />}
 					<GhostCursor driverName="main" color="#ff5a36" />
 					<GhostCursor driverName="friend" color="#3fb950" />
-					<GhostHUD />
+					{showDebugUI && <GhostHUD />}
 				</>
 			)}
+			<PaceTimer />
+			<PhantomConductor />
 		</>
 	)
 }

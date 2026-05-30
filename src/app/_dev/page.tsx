@@ -15,6 +15,8 @@ import {
 	loadDemoReadinessReport,
 	resetDemoReadinessCache,
 	resolveDemoShortcut,
+	getDemoVault,
+	swapPersonaFromVault,
 	type DemoReadinessReport,
 	type DemoReadinessStatus,
 	type DemoPitchShortcut,
@@ -773,6 +775,16 @@ export default function DevDashboard() {
 	const openPitchBeatAction = useCallback(
 		async (shortcut: DemoPitchShortcut, personaUsername: string) => {
 			if (personaUsername && currentUsername !== personaUsername) {
+				const vault = getDemoVault()
+				if (vault.isWarmed) {
+					const swapped = swapPersonaFromVault(personaUsername, true)
+					if (swapped) {
+						toast.success(`⚡ Instant vault swap: ${personaUsername}`)
+						await openPitchShortcut(shortcut)
+						return
+					}
+				}
+
 				const persona = getDemoAccount(personaUsername)
 				if (!persona) {
 					toast.error(`Missing demo account for ${personaUsername}`)
