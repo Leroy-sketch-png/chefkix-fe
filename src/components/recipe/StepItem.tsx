@@ -9,6 +9,13 @@ import { diag } from '@/lib/diagnostics'
 import { toast } from 'sonner'
 import { uploadRecipeImages, uploadStepVideo } from '@/services/recipe'
 import { formatTimer, getTimerSeconds } from '@/lib/recipeCreateUtils'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import type { RecipeStep, TimeUnit } from '@/lib/types/recipeCreate'
 
 // ── Props ───────────────────────────────────────────────────────────
@@ -327,30 +334,28 @@ export const StepItem = ({
 								className='w-12 bg-transparent text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
 								autoFocus
 							/>
-							<select
+							<Select
 								value={timerUnit}
-								onChange={e => setTimerUnit(e.target.value as TimeUnit)}
-								className='bg-bg-card text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer rounded px-1 py-0.5'
+								onValueChange={v => setTimerUnit(v as TimeUnit)}
 							>
-								<option
-									value='seconds'
-									className='bg-bg-card text-text-primary'
-								>
-									sec
-								</option>
-								<option
-									value='minutes'
-									className='bg-bg-card text-text-primary'
-								>
-									min
-								</option>
-								<option value='hours' className='bg-bg-card text-text-primary'>
-									hours
-								</option>
-								<option value='days' className='bg-bg-card text-text-primary'>
-									days
-								</option>
-							</select>
+								<SelectTrigger className='h-6 bg-bg-card border-none text-xs font-semibold text-brand outline-none focus-visible:ring-2 focus-visible:ring-brand/50 cursor-pointer rounded px-1 py-0.5'>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='seconds'>
+										sec
+									</SelectItem>
+									<SelectItem value='minutes'>
+										min
+									</SelectItem>
+									<SelectItem value='hours'>
+										hours
+									</SelectItem>
+									<SelectItem value='days'>
+										days
+									</SelectItem>
+								</SelectContent>
+							</Select>
 							<button
 								type='button'
 								onClick={handleTimerSave}

@@ -59,7 +59,7 @@ export function AuthLayout({
 
 			<div className='relative z-10 w-full'>
 				<div className='mx-auto mb-6 flex max-w-md items-center justify-center'>
-					<div className='inline-flex items-center gap-2 rounded-full border border-border-subtle/80 bg-bg-card/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary shadow-card'>
+					<div className='inline-flex items-center gap-2 rounded-full border border-border-subtle/80 bg-bg-card/88 px-4 py-2 text-2xs font-semibold uppercase tracking-widest text-text-secondary shadow-card'>
 						<span className='size-2 rounded-full bg-brand' />
 						Social media for food
 					</div>

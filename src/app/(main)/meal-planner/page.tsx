@@ -417,8 +417,8 @@ export default function MealPlannerPage() {
 									tone='success'
 									className='p-4'
 								>
-									<div className='overflow-x-auto scrollbar-hide'>
-										<div className='min-w-[900px]'>
+									<div className='overflow-x-auto hkx-x-rail'>
+										<div className='min-w-max'>
 											{/* Day Headers */}
 											<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
 												<div /> {/* spacer */}

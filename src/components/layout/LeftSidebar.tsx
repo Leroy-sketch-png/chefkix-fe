@@ -240,16 +240,16 @@ export const LeftSidebar = () => {
 						<Icon
 							className={cn(
 								'size-4.5 transition-all duration-300',
-								active && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+								active && 'drop-shadow-glow',
 							)}
 						/>
 						{item.showBadge && unreadCount > 0 && (
-							<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-[0_2px_6px_rgba(255,90,54,0.5)]'>
+							<span className='absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full bg-brand text-2xs font-bold text-white shadow-glow'>
 								{unreadCount > 9 ? '9+' : unreadCount}
 							</span>
 						)}
 					</motion.div>
-					<div className='min-w-0 truncate text-left text-[13px] leading-none z-10'>
+					<div className='min-w-0 truncate text-left text-caption leading-none z-10'>
 						{label}
 					</div>
 				</div>
@@ -274,7 +274,7 @@ export const LeftSidebar = () => {
 
 			{/* ChefHat brand mark */}
 			<motion.div
-				className='relative z-10 mb-2 flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand/70 shadow-[0_4px_12px_rgba(255,90,54,0.35)]'
+				className='relative z-10 mb-2 flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand/70 shadow-glow'
 				whileHover={{ scale: 1.08 }}
 				transition={TRANSITION_SPRING}
 			>
@@ -319,11 +319,11 @@ export const LeftSidebar = () => {
 								<MoreHorizontal
 									className={cn(
 										'size-4.5 transition-all duration-300',
-										showMore && 'drop-shadow-[0_0_6px_rgba(255,90,54,0.5)]',
+										showMore && 'drop-shadow-glow',
 									)}
 								/>
 							</motion.div>
-							<div className='text-[13px] leading-none z-10'>
+							<div className='text-caption leading-none z-10'>
 								{showMore ? t('less') : t('more')}
 							</div>
 						</div>

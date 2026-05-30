@@ -101,7 +101,7 @@ function SignalChip({ label, value, icon: Icon, tone }: SignalChipProps) {
 				<Icon className='size-4' />
 			</div>
 			<div className='min-w-0'>
-				<p className='text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{label}
 				</p>
 				<p className='mt-1 text-sm font-semibold text-text-primary sm:text-base'>
@@ -158,7 +158,7 @@ function ActionCard({
 
 				{badge && (
 					<div className='mt-4'>
-						<span className='inline-flex items-center rounded-full border border-brand/20 bg-bg-elevated/80 px-2.5 py-1 text-[11px] font-semibold text-text-secondary'>
+						<span className='inline-flex items-center rounded-full border border-brand/20 bg-bg-elevated/80 px-2.5 py-1 text-2xs font-semibold text-text-secondary'>
 							{badge}
 						</span>
 					</div>
@@ -236,12 +236,12 @@ export function DashboardCommandDeck({
 				<div className='grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start lg:gap-6'>
 					<div className='space-y-4 sm:space-y-5'>
 						<div className='flex flex-wrap items-center gap-2'>
-							<span className='inline-flex items-center gap-1.5 rounded-full border border-brand/25 bg-brand/8 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand'>
+							<span className='inline-flex items-center gap-1.5 rounded-full border border-brand/25 bg-brand/8 px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 								<Sparkles className='size-3' />
 								{chefTitle} · Lv.{level}
 							</span>
 							{hasStreakAtRisk && (
-								<span className='inline-flex items-center gap-1 rounded-full border border-error/25 bg-error/8 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-error'>
+								<span className='inline-flex items-center gap-1 rounded-full border border-error/25 bg-error/8 px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-error'>
 									<AlertTriangle className='size-3' />
 									{t('cmdStreakRisk')}
 								</span>
@@ -267,7 +267,7 @@ export function DashboardCommandDeck({
 						<div className='rounded-3xl border border-border-subtle bg-bg-card/85 p-4 shadow-card sm:p-5'>
 							<div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
 								<div className='space-y-1.5'>
-									<p className='text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+									<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 										{t('cmdRhythmTitle')}
 									</p>
 									<p className='text-base font-semibold leading-tight text-text-primary sm:text-lg'>
@@ -289,7 +289,7 @@ export function DashboardCommandDeck({
 										className='size-16 text-sm'
 									/>
 									<div className='shrink-0'>
-										<p className='text-right text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+										<p className='text-right text-2xs font-bold uppercase tracking-widest text-text-muted'>
 											{t('cmdProgressRemaining')}
 										</p>
 										<p className='text-right text-3xl font-black tracking-tight text-text-primary sm:text-[2.2rem]'>

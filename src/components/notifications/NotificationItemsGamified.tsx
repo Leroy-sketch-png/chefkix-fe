@@ -223,7 +223,7 @@ const NotifWrapper = ({
 			)}
 		/>
 		{!isRead && (
-			<span className='pointer-events-none absolute right-2 top-2 size-2 rounded-full bg-brand shadow-[0_0_0_3px_rgba(255,90,54,0.15)]' />
+			<span className='pointer-events-none absolute right-2 top-2 size-2 rounded-full bg-brand shadow-glow' />
 		)}
 		{children}
 	</motion.div>

@@ -14,6 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Recipe } from '@/lib/types/recipe'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getSimilarRecipes } from '@/services/recipe'
 import { difficultyToDisplay } from '@/lib/apiUtils'
 import {
@@ -113,15 +114,15 @@ export const SimilarRecipes = ({
 					{[1, 2, 3].map(i => (
 						<div
 							key={i}
-							className='animate-pulse rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 shadow-card'
+							className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card shadow-card'
 						>
-							<div className='h-40 rounded-t-2xl bg-bg-elevated' />
-							<div className='space-y-2 p-4'>
-								<div className='h-5 w-3/4 rounded bg-bg-elevated' />
-								<div className='h-4 w-1/2 rounded bg-bg-elevated' />
+							<Skeleton className='h-40 w-full rounded-none' />
+							<div className='space-y-3 p-4'>
+								<Skeleton className='h-5 w-3/4 rounded-lg' />
+								<Skeleton className='h-4 w-1/2 rounded-lg' />
 								<div className='flex gap-3'>
-									<div className='h-3 w-16 rounded bg-bg-elevated' />
-									<div className='h-3 w-16 rounded bg-bg-elevated' />
+									<Skeleton className='h-3 w-16 rounded-lg' />
+									<Skeleton className='h-3 w-16 rounded-lg' />
 								</div>
 							</div>
 						</div>

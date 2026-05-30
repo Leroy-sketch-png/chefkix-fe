@@ -49,7 +49,7 @@ export function PantryContextRail({
 			)}
 		>
 			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-success/6 p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-success'>
 					{t('railPulseEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
@@ -77,7 +77,7 @@ export function PantryContextRail({
 			</div>
 
 			<div className='rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>

@@ -131,14 +131,14 @@ function SearchDiscoveryCommandDeck({
 		<>
 			<div className='mb-3 flex flex-wrap items-start justify-between gap-2.5 sm:mb-4 sm:items-center sm:gap-3'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{eyebrow}
 					</p>
 					<h1 className='mt-1 text-lg font-black leading-tight text-text-primary sm:text-xl md:text-2xl'>
 						{heading}
 					</h1>
 				</div>
-				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-[11px] font-semibold text-brand'>
+				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand'>
 					<Sparkles className='size-3.5' />
 					{modeChipLabel}
 				</div>
@@ -234,7 +234,7 @@ function SearchDiscoveryCommandDeck({
 									>
 										<Icon className='size-3 sm:size-4' />
 									</span>
-									<span className='text-[13px] font-semibold leading-tight text-text-primary sm:text-sm'>
+									<span className='text-caption font-semibold leading-tight text-text-primary sm:text-sm'>
 										{term}
 									</span>
 								</motion.button>
@@ -263,11 +263,11 @@ function SearchResultsCommandDeck<TTab extends string>({
 		<>
 			<div className='mb-3 flex flex-wrap items-start justify-between gap-2.5 sm:mb-4 sm:items-center sm:gap-3'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{eyebrow}
 					</p>
 				</div>
-				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-[11px] font-semibold text-brand'>
+				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand'>
 					<Sparkles className='size-3.5' />
 					{chipLabel}
 				</div>

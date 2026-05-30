@@ -67,7 +67,7 @@ export function useAuthGate() {
 
 			return false
 		},
-		[isAuthenticated, router, pathname, t],
+		[isAuthenticated, router, pathname, t, openAuthGate],
 	)
 
 	/** Modal-based guard. Returns a click handler that either calls callback or shows modal. */

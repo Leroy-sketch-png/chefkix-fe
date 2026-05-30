@@ -34,6 +34,13 @@ import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import { MagicCard } from '@/components/ui/magic-card'
 import { GlowCard } from '@/components/ui/glow-card'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import {
 	TRANSITION_SPRING,
@@ -441,7 +448,7 @@ export default function PantryPage() {
 							canClearExpired={expiredCount > 0}
 						>
 							<div
-								className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide'
+								className='flex items-center gap-1.5 overflow-x-auto hkx-x-rail'
 								role='tablist'
 								aria-label={t('filterByCategory')}
 							>
@@ -568,7 +575,7 @@ export default function PantryPage() {
 									<div className='space-y-3'>
 										<div className='flex items-center justify-between gap-3'>
 											<div>
-												<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-success'>
+												<p className='text-2xs font-bold uppercase tracking-widest text-success'>
 													{t('quickAddEyebrow')}
 												</p>
 												<p className='mt-1 text-sm font-semibold text-text-primary'>
@@ -624,7 +631,7 @@ export default function PantryPage() {
 												onClick={handleQuickAdd}
 												whileTap={BUTTON_TAP}
 												disabled={!quickAddName.trim() || isAdding}
-												className='inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.25)] transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+												className='inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-warm transition-all hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 											>
 												<Plus className='size-4' />
 												{t('addButton')}
@@ -688,24 +695,27 @@ export default function PantryPage() {
 															>
 																{t('labelCategory')}
 															</label>
-															<select
-																id='pantry-category'
+															<Select
 																value={quickAddCategory}
-																onChange={e =>
-																	setQuickAddCategory(e.target.value)
-																}
-																className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+																onValueChange={setQuickAddCategory}
 															>
-																{CATEGORIES.map(c => (
-																	<option
-																		key={c.key}
-																		value={c.key}
-																		className='bg-bg-card text-text-primary'
-																	>
-																		{c.emoji} {t(c.labelKey)}
-																	</option>
-																))}
-															</select>
+																<SelectTrigger
+																	id='pantry-category'
+																	className='h-8 w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand'
+																>
+																	<SelectValue />
+																</SelectTrigger>
+																<SelectContent>
+																	{CATEGORIES.map(c => (
+																		<SelectItem
+																			key={c.key}
+																			value={c.key}
+																		>
+																			{c.emoji} {t(c.labelKey)}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
 														</div>
 														<div>
 															<label
@@ -799,7 +809,7 @@ export default function PantryPage() {
 																	}))
 																}
 																aria-label={t('labelIngredient')}
-																className='flex-1 min-w-[120px] rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+																className='flex-1 min-w-32 rounded-md border border-border-subtle bg-bg px-2 py-1 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 															/>
 															<input
 																type='number'

@@ -64,8 +64,7 @@ export function CookLauncherClient() {
 		isAuthenticated,
 		isHydrated,
 		router,
-		session?.recipeId,
-		session?.status,
+		session,
 		resumeExistingSession,
 		openCookingPanel,
 		expandCookingPanel,
@@ -77,7 +76,7 @@ export function CookLauncherClient() {
 				<PageContainer maxWidth='md'>
 					<div className='mx-auto mt-16 rounded-2xl border border-border-subtle bg-bg-card p-8 text-center shadow-card'>
 						<Loader2 className='mx-auto mb-4 size-8 animate-spin text-brand' />
-						<p className='text-sm font-semibold uppercase tracking-[0.14em] text-text-muted'>
+						<p className='text-sm font-semibold uppercase tracking-widest text-text-muted'>
 							{t('startCooking')}
 						</p>
 						<h1 className='mt-2 text-2xl font-black text-text-primary'>
@@ -93,7 +92,7 @@ export function CookLauncherClient() {
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<div className='mx-auto mt-16 rounded-2xl border border-border-subtle bg-bg-card p-8 shadow-card'>
-					<p className='text-xs font-semibold uppercase tracking-[0.16em] text-text-muted'>
+					<p className='text-xs font-semibold uppercase tracking-widest text-text-muted'>
 						{t('startCooking')}
 					</p>
 					<h1 className='mt-2 text-2xl font-black text-text-primary'>

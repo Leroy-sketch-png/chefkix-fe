@@ -324,7 +324,7 @@ export default function CreatorRoute() {
 								>
 									<ArrowLeft className='size-5' />
 								</motion.button>
-								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
+								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-warm'>
 									<ChefHat className='size-5' />
 								</div>
 								<div className='min-w-0'>
@@ -370,7 +370,7 @@ export default function CreatorRoute() {
 
 						<div className='grid gap-2 sm:grid-cols-3 lg:max-w-2xl'>
 							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
-								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+								<p className='text-xs font-semibold uppercase tracking-widest text-text-muted'>
 									{t('recipesPublished')}
 								</p>
 								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>
@@ -378,7 +378,7 @@ export default function CreatorRoute() {
 								</p>
 							</div>
 							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
-								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+								<p className='text-xs font-semibold uppercase tracking-widest text-text-muted'>
 									{t('totalCooks')}
 								</p>
 								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>
@@ -386,7 +386,7 @@ export default function CreatorRoute() {
 								</p>
 							</div>
 							<div className='rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
-								<p className='text-xs font-semibold uppercase tracking-[0.12em] text-text-muted'>
+								<p className='text-xs font-semibold uppercase tracking-widest text-text-muted'>
 									{t('creatorXpEarned')}
 								</p>
 								<p className='mt-1 text-xl font-bold tracking-tight text-text-primary tabular-nums'>

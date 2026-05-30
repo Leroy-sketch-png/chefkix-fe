@@ -31,7 +31,7 @@ export const StoryAvatar = ({
 						isAddButton
 							? 'border border-dashed border-neutral-400 bg-transparent'
 							: hasUnseen
-								? 'bg-gradient-to-br from-brand via-brand to-brand/70 shadow-[0_10px_24px_rgba(255,90,54,0.22)]'
+								? 'bg-gradient-to-br from-brand via-brand to-brand/70 shadow-glow'
 								: 'border border-border-subtle bg-bg-elevated',
 					)}
 				>

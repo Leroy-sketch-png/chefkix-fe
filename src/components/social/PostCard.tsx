@@ -127,18 +127,18 @@ interface PostCardProps {
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
 	QUICK:
-		'bg-warning/28 text-warning-deep border border-warning/35 shadow-[0_1px_6px_rgba(0,0,0,0.08)]',
-	POLL: 'bg-info/28 text-info border border-info/35 shadow-[0_0_10px_rgba(59,130,246,0.18)]',
+		'bg-warning/28 text-warning-deep border border-warning/35 shadow-sm',
+	POLL: 'bg-info/28 text-info border border-info/35 shadow-md',
 	RECENT_COOK:
-		'bg-brand/28 text-brand border border-brand/35 shadow-[0_0_12px_rgba(255,90,54,0.25)]',
+		'bg-brand/28 text-brand border border-brand/35 shadow-glow',
 	GROUP:
-		'bg-accent-purple/28 text-accent-purple border border-accent-purple/35 shadow-[0_0_10px_rgba(139,92,246,0.18)]',
+		'bg-accent-purple/28 text-accent-purple border border-accent-purple/35 shadow-md',
 	RECIPE_REVIEW:
-		'bg-warning/32 text-warning-deep border border-warning/40 shadow-[0_0_10px_rgba(245,158,11,0.18)]',
+		'bg-warning/32 text-warning-deep border border-warning/40 shadow-md',
 	QUICK_TIP:
-		'bg-success/28 text-success-deep border border-success/35 shadow-[0_0_10px_rgba(16,185,129,0.18)]',
+		'bg-success/28 text-success-deep border border-success/35 shadow-md',
 	RECIPE_BATTLE:
-		'bg-error/28 text-error border border-error/35 shadow-[0_0_12px_rgba(239,68,68,0.22)]',
+		'bg-error/28 text-error border border-error/35 shadow-md',
 }
 
 function PostCardErrorFallback({
@@ -932,7 +932,7 @@ const PostCardContent = ({
 					) : (
 						<>
 							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
-								<p className='whitespace-pre-wrap text-[15px] leading-[1.65] tracking-[0.01em] text-text-primary'>
+								<p className='whitespace-pre-wrap text-label leading-[1.65] tracking-widest text-text-primary'>
 									{post.content}
 								</p>
 								{(post.tags ?? []).length > 0 && (

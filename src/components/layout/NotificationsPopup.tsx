@@ -300,7 +300,7 @@ export const NotificationsPopup = () => {
 			/>
 
 			{/* Dropdown */}
-			<div className='fixed right-2 top-16 z-popover w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card shadow-[0_16px_40px_rgba(0,0,0,0.15)] backdrop-blur-xl md:right-6 md:w-96'>
+			<div className='fixed right-2 top-16 z-popover w-[calc(100vw-16px)] max-w-md animate-slideInDown overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card shadow-lg backdrop-blur-xl md:right-6 md:w-96'>
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border-subtle/60 bg-gradient-to-r from-bg-card to-bg-elevated/50 p-4'>
 					<div className='flex items-center gap-2'>

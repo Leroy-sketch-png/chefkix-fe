@@ -83,7 +83,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 	useEffect(() => {
 		const cleanup = loadCollections()
 		return cleanup
-	}, [])
+	}, [loadCollections])
 
 	if (isLoading) {
 		return <SeasonsBestSkeleton className={className} />
@@ -102,7 +102,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 						<CalendarDays className='size-5' />
 					</div>
 					<div className='flex-1'>
-						<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 							{t('seasonalEventLabel')}
 						</p>
 						<h3 className='mt-1 text-base font-bold text-text-primary'>
@@ -133,7 +133,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 					className,
 				)}
 			>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 					{t('seasonalEventLabel')}
 				</p>
 				<h3 className='mt-1 text-lg font-black leading-tight text-text-primary'>
@@ -177,7 +177,7 @@ export const SeasonsBest = ({ className }: SeasonsBestProps) => {
 						<Sparkles className='size-5' />
 					</div>
 					<div>
-						<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 							{t('seasonalEventLabel')}
 						</p>
 						<h2 className='text-lg font-black leading-tight text-text-primary'>
@@ -277,7 +277,7 @@ function FeaturedCollectionCard({
 				<div
 					className={cn(
 						'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card shadow-card transition-shadow duration-300 group-hover:shadow-warm',
-						featured ? 'min-h-[240px]' : 'min-h-[164px]',
+						featured ? 'min-h-60' : 'min-h-40',
 					)}
 				>
 					<ImageWithFallback
@@ -311,7 +311,7 @@ function FeaturedCollectionCard({
 							featured && 'p-5',
 						)}
 					>
-						<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-white/72'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-white/72'>
 							{featured ? t('featured') : t('seasonalEventLabel')}
 						</p>
 						<h3

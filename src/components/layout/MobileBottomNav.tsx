@@ -197,7 +197,7 @@ export const MobileBottomNav = () => {
 		<>
 			<nav
 				className={cn(
-					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_28px_rgba(255,90,54,0.08)] backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 transition-transform duration-300 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden',
+					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 transition-transform duration-300 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden',
 					isHidden && 'translate-y-full',
 				)}
 				aria-label={t('ariaMobileNavigation')}
@@ -238,7 +238,7 @@ export const MobileBottomNav = () => {
 										</Link>
 									</ShinyButton>
 								</motion.div>
-								<span className='text-[11px] font-semibold leading-tight text-text-secondary'>
+								<span className='text-2xs font-semibold leading-tight text-text-secondary'>
 									{label}
 								</span>
 							</div>
@@ -250,22 +250,23 @@ export const MobileBottomNav = () => {
 						return (
 							<div
 								key={item.href}
-								className='relative -mt-1 flex max-w-24 flex-1 items-center justify-center self-start'
+								className='relative -mt-1 flex max-w-24 min-w-0 flex-1 items-center justify-center self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={{ scale: 0.88 }}
 									transition={TRANSITION_SPRING}
+									className='w-full'
 								>
 									<ShinyButton
 										asChild
 										size='sm'
-										className='gap-1.5'
+										className='w-full justify-center gap-1 px-2.5'
 										shineDuration={1.2}
 									>
-										<Link href={href}>
+										<Link href={href} className='flex w-full items-center justify-center gap-1'>
 											<Icon className='size-3.5' />
-											<span className='whitespace-nowrap text-[10px] font-semibold leading-none'>
+											<span className='truncate text-2xs font-semibold leading-none'>
 												{label}
 											</span>
 										</Link>
@@ -284,7 +285,7 @@ export const MobileBottomNav = () => {
 								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 								isAuthenticated && 'max-w-20',
 								active
-									? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+									? 'bg-brand/10 text-brand shadow-glow'
 									: 'text-text-secondary hover:bg-bg-elevated/70',
 							)}
 						>
@@ -327,7 +328,7 @@ export const MobileBottomNav = () => {
 						className={cn(
 							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 							isMoreActive
-								? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+								? 'bg-brand/10 text-brand shadow-glow'
 								: 'text-text-secondary hover:bg-bg-elevated/70',
 						)}
 					>
@@ -416,7 +417,7 @@ export const MobileBottomNav = () => {
 								)}
 								{filteredGroupedMenu.map(group => (
 									<section key={group.headingKey}>
-										<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
+										<p className='mb-2 text-xs font-bold uppercase tracking-widest text-text-muted'>
 											{t(group.headingKey)}
 										</p>
 										<div className='grid grid-cols-3 gap-2 sm:grid-cols-4'>
@@ -484,7 +485,7 @@ export const MobileTabBar = ({
 	return (
 		<div
 			className={cn(
-				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto border-b border-white/20 bg-white/70 p-2 backdrop-blur-2xl dark:border-white/10 dark:bg-bg-card/70 scrollbar-hide md:hidden',
+				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto hkx-x-rail border-b border-white/20 bg-white/70 p-2 backdrop-blur-2xl dark:border-white/10 dark:bg-bg-card/70 md:hidden',
 				className,
 			)}
 		>

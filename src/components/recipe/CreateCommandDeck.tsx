@@ -5,7 +5,6 @@ import {
 	Sparkles,
 	CheckCircle2,
 	Circle,
-	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -42,7 +41,7 @@ function PipelineStep({
 		>
 			<div
 				className={cn(
-					'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-black',
+					'mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-2xs font-black',
 					status === 'done' && 'border-success/40 bg-success/15 text-success',
 					status === 'active' && 'border-brand/40 bg-brand/15 text-brand',
 					status === 'upcoming' &&
@@ -60,7 +59,7 @@ function PipelineStep({
 			<div className='min-w-0'>
 				<p
 					className={cn(
-						'text-[11px] font-bold leading-none',
+						'text-2xs font-bold leading-none',
 						status === 'done' && 'text-success',
 						status === 'active' && 'text-brand',
 						status === 'upcoming' && 'text-text-muted',
@@ -68,7 +67,7 @@ function PipelineStep({
 				>
 					{label}
 				</p>
-				<p className='mt-1 text-[10px] leading-tight text-text-muted'>
+				<p className='mt-1 text-2xs leading-tight text-text-muted'>
 					{description}
 				</p>
 			</div>
@@ -83,11 +82,6 @@ export function CreateCommandDeck({
 	className,
 }: CreateCommandDeckProps) {
 	const draftStatus: PipelineStatus = hasLocalDraft ? 'done' : 'upcoming'
-	const aiStatus: PipelineStatus = isLoadingDraft
-		? 'active'
-		: hasLocalDraft
-			? 'upcoming'
-			: 'upcoming'
 	const editStatus: PipelineStatus = 'upcoming'
 	const publishStatus: PipelineStatus = 'upcoming'
 
@@ -103,7 +97,7 @@ export function CreateCommandDeck({
 		>
 			<div className='mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-4'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-wide text-brand'>
 						Creation Pipeline
 					</p>
 					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>

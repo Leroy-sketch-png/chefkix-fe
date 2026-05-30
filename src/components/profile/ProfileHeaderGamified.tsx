@@ -423,7 +423,7 @@ const BadgesShowcase = ({
 		<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
 			{!compact && (
 				<div className='mb-3 flex items-center justify-between'>
-					<h3 className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+					<h3 className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{t('badgesTitle')}
 					</h3>
 					{isOwnProfile && totalBadges > 0 ? (
@@ -440,7 +440,7 @@ const BadgesShowcase = ({
 					) : null}
 				</div>
 			)}
-			<div className='flex gap-3 overflow-x-auto scrollbar-hide pb-2 pr-4'>
+			<div className='flex gap-3 overflow-x-auto hkx-x-rail pb-2 pr-4'>
 				{badges.length === 0 && isOwnProfile ? (
 					<Link
 						href='/profile/badges'
@@ -513,7 +513,7 @@ const ProfileTabs = ({
 }) => {
 	return (
 		<div className='relative border-t border-border'>
-			<div className='flex gap-0.5 overflow-x-auto scrollbar-hide px-2 md:px-4'>
+			<div className='flex gap-0.5 overflow-x-auto hkx-x-rail px-2 md:px-4'>
 				{tabs.map(tab => (
 					<button
 						type='button'
@@ -928,7 +928,7 @@ const OtherUserProfileHeader = ({
 							'flex flex-1 min-w-[9rem] items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 md:flex-none md:min-w-0',
 							isFollowing
 								? 'border border-border-medium bg-bg-elevated hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
-								: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
+								: 'bg-brand text-white shadow-glow hover:bg-brand/90',
 						)}
 					>
 						{isFollowing ? (

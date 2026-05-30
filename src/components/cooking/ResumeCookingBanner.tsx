@@ -148,7 +148,7 @@ export const ResumeCookingBanner = ({
 				className={cn(
 					'relative overflow-hidden rounded-2xl border',
 					'bg-gradient-to-r from-brand/12 via-brand/6 to-bg-elevated/40',
-					'border-brand/25 shadow-[0_4px_20px_rgba(255,90,54,0.15)]',
+					'border-brand/25 shadow-glow',
 					className,
 				)}
 				variants={fadeInUp}
@@ -225,7 +225,7 @@ export const ResumeCookingBanner = ({
 						<Button
 							onClick={handleResume}
 							disabled={isResuming}
-							className='w-full gap-2 bg-gradient-to-r from-brand to-brand/85 text-white shadow-[0_4px_14px_rgba(255,90,54,0.4)] hover:shadow-[0_6px_20px_rgba(255,90,54,0.55)] md:w-auto'
+							className='w-full gap-2 bg-gradient-to-r from-brand to-brand/85 text-white shadow-glow hover:shadow-glow md:w-auto'
 						>
 							{isResuming ? (
 								<>

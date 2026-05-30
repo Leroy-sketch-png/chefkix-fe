@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -71,7 +71,7 @@ const HeroSection = () => {
 						className='max-w-2xl text-left'
 					>
 						{/* Logo + Brand */}
-						<div className='mb-8 inline-flex items-center gap-3 rounded-full border border-brand/30 bg-brand/10 px-6 py-3 text-sm font-semibold text-brand shadow-[0_0_20px_rgba(var(--brand),0.2)] backdrop-blur-md'>
+						<div className='mb-8 inline-flex items-center gap-3 rounded-full border border-brand/30 bg-brand/10 px-6 py-3 text-sm font-semibold text-brand shadow-glow backdrop-blur-md'>
 							<Sparkles className='size-4' />
 							<span>{t('heroTagline')}</span>
 						</div>
@@ -124,7 +124,7 @@ const HeroSection = () => {
 									}
 									disabled={isNavigating}
 									size='lg'
-									className='group relative overflow-hidden bg-brand px-10 py-7 text-xl font-bold text-white shadow-[0_0_40px_rgba(var(--brand),0.4)] transition-all hover:shadow-[0_0_60px_rgba(var(--brand),0.6)] disabled:opacity-50 rounded-2xl'
+									className='group relative overflow-hidden bg-brand px-10 py-7 text-xl font-bold text-white shadow-glow transition-all disabled:opacity-50 rounded-2xl'
 								>
 									<span className='relative z-10 flex items-center gap-3'>
 										{t('startCooking')}
@@ -198,11 +198,11 @@ const HeroSection = () => {
 						initial={{ opacity: 0, scale: 0.9 }}
 						animate={{ opacity: 1, scale: 1 }}
 						transition={{ ...TRANSITION_SPRING, delay: 0.2 }}
-						className='relative h-[650px] hidden lg:block'
+						className='relative min-h-[40rem] hidden lg:block'
 					>
 						{/* Main Image */}
 						<motion.div
-							className='absolute right-0 top-1/2 -translate-y-1/2 w-[420px] h-[520px] rounded-3xl overflow-hidden shadow-2xl z-20 border-[6px] border-bg/80'
+							className='absolute right-0 top-1/2 -translate-y-1/2 w-96 lg:w-[28rem] h-[32rem] rounded-3xl overflow-hidden shadow-2xl z-20 border-8 border-bg/80'
 							animate={{ y: ['-50%', '-52%', '-50%'] }}
 							transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
 						>
@@ -215,7 +215,7 @@ const HeroSection = () => {
 							/>
 							<div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent' />
 							<div className='absolute bottom-6 left-6 right-6 backdrop-blur-xl bg-black/40 p-5 rounded-2xl border border-white/20 text-white shadow-xl'>
-								<span className='inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/85'>
+								<span className='inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white/85'>
 									<Sparkles className='size-3.5' />
 									{t('heroTagline')}
 								</span>
@@ -227,7 +227,7 @@ const HeroSection = () => {
 
 						{/* Secondary Image 1 */}
 						<motion.div
-							className='absolute left-4 top-8 w-[260px] h-[340px] rounded-3xl overflow-hidden shadow-xl z-10 border-[6px] border-bg/80'
+							className='absolute left-4 top-8 w-64 h-80 rounded-3xl overflow-hidden shadow-xl z-10 border-8 border-bg/80'
 							animate={{ y: [0, -15, 0] }}
 							transition={{
 								duration: 7,
@@ -252,7 +252,7 @@ const HeroSection = () => {
 
 						{/* Secondary Image 2 */}
 						<motion.div
-							className='absolute left-10 bottom-6 w-[240px] h-[240px] rounded-3xl overflow-hidden shadow-2xl z-30 border-[6px] border-bg/80'
+							className='absolute left-10 bottom-6 size-60 rounded-3xl overflow-hidden shadow-2xl z-30 border-8 border-bg/80'
 							animate={{ y: [0, 15, 0] }}
 							transition={{
 								duration: 5,

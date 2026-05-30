@@ -97,7 +97,7 @@ export default function CollectionsPage() {
 		} finally {
 			if (isMountedRef.current) setIsLoading(false)
 		}
-	}, [])
+	}, [t])
 
 	useEffect(() => {
 		fetchCollections()

@@ -130,7 +130,7 @@ function LeaderboardSummary({
 					whileHover={{ scale: 1.05, y: -2 }}
 					whileTap={{ scale: 0.98 }}
 					onClick={onInviteFriends}
-					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<UserPlus className='size-4' />
 					{totalFriends === 0 ? t('inviteRivals') : t('invite')}
@@ -333,7 +333,7 @@ export function FriendsLeaderboard({
 						initial={{ scale: 0 }}
 						animate={{ scale: 1 }}
 						transition={TRANSITION_SPRING}
-						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand shadow-[0_4px_16px_rgba(255,90,54,0.3)]'
+						className='mb-4 flex size-16 items-center justify-center rounded-2xl bg-brand shadow-glow'
 					>
 						<ChefHat className='size-8 text-white' />
 					</motion.div>
@@ -350,7 +350,7 @@ export function FriendsLeaderboard({
 							whileHover={LIST_ITEM_HOVER}
 							whileTap={LIST_ITEM_TAP}
 							onClick={onInviteFriends}
-							className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<UserPlus className='size-4' />
 							{t('inviteFriends')}

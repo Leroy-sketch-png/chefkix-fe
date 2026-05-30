@@ -460,7 +460,7 @@ export default function MyRecipesPage() {
 											})
 										}
 										disabled={isNavigating}
-										className='gap-2 rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50'
+										className='gap-2 rounded-xl bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow disabled:opacity-50'
 									>
 										<Plus className='size-4' />
 										{t('createRecipe')}
@@ -536,7 +536,7 @@ export default function MyRecipesPage() {
 								})
 							}
 							disabled={isNavigating}
-							className='gap-2 rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50'
+							className='gap-2 rounded-xl bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow disabled:opacity-50'
 						>
 							<Plus className='size-4' />
 							{t('createYourFirstRecipe')}

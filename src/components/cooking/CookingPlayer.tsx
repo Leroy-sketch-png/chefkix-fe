@@ -138,7 +138,7 @@ const StepDots = ({
 	const t = useTranslations('cooking')
 	return (
 		<div
-			className='flex items-center gap-1.5 overflow-x-auto scrollbar-hide max-w-step-dots md:max-w-step-dots-lg px-1'
+			className='flex items-center gap-1.5 overflow-x-auto hkx-x-rail max-w-step-dots md:max-w-step-dots-lg px-1'
 			role='tablist'
 			aria-label={t('ariaRecipeSteps')}
 		>
@@ -1476,7 +1476,7 @@ export const CookingPlayer = () => {
 							initial='hidden'
 							animate='visible'
 							exit='exit'
-							className='max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.2)] ring-1 ring-white/10'
+							className='max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 text-center shadow-modal ring-1 ring-white/10'
 						>
 							<AlertCircle className='mx-auto mb-4 size-12 text-error' />
 							<h2 className='mb-2 text-xl font-bold text-text-primary'>
@@ -1538,7 +1538,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='flex h-full w-full flex-col overflow-hidden rounded-2xl bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/80 shadow-[0_24px_64px_rgba(0,0,0,0.25)] ring-1 ring-white/10'
+								className='flex h-full w-full flex-col overflow-hidden rounded-2xl bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/80 shadow-2xl ring-1 ring-white/10'
 							>
 								{/* Preview Mode Banner */}
 								{isPreviewMode && (
@@ -1771,7 +1771,7 @@ export const CookingPlayer = () => {
 									{/* Animated Progress Bar */}
 									<div className='h-2.5 w-full overflow-hidden rounded-full bg-border/60 shadow-inner'>
 										<motion.div
-											className='h-full rounded-full bg-gradient-to-r from-brand via-brand/90 to-brand/70 shadow-[0_0_8px_rgba(255,90,54,0.5)]'
+											className='h-full rounded-full bg-gradient-to-r from-brand via-brand/90 to-brand/70 shadow-glow'
 											initial={{ scaleX: 0, originX: 0 }}
 											animate={{ scaleX: progress / 100 }}
 											transition={{
@@ -1848,7 +1848,7 @@ export const CookingPlayer = () => {
 													onClick={() => setInteractionMode('ACTIVE')}
 													whileHover={BUTTON_HOVER}
 													whileTap={BUTTON_TAP}
-													className='rounded-full bg-brand px-10 py-3 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.4)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_20px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
+													className='rounded-full bg-brand px-10 py-3 font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 												>
 													{t('letsCook')}
 												</motion.button>
@@ -2087,7 +2087,7 @@ export const CookingPlayer = () => {
 										whileHover={isNavigating ? undefined : BUTTON_HOVER}
 										whileTap={isNavigating ? undefined : BUTTON_TAP}
 										className={cn(
-											'flex items-center gap-2 rounded-full bg-brand font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
+											'flex items-center gap-2 rounded-full bg-brand font-bold text-white shadow-warm transition-opacity focus-visible:ring-2 focus-visible:ring-brand/50',
 											kitchenMode || interactionMode === 'MESSY_HANDS'
 												? 'min-h-16 px-10 py-4 text-lg'
 												: 'px-8 py-3',
@@ -2144,7 +2144,7 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] ring-1 ring-white/10'
+								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-modal ring-1 ring-white/10'
 							>
 								<SessionRatingForm
 									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
@@ -2187,7 +2187,7 @@ export const CookingPlayer = () => {
 								initial={{ scale: 0.9, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
 								exit={{ scale: 0.9, opacity: 0 }}
-								className='mx-4 max-w-sm rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.2)] ring-1 ring-white/10'
+								className='mx-4 max-w-sm rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 text-center shadow-modal ring-1 ring-white/10'
 							>
 								<div className='mx-auto mb-4 grid size-16 place-items-center rounded-full bg-error/10 dark:bg-error/20'>
 									<LogOut className='size-8 text-error' />

@@ -655,7 +655,7 @@ export default function DashboardPage() {
 											className='overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 shadow-card'
 										>
 											<div className='border-b border-brand/10 bg-brand/5 px-5 py-3'>
-												<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+												<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 													{t('obJoin')}
 												</p>
 												<h2 className='text-base font-bold text-text-primary'>
@@ -853,7 +853,7 @@ export default function DashboardPage() {
 											<div className='mb-4 rounded-2xl border border-brand/15 bg-gradient-to-r from-brand/6 via-bg-card to-streak/6 p-4'>
 												<div className='flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
 													<div>
-														<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand'>
+														<div className='mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 															<Sparkles className='size-3.5' />
 															{t('tasteSetupEyebrow')}
 														</div>

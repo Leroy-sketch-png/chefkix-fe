@@ -35,10 +35,10 @@ export default function RepliedStoryPreview({
 				</div>
 
 				<div className='flex flex-col pr-2'>
-					<span className='text-[13px] font-medium text-neutral-900 dark:text-neutral-100 leading-tight'>
+					<span className='text-caption font-medium text-neutral-900 dark:text-neutral-100 leading-tight'>
 						{title || 'Đã phản hồi tin của bạn'}
 					</span>
-					<span className='text-[11px] text-neutral-500 dark:text-neutral-400 mt-1'>
+					<span className='text-2xs text-neutral-500 dark:text-neutral-400 mt-1'>
 						Xem tin →
 					</span>
 				</div>

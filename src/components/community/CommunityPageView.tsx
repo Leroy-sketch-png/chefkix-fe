@@ -248,7 +248,7 @@ export function CommunityPageView({
 							exit={{ opacity: 0 }}
 							className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
 						>
-							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(255,90,54,0.4)]'>
+							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-glow'>
 								<Loader2 className='size-4 animate-spin' />
 								{t('loading')}
 							</div>

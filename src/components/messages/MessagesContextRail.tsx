@@ -45,7 +45,7 @@ function RailCard({
 		<article className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 			<div className='flex items-start justify-between gap-3'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{title}
 					</p>
 					{value && (
@@ -84,7 +84,7 @@ export function MessagesContextRail({
 			)}
 		>
 			<div>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 					Messages Intelligence
 				</p>
 				<h2 className='mt-1 text-lg font-black text-text-primary'>
@@ -121,7 +121,7 @@ export function MessagesContextRail({
 			/>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					Quick Moves
 				</p>
 				<div className='mt-3 grid gap-2'>

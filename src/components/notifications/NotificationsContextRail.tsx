@@ -36,7 +36,7 @@ function RailStat({
 		<div className='rounded-lg border border-border-subtle bg-bg-card p-3'>
 			<div className='flex items-center justify-between gap-2'>
 				<div>
-					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{label}
 					</p>
 					<p className='mt-1 text-lg font-black text-text-primary tabular-nums'>
@@ -72,7 +72,7 @@ export function NotificationsContextRail({
 			)}
 		>
 			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 					{t('railEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
@@ -135,7 +135,7 @@ export function NotificationsContextRail({
 				</div>
 
 				<div className='mt-3 rounded-lg border border-border-subtle bg-bg-card p-3'>
-					<p className='text-[11px] font-bold uppercase tracking-[0.12em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{t('cmdFilterAll')}
 					</p>
 					<div className='mt-2 space-y-2'>
@@ -176,7 +176,7 @@ export function NotificationsContextRail({
 			</div>
 
 			<div className='rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>

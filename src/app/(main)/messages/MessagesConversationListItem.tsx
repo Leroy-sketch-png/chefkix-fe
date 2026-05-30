@@ -177,7 +177,7 @@ function ConversationItem({
 					)}
 				</div>
 				<div className='mt-0.5 flex items-center gap-1.5'>
-					<span className='inline-flex items-center rounded-full border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted'>
+					<span className='inline-flex items-center rounded-full border border-border-subtle bg-bg-elevated px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-widest text-text-muted'>
 						{contextBadge}
 					</span>
 				</div>

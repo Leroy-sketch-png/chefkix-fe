@@ -492,7 +492,7 @@ export const QuickPostFAB = ({
 								animate={{ opacity: 1, y: 0 }}
 								exit={{ opacity: 0, y: 100 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-lg rounded-t-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card p-5 shadow-[0_-8px_32px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:rounded-2xl'
+								className='w-full max-w-lg rounded-t-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card p-5 shadow-lg backdrop-blur-sm sm:rounded-2xl'
 								onClick={e => e.stopPropagation()}
 							>
 								{/* Header */}
@@ -950,7 +950,7 @@ export const QuickPostFAB = ({
 									whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 									whileTap={isSubmitting ? undefined : BUTTON_TAP}
 									transition={TRANSITION_SPRING}
-									className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-semibold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow disabled:opacity-50 disabled:shadow-none focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
 									{isSubmitting ? (
 										<>

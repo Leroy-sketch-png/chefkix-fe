@@ -34,7 +34,7 @@ export function CreateContextRail({
 			)}
 		>
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+				<p className='text-2xs font-bold uppercase tracking-wide text-brand'>
 					Studio Pulse
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
@@ -51,7 +51,7 @@ export function CreateContextRail({
 			</div>
 
 			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 					Quick Moves
 				</p>
 				<div className='mt-3 grid gap-2'>

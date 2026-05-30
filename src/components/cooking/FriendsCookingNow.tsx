@@ -129,7 +129,7 @@ export function FriendsCookingNow({
 
 				{!isLoading && rooms.length > 0 && (
 					<div className='mb-2 space-y-2'>
-						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 							{t('friendsCookingLiveRooms')}
 						</p>
 						<AnimatePresence mode='popLayout'>
@@ -187,7 +187,7 @@ export function FriendsCookingNow({
 											onClick={() =>
 												router.push(`/cook-together?roomCode=${room.roomCode}`)
 											}
-											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.4)]'
+											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow'
 											title={t('friendJoin')}
 											aria-label={t('friendJoinAria', {
 												names: formatParticipantNames(room.participantNames),
@@ -206,7 +206,7 @@ export function FriendsCookingNow({
 
 				{!isLoading && soloFriends.length > 0 && (
 					<div className='space-y-2'>
-						<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 							{t('friendsCookingSoloSessions')}
 						</p>
 						<AnimatePresence mode='popLayout'>

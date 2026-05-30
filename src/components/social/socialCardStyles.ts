@@ -8,10 +8,10 @@ export const socialCardSurface = cva(
 				default: '',
 				poll: 'to-info/6 sm:border-l-2 sm:border-l-info/50',
 				recentCook:
-					'to-brand/8 sm:border-l-2 sm:border-l-brand/60 hover:shadow-[0_4px_24px_rgba(255,90,54,0.12)]',
+					'to-brand/8 sm:border-l-2 sm:border-l-brand/60 hover:shadow-glow',
 				quickTip: 'to-success/6 sm:border-l-2 sm:border-l-success/50',
 				battle:
-					'to-error/7 sm:border-l-2 sm:border-l-error/60 hover:shadow-[0_4px_24px_rgba(239,68,68,0.1)]',
+					'to-error/7 sm:border-l-2 sm:border-l-error/60 hover:shadow-lg',
 				group: 'to-accent-purple/6 sm:border-l-2 sm:border-l-accent-purple/50',
 				recipeReview: 'to-warning/6 sm:border-l-2 sm:border-l-warning/50',
 			},

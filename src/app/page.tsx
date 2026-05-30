@@ -347,23 +347,24 @@ export default function HomePage() {
 
 				<div className='relative min-h-[90vh] overflow-hidden border-b border-border-subtle/50 bg-bg'>
 					<div className='pointer-events-none absolute inset-0'>
-						<div className='absolute inset-0 bg-[radial-gradient(circle_at_top_center,rgba(255,90,54,0.18),transparent_24%),radial-gradient(circle_at_15%_22%,rgba(255,90,54,0.12),transparent_22%),radial-gradient(circle_at_82%_30%,rgba(234,179,8,0.12),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.76),rgba(248,244,239,0.92)_48%,rgba(248,244,239,1)_100%)]' />
+						<div className='absolute inset-0 dark:hidden bg-[radial-gradient(circle_at_top_center,rgba(255,90,54,0.16),transparent_26%),radial-gradient(circle_at_15%_22%,rgba(255,90,54,0.1),transparent_24%),radial-gradient(circle_at_82%_30%,rgba(234,179,8,0.09),transparent_24%),linear-gradient(180deg,rgba(248,244,239,0.22),rgba(248,244,239,0.5)_52%,rgba(248,244,239,0.74)_100%)]' />
+						<div className='absolute inset-0 hidden dark:block bg-[radial-gradient(circle_at_top_center,rgba(255,90,54,0.24),transparent_28%),radial-gradient(circle_at_84%_24%,rgba(168,85,247,0.2),transparent_26%),linear-gradient(180deg,rgba(19,16,14,0.22),rgba(19,16,14,0.56)_52%,rgba(19,16,14,0.76)_100%)]' />
 						<div className='absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-bg' />
 					</div>
 					{/* Navigation */}
-					<nav className='w-full flex items-center justify-between px-6 py-3 md:px-12 md:py-6 relative z-30'>
+					<nav className='relative z-30 flex w-full items-center justify-between px-4 py-3 md:px-12 md:py-6'>
 						<Link href='/' className='group flex items-center gap-2'>
 							<div className='relative flex size-10 items-center justify-center rounded-xl bg-gradient-hero transition-transform duration-300 group-hover:scale-105'>
 								<ChefHat className='size-5 text-white' />
 							</div>
-							<span className='text-xl font-bold text-text-primary transition-colors duration-300 group-hover:text-brand'>
+							<span className='text-lg font-bold text-text-primary transition-colors duration-300 group-hover:text-brand sm:text-xl'>
 								ChefKix
 							</span>
 						</Link>
-						<div className='flex items-center gap-3'>
+						<div className='flex shrink-0 items-center gap-2 sm:gap-3'>
 							<Link
 								href='/auth/sign-in'
-								className='rounded-xl px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary'
+								className='hidden rounded-xl px-3 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary min-[410px]:inline-flex'
 							>
 								{t('signIn')}
 							</Link>
@@ -374,7 +375,7 @@ export default function HomePage() {
 								<Button
 									onClick={() => router.push('/auth/sign-up')}
 									variant='brand'
-									className='h-10 rounded-xl px-5 text-sm font-bold shadow-warm'
+									className='h-9 rounded-xl px-3 text-xs font-bold shadow-warm min-[410px]:h-10 min-[410px]:px-5 min-[410px]:text-sm'
 								>
 									{t('getStarted')}
 								</Button>
@@ -583,7 +584,7 @@ export default function HomePage() {
 						<div className='rounded-3xl border border-warning/30 bg-gradient-to-br from-warning/8 via-bg-card to-brand/5 p-6 shadow-card'>
 							<div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
 								<div className='max-w-2xl'>
-									<div className='mb-3 inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-warning'>
+									<div className='mb-3 inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-warning'>
 										<AlertTriangle className='size-3.5' />
 										{t('trendingUnavailableEyebrow')}
 									</div>

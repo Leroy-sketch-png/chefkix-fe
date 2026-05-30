@@ -258,7 +258,7 @@ export const RightSidebar = () => {
 							isDiscoverySurface ? 'p-4' : 'p-6',
 						)}
 					>
-						<p className='mb-2 text-2xs font-bold uppercase tracking-[0.18em] text-text-muted'>
+						<p className='mb-2 text-2xs font-bold uppercase tracking-widest text-text-muted'>
 							{t('guestMode')}
 						</p>
 						<div className='mb-4 flex items-center gap-2'>
@@ -271,7 +271,7 @@ export const RightSidebar = () => {
 							{t('guestSidebarDesc')}
 						</p>
 						<div className='mb-4 rounded-xl border border-border-subtle/50 bg-bg-elevated p-3'>
-							<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
+							<p className='mb-2 text-xs font-bold uppercase tracking-widest text-text-muted'>
 								{t('exploreNow')}
 							</p>
 							<div className='grid gap-2'>
@@ -322,7 +322,7 @@ export const RightSidebar = () => {
 						}
 						<Link
 							href={guestSignUpHref}
-							className='flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)] hover:from-brand/95 hover:to-brand/80'
+							className='flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-glow transition-all hover:shadow-glow hover:from-brand/95 hover:to-brand/80'
 						>
 							{t('guestSidebarCta')}
 							<ArrowRight className='size-4' />
@@ -393,12 +393,12 @@ export const RightSidebar = () => {
 						>
 							<div className='p-4'>
 								<div className='mb-3.5 flex items-center justify-between'>
-									<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+									<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 										{t('suggestedCreators')}
 									</p>
 									<Link
 										href={PATHS.COMMUNITY ?? '/community'}
-										className='text-[11px] font-medium text-brand hover:underline'
+										className='text-2xs font-medium text-brand hover:underline'
 									>
 										{t('seeAll')}
 									</Link>
@@ -423,10 +423,10 @@ export const RightSidebar = () => {
 													/>
 												</div>
 												<div className='min-w-0 flex-1'>
-													<strong className='block truncate text-[13px] font-semibold leading-tight text-text-primary'>
+													<strong className='block truncate text-caption font-semibold leading-tight text-text-primary'>
 														{suggestion.displayName || suggestion.username}
 													</strong>
-													<span className='block truncate text-[11px] leading-normal text-text-muted'>
+													<span className='block truncate text-2xs leading-normal text-text-muted'>
 														@{suggestion.username}
 													</span>
 												</div>
@@ -440,7 +440,7 @@ export const RightSidebar = () => {
 													initial={false}
 													transition={TRANSITION_SPRING}
 													className={cn(
-														'relative h-8 shrink-0 overflow-hidden rounded-full px-3 text-[11px] font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
+														'relative h-8 shrink-0 overflow-hidden rounded-full px-3 text-2xs font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
 														isFollowed
 															? 'border border-border-medium bg-bg-elevated text-text-secondary hover:border-error/50 hover:text-error'
 															: 'bg-brand text-white hover:bg-brand/90',

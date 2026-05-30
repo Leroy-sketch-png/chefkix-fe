@@ -175,7 +175,7 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand/80 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.5)] backdrop-blur-sm',
+				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand/80 font-bold text-white shadow-badge backdrop-blur-sm',
 				size === 'large' ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-xs',
 			)}
 		>
@@ -583,7 +583,7 @@ const GridCard = ({
 
 					{/* Content */}
 					<div className='p-4'>
-						<h3 className='mb-1.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+						<h3 className='mb-1.5 text-label font-semibold leading-snug tracking-tight text-text-primary'>
 							{title}
 						</h3>
 						{description && (
@@ -665,7 +665,7 @@ const GridCard = ({
 						}}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand py-2 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.45)] focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand py-2 text-sm font-semibold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						<Play className='size-4' />
 						{t('startCooking')}
@@ -880,7 +880,7 @@ const FeaturedCard = ({
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								transition={TRANSITION_SPRING}
-								className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='inline-flex items-center gap-2.5 rounded-2xl bg-brand px-6 py-4 text-base font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow md:px-8 md:text-lg focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								<Play className='size-5 md:size-6' />
 								{t('startCooking')}
@@ -945,7 +945,7 @@ const CookedCard = ({
 
 					{/* Content */}
 					<div className='p-4'>
-						<h3 className='mb-3.5 text-[15px] font-semibold leading-snug tracking-tight text-text-primary'>
+						<h3 className='mb-3.5 text-label font-semibold leading-snug tracking-tight text-text-primary'>
 							{title}
 						</h3>
 
@@ -1008,9 +1008,9 @@ const CookedCard = ({
 						onClick={onCookAgain}
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
-						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-xp py-2.5 text-sm font-bold text-white shadow-[0_2px_8px_rgba(99,102,241,0.35)] transition-all hover:bg-xp/90 hover:shadow-[0_4px_12px_rgba(99,102,241,0.45)] focus-visible:ring-2 focus-visible:ring-xp/50'
+						className='flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-xp py-2.5 text-sm font-bold text-white shadow-warm transition-all hover:bg-xp/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-xp/50'
 					>
-						<RefreshCw className='size-[15px]' />
+						<RefreshCw className='size-4' />
 						{t('cookAgain')}
 					</motion.button>
 					<motion.button
@@ -1022,7 +1022,7 @@ const CookedCard = ({
 						className='flex size-9 items-center justify-center rounded-xl border border-border-medium bg-bg-elevated text-text-muted hover:border-xp/30 hover:bg-xp/10 hover:text-xp focus-visible:ring-2 focus-visible:ring-xp/50'
 						aria-label={t('viewCookingHistory')}
 					>
-						<History className='size-[15px]' />
+						<History className='size-4' />
 					</motion.button>
 				</div>
 			</MagicCard>
@@ -1063,7 +1063,7 @@ const MiniCard = ({
 					className='size-14 flex-shrink-0 rounded-xl object-cover'
 				/>
 				<div className='min-w-0 flex-1'>
-					<h4 className='mb-1 truncate text-[13px] font-semibold leading-tight text-text-primary'>
+					<h4 className='mb-1 truncate text-caption font-semibold leading-tight text-text-primary'>
 						{title}
 					</h4>
 					<div className='flex items-center gap-2.5 text-xs'>
@@ -1094,7 +1094,7 @@ const MiniCard = ({
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
 				aria-label={t('startCookingLabel')}
-				className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 focus-visible:ring-2 focus-visible:ring-brand/50'
+				className='flex size-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 			>
 				<Play className='size-4' />
 			</motion.button>

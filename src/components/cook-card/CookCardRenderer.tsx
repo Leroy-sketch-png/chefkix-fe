@@ -613,7 +613,7 @@ export default function CookCardRenderer({
 				<Button
 					onClick={handleShare}
 					disabled={isGenerating}
-					className='flex-1 bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+					className='flex-1 bg-brand text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow'
 				>
 					{isGenerating ? (
 						<Loader2 className='mr-2 size-4 animate-spin' />

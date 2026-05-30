@@ -94,7 +94,7 @@ export const MiniCookingBar = () => {
 							animate={{ y: 0, opacity: 1 }}
 							exit={{ y: 100, opacity: 0 }}
 							transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-							className='fixed inset-x-0 bottom-18 z-sticky border-t border-border-subtle/60 bg-gradient-to-r from-bg-card/95 via-bg-card/97 to-bg-card/95 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-xl md:bottom-0 xl:hidden'
+							className='fixed inset-x-0 bottom-18 z-sticky border-t border-border-subtle/60 bg-gradient-to-r from-bg-card/95 via-bg-card/97 to-bg-card/95 shadow-lg backdrop-blur-xl md:bottom-0 xl:hidden'
 						>
 							<div className='flex items-center gap-3 px-4 py-3'>
 								{/* Recipe Info */}

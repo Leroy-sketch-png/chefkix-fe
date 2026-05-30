@@ -56,7 +56,7 @@ export function NotificationsCommandDeck({
 
 			<div className='relative flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between'>
 				<div className='min-w-0 flex-1'>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{t('cmdEyebrow')}
 					</p>
 					<h2 className='text-base font-black text-text-primary sm:mt-1 sm:text-lg'>
@@ -89,15 +89,15 @@ export function NotificationsCommandDeck({
 			</div>
 
 			<div className='relative mt-3 flex flex-wrap items-center gap-2 sm:mt-4'>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-[11px] font-semibold text-text-muted'>
+				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
 					<Bell className='size-3' />
 					{counts.all}
 				</span>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-[11px] font-semibold text-text-muted'>
+				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
 					<Sparkles className='size-3 text-xp' />
 					{counts.gamified}
 				</span>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-[11px] font-semibold text-text-muted'>
+				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
 					<Users className='size-3 text-brand' />
 					{counts.social}
 				</span>
@@ -123,7 +123,7 @@ export function NotificationsCommandDeck({
 							<Icon className='size-3.5' />
 							<span>{filter.label}</span>
 							{count > 0 && (
-								<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-text-muted sm:text-[10px]'>
+								<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-2xs font-bold tabular-nums text-text-muted sm:text-2xs'>
 									{count}
 								</span>
 							)}

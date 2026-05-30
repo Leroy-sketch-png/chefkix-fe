@@ -64,7 +64,7 @@ function PlanStat({
 		>
 			<div className='flex items-center justify-between gap-2'>
 				<div>
-					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{label}
 					</p>
 					<p
@@ -115,7 +115,7 @@ export function MealPlannerCommandDeck({
 		>
 			<div className='mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-success'>
 						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>

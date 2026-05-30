@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -717,7 +717,7 @@ function CreatePostContent() {
 									className={cn(
 										'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 										session
-											? 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+											? 'bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow'
 											: 'bg-brand text-white',
 									)}
 								>

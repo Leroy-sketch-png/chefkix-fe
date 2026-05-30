@@ -204,6 +204,7 @@ export function useWebRTC({
 
 		// Cập nhật lại sendMessage ref để dùng ws.onopen mới nhất
 		wsRef.current = ws
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		accessToken,
 		currentUserId,

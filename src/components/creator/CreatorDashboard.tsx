@@ -278,7 +278,7 @@ function CreatorBadgesSection({ badges }: { badges: CreatorBadge[] }) {
 				</span>
 			</div>
 
-			<div className='flex gap-3 overflow-x-auto pb-1 pr-4 scrollbar-hide'>
+			<div className='flex gap-3 overflow-x-auto hkx-x-rail pb-1 pr-4'>
 				{badges.map((badge, index) => (
 					<motion.div
 						key={badge.id || `creator-badge-${index}`}

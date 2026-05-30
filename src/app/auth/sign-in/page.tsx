@@ -68,11 +68,11 @@ const SignInPage = () => {
 
 								<div className='space-y-2 text-center sm:text-left'>
 									<div className='flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
-										<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+										<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 											<Users className='size-3' />
 											{t('signInAudiencePrimary')}
 										</span>
-										<span className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-text-secondary'>
+										<span className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1 text-2xs font-bold uppercase tracking-widest text-text-secondary'>
 											<Compass className='size-3' />
 											{t('signInAudienceSecondary')}
 										</span>

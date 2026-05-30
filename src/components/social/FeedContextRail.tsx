@@ -55,7 +55,7 @@ export function FeedContextRail({
 				className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
 			>
 				<div className='relative z-10 w-full'>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{t('pulseEyebrow')}
 					</p>
 					<h3 className='mt-1 text-lg font-black text-text-primary'>
@@ -79,7 +79,7 @@ export function FeedContextRail({
 				className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
 			>
 				<div className='relative z-10 w-full'>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{t('quickMovesEyebrow')}
 					</p>
 					<div className='mt-3 grid gap-2'>

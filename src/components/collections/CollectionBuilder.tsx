@@ -14,6 +14,13 @@ import {
 	Zap,
 	Loader2,
 } from 'lucide-react'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import {
@@ -408,19 +415,21 @@ export function CollectionBuilder({
 								<label className='mb-1.5 block text-sm font-medium text-text-secondary'>
 									{t('builderDifficultyLabel')}
 								</label>
-								<select
+								<Select
 									value={newStageDifficulty}
-									onChange={e =>
-										setNewStageDifficulty(e.target.value as DifficultyLevel)
-									}
-									className='w-full rounded-xl border border-border-subtle bg-bg-card px-4 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									onValueChange={v => setNewStageDifficulty(v as DifficultyLevel)}
 								>
-									{DIFFICULTY_LEVELS.map(level => (
-										<option key={level} value={level}>
-											{level}
-										</option>
-									))}
-								</select>
+									<SelectTrigger className='w-full bg-bg-card'>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{DIFFICULTY_LEVELS.map(level => (
+											<SelectItem key={level} value={level}>
+												{level}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 						<div className='mt-6 flex justify-end gap-3'>
@@ -558,19 +567,23 @@ function StageItem({
 					)}
 				</div>
 
-				<select
-					value={stage.difficulty}
-					onChange={e =>
-						onUpdateDifficulty(stageIndex, e.target.value as DifficultyLevel)
-					}
-					className={`rounded-full border px-2.5 py-1 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${getDifficultyColor(stage.difficulty)}`}
-				>
-					{DIFFICULTY_LEVELS.map(level => (
-						<option key={level} value={level}>
-							{level}
-						</option>
-					))}
-				</select>
+				<div className='w-32 flex-shrink-0'>
+					<Select
+						value={stage.difficulty}
+						onValueChange={v => onUpdateDifficulty(stageIndex, v as DifficultyLevel)}
+					>
+						<SelectTrigger className={`h-8 rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-brand/50 ${getDifficultyColor(stage.difficulty)}`}>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{DIFFICULTY_LEVELS.map(level => (
+								<SelectItem key={level} value={level}>
+									{level}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
 
 				<button
 					type='button'

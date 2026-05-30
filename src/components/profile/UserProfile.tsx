@@ -1041,7 +1041,7 @@ export const UserProfile = ({
 																</div>
 															)}
 															<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent' />
-															<div className='absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-text-primary'>
+															<div className='absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-2xs font-semibold text-text-primary'>
 																{typeLabel}
 															</div>
 														</div>
@@ -1060,7 +1060,7 @@ export const UserProfile = ({
 																{collection.collectionType ===
 																	'LEARNING_PATH' &&
 																	typeof collection.totalXp === 'number' && (
-																		<span className='rounded-full bg-xp/10 px-2 py-1 text-[11px] font-semibold text-xp'>
+																		<span className='rounded-full bg-xp/10 px-2 py-1 text-2xs font-semibold text-xp'>
 																			{collection.totalXp} XP
 																		</span>
 																	)}

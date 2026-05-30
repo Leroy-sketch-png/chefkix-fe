@@ -232,13 +232,13 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 					/>
 					<div className='absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent' />
 
-					<div className='absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[11px] font-bold text-white'>
+					<div className='absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-2xs font-bold text-white'>
 						<ChefHat className='size-3' />
 						<span>{t('tpLabel')}</span>
 					</div>
 
 					{confidenceScore >= 0.8 && (
-						<div className='absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-success/35 bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success'>
+						<div className='absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-success/35 bg-success/15 px-2.5 py-1 text-2xs font-bold text-success'>
 							<TrendingUp className='size-3' />
 							{t('tpGreatMatch')}
 						</div>
@@ -261,7 +261,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 							{visibleSignals.map((signal, idx) => (
 								<span
 									key={`${signal}-${idx}`}
-									className='inline-flex items-center rounded-full border border-border-subtle bg-bg-elevated px-2 py-0.5 text-[11px] font-medium text-text-secondary'
+									className='inline-flex items-center rounded-full border border-border-subtle bg-bg-elevated px-2 py-0.5 text-2xs font-medium text-text-secondary'
 								>
 									{signal}
 								</span>

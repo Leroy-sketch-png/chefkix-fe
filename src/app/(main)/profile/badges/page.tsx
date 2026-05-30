@@ -24,6 +24,13 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { MagicCard } from '@/components/ui/magic-card'
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
+import {
 	getAllBadges,
 	resolveBadgesWithFallback,
 } from '@/lib/data/badgeRegistry'
@@ -457,7 +464,7 @@ export default function BadgeCatalogPage() {
 										className='h-full w-full'
 									>
 										<div className='flex items-center gap-3 p-4 bg-bg-card'>
-											<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-[0_6px_18px_rgba(255,90,54,0.28)]'>
+											<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-glow'>
 												<Trophy className='size-5' />
 											</div>
 											<div className='min-w-0'>
@@ -513,57 +520,45 @@ export default function BadgeCatalogPage() {
 								{/* Category Filter */}
 								{/* Filter row */}
 								<div className='flex flex-wrap items-center gap-2'>
-									<select
+									<Select
 										value={selectedCategory}
-										onChange={e =>
-											setSelectedCategory(
-												e.target.value as BadgeCategory | 'ALL',
-											)
-										}
-										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										onValueChange={v => setSelectedCategory(v as BadgeCategory | 'ALL')}
 									>
-										<option
-											className='bg-bg-card text-text-primary'
-											value='ALL'
-										>
-											{t('allCategories')}
-										</option>
-										{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-											<option
-												className='bg-bg-card text-text-primary'
-												key={key}
-												value={key}
-											>
-												{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}
-												/{categoryCounts[key]?.total ?? 0})
-											</option>
-										))}
-									</select>
+										<SelectTrigger className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='ALL'>
+												{t('allCategories')}
+											</SelectItem>
+											{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+												<SelectItem key={key} value={key}>
+													{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}
+													/{categoryCounts[key]?.total ?? 0})
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 
 									{/* Rarity Filter */}
-									<select
+									<Select
 										value={selectedRarity}
-										onChange={e =>
-											setSelectedRarity(e.target.value as BadgeRarity | 'ALL')
-										}
-										className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'
+										onValueChange={v => setSelectedRarity(v as BadgeRarity | 'ALL')}
 									>
-										<option
-											className='bg-bg-card text-text-primary'
-											value='ALL'
-										>
-											{t('allRarities')}
-										</option>
-										{RARITY_ORDER.map(rarity => (
-											<option
-												className='bg-bg-card text-text-primary'
-												key={rarity}
-												value={rarity}
-											>
-												{t(RARITY_CONFIG[rarity].labelKey)}
-											</option>
-										))}
-									</select>
+										<SelectTrigger className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='ALL'>
+												{t('allRarities')}
+											</SelectItem>
+											{RARITY_ORDER.map(rarity => (
+												<SelectItem key={rarity} value={rarity}>
+													{t(RARITY_CONFIG[rarity].labelKey)}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
 
 									{/* Earned Only Toggle */}
 									<button

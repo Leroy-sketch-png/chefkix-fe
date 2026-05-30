@@ -1414,7 +1414,7 @@ export const RecipeCreateAiFlow = ({
 										className={cn(
 											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
-												? 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+												? 'bg-brand text-white shadow-warm hover:bg-brand/90 hover:shadow-glow'
 												: 'cursor-not-allowed bg-muted/50 text-text-muted',
 										)}
 									>
@@ -1877,7 +1877,7 @@ export const RecipeCreateAiFlow = ({
 								disabled={isCalculatingXp}
 								whileHover={isCalculatingXp ? {} : BUTTON_HOVER}
 								whileTap={isCalculatingXp ? {} : BUTTON_TAP}
-								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-brand py-4.5 shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:cursor-not-allowed disabled:opacity-70 focus-visible:ring-2 focus-visible:ring-brand/50'
+								className='flex w-full items-center justify-center gap-3 rounded-2xl bg-brand py-4.5 shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-70 focus-visible:ring-2 focus-visible:ring-brand/50'
 							>
 								{isCalculatingXp ? (
 									<>

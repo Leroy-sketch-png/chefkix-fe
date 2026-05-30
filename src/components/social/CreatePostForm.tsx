@@ -373,7 +373,7 @@ export const CreatePostForm = ({
 							<ImageIcon className='size-[18px] text-text-secondary transition-colors group-hover:text-brand' />
 							{photoFiles.length > 0 && (
 								<span
-									className={`absolute -right-1 -top-1 flex size-4.5 items-center justify-center rounded-full text-[10px] font-bold text-white ${
+									className={`absolute -right-1 -top-1 flex size-4.5 items-center justify-center rounded-full text-2xs font-bold text-white ${
 										photoFiles.length >= MAX_PHOTO_COUNT
 											? 'bg-error'
 											: 'bg-brand'

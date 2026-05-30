@@ -72,7 +72,7 @@ export const Topbar = () => {
 	const headerActionButtonClass =
 		'relative grid size-10 place-items-center rounded-2xl border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-colors hover:border-brand/35 hover:bg-bg-elevated hover:text-brand md:size-11'
 	const counterBadgeClass =
-		'absolute right-1 top-1 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white md:h-5 md:min-w-5 md:px-1.5'
+		'absolute right-1 top-1 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-2xs font-bold leading-none text-white md:h-5 md:min-w-5 md:px-1.5'
 	const modifierSymbol = getModifierSymbol()
 
 	useEffect(() => {
@@ -163,7 +163,7 @@ export const Topbar = () => {
 				],
 			},
 		],
-		[router, tCommon],
+		[router, tCommon, modifierSymbol],
 	)
 
 	useEffect(() => {

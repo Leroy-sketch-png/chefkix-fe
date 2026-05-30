@@ -302,7 +302,7 @@ export default function FeedPage() {
 													<div className='mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-brand/10'>
 														<Flame className='size-7 text-brand' />
 													</div>
-													<p className='mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-brand'>
+													<p className='mb-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 														{t('emptyEyebrow')}
 													</p>
 													<h2 className='mb-3 text-xl font-black text-text-primary'>

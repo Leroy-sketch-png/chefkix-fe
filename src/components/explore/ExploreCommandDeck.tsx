@@ -10,6 +10,13 @@ import {
 import { cn } from '@/lib/utils'
 import { SlideTabs } from '@/components/ui/slide-tabs'
 import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 
 interface ExploreCommandDeckProps {
 	activeFiltersCount: number
@@ -71,7 +78,7 @@ export function ExploreCommandDeck({
 			{/* Header: identity + mode signal */}
 			<div className='mb-3 flex flex-wrap items-start justify-between gap-3 sm:mb-4'>
 				<div className='min-w-0'>
-					<p className='text-[11px] font-bold uppercase tracking-[0.18em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{labels.eyebrow}
 					</p>
 					<h2 className='mt-1 text-base font-black leading-tight text-text-primary sm:text-[1.1rem]'>
@@ -89,7 +96,7 @@ export function ExploreCommandDeck({
 					</p>
 				</div>
 
-				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-[11px] font-semibold text-brand'>
+				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand'>
 					<Sparkles className='size-3.5' />
 					{labels.modeChip}
 				</div>
@@ -97,7 +104,7 @@ export function ExploreCommandDeck({
 
 			{/* Search slot: one clear command zone */}
 			<div className='mb-3 rounded-2xl border border-border-subtle/80 bg-bg-card/70 p-2 sm:mb-4 sm:p-2.5'>
-				<div className='pointer-events-none mb-2 inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+				<div className='pointer-events-none mb-2 inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					<Search className='size-3' />
 					Command Input
 				</div>
@@ -152,28 +159,34 @@ export function ExploreCommandDeck({
 						</label>
 						<div className='relative'>
 							<ArrowUpDown className='pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-muted' />
-							<select
-								id='explore-sort-select'
-								aria-label={labels.sort}
+							<Select
 								value={sortValue}
-								onChange={event => onSortChange(event.target.value)}
+								onValueChange={onSortChange}
 								disabled={sortDisabled}
-								className={cn(
-									'h-9 w-full rounded-xl border border-border-medium bg-bg-card pl-8 pr-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10',
-								)}
 							>
-								{sortOptions.map(option => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</select>
+								<SelectTrigger
+									id='explore-sort-select'
+									aria-label={labels.sort}
+									className={cn(
+										'h-9 w-full rounded-xl border border-border-medium bg-bg-card pl-8 pr-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10',
+									)}
+								>
+									<SelectValue placeholder={labels.sort} />
+								</SelectTrigger>
+								<SelectContent>
+									{sortOptions.map(option => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 					</div>
 				</div>
 
 				{hasResultSignals && (
-					<div className='flex flex-wrap items-center gap-2 text-[11px] font-semibold text-text-muted sm:text-xs'>
+					<div className='flex flex-wrap items-center gap-2 text-2xs font-semibold text-text-muted sm:text-xs'>
 						{resultCount > 0 && (
 							<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2 py-1'>
 								<Compass className='size-3.5' />

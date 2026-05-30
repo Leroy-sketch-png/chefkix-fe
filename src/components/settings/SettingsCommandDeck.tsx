@@ -66,7 +66,7 @@ function StatCard({
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
 			<div className='flex items-center justify-between gap-2'>
 				<div>
-					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{label}
 					</p>
 					<p className='mt-1 text-lg font-black tabular-nums text-text-primary'>
@@ -103,7 +103,7 @@ export function SettingsCommandDeck({
 		>
 			<div className='mb-4 flex items-center justify-between gap-3'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{t('cmdEyebrow')}
 					</p>
 					<h2 className='mt-1 text-lg font-black text-text-primary'>

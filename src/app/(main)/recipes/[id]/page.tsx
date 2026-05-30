@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
@@ -154,7 +154,7 @@ function RecipeDetailContent() {
 	const { requireAuth } = useAuthGate()
 	const autoStartAttempted = useRef(false)
 
-	// Determine cooking button state â€” only count COMPLETE & ACTIVE sessions
+	// Determine cooking button state - only count COMPLETE & ACTIVE sessions
 	// A partial session (from localStorage) has sessionId/recipeId but no status
 	// We need the full session data to properly show Continue Cooking
 	const isCompleteSession = activeSession && activeSession.status !== undefined
@@ -280,7 +280,7 @@ function RecipeDetailContent() {
 		}
 	}, [recipeId, t])
 
-	// AI difficulty calibration â€” fail-open, non-blocking
+	// AI difficulty calibration - fail-open, non-blocking
 	useEffect(() => {
 		if (!recipe) return
 		const req = {
@@ -305,9 +305,9 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe?.id])
+	}, [recipe])
 
-	// Fetch per-ingredient buy links â€” fail-open, non-blocking
+	// Fetch per-ingredient buy links - fail-open, non-blocking
 	useEffect(() => {
 		if (!recipe?.fullIngredientList?.length) return
 		let cancelled = false
@@ -327,7 +327,7 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe?.id])
+	}, [recipe?.fullIngredientList])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -343,7 +343,7 @@ function RecipeDetailContent() {
 		// Remove the query param to prevent re-triggering
 		router.replace(`/recipes/${recipeId}`, { scroll: false })
 
-		// Guest cannot start cooking â€” show sign-up prompt
+		// Guest cannot start cooking - show sign-up prompt
 		if (!user) {
 			requireAuth(t('authActionCook'))
 			return
@@ -473,7 +473,7 @@ function RecipeDetailContent() {
 				})
 			} catch (err) {
 				if ((err as Error).name !== 'AbortError') {
-					// Share failed for non-cancel reason â€” fall back to clipboard
+					// Share failed for non-cancel reason - fall back to clipboard
 					try {
 						await navigator.clipboard.writeText(shareUrl)
 						toast.success(t('toastLinkCopied'))
@@ -495,12 +495,12 @@ function RecipeDetailContent() {
 	}
 
 	const REMIX_OPTIONS: { type: RemixType; label: string; emoji: string }[] = [
-		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: 'ðŸŒ¿' },
-		{ type: 'vegan', label: t('dietVegan'), emoji: 'ðŸŒ±' },
-		{ type: 'gluten-free', label: t('dietGlutenFree'), emoji: 'ðŸŒ¾' },
-		{ type: 'spicy', label: t('remixSpicy'), emoji: 'ðŸŒ¶ï¸' },
-		{ type: 'healthy', label: t('remixHealthy'), emoji: 'ðŸ’š' },
-		{ type: 'quick', label: t('remixQuick'), emoji: 'âš¡' },
+		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: '🥬' },
+		{ type: 'vegan', label: t('dietVegan'), emoji: '🌱' },
+		{ type: 'gluten-free', label: t('dietGlutenFree'), emoji: '🌾' },
+		{ type: 'spicy', label: t('remixSpicy'), emoji: '🌶️' },
+		{ type: 'healthy', label: t('remixHealthy'), emoji: '💚' },
+		{ type: 'quick', label: t('remixQuick'), emoji: '⚡' },
 	]
 
 	const handleRemix = async (remixType: RemixType) => {
@@ -673,7 +673,7 @@ function RecipeDetailContent() {
 				return
 			}
 
-			// Escape always works â€” closes modals or navigates back
+			// Escape always works - closes modals or navigates back
 			if (e.key === 'Escape') {
 				e.preventDefault()
 				if (showDeleteConfirm) {
@@ -833,10 +833,10 @@ function RecipeDetailContent() {
 						mode='orb'
 						glowFrom='var(--color-brand)'
 						glowTo='var(--color-success)'
-						className='mb-8 overflow-hidden rounded-3xl border-[6px] border-bg/80 bg-bg-card shadow-2xl relative'
+						className='relative mb-8 overflow-hidden rounded-2xl border-4 border-bg/80 bg-bg-card shadow-2xl'
 					>
 						{/* Hero Image with overlay */}
-						<div className='group relative h-[450px] w-full overflow-hidden md:h-[550px]'>
+						<div className='group relative h-[28rem] w-full overflow-hidden md:h-[34rem]'>
 							<motion.div
 								initial={{ scale: 1.1 }}
 								animate={{ scale: 1 }}
@@ -916,7 +916,7 @@ function RecipeDetailContent() {
 												transition={TRANSITION_SPRING}
 												className='absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
 											>
-												<div className='grid size-24 place-items-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all hover:bg-white/40 hover:scale-105'>
+												<div className='grid size-24 place-items-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 shadow-glow transition-all hover:bg-white/40 hover:scale-105'>
 													<Play className='ml-1 size-10 fill-white text-white drop-shadow-md' />
 												</div>
 											</motion.button>
@@ -1197,14 +1197,14 @@ function RecipeDetailContent() {
 									)}
 							</motion.div>
 
-							{/* Action Buttons â€” 3-tier hierarchy */}
+							{/* Action Buttons - 3-tier hierarchy */}
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.5 }}
 								className='space-y-3'
 							>
-								{/* Tier 1: Primary CTA â€” full width, unmissable */}
+								{/* Tier 1: Primary CTA - full width, unmissable */}
 								<motion.button
 									type='button'
 									onClick={handleStartCooking}
@@ -1225,7 +1225,7 @@ function RecipeDetailContent() {
 											? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 											: hasOtherSession
 												? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
-												: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+												: 'bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow',
 									)}
 								>
 									{isCookingLoading ? (
@@ -1254,7 +1254,7 @@ function RecipeDetailContent() {
 									)}
 								</motion.button>
 
-								{/* Tier 2: Social actions â€” compact inline bar */}
+								{/* Tier 2: Social actions - compact inline bar */}
 								<div className='flex items-center gap-2'>
 									<motion.button
 										type='button'
@@ -1344,7 +1344,7 @@ function RecipeDetailContent() {
 									</motion.button>
 								</div>
 
-								{/* Tier 3: Secondary actions â€” condensed row with more-menu */}
+								{/* Tier 3: Secondary actions - condensed row with more-menu */}
 								<div className='flex items-center gap-2'>
 									<motion.button
 										type='button'
@@ -1408,7 +1408,7 @@ function RecipeDetailContent() {
 											recipeId={recipe.id}
 										/>
 									)}
-									{/* Owner Controls â€” collapsed into dropdown */}
+									{/* Owner Controls - collapsed into dropdown */}
 									{isOwner && (
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
@@ -1487,7 +1487,7 @@ function RecipeDetailContent() {
 					</MagicCard>
 				</motion.div>
 
-				{/* Social Proof â€” community activity */}
+				{/* Social Proof - community activity */}
 				<RevealOnScroll direction='up'>
 					<SocialProof recipeId={recipeId} />
 				</RevealOnScroll>
@@ -1499,12 +1499,7 @@ function RecipeDetailContent() {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
 					>
-						<MagicCard
-							mode='orb'
-							glowFrom='var(--color-xp)'
-							glowTo='var(--color-brand)'
-							className='mb-8 rounded-2xl border border-xp/20 bg-bg-card/45 p-6 shadow-card'
-						>
+						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
 								<Zap className='size-5 text-xp' />
 								{t('xpBreakdownHeading')}
@@ -1578,7 +1573,7 @@ function RecipeDetailContent() {
 									</span>
 								</SparklesEffect>
 							</div>
-						</MagicCard>
+						</div>
 					</motion.div>
 				) : (
 					// Fallback when xpBreakdown is not available - compute estimate
@@ -1587,12 +1582,7 @@ function RecipeDetailContent() {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
 					>
-						<MagicCard
-							mode='orb'
-							glowFrom='var(--color-xp)'
-							glowTo='var(--color-brand)'
-							className='mb-8 rounded-2xl border border-xp/20 bg-bg-card/45 p-6 shadow-card'
-						>
+						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
 								<Zap className='size-5 text-xp' />
 								{t('xpRewardHeading')}
@@ -1620,7 +1610,7 @@ function RecipeDetailContent() {
 									+{recipe.xpReward ?? 0}
 								</span>
 							</div>
-						</MagicCard>
+						</div>
 					</motion.div>
 				)}
 
@@ -1633,14 +1623,9 @@ function RecipeDetailContent() {
 						transition={{ delay: 0.4 }}
 						className='lg:col-span-1'
 					>
-						<MagicCard
-							mode='orb'
-							glowFrom='var(--color-success)'
-							glowTo='var(--color-brand)'
-							className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card/95 p-6 shadow-card'
-						>
+						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text-primary'>
-								<span className='text-2xl'>ðŸ§¾</span> {t('ingredients')}
+								<ChefHat className='size-6 text-brand' /> {t('ingredients')}
 							</h2>
 							<p className='mb-4 text-sm text-text-muted'>
 								{t('forServings', { n: recipe.servings })}
@@ -1731,7 +1716,7 @@ function RecipeDetailContent() {
 									</motion.li>
 								))}
 							</ul>
-						</MagicCard>
+							</div>
 					</motion.div>
 
 					{/* Steps */}
@@ -1742,7 +1727,8 @@ function RecipeDetailContent() {
 						className='lg:col-span-2'
 					>
 						<h2 className='mb-6 flex items-center gap-2 text-2xl font-bold text-text-primary'>
-							<span className='text-2xl'>ðŸ‘¨â€ðŸ³</span> {t('instructions')}
+							<UtensilsCrossed className='size-6 text-brand' />
+							{t('instructions')}
 						</h2>
 						<div className='space-y-4'>
 							{recipe.steps
@@ -1898,7 +1884,7 @@ function RecipeDetailContent() {
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 									aria-label={t('remixClose')}
 								>
-									âœ•
+									x
 								</button>
 							</div>
 

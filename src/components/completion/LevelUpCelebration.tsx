@@ -169,7 +169,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1 }}
 			className='absolute -left-2 -top-3 text-2xl'
 		>
-			â­
+			⭐
 		</motion.span>
 		<motion.span
 			initial={{ scale: 0, rotate: -45, opacity: 0 }}
@@ -185,7 +185,7 @@ const LevelBadge = ({ oldLevel, newLevel }: LevelBadgeProps) => (
 			transition={{ ...TRANSITION_BOUNCY, delay: 1.2 }}
 			className='absolute -left-3 bottom-3 text-2xl'
 		>
-			â­
+			⭐
 		</motion.span>
 	</div>
 )

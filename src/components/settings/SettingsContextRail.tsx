@@ -67,7 +67,7 @@ export function SettingsContextRail({
 			)}
 		>
 			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 					{t('railCurrentSection')}
 				</p>
 				<div className='mt-3 flex items-start gap-3'>
@@ -86,7 +86,7 @@ export function SettingsContextRail({
 			</div>
 
 			<div className='rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railProfileHealth')}
 				</p>
 				<div className='mt-3'>
@@ -103,7 +103,7 @@ export function SettingsContextRail({
 			</div>
 
 			<div className='rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>

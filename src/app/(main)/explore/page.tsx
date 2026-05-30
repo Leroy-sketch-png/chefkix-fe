@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import {
 	useEffect,
@@ -81,7 +81,7 @@ const RECIPES_PER_PAGE = 12
 const SEARCH_DEBOUNCE_MS = 300
 const SCROLL_RESTORATION_KEY = 'explore-scroll-position'
 
-// Maps lowercase filter-state keys â†’ API Title Case strings (for display in filter chips)
+// Maps lowercase filter-state keys -> API Title Case strings (for display in filter chips)
 const FILTER_STATE_TO_API_DISPLAY: Record<string, string> = {
 	easy: 'Beginner',
 	medium: 'Intermediate',
@@ -89,7 +89,7 @@ const FILTER_STATE_TO_API_DISPLAY: Record<string, string> = {
 	expert: 'Expert',
 }
 
-// Maps API Title Case strings â†’ i18n translation keys (for hero/recipe card labels)
+// Maps API Title Case strings -> i18n translation keys (for hero/recipe card labels)
 const DIFFICULTY_API_TO_I18N_KEY: Record<string, string> = {
 	Beginner: 'diffEasy',
 	Intermediate: 'diffMedium',
@@ -205,7 +205,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						{/* Scrim top for badge readability */}
 						<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent' />
 						{/* Featured badge */}
-						<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(255,90,54,0.5)] backdrop-blur-sm'>
+						<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-badge backdrop-blur-sm'>
 							<Flame className='size-3.5' />
 							{t('featuredToday')}
 						</div>
@@ -217,7 +217,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							{/* XP Badge */}
 							<SparklesEffect color='var(--color-xp)' count={6}>
 								<span className='inline-flex items-center gap-1 rounded-full bg-xp/15 px-2.5 py-1 text-xs font-bold text-xp'>
-									âš¡ +{recipe.xpReward || 0} XP
+									+{recipe.xpReward || 0} XP
 								</span>
 							</SparklesEffect>
 							{/* Difficulty */}
@@ -238,7 +238,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 							{recipe.title}
 						</h2>
 
-						<p className='mb-4 line-clamp-2 text-sm leading-relaxed text-text-secondary sm:mb-5 sm:line-clamp-3 sm:text-[15px]'>
+						<p className='mb-4 line-clamp-2 text-sm leading-relaxed text-text-secondary sm:mb-5 sm:line-clamp-3 sm:text-label'>
 							{recipe.description}
 						</p>
 
@@ -271,7 +271,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 								disabled={isCookNavigating}
 								whileHover={isCookNavigating ? undefined : BUTTON_HOVER}
 								whileTap={isCookNavigating ? undefined : BUTTON_TAP}
-								className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(255,90,54,0.4)] transition-all disabled:cursor-not-allowed disabled:opacity-70 hover:bg-brand/90 hover:shadow-[0_6px_20px_rgba(255,90,54,0.5)] focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-[15px]'
+								className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-warm transition-all disabled:cursor-not-allowed disabled:opacity-70 hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-label'
 							>
 								{isCookNavigating ? (
 									<Loader2 className='size-5 animate-spin' />
@@ -290,7 +290,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 								disabled={isNavigating}
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
-								className='rounded-xl border border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-all hover:border-brand/40 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-[15px]'
+								className='rounded-xl border border-border-medium bg-bg-card px-4 py-2.5 text-sm font-semibold text-text-secondary transition-all hover:border-brand/40 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 sm:px-5 sm:py-3 sm:text-label'
 							>
 								{isNavigating ? (
 									<>
@@ -639,7 +639,7 @@ function ExploreContent() {
 		return () => clearTimeout(timeout)
 	}, [searchQuery, debouncedSearch])
 
-	// Autocomplete: faster debounce (150ms) â€” fires suggestions while user types
+	// Autocomplete: faster debounce (150ms) - fires suggestions while user types
 	useEffect(() => {
 		if (!searchQuery.trim() || searchQuery.trim().length < 2) {
 			setAutocompleteSuggestions([])
@@ -689,6 +689,24 @@ function ExploreContent() {
 		}
 	}, [])
 
+	// Close autocomplete when user clicks outside the combobox container
+	useEffect(() => {
+		if (!showAutocomplete) return
+
+		const handlePointerDown = (event: MouseEvent) => {
+			const target = event.target as Node | null
+			if (!target) return
+			if (autocompleteRef.current?.contains(target)) return
+			setShowAutocomplete(false)
+			setSelectedSuggestionIndex(-1)
+		}
+
+		document.addEventListener('mousedown', handlePointerDown)
+		return () => {
+			document.removeEventListener('mousedown', handlePointerDown)
+		}
+	}, [showAutocomplete])
+
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
 		let cancelled = false
@@ -699,7 +717,7 @@ function ExploreContent() {
 			setError(null)
 
 			try {
-				// â”€â”€ Typesense path: typo-tolerant search when user types a query â”€â”€
+				// Typesense path: typo-tolerant search when user types a query
 				if (debouncedSearch) {
 					const searchRes = await unifiedSearch(
 						debouncedSearch,
@@ -728,7 +746,7 @@ function ExploreContent() {
 						setHasMore(false)
 					}
 				} else {
-					// â”€â”€ MongoDB path: browse / filter / trending (no search query) â”€â”€
+					// MongoDB path: browse / filter / trending (no search query)
 					const filterParams: Record<string, unknown> = {
 						page: 0,
 						size: RECIPES_PER_PAGE,
@@ -809,7 +827,7 @@ function ExploreContent() {
 		}
 	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
 
-	// Scroll restoration â€” save on unmount (covers all navigations away), restore once after data loads
+	// Scroll restoration - save on unmount (covers all navigations away), restore once after data loads
 	const scrollRestoredRef = useRef(false)
 
 	useEffect(() => {
@@ -848,7 +866,7 @@ function ExploreContent() {
 		const nextPage = page // page state is already 1-based, backend expects 0-based
 
 		try {
-			// â”€â”€ Typesense path: paginated search when user has a search query â”€â”€
+			// Typesense path: paginated search when user has a search query
 			if (debouncedSearch) {
 				const searchRes = await unifiedSearch(
 					debouncedSearch,
@@ -874,7 +892,7 @@ function ExploreContent() {
 					setHasMore(recipes.length + newRecipes.length < totalFound)
 				}
 			} else {
-				// â”€â”€ MongoDB path: browse / filter / trending (no search query) â”€â”€
+				// MongoDB path: browse / filter / trending (no search query)
 				const filterParams: Record<string, unknown> = {
 					page: nextPage,
 					size: RECIPES_PER_PAGE,
@@ -1224,7 +1242,7 @@ function ExploreContent() {
 								>
 									<div className='space-y-2.5'>
 										<div className='flex items-center gap-2'>
-											<div className='group relative flex-1'>
+											<div ref={autocompleteRef} className='group relative flex-1'>
 												<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 												<Input
 													ref={searchInputRef}
@@ -1344,12 +1362,12 @@ function ExploreContent() {
 								)}
 							</AnimatePresence>
 
-							{/* Trending Food Posts (social discovery â€” only when not searching) */}
+							{/* Trending Food Posts (social discovery - only when not searching) */}
 							{!debouncedSearch && trendingPosts.length > 0 && (
 								<section className='mb-6 md:mb-8'>
 									<div className='mb-3 flex items-center gap-2'>
 										<Flame className='size-4 text-brand' />
-										<span className='text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted'>
+										<span className='text-2xs font-semibold uppercase tracking-widest text-text-muted'>
 											Trending in the Community
 										</span>
 									</div>
@@ -1380,7 +1398,7 @@ function ExploreContent() {
 									className='mb-4 flex items-center gap-2 text-sm text-text-muted'
 								>
 									<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
-										â†‘â†“â†â†’
+										Up/Down/Left/Right
 									</kbd>
 									<span>{t('kbdNavigate')}</span>
 									<kbd className='rounded border border-border-medium bg-bg-elevated px-1.5 py-0.5'>
@@ -1575,7 +1593,7 @@ function ExploreContent() {
 											className='flex justify-center py-8'
 										>
 											<span className='tabular-nums text-sm text-text-muted'>
-												âœ¨ {t('seenAllRecipes', { count: totalCount })}
+												{t('seenAllRecipes', { count: totalCount })}
 											</span>
 										</motion.div>
 									)}

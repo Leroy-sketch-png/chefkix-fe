@@ -23,6 +23,7 @@ import {
 	StaggerContainer,
 	staggerItemVariants,
 } from '@/components/ui/stagger-animation'
+import { EmptyStateGamified } from '@/components/shared'
 
 interface GroupMembersListProps {
 	members: GroupMember[]
@@ -115,9 +116,12 @@ export const GroupMembersList = ({
 
 	if (members.length === 0) {
 		return (
-			<div className='text-center py-8'>
-				<p className='text-text-secondary'>{t('gmNoMembers')}</p>
-			</div>
+			<EmptyStateGamified
+				variant='feed'
+				title={t('gmNoMembers')}
+				description={t('gmNoMembersDesc')}
+				className='border-none shadow-none'
+			/>
 		)
 	}
 

@@ -199,9 +199,13 @@ export function useFirstVisitHints() {
 function HintOverlay() {
 	const t = useTranslations('onboarding')
 	const context = useContext(FirstVisitHintsContext)
-	if (!context) return null
 
-	const { activeHint, dismissHint, dismissAllHints } = context
+	const activeHint = context?.activeHint || null
+	const dismissHint = useCallback(() => {
+		if (context?.dismissHint) context.dismissHint()
+	}, [context])
+	const dismissAllHints = context?.dismissAllHints || (() => {})
+
 	const isHintOpenRef = useRef(false)
 
 	useEffect(() => {
@@ -221,6 +225,8 @@ function HintOverlay() {
 			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [dismissHint])
+
+	if (!context) return null
 
 	return (
 		<AnimatePresence>
