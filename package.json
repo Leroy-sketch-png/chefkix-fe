@@ -23,6 +23,7 @@
 		"visual:export": "node tests/visual/export-audit.mjs",
 		"visual:report": "npx playwright show-report tests/visual/report",
 		"demo:autopilot": "node scripts/live-demo-orchestrator.mjs",
+		"demo:presenter-check": "node scripts/demo-presenter-check.mjs",
 		"prepare": "husky"
 	},
 	"dependencies": {

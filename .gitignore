@@ -24,6 +24,7 @@ npm-debug.log*
 yarn-debug.log*
 copilot-instructions.md
 yarn-error.log*
+*.log
 
 # local env files
 .env.local
@@ -65,3 +66,4 @@ tests/visual/_audit*/
 test-results/demo-driver/run-*/
 test-results/demo-driver/certify-*.json
 !test-results/demo-driver/certify-latest.json
+test-results/demo-presenter-check/

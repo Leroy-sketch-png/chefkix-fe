@@ -211,7 +211,10 @@ const HeroSection = () => {
 								alt='Cacio e Pepe'
 								fill
 								className='object-cover'
+								sizes='448px'
 								priority
+								loading='eager'
+								fetchPriority='high'
 							/>
 							<div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent' />
 							<div className='absolute bottom-6 left-6 right-6 backdrop-blur-xl bg-black/40 p-5 rounded-2xl border border-white/20 text-white shadow-xl'>
@@ -241,6 +244,10 @@ const HeroSection = () => {
 								alt='Tonkotsu Ramen'
 								fill
 								className='object-cover'
+								sizes='256px'
+								priority
+								loading='eager'
+								fetchPriority='high'
 							/>
 							<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 							<div className='absolute bottom-5 left-5 text-white'>
@@ -266,6 +273,10 @@ const HeroSection = () => {
 								alt='Avocado Toast'
 								fill
 								className='object-cover'
+								sizes='240px'
+								priority
+								loading='eager'
+								fetchPriority='high'
 							/>
 							<div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent' />
 							<div className='absolute bottom-5 left-5 text-white'>

@@ -92,7 +92,7 @@ export function SurfaceSectionHeader({
 			{chipText ? (
 				<span
 					className={cn(
-						'inline-flex h-6 items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 text-2xs font-semibold text-text-secondary tabular-nums shadow-sm',
+						'inline-flex h-6 items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 text-2xs font-semibold text-text-secondary tabular-nums shadow-card',
 						chipClassName,
 					)}
 				>

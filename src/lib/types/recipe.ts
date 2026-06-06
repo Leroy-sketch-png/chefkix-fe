@@ -6,6 +6,7 @@
  * DO NOT add legacy aliases - fix components to use correct field names
  */
 
+import { safeRecipeImageSrc } from '../imageSafety'
 import type { Difficulty } from './gamification'
 
 // Re-export Difficulty for convenience
@@ -378,8 +379,7 @@ export interface RecommendationResponse {
 export function getRecipeImage(
 	recipe: { coverImageUrl?: string[] } | null | undefined,
 ): string {
-	if (!recipe?.coverImageUrl?.length) return '/placeholder-recipe.svg'
-	return recipe.coverImageUrl[0]
+	return safeRecipeImageSrc(recipe?.coverImageUrl?.[0])
 }
 
 /**

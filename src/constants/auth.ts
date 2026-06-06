@@ -9,6 +9,8 @@ export const PUBLIC_ROUTES = [
 	PATHS.AUTH.SIGN_UP,
 	PATHS.AUTH.VERIFY_OTP,
 	PATHS.AUTH.GOOGLE_CALLBACK, // OAuth callback must be public
+	'/demo-cockpit',
+	'/demo-remote',
 	PATHS.FEED, // Redirects to explore and must not trigger auth gate
 	PATHS.EXPLORE, // Browse recipes without auth
 	PATHS.SEARCH, // Search recipes/users without auth
@@ -18,7 +20,7 @@ export const PUBLIC_ROUTES = [
 ]
 
 const DEV_ONLY_PUBLIC_ROUTES =
-	process.env.NODE_ENV === 'development' ? ['/_dev', '/demo-cockpit'] : []
+	process.env.NODE_ENV === 'development' ? ['/_dev'] : []
 
 // Dynamic route prefixes that don't require authentication (matched with startsWith)
 export const PUBLIC_ROUTE_PREFIXES = [
@@ -75,6 +77,8 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
 	'create',
 	'creator',
 	'dashboard',
+	'demo-cockpit',
+	'demo-remote',
 	'discover',
 	'explore',
 	'feed',

@@ -875,6 +875,7 @@
 html,
 body {
 	height: 100%;
+	position: relative;
 	scroll-behavior: smooth;
 }
 
@@ -1603,6 +1604,18 @@ select {
 
 /* DEMO HARDENING: Anti-Glitch Loader Pass */
 /* Prevent spinners from flashing on fast network responses (<200ms) */
-.animate-spin { animation: spin 1s linear infinite, delayedFadeIn 0.3s ease-in forwards !important; animation-delay: 0s, 200ms !important; opacity: 0 !important; }
-@keyframes delayedFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+html.chefkix-demo-cockpit .animate-spin {
+	animation:
+		spin 1s linear infinite,
+		delayedFadeIn 0.3s ease-in forwards !important;
+	animation-delay: 0s, 200ms !important;
+	opacity: 0 !important;
+}
+@keyframes delayedFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}

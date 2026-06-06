@@ -18,6 +18,7 @@ import {
 	stopDwellTracking,
 } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
+import { safeRecipeImageSrc } from '@/lib/imageSafety'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -127,7 +128,7 @@ interface PostCardProps {
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
 	QUICK:
-		'bg-warning/28 text-warning-deep border border-warning/35 shadow-sm',
+		'bg-warning/28 text-warning-deep border border-warning/35 shadow-card',
 	POLL: 'bg-info/28 text-info border border-info/35 shadow-md',
 	RECENT_COOK:
 		'bg-brand/28 text-brand border border-brand/35 shadow-glow',
@@ -987,7 +988,7 @@ const PostCardContent = ({
 															{post.battleRecipeImageA && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={post.battleRecipeImageA}
+																		src={safeRecipeImageSrc(post.battleRecipeImageA)}
 																		alt={
 																			post.battleRecipeTitleA ??
 																			t('recipeAFallback')
@@ -1065,7 +1066,7 @@ const PostCardContent = ({
 															{post.battleRecipeImageB && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={post.battleRecipeImageB}
+																		src={safeRecipeImageSrc(post.battleRecipeImageB)}
 																		alt={
 																			post.battleRecipeTitleB ??
 																			t('recipeBFallback')

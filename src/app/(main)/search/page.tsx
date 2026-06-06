@@ -38,6 +38,7 @@ import {
 	StaggerContainer,
 	staggerItemVariants,
 } from '@/components/ui/stagger-animation'
+import { safeRecipeImageSrc } from '@/lib/imageSafety'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -242,12 +243,14 @@ function SearchResultImage({
 	src: string
 	fallbackSrc?: string
 }) {
-	const [currentSrc, setCurrentSrc] = useState(src || fallbackSrc)
+	const [currentSrc, setCurrentSrc] = useState(
+		safeRecipeImageSrc(src || fallbackSrc),
+	)
 	const [hasError, setHasError] = useState(false)
 	const isRemoteSource = /^https?:\/\//i.test(currentSrc || fallbackSrc)
 
 	useEffect(() => {
-		setCurrentSrc(src || fallbackSrc)
+		setCurrentSrc(safeRecipeImageSrc(src || fallbackSrc))
 		setHasError(false)
 	}, [fallbackSrc, src])
 

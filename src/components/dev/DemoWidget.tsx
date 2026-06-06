@@ -24,6 +24,7 @@ import {
 } from './demo-config'
 import { usePaceTimer, PaceTimer } from './PaceTimer'
 import { PhantomConductor } from './PhantomConductor'
+import { isDemoCockpitSession } from './DemoCockpitRuntime'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -175,7 +176,9 @@ function OriginalDemoWidget() {
 					const swapped = swapPersonaFromVault(username, true)
 					if (swapped) {
 						flash(`⚡ Vault swap: ${username}`)
-						setTimeout(() => { window.location.href = redirectTo }, 50)
+						setTimeout(() => {
+							window.location.href = redirectTo
+						}, 50)
 						return
 					}
 				}
@@ -266,13 +269,33 @@ function OriginalDemoWidget() {
 	const getReadinessTone = useCallback((status: DemoReadinessStatus | null) => {
 		switch (status) {
 			case 'ready':
-				return { label: 'Ready', color: '#3fb950', border: '#23863666', bg: '#23863622' }
+				return {
+					label: 'Ready',
+					color: '#3fb950',
+					border: '#23863666',
+					bg: '#23863622',
+				}
 			case 'warning':
-				return { label: 'Watch', color: '#d29922', border: '#d2992266', bg: '#d299221f' }
+				return {
+					label: 'Watch',
+					color: '#d29922',
+					border: '#d2992266',
+					bg: '#d299221f',
+				}
 			case 'blocked':
-				return { label: 'Blocked', color: '#f85149', border: '#f8514966', bg: '#f851491f' }
+				return {
+					label: 'Blocked',
+					color: '#f85149',
+					border: '#f8514966',
+					bg: '#f851491f',
+				}
 			default:
-				return { label: 'Unknown', color: '#8b949e', border: '#30363d', bg: '#11161d' }
+				return {
+					label: 'Unknown',
+					color: '#8b949e',
+					border: '#30363d',
+					bg: '#11161d',
+				}
 		}
 	}, [])
 
@@ -328,7 +351,9 @@ function OriginalDemoWidget() {
 			}
 
 			if (!response.ok || !payload.success || !payload.data?.tasks) {
-				throw new Error(payload.message || 'Failed to load orchestrator task list')
+				throw new Error(
+					payload.message || 'Failed to load orchestrator task list',
+				)
 			}
 
 			setOrchestratorTaskList(payload.data.tasks)
@@ -343,35 +368,32 @@ function OriginalDemoWidget() {
 		}
 	}, [flash])
 
-	const refreshOrchestratorTask = useCallback(
-		async (taskId: string) => {
-			const response = await fetch(
-				`/api/dev/orchestrator/status?taskId=${encodeURIComponent(taskId)}`,
-				{
-					method: 'GET',
-					cache: 'no-store',
-				},
-			)
+	const refreshOrchestratorTask = useCallback(async (taskId: string) => {
+		const response = await fetch(
+			`/api/dev/orchestrator/status?taskId=${encodeURIComponent(taskId)}`,
+			{
+				method: 'GET',
+				cache: 'no-store',
+			},
+		)
 
-			const payload = (await response.json()) as {
-				success?: boolean
-				message?: string
-				data?: {
-					task?: OrchestratorTaskSnapshot
-					progress?: OrchestratorProgressSnapshot | null
-				}
+		const payload = (await response.json()) as {
+			success?: boolean
+			message?: string
+			data?: {
+				task?: OrchestratorTaskSnapshot
+				progress?: OrchestratorProgressSnapshot | null
 			}
+		}
 
-			if (!response.ok || !payload.success || !payload.data?.task) {
-				throw new Error(payload.message || 'Failed to fetch orchestrator status')
-			}
+		if (!response.ok || !payload.success || !payload.data?.task) {
+			throw new Error(payload.message || 'Failed to fetch orchestrator status')
+		}
 
-			setOrchestratorTask(payload.data.task)
-			setOrchestratorProgress(payload.data.progress ?? null)
-			return payload.data.task
-		},
-		[],
-	)
+		setOrchestratorTask(payload.data.task)
+		setOrchestratorProgress(payload.data.progress ?? null)
+		return payload.data.task
+	}, [])
 
 	const stopOrchestratorTask = useCallback(
 		async (taskId: string) => {
@@ -414,13 +436,17 @@ function OriginalDemoWidget() {
 			}
 
 			if (!response.ok || !payload.success) {
-				throw new Error(payload.message || 'Failed to stop all orchestrator tasks')
+				throw new Error(
+					payload.message || 'Failed to stop all orchestrator tasks',
+				)
 			}
 
 			const stoppedCount = payload.data?.stoppedTaskIds?.length ?? 0
 			await refreshOrchestratorTaskList()
 			if (orchestratorTask?.status === 'running') {
-				await refreshOrchestratorTask(orchestratorTask.taskId).catch(() => undefined)
+				await refreshOrchestratorTask(orchestratorTask.taskId).catch(
+					() => undefined,
+				)
 			}
 			flash(`Stop-all complete (${stoppedCount})`)
 		} catch (error) {
@@ -432,7 +458,12 @@ function OriginalDemoWidget() {
 		} finally {
 			setIsStoppingAllTasks(false)
 		}
-	}, [flash, orchestratorTask, refreshOrchestratorTask, refreshOrchestratorTaskList])
+	}, [
+		flash,
+		orchestratorTask,
+		refreshOrchestratorTask,
+		refreshOrchestratorTaskList,
+	])
 
 	const launchOrchestratorRun = useCallback(
 		async (mode: 'single-strict' | 'certify-strict') => {
@@ -485,7 +516,11 @@ function OriginalDemoWidget() {
 				}
 				setOrchestratorProgress(null)
 				await refreshOrchestratorTaskList()
-				flash(mode === 'certify-strict' ? 'Strict certify launched' : 'Strict run launched')
+				flash(
+					mode === 'certify-strict'
+						? 'Strict certify launched'
+						: 'Strict run launched',
+				)
 			} catch (error) {
 				flash(
 					error instanceof Error
@@ -550,7 +585,11 @@ function OriginalDemoWidget() {
 						return
 					}
 
-					flash(nextTask.status === 'passed' ? 'Orchestrator passed' : 'Orchestrator failed')
+					flash(
+						nextTask.status === 'passed'
+							? 'Orchestrator passed'
+							: 'Orchestrator failed',
+					)
 				})
 				.catch(() => {
 					// Keep polling until transient failures clear.
@@ -564,8 +603,7 @@ function OriginalDemoWidget() {
 	}, [flash, isOpen, orchestratorTask, refreshOrchestratorTask])
 
 	// Only render in dev mode; keep hidden on full dev dashboard to avoid duplicate controls.
-	if (!IS_DEV || pathname === '/_dev')
-		return null
+	if (!IS_DEV || pathname === '/_dev') return null
 
 	if (isMinimized) {
 		return (
@@ -750,7 +788,7 @@ function OriginalDemoWidget() {
 												flash('Cleaned & Ready.')
 											}}
 											style={{ ...btnSmall, color: '#d29922' }}
-											title="Panic Cleanup"
+											title='Panic Cleanup'
 										>
 											🧹
 										</button>
@@ -817,14 +855,29 @@ function OriginalDemoWidget() {
 											Backend is {backendStatus}. Start monolith first.
 										</div>
 									)}
-									<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, marginTop: 8 }}>
+									<div
+										style={{
+											display: 'grid',
+											gridTemplateColumns: '1fr 1fr',
+											gap: 4,
+											marginTop: 8,
+										}}
+									>
 										<button
 											onClick={async () => {
 												flash('Warming Vault...')
 												await warmTokenVault()
 												flash('Vault Warmed! 🚀')
 											}}
-											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+											style={{
+												background: '#0d1117',
+												border: '1px solid #30363d',
+												borderRadius: 4,
+												color: '#e6edf3',
+												fontSize: 10,
+												padding: 6,
+												cursor: 'pointer',
+											}}
 										>
 											🔥 Warm Vault
 										</button>
@@ -835,7 +888,15 @@ function OriginalDemoWidget() {
 												await cleanupDemoState(accessToken)
 												flash('Cleaned & Ready.')
 											}}
-											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+											style={{
+												background: '#0d1117',
+												border: '1px solid #30363d',
+												borderRadius: 4,
+												color: '#e6edf3',
+												fontSize: 10,
+												padding: 6,
+												cursor: 'pointer',
+											}}
 										>
 											🧹 Cleanup State
 										</button>
@@ -844,7 +905,15 @@ function OriginalDemoWidget() {
 												flash('Pace Timer Started')
 												paceTimer.start()
 											}}
-											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+											style={{
+												background: '#0d1117',
+												border: '1px solid #30363d',
+												borderRadius: 4,
+												color: '#e6edf3',
+												fontSize: 10,
+												padding: 6,
+												cursor: 'pointer',
+											}}
 										>
 											⏱ Start Timer
 										</button>
@@ -853,7 +922,15 @@ function OriginalDemoWidget() {
 												flash('Safe Harbor')
 												navigateTo('/dashboard')
 											}}
-											style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 10, padding: 6, cursor: 'pointer' }}
+											style={{
+												background: '#0d1117',
+												border: '1px solid #30363d',
+												borderRadius: 4,
+												color: '#e6edf3',
+												fontSize: 10,
+												padding: 6,
+												cursor: 'pointer',
+											}}
 										>
 											⚓ Safe Harbor
 										</button>
@@ -1023,20 +1100,36 @@ function OriginalDemoWidget() {
 													gap: 8,
 												}}
 											>
-												<div style={{ fontSize: 10, fontWeight: 600, color: '#e6edf3' }}>
+												<div
+													style={{
+														fontSize: 10,
+														fontWeight: 600,
+														color: '#e6edf3',
+													}}
+												>
 													{beat.phase} · {beat.title}
 												</div>
-												<span style={{ fontSize: 9, fontWeight: 700, color: tone.color }}>
+												<span
+													style={{
+														fontSize: 9,
+														fontWeight: 700,
+														color: tone.color,
+													}}
+												>
 													{tone.label}
 												</span>
 											</div>
-											<div style={{ fontSize: 9, color: '#8b949e', marginTop: 4 }}>
+											<div
+												style={{ fontSize: 9, color: '#8b949e', marginTop: 4 }}
+											>
 												{beat.minutes} · persona {beat.personaUsername}
 											</div>
 											{shortcut && (
 												<button
 													onClick={() => void openPitchShortcut(shortcut)}
-													disabled={Boolean(shortcut.requiresAuth) && !isAuthenticated}
+													disabled={
+														Boolean(shortcut.requiresAuth) && !isAuthenticated
+													}
 													style={{
 														...btnAction,
 														marginTop: 6,
@@ -1045,7 +1138,9 @@ function OriginalDemoWidget() {
 														background: '#0d1117',
 														border: '1px solid #30363d',
 														opacity:
-															Boolean(shortcut.requiresAuth) && !isAuthenticated ? 0.5 : 1,
+															Boolean(shortcut.requiresAuth) && !isAuthenticated
+																? 0.5
+																: 1,
 													}}
 												>
 													Open Beat
@@ -1055,7 +1150,9 @@ function OriginalDemoWidget() {
 									)
 								})}
 							</div>
-							<div style={{ fontSize: 9, color: '#8b949e', padding: '6px 8px 0' }}>
+							<div
+								style={{ fontSize: 9, color: '#8b949e', padding: '6px 8px 0' }}
+							>
 								Readiness source: /demo-readiness.json
 							</div>
 						</div>
@@ -1075,7 +1172,14 @@ function OriginalDemoWidget() {
 								Orchestrator Control Plane
 							</div>
 
-							<div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px 8px' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 6,
+									padding: '0 8px 8px',
+								}}
+							>
 								<button
 									onClick={() => setHardBlockMode(previous => !previous)}
 									style={{
@@ -1102,12 +1206,16 @@ function OriginalDemoWidget() {
 										borderRadius: 8,
 										border: `1px solid ${orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable ? '#23863666' : '#f8514966'}`,
 										background:
-											orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable
+											orchestratorPreflight.backendHealthOk &&
+											orchestratorPreflight.authProbeOk &&
+											orchestratorPreflight.launchCapacityAvailable
 												? '#23863622'
 												: '#f851491f',
 										fontSize: 9,
 										color:
-											orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk && orchestratorPreflight.launchCapacityAvailable
+											orchestratorPreflight.backendHealthOk &&
+											orchestratorPreflight.authProbeOk &&
+											orchestratorPreflight.launchCapacityAvailable
 												? '#3fb950'
 												: '#f85149',
 										lineHeight: 1.35,
@@ -1124,9 +1232,12 @@ function OriginalDemoWidget() {
 										{orchestratorPreflight.authProbeStatusCode ?? 'n/a'}
 									</div>
 									<div>
-										capacity:{' '}
-										{orchestratorPreflight.runningTaskCount}/
-										{orchestratorPreflight.maxConcurrentRunningTasks} ({orchestratorPreflight.launchCapacityAvailable ? 'available' : 'full'})
+										capacity: {orchestratorPreflight.runningTaskCount}/
+										{orchestratorPreflight.maxConcurrentRunningTasks} (
+										{orchestratorPreflight.launchCapacityAvailable
+											? 'available'
+											: 'full'}
+										)
 									</div>
 									{orchestratorPreflight.errorMessage && (
 										<div>{orchestratorPreflight.errorMessage}</div>
@@ -1134,35 +1245,67 @@ function OriginalDemoWidget() {
 								</div>
 							)}
 
-							<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: '0 8px 8px' }}>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: 6,
+									padding: '0 8px 8px',
+								}}
+							>
 								<button
 									onClick={() => void launchOrchestratorRun('single-strict')}
 									disabled={isLaunchingOrchestrator}
-									style={{ ...btnAction, background: '#1f6feb', opacity: isLaunchingOrchestrator ? 0.6 : 1 }}
+									style={{
+										...btnAction,
+										background: '#1f6feb',
+										opacity: isLaunchingOrchestrator ? 0.6 : 1,
+									}}
 								>
 									Run Strict
 								</button>
 								<button
 									onClick={() => void launchOrchestratorRun('certify-strict')}
 									disabled={isLaunchingOrchestrator}
-									style={{ ...btnAction, background: '#8957e5', opacity: isLaunchingOrchestrator ? 0.6 : 1 }}
+									style={{
+										...btnAction,
+										background: '#8957e5',
+										opacity: isLaunchingOrchestrator ? 0.6 : 1,
+									}}
 								>
 									Certify x3
 								</button>
 							</div>
 
-							<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: '0 8px 8px' }}>
+							<div
+								style={{
+									display: 'grid',
+									gridTemplateColumns: '1fr 1fr',
+									gap: 6,
+									padding: '0 8px 8px',
+								}}
+							>
 								<button
 									onClick={() => void refreshOrchestratorTaskList()}
 									disabled={isRefreshingTasks}
-									style={{ ...btnAction, background: '#21262d', opacity: isRefreshingTasks ? 0.6 : 1 }}
+									style={{
+										...btnAction,
+										background: '#21262d',
+										opacity: isRefreshingTasks ? 0.6 : 1,
+									}}
 								>
 									Refresh Tasks
 								</button>
 								<button
 									onClick={() => void stopAllOrchestratorTasks()}
 									disabled={isStoppingAllTasks}
-									style={{ ...btnAction, background: '#f8514922', color: '#f85149', border: '1px solid #f8514966', opacity: isStoppingAllTasks ? 0.6 : 1 }}
+									style={{
+										...btnAction,
+										background: '#f8514922',
+										color: '#f85149',
+										border: '1px solid #f8514966',
+										opacity: isStoppingAllTasks ? 0.6 : 1,
+									}}
 								>
 									Stop All
 								</button>
@@ -1178,9 +1321,22 @@ function OriginalDemoWidget() {
 										background: '#0d1117',
 									}}
 								>
-									<div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-										<span style={{ fontSize: 10, color: '#8b949e', fontFamily: 'monospace' }}>
-											{orchestratorTask.taskId.slice(0, 8)} · {orchestratorTask.mode}
+									<div
+										style={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											gap: 8,
+										}}
+									>
+										<span
+											style={{
+												fontSize: 10,
+												color: '#8b949e',
+												fontFamily: 'monospace',
+											}}
+										>
+											{orchestratorTask.taskId.slice(0, 8)} ·{' '}
+											{orchestratorTask.mode}
 										</span>
 										<span
 											style={{
@@ -1199,25 +1355,35 @@ function OriginalDemoWidget() {
 											{orchestratorTask.status}
 										</span>
 									</div>
-											<div style={{ marginTop: 4, fontSize: 9, color: '#8b949e' }}>
-												watchdog:{orchestratorTask.watchdogRisk} · runtime:{orchestratorTask.runtimeAgeSec}s/{orchestratorTask.maxRuntimeSec}s · idle:{orchestratorTask.lastOutputAgeSec}s
-											</div>
+									<div style={{ marginTop: 4, fontSize: 9, color: '#8b949e' }}>
+										watchdog:{orchestratorTask.watchdogRisk} · runtime:
+										{orchestratorTask.runtimeAgeSec}s/
+										{orchestratorTask.maxRuntimeSec}s · idle:
+										{orchestratorTask.lastOutputAgeSec}s
+									</div>
 									{orchestratorProgress && (
-										<div style={{ marginTop: 6, fontSize: 10, color: '#8b949e' }}>
+										<div
+											style={{ marginTop: 6, fontSize: 10, color: '#8b949e' }}
+										>
 											<div>
-												strict:{orchestratorProgress.strictAssertionFailures ?? 'n/a'} · render:{' '}
+												strict:
+												{orchestratorProgress.strictAssertionFailures ??
+													'n/a'}{' '}
+												· render:{' '}
 												{orchestratorProgress.renderAnomalies ?? 'n/a'} · 5xx:{' '}
 												{orchestratorProgress.http5xxResponses ?? 'n/a'} · page:{' '}
 												{orchestratorProgress.pageErrors ?? 'n/a'}
 											</div>
 											<div>
-												beats e/a/p:{orchestratorProgress.beatsWithEvidence ?? 'n/a'}/
+												beats e/a/p:
+												{orchestratorProgress.beatsWithEvidence ?? 'n/a'}/
 												{orchestratorProgress.beatsWithValueArc ?? 'n/a'}/
-												{orchestratorProgress.beatsWithPhaseCoverage ?? 'n/a'} of{' '}
-												{orchestratorProgress.expectedBeats ?? 'n/a'}
+												{orchestratorProgress.beatsWithPhaseCoverage ?? 'n/a'}{' '}
+												of {orchestratorProgress.expectedBeats ?? 'n/a'}
 											</div>
 											<div>
-												rates e/a/p:{orchestratorProgress.beatEvidenceRate ?? 'n/a'}%/{' '}
+												rates e/a/p:
+												{orchestratorProgress.beatEvidenceRate ?? 'n/a'}%/{' '}
 												{orchestratorProgress.beatValueArcRate ?? 'n/a'}%/{' '}
 												{orchestratorProgress.beatPhaseCoverageRate ?? 'n/a'}%
 											</div>
@@ -1225,14 +1391,15 @@ function OriginalDemoWidget() {
 												fallbacks total/scene/route:{' '}
 												{orchestratorProgress.beatFallbacks ?? 'n/a'}/
 												{orchestratorProgress.beatSceneFallbacks ?? 'n/a'}/
-												{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} · reqFail:{' '}
-												{orchestratorProgress.requestFailures ?? 'n/a'} · console:{' '}
-												{orchestratorProgress.consoleErrors ?? 'n/a'}
+												{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} ·
+												reqFail: {orchestratorProgress.requestFailures ?? 'n/a'}{' '}
+												· console: {orchestratorProgress.consoleErrors ?? 'n/a'}
 											</div>
 											<div>
-												preflight:{orchestratorProgress.preflightCoreStatus ?? 'n/a'} · warnings:{' '}
-												{orchestratorProgress.warningCount ?? 'n/a'} · errors:{' '}
-												{orchestratorProgress.errorCount ?? 'n/a'}
+												preflight:
+												{orchestratorProgress.preflightCoreStatus ?? 'n/a'} ·
+												warnings: {orchestratorProgress.warningCount ?? 'n/a'} ·
+												errors: {orchestratorProgress.errorCount ?? 'n/a'}
 											</div>
 											{orchestratorProgress.criticalFindings.length > 0 && (
 												<div
@@ -1247,7 +1414,9 @@ function OriginalDemoWidget() {
 														lineHeight: 1.35,
 													}}
 												>
-													{orchestratorProgress.criticalFindings.slice(0, 3).join(' | ')}
+													{orchestratorProgress.criticalFindings
+														.slice(0, 3)
+														.join(' | ')}
 												</div>
 											)}
 										</div>
@@ -1271,9 +1440,17 @@ function OriginalDemoWidget() {
 											{orchestratorTask.recentOutput.slice(-5).join('\n')}
 										</div>
 									)}
-									<div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
+									<div
+										style={{
+											marginTop: 6,
+											display: 'flex',
+											justifyContent: 'flex-end',
+										}}
+									>
 										<button
-											onClick={() => void stopOrchestratorTask(orchestratorTask.taskId)}
+											onClick={() =>
+												void stopOrchestratorTask(orchestratorTask.taskId)
+											}
 											disabled={orchestratorTask.status !== 'running'}
 											style={{
 												...btnAction,
@@ -1282,7 +1459,8 @@ function OriginalDemoWidget() {
 												border: '1px solid #f8514966',
 												padding: '5px 8px',
 												fontSize: 10,
-												opacity: orchestratorTask.status === 'running' ? 1 : 0.5,
+												opacity:
+													orchestratorTask.status === 'running' ? 1 : 0.5,
 											}}
 										>
 											Stop Task
@@ -1291,13 +1469,35 @@ function OriginalDemoWidget() {
 								</div>
 							)}
 
-							<div style={{ margin: '0 8px', border: '1px solid #21262d', borderRadius: 8, background: '#0d1117' }}>
-								<div style={{ padding: '6px 8px', fontSize: 10, color: '#8b949e', borderBottom: '1px solid #21262d' }}>
-									Task Timeline ({orchestratorTaskList.filter(task => task.status === 'running').length} running)
+							<div
+								style={{
+									margin: '0 8px',
+									border: '1px solid #21262d',
+									borderRadius: 8,
+									background: '#0d1117',
+								}}
+							>
+								<div
+									style={{
+										padding: '6px 8px',
+										fontSize: 10,
+										color: '#8b949e',
+										borderBottom: '1px solid #21262d',
+									}}
+								>
+									Task Timeline (
+									{
+										orchestratorTaskList.filter(
+											task => task.status === 'running',
+										).length
+									}{' '}
+									running)
 								</div>
 								<div style={{ maxHeight: 92, overflow: 'auto' }}>
 									{orchestratorTaskList.length === 0 ? (
-										<div style={{ padding: 8, fontSize: 10, color: '#8b949e' }}>No tasks yet</div>
+										<div style={{ padding: 8, fontSize: 10, color: '#8b949e' }}>
+											No tasks yet
+										</div>
 									) : (
 										orchestratorTaskList.slice(0, 6).map(task => (
 											<div
@@ -1310,7 +1510,9 @@ function OriginalDemoWidget() {
 													fontSize: 10,
 												}}
 											>
-												<span style={{ color: '#8b949e', fontFamily: 'monospace' }}>
+												<span
+													style={{ color: '#8b949e', fontFamily: 'monospace' }}
+												>
 													{task.taskId.slice(0, 8)} · {task.mode}
 												</span>
 												<span
@@ -1326,7 +1528,8 @@ function OriginalDemoWidget() {
 																		: '#58a6ff',
 													}}
 												>
-																			{task.status} · {task.runtimeAgeSec}s/{task.maxRuntimeSec}s
+													{task.status} · {task.runtimeAgeSec}s/
+													{task.maxRuntimeSec}s
 												</span>
 											</div>
 										))
@@ -1452,7 +1655,7 @@ function CheatEngine() {
 	const [isOpen, setIsOpen] = useState(false)
 	const [ghostMode, setGhostMode] = useState(false)
 	const { showLevelUp } = useCelebration()
-	
+
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'c') {
@@ -1475,7 +1678,9 @@ function CheatEngine() {
 				zIndex: 999999,
 				width: 380,
 				background: ghostMode ? 'rgba(10, 10, 15, 0.4)' : '#0d1117',
-				border: ghostMode ? '1px solid rgba(48, 54, 61, 0.3)' : '1px solid #30363d',
+				border: ghostMode
+					? '1px solid rgba(48, 54, 61, 0.3)'
+					: '1px solid #30363d',
 				borderRadius: 12,
 				boxShadow: '0 24px 64px rgba(0,0,0,0.8)',
 				fontFamily: "'Space Grotesk', monospace",
@@ -1485,28 +1690,90 @@ function CheatEngine() {
 				transition: 'all 0.2s ease',
 			}}
 		>
-			<div style={{ padding: '12px 16px', borderBottom: '1px solid #30363d', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#161b22', borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
+			<div
+				style={{
+					padding: '12px 16px',
+					borderBottom: '1px solid #30363d',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					background: '#161b22',
+					borderTopLeftRadius: 12,
+					borderTopRightRadius: 12,
+				}}
+			>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-					<span style={{ color: '#ff5a36', fontWeight: 800 }}>⚡ CHEAT ENGINE 3000%</span>
+					<span style={{ color: '#ff5a36', fontWeight: 800 }}>
+						⚡ CHEAT ENGINE 3000%
+					</span>
 				</div>
 				<div style={{ display: 'flex', gap: 12 }}>
-					<button onClick={() => setGhostMode(!ghostMode)} style={{ background: 'none', border: 'none', color: ghostMode ? '#3fb950' : '#8b949e', cursor: 'pointer', fontSize: 12 }}>Ghost</button>
-					<button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: '#f85149', cursor: 'pointer', fontSize: 16 }}>×</button>
+					<button
+						onClick={() => setGhostMode(!ghostMode)}
+						style={{
+							background: 'none',
+							border: 'none',
+							color: ghostMode ? '#3fb950' : '#8b949e',
+							cursor: 'pointer',
+							fontSize: 12,
+						}}
+					>
+						Ghost
+					</button>
+					<button
+						onClick={() => setIsOpen(false)}
+						style={{
+							background: 'none',
+							border: 'none',
+							color: '#f85149',
+							cursor: 'pointer',
+							fontSize: 16,
+						}}
+					>
+						×
+					</button>
 				</div>
 			</div>
 
-			<div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, maxHeight: '70vh', overflowY: 'auto' }}>
-				
-				<div style={{ padding: 12, border: '1px solid #ff5a36', borderRadius: 8, background: 'rgba(255, 90, 54, 0.1)' }}>
-					<div style={{ fontSize: 11, color: '#ff5a36', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>Core Experience Injects</div>
-					<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-						<button 
+			<div
+				style={{
+					padding: 16,
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 12,
+					maxHeight: '70vh',
+					overflowY: 'auto',
+				}}
+			>
+				<div
+					style={{
+						padding: 12,
+						border: '1px solid #ff5a36',
+						borderRadius: 8,
+						background: 'rgba(255, 90, 54, 0.1)',
+					}}
+				>
+					<div
+						style={{
+							fontSize: 11,
+							color: '#ff5a36',
+							marginBottom: 8,
+							fontWeight: 700,
+							textTransform: 'uppercase',
+						}}
+					>
+						Core Experience Injects
+					</div>
+					<div
+						style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}
+					>
+						<button
 							onClick={() => showLevelUp({ oldLevel: 4, newLevel: 5 })}
 							style={{ ...btnAction, background: '#238636' }}
 						>
 							[FORCE] Level Up
 						</button>
-						<button 
+						<button
 							onClick={() => demoInjector.injectAiResponse()}
 							style={{ ...btnAction, background: '#8957e5' }}
 						>
@@ -1515,24 +1782,41 @@ function CheatEngine() {
 					</div>
 				</div>
 
-				<div style={{ padding: 12, border: '1px solid #3fb950', borderRadius: 8, background: 'rgba(63, 185, 80, 0.1)' }}>
-					<div style={{ fontSize: 11, color: '#3fb950', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>Multiplayer Injects</div>
+				<div
+					style={{
+						padding: 12,
+						border: '1px solid #3fb950',
+						borderRadius: 8,
+						background: 'rgba(63, 185, 80, 0.1)',
+					}}
+				>
+					<div
+						style={{
+							fontSize: 11,
+							color: '#3fb950',
+							marginBottom: 8,
+							fontWeight: 700,
+							textTransform: 'uppercase',
+						}}
+					>
+						Multiplayer Injects
+					</div>
 					<div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
-						<button 
+						<button
 							onClick={() => {
 								useCookingStore.getState().handleRoomEvent({
 									type: 'STEP_COMPLETED',
 									userId: 'mock-friend-123',
 									displayName: 'Chef Gordon (MOCK)',
 									timestamp: new Date().toISOString(),
-									data: { stepNumber: 1 }
+									data: { stepNumber: 1 },
 								})
 							}}
 							style={{ ...btnAction, background: '#2ea043' }}
 						>
 							[MOCK] Friend Completes Step 1
 						</button>
-						<button 
+						<button
 							onClick={() => {
 								useCookingStore.getState().handleRoomEvent({
 									type: 'PARTICIPANT_JOINED',
@@ -1549,22 +1833,43 @@ function CheatEngine() {
 											completedSteps: [],
 											joinedAt: new Date().toISOString(),
 											isHost: false,
-											role: 'COOK'
-										}
-									}
+											role: 'COOK',
+										},
+									},
 								})
 							}}
-							style={{ ...btnAction, background: '#21262d', border: '1px solid #30363d' }}
+							style={{
+								...btnAction,
+								background: '#21262d',
+								border: '1px solid #30363d',
+							}}
 						>
 							[MOCK] Friend Joins Room
 						</button>
 					</div>
 				</div>
 
-				<div style={{ padding: 12, border: '1px solid #d29922', borderRadius: 8, background: 'rgba(210, 153, 34, 0.1)' }}>
-					<div style={{ fontSize: 11, color: '#d29922', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase' }}>Time & Presentation</div>
+				<div
+					style={{
+						padding: 12,
+						border: '1px solid #d29922',
+						borderRadius: 8,
+						background: 'rgba(210, 153, 34, 0.1)',
+					}}
+				>
+					<div
+						style={{
+							fontSize: 11,
+							color: '#d29922',
+							marginBottom: 8,
+							fontWeight: 700,
+							textTransform: 'uppercase',
+						}}
+					>
+						Time & Presentation
+					</div>
 					<div style={{ display: 'flex', gap: 8 }}>
-						<button 
+						<button
 							onClick={() => {
 								demoInjector.toggleTimeWarp(!demoInjector.timeWarpActive)
 								const styleId = 'cheat-engine-time-warp'
@@ -1581,7 +1886,7 @@ function CheatEngine() {
 						>
 							Toggle Time Warp
 						</button>
-						<button 
+						<button
 							onClick={() => {
 								const styleId = 'cheat-engine-laser'
 								if (document.getElementById(styleId)) {
@@ -1598,44 +1903,101 @@ function CheatEngine() {
 									document.body.classList.add('laser-active')
 								}
 							}}
-							style={{ ...btnAction, flex: 1, background: '#21262d', border: '1px solid #30363d' }}
+							style={{
+								...btnAction,
+								flex: 1,
+								background: '#21262d',
+								border: '1px solid #30363d',
+							}}
 						>
 							Laser Focus
 						</button>
 					</div>
 				</div>
-				
-				<div style={{ padding: 12, border: '1px solid #ff7b72', borderRadius: 8, background: 'rgba(255, 123, 114, 0.1)' }}>
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-						<div style={{ fontSize: 11, color: '#ff7b72', fontWeight: 700, textTransform: 'uppercase' }}>Ghost Driver (Autopilot)</div>
-						<button 
+
+				<div
+					style={{
+						padding: 12,
+						border: '1px solid #ff7b72',
+						borderRadius: 8,
+						background: 'rgba(255, 123, 114, 0.1)',
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 8,
+						}}
+					>
+						<div
+							style={{
+								fontSize: 11,
+								color: '#ff7b72',
+								fontWeight: 700,
+								textTransform: 'uppercase',
+							}}
+						>
+							Ghost Driver (Autopilot)
+						</div>
+						<button
 							onClick={() => {
 								getGhostDriver('main').stop()
 								getGhostDriver('friend').stop()
 							}}
-							style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 10, textDecoration: 'underline' }}
+							style={{
+								background: 'none',
+								border: 'none',
+								color: '#8b949e',
+								cursor: 'pointer',
+								fontSize: 10,
+								textDecoration: 'underline',
+							}}
 						>
 							Emergency Stop
 						</button>
 					</div>
 					<div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
 						<div style={{ display: 'flex', gap: 8 }}>
-							<button 
+							<button
 								onClick={runOmniDemo}
-								style={{ ...btnAction, flex: 1, background: '#b31d28', border: '1px solid #ff7b72', textTransform: 'uppercase', letterSpacing: 1, padding: '12px' }}
+								style={{
+									...btnAction,
+									flex: 1,
+									background: '#b31d28',
+									border: '1px solid #ff7b72',
+									textTransform: 'uppercase',
+									letterSpacing: 1,
+									padding: '12px',
+								}}
 							>
 								[☢️] INITIATE OMNI-DEMO
 							</button>
-							<button 
+							<button
 								onClick={rewindTimeline}
-								style={{ ...btnAction, flex: '0 0 auto', background: '#d29922', border: '1px solid #e3b341', textTransform: 'uppercase', padding: '12px', color: '#161b22' }}
-								title="Temporal Rewind (Restore Last Snapshot)"
+								style={{
+									...btnAction,
+									flex: '0 0 auto',
+									background: '#d29922',
+									border: '1px solid #e3b341',
+									textTransform: 'uppercase',
+									padding: '12px',
+									color: '#161b22',
+								}}
+								title='Temporal Rewind (Restore Last Snapshot)'
 							>
 								[⏪] REWIND
 							</button>
 						</div>
-						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-							<button 
+						<div
+							style={{
+								display: 'grid',
+								gridTemplateColumns: '1fr 1fr',
+								gap: 8,
+							}}
+						>
+							<button
 								onClick={async () => {
 									try {
 										const driver = getGhostDriver('main')
@@ -1657,11 +2019,16 @@ function CheatEngine() {
 										getGhostDriver('main').stop()
 									}
 								}}
-								style={{ ...btnAction, background: '#21262d', border: '1px solid #30363d', color: '#ff7b72' }}
+								style={{
+									...btnAction,
+									background: '#21262d',
+									border: '1px solid #30363d',
+									color: '#ff7b72',
+								}}
 							>
 								[▶] Hero Recipe
 							</button>
-							<button 
+							<button
 								onClick={async () => {
 									try {
 										const driver = getGhostDriver('main')
@@ -1678,15 +2045,27 @@ function CheatEngine() {
 										getGhostDriver('main').stop()
 									}
 								}}
-								style={{ ...btnAction, background: '#21262d', border: '1px solid #30363d', color: '#ff7b72' }}
+								style={{
+									...btnAction,
+									background: '#21262d',
+									border: '1px solid #30363d',
+									color: '#ff7b72',
+								}}
 							>
 								[▶] Co-Cook Join
 							</button>
 						</div>
 					</div>
 				</div>
-				
-				<div style={{ fontSize: 10, color: '#8b949e', textAlign: 'center', marginTop: 8 }}>
+
+				<div
+					style={{
+						fontSize: 10,
+						color: '#8b949e',
+						textAlign: 'center',
+						marginTop: 8,
+					}}
+				>
 					Press Ctrl+Shift+C to toggle visibility
 				</div>
 			</div>
@@ -1697,11 +2076,12 @@ function CheatEngine() {
 export function DemoWidget() {
 	const [autoRunActive, setAutoRunActive] = useState(false)
 	const [showDebugUI, setShowDebugUI] = useState(false)
+	const [cockpitRuntimeMounted, setCockpitRuntimeMounted] = useState(false)
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const urlParams = new URLSearchParams(window.location.search)
-			
+
 			if (urlParams.get('debug') === 'true') {
 				setShowDebugUI(true)
 			}
@@ -1709,7 +2089,7 @@ export function DemoWidget() {
 			if (urlParams.get('airgap') === 'true') {
 				initializeAirGap()
 			}
-			
+
 			if (urlParams.get('autoplay') === 'omni') {
 				setAutoRunActive(true)
 				// Start it shortly after mount
@@ -1717,6 +2097,8 @@ export function DemoWidget() {
 					runOmniDemo()
 				}, 2000)
 			}
+
+			setCockpitRuntimeMounted(isDemoCockpitSession())
 		}
 	}, [])
 
@@ -1726,13 +2108,13 @@ export function DemoWidget() {
 			{(IS_DEV || autoRunActive) && (
 				<>
 					{!autoRunActive && showDebugUI && <CheatEngine />}
-					<GhostCursor driverName="main" color="#ff5a36" />
-					<GhostCursor driverName="friend" color="#3fb950" />
+					<GhostCursor driverName='main' color='#ff5a36' />
+					<GhostCursor driverName='friend' color='#3fb950' />
 					{showDebugUI && <GhostHUD />}
 				</>
 			)}
 			<PaceTimer />
-			<PhantomConductor />
+			{cockpitRuntimeMounted ? null : <PhantomConductor />}
 		</>
 	)
 }
