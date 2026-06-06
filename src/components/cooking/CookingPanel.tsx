@@ -225,10 +225,7 @@ export const CookingPanel = () => {
 		}
 	}, [
 		hasActiveSession,
-		voice.isSupported,
-		voice.isContinuous,
-		voice.startContinuous,
-		voice.stopContinuous,
+		voice,
 	])
 
 	// Derive state (always compute, even if we won't render)
@@ -713,7 +710,7 @@ export const CookingPanel = () => {
 							type='button'
 							onClick={handleComplete}
 							whileTap={BUTTON_TAP}
-							className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3 font-bold text-white shadow-warm focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							<Check className='size-5' />
 							{t('cpCompleteCooking')}

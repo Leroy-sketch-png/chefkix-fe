@@ -505,7 +505,7 @@ const ChatMessageContent = ({
 									initial={{ scale: 0.9, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
 									className={cn(
-										'rounded-2xl px-4 py-2.5 shadow-sm',
+										'rounded-2xl px-4 py-2.5 shadow-card',
 										message.isOwn
 											? 'rounded-br-md bg-brand text-white'
 											: 'rounded-bl-md bg-bg-elevated text-text-primary ring-1 ring-border/50',

@@ -322,7 +322,7 @@ export default function CookingRoomPage() {
 								>
 									<LogOut className='size-4' />
 								</motion.button>
-								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)]'>
+								<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white shadow-warm'>
 									<Users className='size-5' />
 								</div>
 								<div className='min-w-0'>
@@ -502,7 +502,7 @@ export default function CookingRoomPage() {
 										disabled={isUpgrading}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-info py-4 text-lg font-bold text-white shadow-[0_2px_8px_rgba(14,165,233,0.35)] transition-all hover:bg-info/90 hover:shadow-[0_4px_16px_rgba(14,165,233,0.4)] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-info py-4 text-lg font-bold text-white shadow-warm transition-all hover:bg-info/90 hover:shadow-glow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<ArrowUpCircle className='size-6' />
 										{isUpgrading ? t('ctJoining') : t('ctJoinAsCook')}
@@ -513,7 +513,7 @@ export default function CookingRoomPage() {
 										onClick={handleStartCooking}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-4 text-lg font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-4 text-lg font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<ChefHat className='size-6' />
 										{session ? t('ctContinueCooking') : t('ctStartCooking')}

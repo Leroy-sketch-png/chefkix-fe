@@ -107,6 +107,8 @@ import { calibrateDifficulty, CalibrationResult } from '@/services/ml'
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
+import { MagicCard } from '@/components/ui/magic-card'
+import { generateRecipeJsonLd } from '@/lib/seo'
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -152,7 +154,7 @@ function RecipeDetailContent() {
 	const { requireAuth } = useAuthGate()
 	const autoStartAttempted = useRef(false)
 
-	// Determine cooking button state — only count COMPLETE & ACTIVE sessions
+	// Determine cooking button state - only count COMPLETE & ACTIVE sessions
 	// A partial session (from localStorage) has sessionId/recipeId but no status
 	// We need the full session data to properly show Continue Cooking
 	const isCompleteSession = activeSession && activeSession.status !== undefined
@@ -186,6 +188,42 @@ function RecipeDetailContent() {
 		Record<string, string>
 	>({})
 	const [isAddingToShoppingList, setIsAddingToShoppingList] = useState(false)
+
+	const [checkedIngredients, setCheckedIngredients] = useState<
+		Record<number, boolean>
+	>({})
+	const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>(
+		{},
+	)
+
+	const toggleStep = useCallback(
+		(stepIndex: number) => {
+			setCompletedSteps(prev => {
+				const nextState = { ...prev, [stepIndex]: !prev[stepIndex] }
+				if (nextState[stepIndex] && recipe?.steps) {
+					const totalStepsCount = recipe.steps.length
+					const completedCount = Object.keys(nextState).filter(
+						k => nextState[parseInt(k)],
+					).length
+					if (completedCount === totalStepsCount) {
+						toast.success(
+							t('toastAllStepsCompleted') ||
+								'All steps completed! Master chef status unlocked!',
+							{
+								description:
+									t('toastAllStepsCompletedDesc') ||
+									'You prepared this recipe beautifully!',
+								duration: 5000,
+							},
+						)
+						triggerSaveConfetti()
+					}
+				}
+				return nextState
+			})
+		},
+		[recipe?.steps, t],
+	)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
@@ -242,7 +280,7 @@ function RecipeDetailContent() {
 		}
 	}, [recipeId, t])
 
-	// AI difficulty calibration — fail-open, non-blocking
+	// AI difficulty calibration - fail-open, non-blocking
 	useEffect(() => {
 		if (!recipe) return
 		const req = {
@@ -267,9 +305,9 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe?.id])
+	}, [recipe])
 
-	// Fetch per-ingredient buy links — fail-open, non-blocking
+	// Fetch per-ingredient buy links - fail-open, non-blocking
 	useEffect(() => {
 		if (!recipe?.fullIngredientList?.length) return
 		let cancelled = false
@@ -289,7 +327,7 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe?.id])
+	}, [recipe?.fullIngredientList])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -305,7 +343,7 @@ function RecipeDetailContent() {
 		// Remove the query param to prevent re-triggering
 		router.replace(`/recipes/${recipeId}`, { scroll: false })
 
-		// Guest cannot start cooking — show sign-up prompt
+		// Guest cannot start cooking - show sign-up prompt
 		if (!user) {
 			requireAuth(t('authActionCook'))
 			return
@@ -435,7 +473,7 @@ function RecipeDetailContent() {
 				})
 			} catch (err) {
 				if ((err as Error).name !== 'AbortError') {
-					// Share failed for non-cancel reason — fall back to clipboard
+					// Share failed for non-cancel reason - fall back to clipboard
 					try {
 						await navigator.clipboard.writeText(shareUrl)
 						toast.success(t('toastLinkCopied'))
@@ -457,7 +495,7 @@ function RecipeDetailContent() {
 	}
 
 	const REMIX_OPTIONS: { type: RemixType; label: string; emoji: string }[] = [
-		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: '🌿' },
+		{ type: 'vegetarian', label: t('dietVegetarian'), emoji: '🥬' },
 		{ type: 'vegan', label: t('dietVegan'), emoji: '🌱' },
 		{ type: 'gluten-free', label: t('dietGlutenFree'), emoji: '🌾' },
 		{ type: 'spicy', label: t('remixSpicy'), emoji: '🌶️' },
@@ -635,7 +673,7 @@ function RecipeDetailContent() {
 				return
 			}
 
-			// Escape always works — closes modals or navigates back
+			// Escape always works - closes modals or navigates back
 			if (e.key === 'Escape') {
 				e.preventDefault()
 				if (showDeleteConfirm) {
@@ -741,15 +779,39 @@ function RecipeDetailContent() {
 	}
 	const diffConfig =
 		difficultyConfig[recipe.difficulty] || difficultyConfig.Beginner
+	const recipeJsonLd = generateRecipeJsonLd({
+		id: recipe.id,
+		title: recipe.title,
+		description: recipe.description,
+		imageUrl: getRecipeImage(recipe),
+		authorName: recipe.author.displayName || recipe.author.username,
+		datePublished: recipe.createdAt,
+		dateModified: recipe.updatedAt,
+		prepTimeMinutes: recipe.prepTimeMinutes,
+		cookTimeMinutes: recipe.cookTimeMinutes,
+		totalTimeMinutes: recipe.totalTimeMinutes,
+		servings: recipe.servings,
+		ingredients: recipe.fullIngredientList?.map(
+			ingredient =>
+				`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`,
+		),
+		instructions: recipe.steps?.map(step => step.description),
+		cuisine: recipe.cuisineType,
+		keywords: recipe.dietaryTags,
+	})
 
 	return (
 		<PageTransition>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeJsonLd) }}
+			/>
 			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>
 				<PremiumSurface
 					eyebrow='Recipe Detail'
 					chipText='Cooking workspace'
-					showOrbs={false}
+					showOrbs={true}
 					className='mb-4 p-2 md:p-3'
 					tone='blue'
 				>
@@ -766,651 +828,666 @@ function RecipeDetailContent() {
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='mb-8 overflow-hidden rounded-[2rem] border-[6px] border-bg/80 bg-bg-card shadow-2xl relative'
 				>
-					{/* Hero Image with overlay */}
-					<div className='group relative h-[450px] w-full overflow-hidden md:h-[550px]'>
-						<motion.div
-							initial={{ scale: 1.1 }}
-							animate={{ scale: 1 }}
-							transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
-							className='absolute inset-0'
-						>
-							<ImageLightbox
-								src={getRecipeImage(recipe)}
-								alt={recipe.title}
-								className='absolute inset-0 w-full h-full'
+					<MagicCard
+						mode='orb'
+						glowFrom='var(--color-brand)'
+						glowTo='var(--color-success)'
+						className='relative mb-8 overflow-hidden rounded-2xl border-4 border-bg/80 bg-bg-card shadow-2xl'
+					>
+						{/* Hero Image with overlay */}
+						<div className='group relative h-[28rem] w-full overflow-hidden md:h-[34rem]'>
+							<motion.div
+								initial={{ scale: 1.1 }}
+								animate={{ scale: 1 }}
+								transition={{ duration: DURATION_S.verySlow, ease: 'easeOut' }}
+								className='absolute inset-0'
 							>
-								<Image
+								<ImageLightbox
 									src={getRecipeImage(recipe)}
 									alt={recipe.title}
-									fill
-									sizes='100vw'
-									className='object-cover transition-transform duration-[15s] ease-linear group-hover:scale-110 group-hover:rotate-1'
-									priority
-								/>
-							</ImageLightbox>
-						</motion.div>
+									className='absolute inset-0 w-full h-full'
+								>
+									<Image
+										src={getRecipeImage(recipe)}
+										alt={recipe.title}
+										fill
+										sizes='100vw'
+										className='object-cover transition-transform duration-[15s] ease-linear group-hover:scale-110 group-hover:rotate-1'
+										priority
+									/>
+								</ImageLightbox>
+							</motion.div>
 
-						{/* Deep Cinematic Gradient overlays */}
-						<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent' />
-						<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent opacity-50' />
+							{/* Deep Cinematic Gradient overlays */}
+							<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent' />
+							<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent opacity-50' />
 
-						{/* XP Badge - top left */}
-						{recipe.xpReward != null && recipe.xpReward > 0 && (
+							{/* XP Badge - top left */}
+							{recipe.xpReward != null && recipe.xpReward > 0 && (
+								<motion.div
+									initial={{ scale: 0, opacity: 0 }}
+									animate={{ scale: 1, opacity: 1 }}
+									transition={{ delay: 0.3, ...TRANSITION_SPRING }}
+									className='absolute left-6 top-6 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-4 py-2 text-sm font-bold text-white shadow-xl'
+								>
+									<Zap className='size-4 text-streak' />
+									<span className='bg-gradient-to-r from-streak to-combo bg-clip-text text-transparent'>
+										+{recipe.xpReward} XP
+									</span>
+								</motion.div>
+							)}
+
+							{/* Difficulty Badge - top right */}
 							<motion.div
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
-								transition={{ delay: 0.3, ...TRANSITION_SPRING }}
-								className='absolute left-6 top-6 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-4 py-2 text-sm font-bold text-white shadow-xl'
+								transition={{ delay: 0.4, ...TRANSITION_SPRING }}
+								className={cn(
+									'absolute right-6 top-6 rounded-full px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md border border-white/20',
+									diffConfig.bg.replace('bg-', 'bg-').concat('/80'),
+								)}
 							>
-								<Zap className='size-4 text-streak' />
-								<span className='bg-gradient-to-r from-streak to-combo bg-clip-text text-transparent'>
-									+{recipe.xpReward} XP
-								</span>
+								{recipe.difficulty}
 							</motion.div>
-						)}
 
-						{/* Difficulty Badge - top right */}
-						<motion.div
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ delay: 0.4, ...TRANSITION_SPRING }}
-							className={cn(
-								'absolute right-6 top-6 rounded-full px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md border border-white/20',
-								diffConfig.bg.replace('bg-', 'bg-').concat('/80'),
+							{/* Video play button overlay */}
+							{recipe.videoUrl && recipe.videoUrl.length > 0 && (
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<motion.button
+												type='button'
+												onClick={() => {
+													const firstVideoUrl = recipe.videoUrl?.[0]
+													if (firstVideoUrl?.startsWith('http')) {
+														window.open(
+															firstVideoUrl,
+															'_blank',
+															'noopener,noreferrer',
+														)
+													} else {
+														handleStartCooking()
+														toast.info(t('toastWatchVideoInCookingMode'))
+													}
+												}}
+												whileHover={ICON_BUTTON_HOVER}
+												whileTap={ICON_BUTTON_TAP}
+												transition={TRANSITION_SPRING}
+												className='absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
+											>
+												<div className='grid size-24 place-items-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 shadow-glow transition-all hover:bg-white/40 hover:scale-105'>
+													<Play className='ml-1 size-10 fill-white text-white drop-shadow-md' />
+												</div>
+											</motion.button>
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>{t('watchVideo')}</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
 							)}
-						>
-							{recipe.difficulty}
-						</motion.div>
 
-						{/* Video play button overlay */}
-						{recipe.videoUrl && recipe.videoUrl.length > 0 && (
-							<TooltipProvider delayDuration={100}>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<motion.button
-											type='button'
-											onClick={() => {
-												const firstVideoUrl = recipe.videoUrl?.[0]
-												if (firstVideoUrl?.startsWith('http')) {
-													window.open(
-														firstVideoUrl,
-														'_blank',
-														'noopener,noreferrer',
-													)
-												} else {
-													handleStartCooking()
-													toast.info(t('toastWatchVideoInCookingMode'))
-												}
-											}}
-											whileHover={ICON_BUTTON_HOVER}
-											whileTap={ICON_BUTTON_TAP}
-											transition={TRANSITION_SPRING}
-											className='absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 focus-visible:ring-2 focus-visible:ring-brand/50 z-20'
-										>
-											<div className='grid size-24 place-items-center rounded-full bg-black/30 backdrop-blur-md border border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all hover:bg-white/40 hover:scale-105'>
-												<Play className='ml-1 size-10 fill-white text-white drop-shadow-md' />
-											</div>
-										</motion.button>
-									</TooltipTrigger>
-									<TooltipContent>
-										<p>{t('watchVideo')}</p>
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
-						)}
-
-						{/* Floating Content Block inside Hero */}
-						<div className='absolute bottom-0 left-0 right-0 p-6 md:p-10 flex flex-col justify-end z-10'>
-							<motion.h1
-								initial={{ opacity: 0, y: 10 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.2 }}
-								className='mb-4 text-4xl font-black text-white drop-shadow-lg md:text-5xl lg:text-6xl leading-[1.1] tracking-tight'
-							>
-								{recipe.title}
-							</motion.h1>
-							<motion.p
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ delay: 0.3 }}
-								className='mb-2 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md'
-							>
-								{recipe.description}
-							</motion.p>
-						</div>
-					</div>
-
-					<div className='px-6 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 bg-bg-card'>
-						<div className='mb-6'>
-							{recipe.author && (
-								<motion.div
-									initial={{ opacity: 0, x: -10 }}
-									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: 0.4 }}
+							{/* Floating Content Block inside Hero */}
+							<div className='absolute bottom-0 left-0 right-0 p-6 md:p-10 flex flex-col justify-end z-10'>
+								<motion.h1
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ delay: 0.2 }}
+									className='mb-4 text-4xl font-black text-white drop-shadow-lg md:text-5xl lg:text-6xl leading-[1.1] tracking-tight'
 								>
-									<Link
-										href={`/${recipe.author.userId}`}
-										className='group/author inline-flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-bg-elevated'
-									>
-										<div className='relative size-12 overflow-hidden rounded-full ring-2 ring-border ring-offset-2 ring-offset-bg-card transition-all group-hover/author:ring-brand'>
-											<Image
-												src={
-													recipe.author.avatarUrl || '/placeholder-avatar.svg'
-												}
-												alt={recipe.author.username || 'Recipe author'}
-												fill
-												sizes='48px'
-												className='object-cover'
-											/>
-										</div>
-										<div>
-											<p className='font-semibold text-text-primary group-hover/author:text-brand'>
-												{recipe.author.displayName ||
-													recipe.author.username ||
-													'Unknown'}
-											</p>
-											<p className='text-sm text-text-muted'>
-												@{recipe.author.username}
-											</p>
-										</div>
-									</Link>
-								</motion.div>
-							)}
+									{recipe.title}
+								</motion.h1>
+								<motion.p
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									transition={{ delay: 0.3 }}
+									className='mb-2 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md'
+								>
+									{recipe.description}
+								</motion.p>
+							</div>
 						</div>
 
-						{/* Stats */}
-						<motion.div
-							variants={staggerContainer}
-							initial='hidden'
-							animate='visible'
-							className='mb-6 flex flex-wrap items-center gap-6 border-y border-border-subtle py-5'
-						>
-							{/* Time with prep + cook breakdown */}
-							<motion.span
-								variants={staggerItem}
-								className='flex items-center gap-2 text-text-secondary'
-							>
-								<Clock className='size-5 text-brand' />
-								<TooltipProvider delayDuration={100}>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
-												{totalTime} {t('unitMin')}
-											</span>
-										</TooltipTrigger>
-										<TooltipContent className='p-3'>
-											<div className='space-y-1 text-sm'>
-												<div className='flex items-center gap-2'>
-													<Timer className='size-4 text-text-muted' />
-													<span>
-														{t('prepMin', { n: recipe.prepTimeMinutes || 0 })}
-													</span>
-												</div>
-												<div className='flex items-center gap-2'>
-													<UtensilsCrossed className='size-4 text-brand' />
-													<span>
-														{t('cookMin', { n: recipe.cookTimeMinutes || 0 })}
-													</span>
-												</div>
+						<div className='px-6 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 bg-bg-card'>
+							<div className='mb-6'>
+								{recipe.author && (
+									<motion.div
+										initial={{ opacity: 0, x: -10 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.4 }}
+									>
+										<Link
+											href={`/${recipe.author.userId}`}
+											className='group/author inline-flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-bg-elevated'
+										>
+											<div className='relative size-12 overflow-hidden rounded-full ring-2 ring-border ring-offset-2 ring-offset-bg-card transition-all group-hover/author:ring-brand'>
+												<Image
+													src={
+														recipe.author.avatarUrl || '/placeholder-avatar.svg'
+													}
+													alt={recipe.author.username || 'Recipe author'}
+													fill
+													sizes='48px'
+													className='object-cover'
+												/>
 											</div>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</motion.span>
-
-							{/* Servings */}
-							<motion.span
-								variants={staggerItem}
-								className='flex items-center gap-2 text-text-secondary'
-							>
-								<Users className='size-5 text-brand' />
-								<span className='font-medium tabular-nums'>
-									{recipe.servings} {t('servings')}
-								</span>
-							</motion.span>
-
-							{/* Difficulty with explanation tooltip */}
-							<motion.span
-								variants={staggerItem}
-								className='flex items-center gap-2 text-text-secondary'
-							>
-								<ChefHat className='size-5 text-brand' />
-								<TooltipProvider delayDuration={100}>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
-												{recipe.difficulty}
-											</span>
-										</TooltipTrigger>
-										<TooltipContent className='max-w-xs p-3'>
-											{DIFFICULTY_EXPLANATIONS[recipe.difficulty] ? (
-												<div className='space-y-2 text-sm'>
-													<p className='font-semibold text-text-primary'>
-														{DIFFICULTY_EXPLANATIONS[recipe.difficulty].label}
-													</p>
-													<p className='text-text-secondary'>
-														{
-															DIFFICULTY_EXPLANATIONS[recipe.difficulty]
-																.description
-														}
-													</p>
-													<p className='text-xs text-text-muted'>
-														<strong>{t('techniques')}</strong>{' '}
-														{
-															DIFFICULTY_EXPLANATIONS[recipe.difficulty]
-																.techniques
-														}
-													</p>
-												</div>
-											) : (
-												<p className='text-sm text-text-secondary'>
-													{t('difficultyLevelRecipe', {
-														difficulty: recipe.difficulty,
-													})}
+											<div>
+												<p className='font-semibold text-text-primary group-hover/author:text-brand'>
+													{recipe.author.displayName ||
+														recipe.author.username ||
+														'Unknown'}
 												</p>
-											)}
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-								{/* AI difficulty calibration badge */}
-								{calibration &&
-									calibration.predictedDifficulty !== recipe.difficulty && (
-										<TooltipProvider delayDuration={100}>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
-														<Sparkles className='size-3' />
-														AI: {calibration.predictedDifficulty}
-													</span>
-												</TooltipTrigger>
-												<TooltipContent className='max-w-xs p-3'>
-													<div className='space-y-1 text-sm'>
-														<p className='font-semibold text-text-primary'>
-															{t('aiDifficultyCalibration')}
-														</p>
-														<p className='text-text-secondary'>
-															{t('aiCalibrationDetail', {
-																steps: recipe.steps?.length ?? 0,
-																ingredients:
-																	recipe.fullIngredientList?.length ?? 0,
-																difficulty: calibration.predictedDifficulty,
-																confidence: Math.round(
-																	calibration.confidence * 100,
-																),
-															})}
-														</p>
-														<p className='text-xs text-text-muted'>
-															{t('aiCalibrationSource', {
-																source: calibration.calibrationSource,
-															})}
-														</p>
-													</div>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-									)}
-							</motion.span>
+												<p className='text-sm text-text-muted'>
+													@{recipe.author.username}
+												</p>
+											</div>
+										</Link>
+									</motion.div>
+								)}
+							</div>
 
-							{/* Recipe Quality Score */}
-							{recipe.qualityTier && (
-								<motion.span variants={staggerItem}>
+							{/* Stats */}
+							<motion.div
+								variants={staggerContainer}
+								initial='hidden'
+								animate='visible'
+								className='mb-6 flex flex-wrap items-center gap-6 border-y border-border-subtle py-5'
+							>
+								{/* Time with prep + cook breakdown */}
+								<motion.span
+									variants={staggerItem}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<Clock className='size-5 text-brand' />
 									<TooltipProvider delayDuration={100}>
 										<Tooltip>
 											<TooltipTrigger asChild>
-												<span className='cursor-help'>
-													<QualityBadge
-														tier={recipe.qualityTier}
-														score={recipe.qualityScore}
-														size='md'
-														showLabel
-														showScore
-														animate={false}
-													/>
+												<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
+													{totalTime} {t('unitMin')}
 												</span>
 											</TooltipTrigger>
-											<TooltipContent className='max-w-xs p-3'>
+											<TooltipContent className='p-3'>
 												<div className='space-y-1 text-sm'>
-													<p className='font-semibold text-text-primary'>
-														{t('recipeQuality', { tier: recipe.qualityTier })}
-													</p>
-													<p className='text-text-secondary'>
-														{getTierDescription(recipe.qualityTier)}
-													</p>
-													{recipe.qualityScore != null && (
-														<div className='flex items-center gap-2'>
-															<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-border'>
-																<div
-																	className='h-full rounded-full bg-brand transition-all'
-																	style={{ width: `${recipe.qualityScore}%` }}
-																/>
-															</div>
-															<span className='text-xs font-bold tabular-nums text-text-muted'>
-																{recipe.qualityScore}/100
-															</span>
-														</div>
-													)}
+													<div className='flex items-center gap-2'>
+														<Timer className='size-4 text-text-muted' />
+														<span>
+															{t('prepMin', { n: recipe.prepTimeMinutes || 0 })}
+														</span>
+													</div>
+													<div className='flex items-center gap-2'>
+														<UtensilsCrossed className='size-4 text-brand' />
+														<span>
+															{t('cookMin', { n: recipe.cookTimeMinutes || 0 })}
+														</span>
+													</div>
 												</div>
 											</TooltipContent>
 										</Tooltip>
 									</TooltipProvider>
 								</motion.span>
-							)}
 
-							{/* Views */}
-							<motion.span
-								variants={staggerItem}
-								className='flex items-center gap-2 text-text-secondary'
-							>
-								<Eye className='size-5 text-brand' />
-								<span className='font-medium tabular-nums'>
-									<AnimatedNumber
-										value={recipe.viewCount || 0}
-										format={n =>
-											n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
-										}
-									/>{' '}
-									{t('views')}
-								</span>
-							</motion.span>
+								{/* Servings */}
+								<motion.span
+									variants={staggerItem}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<Users className='size-5 text-brand' />
+									<span className='font-medium tabular-nums'>
+										{recipe.servings} {t('servings')}
+									</span>
+								</motion.span>
 
-							{/* Calories */}
-							{recipe.caloriesPerServing != null &&
-								recipe.caloriesPerServing > 0 && (
-									<motion.span
-										variants={staggerItem}
-										className='flex items-center gap-2 text-text-secondary'
-									>
-										<Flame className='size-5 text-brand' />
-										<span className='font-medium'>
-											{recipe.caloriesPerServing} {t('calPerServing')}
-										</span>
+								{/* Difficulty with explanation tooltip */}
+								<motion.span
+									variants={staggerItem}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<ChefHat className='size-5 text-brand' />
+									<TooltipProvider delayDuration={100}>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
+													{recipe.difficulty}
+												</span>
+											</TooltipTrigger>
+											<TooltipContent className='max-w-xs p-3'>
+												{DIFFICULTY_EXPLANATIONS[recipe.difficulty] ? (
+													<div className='space-y-2 text-sm'>
+														<p className='font-semibold text-text-primary'>
+															{DIFFICULTY_EXPLANATIONS[recipe.difficulty].label}
+														</p>
+														<p className='text-text-secondary'>
+															{
+																DIFFICULTY_EXPLANATIONS[recipe.difficulty]
+																	.description
+															}
+														</p>
+														<p className='text-xs text-text-muted'>
+															<strong>{t('techniques')}</strong>{' '}
+															{
+																DIFFICULTY_EXPLANATIONS[recipe.difficulty]
+																	.techniques
+															}
+														</p>
+													</div>
+												) : (
+													<p className='text-sm text-text-secondary'>
+														{t('difficultyLevelRecipe', {
+															difficulty: recipe.difficulty,
+														})}
+													</p>
+												)}
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+									{/* AI difficulty calibration badge */}
+									{calibration &&
+										calibration.predictedDifficulty !== recipe.difficulty && (
+											<TooltipProvider delayDuration={100}>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
+															<Sparkles className='size-3' />
+															AI: {calibration.predictedDifficulty}
+														</span>
+													</TooltipTrigger>
+													<TooltipContent className='max-w-xs p-3'>
+														<div className='space-y-1 text-sm'>
+															<p className='font-semibold text-text-primary'>
+																{t('aiDifficultyCalibration')}
+															</p>
+															<p className='text-text-secondary'>
+																{t('aiCalibrationDetail', {
+																	steps: recipe.steps?.length ?? 0,
+																	ingredients:
+																		recipe.fullIngredientList?.length ?? 0,
+																	difficulty: calibration.predictedDifficulty,
+																	confidence: Math.round(
+																		calibration.confidence * 100,
+																	),
+																})}
+															</p>
+															<p className='text-xs text-text-muted'>
+																{t('aiCalibrationSource', {
+																	source: calibration.calibrationSource,
+																})}
+															</p>
+														</div>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										)}
+								</motion.span>
+
+								{/* Recipe Quality Score */}
+								{recipe.qualityTier && (
+									<motion.span variants={staggerItem}>
+										<TooltipProvider delayDuration={100}>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<span className='cursor-help'>
+														<QualityBadge
+															tier={recipe.qualityTier}
+															score={recipe.qualityScore}
+															size='md'
+															showLabel
+															showScore
+															animate={false}
+														/>
+													</span>
+												</TooltipTrigger>
+												<TooltipContent className='max-w-xs p-3'>
+													<div className='space-y-1 text-sm'>
+														<p className='font-semibold text-text-primary'>
+															{t('recipeQuality', { tier: recipe.qualityTier })}
+														</p>
+														<p className='text-text-secondary'>
+															{getTierDescription(recipe.qualityTier)}
+														</p>
+														{recipe.qualityScore != null && (
+															<div className='flex items-center gap-2'>
+																<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-border'>
+																	<div
+																		className='h-full rounded-full bg-brand transition-all'
+																		style={{ width: `${recipe.qualityScore}%` }}
+																	/>
+																</div>
+																<span className='text-xs font-bold tabular-nums text-text-muted'>
+																	{recipe.qualityScore}/100
+																</span>
+															</div>
+														)}
+													</div>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
 									</motion.span>
 								)}
-						</motion.div>
 
-						{/* Action Buttons — 3-tier hierarchy */}
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.5 }}
-							className='space-y-3'
-						>
-							{/* Tier 1: Primary CTA — full width, unmissable */}
-							<motion.button
-								type='button'
-								onClick={handleStartCooking}
-								disabled={isCookingLoading || hasOtherSession}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								title={
-									hasOtherSession
-										? t('alreadyCookingTitle', {
-												recipe:
-													activeSession?.recipe?.title || t('anotherRecipe'),
-											})
-										: undefined
-								}
-								className={cn(
-									'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-warm transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
-									isCurrentlyCooked
-										? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
-										: hasOtherSession
-											? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
-											: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
-								)}
+								{/* Views */}
+								<motion.span
+									variants={staggerItem}
+									className='flex items-center gap-2 text-text-secondary'
+								>
+									<Eye className='size-5 text-brand' />
+									<span className='font-medium tabular-nums'>
+										<AnimatedNumber
+											value={recipe.viewCount || 0}
+											format={n =>
+												n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`
+											}
+										/>{' '}
+										{t('views')}
+									</span>
+								</motion.span>
+
+								{/* Calories */}
+								{recipe.caloriesPerServing != null &&
+									recipe.caloriesPerServing > 0 && (
+										<motion.span
+											variants={staggerItem}
+											className='flex items-center gap-2 text-text-secondary'
+										>
+											<Flame className='size-5 text-brand' />
+											<span className='font-medium'>
+												{recipe.caloriesPerServing} {t('calPerServing')}
+											</span>
+										</motion.span>
+									)}
+							</motion.div>
+
+							{/* Action Buttons - 3-tier hierarchy */}
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.5 }}
+								className='space-y-3'
 							>
-								{isCookingLoading ? (
-									<>
-										<Loader2 className='size-6 animate-spin' />
-										{t('startingCooking')}
-									</>
-								) : isCurrentlyCooked ? (
-									<>
-										<Play className='size-6 fill-white' />
-										{t('continueCooking')}
-									</>
-								) : hasOtherSession ? (
-									<>
-										<AlertCircle className='size-6' />
-										{t('alreadyCooking')}
-									</>
-								) : (
-									<>
-										<Play className='size-6 fill-white' />
-										{t('startCooking')}
-										<kbd className='ml-2 rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal'>
-											Enter
-										</kbd>
-									</>
-								)}
-							</motion.button>
-
-							{/* Tier 2: Social actions — compact inline bar */}
-							<div className='flex items-center gap-2'>
+								{/* Tier 1: Primary CTA - full width, unmissable */}
 								<motion.button
 									type='button'
-									onClick={handleLike}
-									disabled={isLikeLoading}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className={cn(
-										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-										isLiked
-											? 'border-error bg-error/10 text-error'
-											: 'border-border-medium hover:border-error hover:bg-error/5',
-									)}
-								>
-									<Heart className={cn('size-4', isLiked && 'fill-current')} />
-									<AnimatedNumber value={likeCount} className='tabular-nums' />
-									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
-										L
-									</kbd>
-								</motion.button>
-								<motion.button
-									type='button'
-									onClick={handleSave}
-									disabled={isSaveLoading}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className={cn(
-										'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-										isSaved
-											? 'border-brand bg-brand/10 text-brand'
-											: 'border-border-medium hover:border-brand hover:bg-brand/5',
-									)}
-								>
-									<motion.span
-										animate={isSaved ? 'saved' : 'unsaved'}
-										variants={BOOKMARK_SLIDE}
-										className='inline-flex'
-									>
-										<Bookmark
-											className={cn('size-4', isSaved && 'fill-current')}
-										/>
-									</motion.span>
-									{isSaved ? t('saved') : t('save')}
-									<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
-										S
-									</kbd>
-								</motion.button>
-								<motion.button
-									type='button'
-									onClick={handleShare}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-border-medium px-4 py-3 text-sm font-semibold transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('ariaShareRecipe')}
-								>
-									<Share2 className='size-4' />
-									{t('share')}
-								</motion.button>
-								<motion.button
-									type='button'
-									onClick={handleCookTogether}
-									disabled={isCreatingRoom || hasOtherSession}
+									onClick={handleStartCooking}
+									disabled={isCookingLoading || hasOtherSession}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
 									title={
 										hasOtherSession
-											? t('alreadyCookingTooltip', {
+											? t('alreadyCookingTitle', {
 													recipe:
 														activeSession?.recipe?.title || t('anotherRecipe'),
 												})
-											: t('cookTogetherTitle')
+											: undefined
 									}
-									className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									{isCreatingRoom ? (
-										<Loader2 className='size-4 animate-spin' />
-									) : (
-										<Users className='size-4' />
+									className={cn(
+										'flex w-full items-center justify-center gap-2 rounded-xl py-4 text-lg font-bold shadow-warm transition-shadow disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50',
+										isCurrentlyCooked
+											? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
+											: hasOtherSession
+												? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
+												: 'bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow',
 									)}
-									<span className='hidden sm:inline'>{t('together')}</span>
+								>
+									{isCookingLoading ? (
+										<>
+											<Loader2 className='size-6 animate-spin' />
+											{t('startingCooking')}
+										</>
+									) : isCurrentlyCooked ? (
+										<>
+											<Play className='size-6 fill-white' />
+											{t('continueCooking')}
+										</>
+									) : hasOtherSession ? (
+										<>
+											<AlertCircle className='size-6' />
+											{t('alreadyCooking')}
+										</>
+									) : (
+										<>
+											<Play className='size-6 fill-white' />
+											{t('startCooking')}
+											<kbd className='ml-2 rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal'>
+												Enter
+											</kbd>
+										</>
+									)}
 								</motion.button>
-							</div>
 
-							{/* Tier 3: Secondary actions — condensed row with more-menu */}
-							<div className='flex items-center gap-2'>
-								<motion.button
-									type='button'
-									onClick={handleAddToShoppingList}
-									disabled={isAddingToShoppingList}
-									whileHover={BUTTON_HOVER}
-									whileTap={BUTTON_TAP}
-									className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-success hover:bg-success/5 hover:text-success focus-visible:ring-2 focus-visible:ring-brand/50'
-									title={t('addToShoppingListTitle')}
-								>
-									{isAddingToShoppingList ? (
-										<Loader2 className='size-3.5 animate-spin' />
-									) : (
-										<ShoppingCart className='size-3.5' />
-									)}
-									{t('shoppingList')}
-								</motion.button>
-								{/* Remix Dropdown */}
-								<DropdownMenu
-									open={showRemixMenu}
-									onOpenChange={setShowRemixMenu}
-								>
-									<DropdownMenuTrigger asChild>
-										<motion.button
-											type='button'
-											whileHover={BUTTON_HOVER}
-											whileTap={BUTTON_TAP}
-											disabled={isRemixing}
-											className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-xp hover:bg-xp/5 hover:text-xp disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-											title={t('remixRecipeTitle')}
+								{/* Tier 2: Social actions - compact inline bar */}
+								<div className='flex items-center gap-2'>
+									<motion.button
+										type='button'
+										onClick={handleLike}
+										disabled={isLikeLoading}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className={cn(
+											'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+											isLiked
+												? 'border-error bg-error/10 text-error'
+												: 'border-border-medium hover:border-error hover:bg-error/5',
+										)}
+									>
+										<Heart
+											className={cn('size-4', isLiked && 'fill-current')}
+										/>
+										<AnimatedNumber
+											value={likeCount}
+											className='tabular-nums'
+										/>
+										<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
+											L
+										</kbd>
+									</motion.button>
+									<motion.button
+										type='button'
+										onClick={handleSave}
+										disabled={isSaveLoading}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className={cn(
+											'flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+											isSaved
+												? 'border-brand bg-brand/10 text-brand'
+												: 'border-border-medium hover:border-brand hover:bg-brand/5',
+										)}
+									>
+										<motion.span
+											animate={isSaved ? 'saved' : 'unsaved'}
+											variants={BOOKMARK_SLIDE}
+											className='inline-flex'
 										>
-											{isRemixing ? (
-												<Loader2 className='size-3.5 animate-spin' />
-											) : (
-												<Sparkles className='size-3.5' />
-											)}
-											{t('remix')}
-										</motion.button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align='center' className='w-48'>
-										{REMIX_OPTIONS.map(opt => (
-											<DropdownMenuItem
-												key={opt.type}
-												onClick={() => handleRemix(opt.type)}
-												className='cursor-pointer gap-2 text-sm'
-											>
-												<span>{opt.emoji}</span>
-												<span>{opt.label}</span>
-											</DropdownMenuItem>
-										))}
-									</DropdownMenuContent>
-								</DropdownMenu>
-								{!isOwner && recipe?.author?.userId && (
-									<TipJarButton
-										creatorId={recipe.author.userId}
-										creatorName={
-											recipe.author.displayName ||
-											recipe.author.username ||
-											'this creator'
+											<Bookmark
+												className={cn('size-4', isSaved && 'fill-current')}
+											/>
+										</motion.span>
+										{isSaved ? t('saved') : t('save')}
+										<kbd className='hidden text-xs font-normal text-text-muted sm:inline'>
+											S
+										</kbd>
+									</motion.button>
+									<motion.button
+										type='button'
+										onClick={handleShare}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-border-medium px-4 py-3 text-sm font-semibold transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+										aria-label={t('ariaShareRecipe')}
+									>
+										<Share2 className='size-4' />
+										{t('share')}
+									</motion.button>
+									<motion.button
+										type='button'
+										onClick={handleCookTogether}
+										disabled={isCreatingRoom || hasOtherSession}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										title={
+											hasOtherSession
+												? t('alreadyCookingTooltip', {
+														recipe:
+															activeSession?.recipe?.title ||
+															t('anotherRecipe'),
+													})
+												: t('cookTogetherTitle')
 										}
-										recipeId={recipe.id}
-									/>
-								)}
-								{/* Owner Controls — collapsed into dropdown */}
-								{isOwner && (
-									<DropdownMenu>
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-brand/40 bg-brand/5 px-4 py-3 text-sm font-semibold text-brand transition-all hover:border-brand hover:bg-brand/10 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										{isCreatingRoom ? (
+											<Loader2 className='size-4 animate-spin' />
+										) : (
+											<Users className='size-4' />
+										)}
+										<span className='hidden sm:inline'>{t('together')}</span>
+									</motion.button>
+								</div>
+
+								{/* Tier 3: Secondary actions - condensed row with more-menu */}
+								<div className='flex items-center gap-2'>
+									<motion.button
+										type='button'
+										onClick={handleAddToShoppingList}
+										disabled={isAddingToShoppingList}
+										whileHover={BUTTON_HOVER}
+										whileTap={BUTTON_TAP}
+										className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-success hover:bg-success/5 hover:text-success focus-visible:ring-2 focus-visible:ring-brand/50'
+										title={t('addToShoppingListTitle')}
+									>
+										{isAddingToShoppingList ? (
+											<Loader2 className='size-3.5 animate-spin' />
+										) : (
+											<ShoppingCart className='size-3.5' />
+										)}
+										{t('shoppingList')}
+									</motion.button>
+									{/* Remix Dropdown */}
+									<DropdownMenu
+										open={showRemixMenu}
+										onOpenChange={setShowRemixMenu}
+									>
 										<DropdownMenuTrigger asChild>
 											<motion.button
 												type='button'
 												whileHover={BUTTON_HOVER}
 												whileTap={BUTTON_TAP}
-												className='ml-auto flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
-												title={t('recipeActionsTitle')}
+												disabled={isRemixing}
+												className='flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-xp hover:bg-xp/5 hover:text-xp disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+												title={t('remixRecipeTitle')}
 											>
-												<MoreHorizontal className='size-3.5' />
-												{t('manage')}
+												{isRemixing ? (
+													<Loader2 className='size-3.5 animate-spin' />
+												) : (
+													<Sparkles className='size-3.5' />
+												)}
+												{t('remix')}
 											</motion.button>
 										</DropdownMenuTrigger>
-										<DropdownMenuContent align='end' className='w-48'>
-											<DropdownMenuItem
-												onClick={() => {
-													if (!recipe) return
-													useCookingStore.getState().startPreviewCooking(recipe)
-													useUiStore.getState().expandCookingPanel()
-												}}
-												className='cursor-pointer gap-2 text-sm'
-											>
-												<Rocket className='size-4' />
-												{t('testCookPreview')}
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												onClick={() =>
-													router.push(`/create?draftId=${recipeId}`)
-												}
-												className='cursor-pointer gap-2 text-sm'
-											>
-												<Edit3 className='size-4' />
-												{t('editRecipe')}
-											</DropdownMenuItem>
-											<DropdownMenuItem
-												onClick={() => setShowDeleteConfirm(true)}
-												className='cursor-pointer gap-2 text-sm text-error focus:text-error'
-											>
-												<Trash2 className='size-4' />
-												{t('deleteRecipe')}
-											</DropdownMenuItem>
+										<DropdownMenuContent align='center' className='w-48'>
+											{REMIX_OPTIONS.map(opt => (
+												<DropdownMenuItem
+													key={opt.type}
+													onClick={() => handleRemix(opt.type)}
+													className='cursor-pointer gap-2 text-sm'
+												>
+													<span>{opt.emoji}</span>
+													<span>{opt.label}</span>
+												</DropdownMenuItem>
+											))}
 										</DropdownMenuContent>
 									</DropdownMenu>
-								)}
-							</div>
-						</motion.div>
-
-						{/* Tags */}
-						{(recipe.cuisineType || (recipe.dietaryTags?.length ?? 0) > 0) && (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ delay: 0.6 }}
-								className='mt-6 flex flex-wrap gap-2'
-							>
-								{recipe.cuisineType && (
-									<span className='rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand'>
-										{recipe.cuisineType}
-									</span>
-								)}
-								{recipe.dietaryTags?.map(tag => (
-									<span
-										key={tag}
-										className='rounded-full bg-bg-elevated px-4 py-1.5 text-sm font-medium text-text-secondary'
-									>
-										{tag}
-									</span>
-								))}
+									{!isOwner && recipe?.author?.userId && (
+										<TipJarButton
+											creatorId={recipe.author.userId}
+											creatorName={
+												recipe.author.displayName ||
+												recipe.author.username ||
+												'this creator'
+											}
+											recipeId={recipe.id}
+										/>
+									)}
+									{/* Owner Controls - collapsed into dropdown */}
+									{isOwner && (
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<motion.button
+													type='button'
+													whileHover={BUTTON_HOVER}
+													whileTap={BUTTON_TAP}
+													className='ml-auto flex items-center gap-2 rounded-xl border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary transition-colors hover:border-text-secondary hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+													title={t('recipeActionsTitle')}
+												>
+													<MoreHorizontal className='size-3.5' />
+													{t('manage')}
+												</motion.button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align='end' className='w-48'>
+												<DropdownMenuItem
+													onClick={() => {
+														if (!recipe) return
+														useCookingStore
+															.getState()
+															.startPreviewCooking(recipe)
+														useUiStore.getState().expandCookingPanel()
+													}}
+													className='cursor-pointer gap-2 text-sm'
+												>
+													<Rocket className='size-4' />
+													{t('testCookPreview')}
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={() =>
+														router.push(`/create?draftId=${recipeId}`)
+													}
+													className='cursor-pointer gap-2 text-sm'
+												>
+													<Edit3 className='size-4' />
+													{t('editRecipe')}
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={() => setShowDeleteConfirm(true)}
+													className='cursor-pointer gap-2 text-sm text-error focus:text-error'
+												>
+													<Trash2 className='size-4' />
+													{t('deleteRecipe')}
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									)}
+								</div>
 							</motion.div>
-						)}
-					</div>
+
+							{/* Tags */}
+							{(recipe.cuisineType ||
+								(recipe.dietaryTags?.length ?? 0) > 0) && (
+								<motion.div
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									transition={{ delay: 0.6 }}
+									className='mt-6 flex flex-wrap gap-2'
+								>
+									{recipe.cuisineType && (
+										<span className='rounded-full bg-brand/10 px-4 py-1.5 text-sm font-medium text-brand'>
+											{recipe.cuisineType}
+										</span>
+									)}
+									{recipe.dietaryTags?.map(tag => (
+										<span
+											key={tag}
+											className='rounded-full bg-bg-elevated px-4 py-1.5 text-sm font-medium text-text-secondary'
+										>
+											{tag}
+										</span>
+									))}
+								</motion.div>
+							)}
+						</div>
+					</MagicCard>
 				</motion.div>
 
-				{/* Social Proof — community activity */}
+				{/* Social Proof - community activity */}
 				<RevealOnScroll direction='up'>
 					<SocialProof recipeId={recipeId} />
 				</RevealOnScroll>
@@ -1421,80 +1498,81 @@ function RecipeDetailContent() {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
-						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
 					>
-						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
-							<Zap className='size-5 text-xp' />
-							{t('xpBreakdownHeading')}
-							<TooltipProvider delayDuration={100}>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Info className='size-4 cursor-help text-text-muted' />
-									</TooltipTrigger>
-									<TooltipContent className='max-w-xs p-3'>
-										<p className='text-sm text-text-secondary'>
-											{t('xpTooltipExplanation')}
-										</p>
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
-						</h2>
-						<div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold tabular-nums text-success'>
-									+<AnimatedNumber value={recipe.xpBreakdown.base} />
-								</div>
-								<div className='text-xs text-text-muted'>
-									{t('xpBase', { difficulty: recipe.difficulty })}
-								</div>
-							</div>
-							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold tabular-nums text-success'>
-									+<AnimatedNumber value={recipe.xpBreakdown.steps} />
-								</div>
-								<div className='text-xs text-text-muted'>
-									{t('xpSteps', { n: recipe.steps.length })}
-								</div>
-							</div>
-							<div className='rounded-xl bg-bg-card p-4 text-center'>
-								<div className='text-2xl font-bold tabular-nums text-success'>
-									+<AnimatedNumber value={recipe.xpBreakdown.time} />
-								</div>
-								<div className='text-xs text-text-muted'>
-									{t('xpTime', { n: totalTime })}
-								</div>
-							</div>
-							{recipe.xpBreakdown.techniques ? (
+						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
+							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
+								<Zap className='size-5 text-xp' />
+								{t('xpBreakdownHeading')}
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Info className='size-4 cursor-help text-text-muted' />
+										</TooltipTrigger>
+										<TooltipContent className='max-w-xs p-3'>
+											<p className='text-sm text-text-secondary'>
+												{t('xpTooltipExplanation')}
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</h2>
+							<div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
 								<div className='rounded-xl bg-bg-card p-4 text-center'>
 									<div className='text-2xl font-bold tabular-nums text-success'>
-										+<AnimatedNumber value={recipe.xpBreakdown.techniques} />
+										+<AnimatedNumber value={recipe.xpBreakdown.base} />
 									</div>
 									<div className='text-xs text-text-muted'>
-										{t('xpTechniques')}
+										{t('xpBase', { difficulty: recipe.difficulty })}
 									</div>
 								</div>
-							) : null}
-						</div>
-						<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
-							<span className='font-semibold text-white'>{t('xpTotal')}</span>
-							<SparklesEffect color='white' count={8}>
-								<span className='text-2xl font-black tabular-nums text-white'>
-									+
-									<AnimatedNumber
-										value={(() => {
-											const computed =
-												recipe.xpBreakdown.base +
-												recipe.xpBreakdown.steps +
-												recipe.xpBreakdown.time +
-												(recipe.xpBreakdown.techniques ?? 0)
-											return recipe.xpBreakdown.total > 0
-												? recipe.xpBreakdown.total
-												: computed
-										})()}
-										duration={0.8}
-									/>
-								</span>
-							</SparklesEffect>
+								<div className='rounded-xl bg-bg-card p-4 text-center'>
+									<div className='text-2xl font-bold tabular-nums text-success'>
+										+<AnimatedNumber value={recipe.xpBreakdown.steps} />
+									</div>
+									<div className='text-xs text-text-muted'>
+										{t('xpSteps', { n: recipe.steps.length })}
+									</div>
+								</div>
+								<div className='rounded-xl bg-bg-card p-4 text-center'>
+									<div className='text-2xl font-bold tabular-nums text-success'>
+										+<AnimatedNumber value={recipe.xpBreakdown.time} />
+									</div>
+									<div className='text-xs text-text-muted'>
+										{t('xpTime', { n: totalTime })}
+									</div>
+								</div>
+								{recipe.xpBreakdown.techniques ? (
+									<div className='rounded-xl bg-bg-card p-4 text-center'>
+										<div className='text-2xl font-bold tabular-nums text-success'>
+											+<AnimatedNumber value={recipe.xpBreakdown.techniques} />
+										</div>
+										<div className='text-xs text-text-muted'>
+											{t('xpTechniques')}
+										</div>
+									</div>
+								) : null}
+							</div>
+							<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
+								<span className='font-semibold text-white'>{t('xpTotal')}</span>
+								<SparklesEffect color='white' count={8}>
+									<span className='text-2xl font-black tabular-nums text-white'>
+										+
+										<AnimatedNumber
+											value={(() => {
+												const computed =
+													recipe.xpBreakdown.base +
+													recipe.xpBreakdown.steps +
+													recipe.xpBreakdown.time +
+													(recipe.xpBreakdown.techniques ?? 0)
+												return recipe.xpBreakdown.total > 0
+													? recipe.xpBreakdown.total
+													: computed
+											})()}
+											duration={0.8}
+										/>
+									</span>
+								</SparklesEffect>
+							</div>
 						</div>
 					</motion.div>
 				) : (
@@ -1503,34 +1581,35 @@ function RecipeDetailContent() {
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.5 }}
-						className='mb-8 rounded-2xl border border-xp/20 bg-gradient-to-br from-xp/5 to-transparent p-6 shadow-card'
 					>
-						<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
-							<Zap className='size-5 text-xp' />
-							{t('xpRewardHeading')}
-							<TooltipProvider delayDuration={100}>
-								<Tooltip>
-									<TooltipTrigger asChild>
-										<Info className='size-4 cursor-help text-text-muted' />
-									</TooltipTrigger>
-									<TooltipContent className='max-w-xs p-3'>
-										<p className='text-sm text-text-secondary'>
-											{t('xpTooltipExplanation')}
-										</p>
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
-						</h2>
-						<div className='flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
-							<div>
-								<span className='font-semibold text-white'>
-									{t('estimatedXpReward')}
+						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
+							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
+								<Zap className='size-5 text-xp' />
+								{t('xpRewardHeading')}
+								<TooltipProvider delayDuration={100}>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Info className='size-4 cursor-help text-text-muted' />
+										</TooltipTrigger>
+										<TooltipContent className='max-w-xs p-3'>
+											<p className='text-sm text-text-secondary'>
+												{t('xpTooltipExplanation')}
+											</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</h2>
+							<div className='flex items-center justify-between rounded-xl bg-gradient-xp p-4 w-full'>
+								<div>
+									<span className='font-semibold text-white'>
+										{t('estimatedXpReward')}
+									</span>
+									<p className='text-xs text-white/70'>{t('xpRewardBasis')}</p>
+								</div>
+								<span className='text-2xl font-black text-white'>
+									+{recipe.xpReward ?? 0}
 								</span>
-								<p className='text-xs text-white/70'>{t('xpRewardBasis')}</p>
 							</div>
-							<span className='text-2xl font-black text-white'>
-								+{recipe.xpReward ?? 0}
-							</span>
 						</div>
 					</motion.div>
 				)}
@@ -1546,7 +1625,7 @@ function RecipeDetailContent() {
 					>
 						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text-primary'>
-								<span className='text-2xl'>🧾</span> {t('ingredients')}
+								<ChefHat className='size-6 text-brand' /> {t('ingredients')}
 							</h2>
 							<p className='mb-4 text-sm text-text-muted'>
 								{t('forServings', { n: recipe.servings })}
@@ -1559,11 +1638,52 @@ function RecipeDetailContent() {
 										animate={{ opacity: 1, x: 0 }}
 										transition={{ delay: 0.5 + index * 0.03 }}
 										whileHover={NAV_ITEM_HOVER}
-										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated'
+										onClick={() => {
+											setCheckedIngredients(prev => ({
+												...prev,
+												[index]: !prev[index],
+											}))
+										}}
+										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated cursor-pointer select-none'
 									>
-										<div className='mt-1.5 size-2 flex-shrink-0 rounded-full bg-brand' />
-										<span className='flex-1 text-text-secondary'>
-											<span className='font-semibold text-text-primary'>
+										<div
+											onClick={e => {
+												e.stopPropagation()
+												setCheckedIngredients(prev => ({
+													...prev,
+													[index]: !prev[index],
+												}))
+											}}
+											className={cn(
+												'mt-0.5 size-5 flex-shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer',
+												checkedIngredients[index]
+													? 'bg-success border-success text-white scale-110 shadow-card'
+													: 'border-border-medium hover:border-brand/50 bg-transparent',
+											)}
+										>
+											{checkedIngredients[index] && (
+												<motion.div
+													initial={{ scale: 0 }}
+													animate={{ scale: 1 }}
+													transition={TRANSITION_SPRING}
+												>
+													<Check className='size-3 stroke-[3]' />
+												</motion.div>
+											)}
+										</div>
+										<span
+											className={cn(
+												'flex-1 text-text-secondary transition-all duration-300',
+												checkedIngredients[index] &&
+													'text-text-muted/60 line-through decoration-brand/35',
+											)}
+										>
+											<span
+												className={cn(
+													'font-semibold text-text-primary transition-all duration-300',
+													checkedIngredients[index] && 'text-text-muted/50',
+												)}
+											>
 												{ingredient.quantity} {ingredient.unit}
 											</span>{' '}
 											{ingredient.name}
@@ -1596,7 +1716,7 @@ function RecipeDetailContent() {
 									</motion.li>
 								))}
 							</ul>
-						</div>
+							</div>
 					</motion.div>
 
 					{/* Steps */}
@@ -1607,7 +1727,8 @@ function RecipeDetailContent() {
 						className='lg:col-span-2'
 					>
 						<h2 className='mb-6 flex items-center gap-2 text-2xl font-bold text-text-primary'>
-							<span className='text-2xl'>👨‍🍳</span> {t('instructions')}
+							<UtensilsCrossed className='size-6 text-brand' />
+							{t('instructions')}
 						</h2>
 						<div className='space-y-4'>
 							{recipe.steps
@@ -1617,18 +1738,49 @@ function RecipeDetailContent() {
 										key={`step-${step.stepNumber}`}
 										variants={staggerItem}
 										whileHover={STAT_ITEM_HOVER}
-										className='group rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-shadow hover:shadow-warm'
+										onClick={() => toggleStep(index)}
+										className={cn(
+											'group rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-all duration-300 hover:shadow-warm cursor-pointer select-none relative overflow-hidden',
+											completedSteps[index] &&
+												'bg-bg-card/45 border-success/20 shadow-none scale-[0.98]',
+										)}
 									>
+										{/* Frosted checked layer indicator */}
+										{completedSteps[index] && (
+											<div className='absolute top-2 right-2 flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success z-10'>
+												<Check className='size-3 stroke-[3] inline' /> Done
+											</div>
+										)}
+
 										<div className='mb-4 flex items-center gap-4'>
 											<motion.div
 												whileHover={ICON_HOVER}
 												transition={TRANSITION_SPRING}
-												className='grid size-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-hero text-lg font-bold text-white shadow-card'
+												onClick={e => {
+													e.stopPropagation()
+													toggleStep(index)
+												}}
+												className={cn(
+													'grid size-12 flex-shrink-0 place-items-center rounded-xl text-lg font-bold text-white shadow-card transition-all duration-300',
+													completedSteps[index]
+														? 'bg-success shadow-success/20'
+														: 'bg-gradient-hero',
+												)}
 											>
-												{index + 1}
+												{completedSteps[index] ? (
+													<Check className='size-5 stroke-[3]' />
+												) : (
+													index + 1
+												)}
 											</motion.div>
 											<div className='flex-1'>
-												<h3 className='text-lg font-bold text-text-primary'>
+												<h3
+													className={cn(
+														'text-lg font-bold text-text-primary transition-all duration-300',
+														completedSteps[index] &&
+															'text-text-muted/70 line-through decoration-success/30',
+													)}
+												>
 													{step.title}
 												</h3>
 												{step.timerSeconds && (
@@ -1662,7 +1814,12 @@ function RecipeDetailContent() {
 												/>
 											</div>
 										) : null}
-										<p className='leading-relaxed text-text-secondary'>
+										<p
+											className={cn(
+												'leading-relaxed text-text-secondary transition-all duration-300',
+												completedSteps[index] && 'text-text-muted/60',
+											)}
+										>
 											{step.description}
 										</p>
 									</motion.div>
@@ -1727,7 +1884,7 @@ function RecipeDetailContent() {
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 									aria-label={t('remixClose')}
 								>
-									✕
+									x
 								</button>
 							</div>
 

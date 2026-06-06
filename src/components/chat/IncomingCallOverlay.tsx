@@ -32,7 +32,7 @@ export default function IncomingCallOverlay({
 						className='fixed inset-0 z-modal flex flex-col items-center justify-center bg-black/85 backdrop-blur-md'
 					>
 						<div className='size-24 bg-brand/20 rounded-full flex items-center justify-center animate-pulse mb-6'>
-							<div className='size-16 bg-brand rounded-full flex items-center justify-center shadow-lg shadow-brand/50'>
+							<div className='size-16 bg-brand rounded-full flex items-center justify-center shadow-warm shadow-brand/50'>
 								<Phone className='text-white w-8 h-8 animate-bounce' />
 							</div>
 						</div>

@@ -15,12 +15,14 @@ import {
 	Grid3X3,
 	ChefHat,
 	Bookmark,
+	FolderHeart,
 	Trophy,
 	Heart,
 	ShieldBan,
 	MoreHorizontal,
 } from 'lucide-react'
 import Link from 'next/link'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { TipJarButton } from '@/components/tip/TipJarButton'
 import { cn, formatNumber } from '@/lib/utils'
@@ -421,7 +423,7 @@ const BadgesShowcase = ({
 		<div className={cn('px-6', compact ? 'py-4' : 'py-5')}>
 			{!compact && (
 				<div className='mb-3 flex items-center justify-between'>
-					<h3 className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+					<h3 className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{t('badgesTitle')}
 					</h3>
 					{isOwnProfile && totalBadges > 0 ? (
@@ -438,7 +440,7 @@ const BadgesShowcase = ({
 					) : null}
 				</div>
 			)}
-			<div className='flex gap-3 overflow-x-auto scrollbar-hide pb-2 pr-4'>
+			<div className='flex gap-3 overflow-x-auto hkx-x-rail pb-2 pr-4'>
 				{badges.length === 0 && isOwnProfile ? (
 					<Link
 						href='/profile/badges'
@@ -511,7 +513,7 @@ const ProfileTabs = ({
 }) => {
 	return (
 		<div className='relative border-t border-border'>
-			<div className='flex gap-0.5 overflow-x-auto scrollbar-hide px-2 md:px-4'>
+			<div className='flex gap-0.5 overflow-x-auto hkx-x-rail px-2 md:px-4'>
 				{tabs.map(tab => (
 					<button
 						type='button'
@@ -594,6 +596,11 @@ const OwnProfileHeader = ({
 		},
 		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
+			id: 'collections',
+			label: t('tabCollections'),
+			icon: <FolderHeart className='size-4' />,
+		},
+		{
 			id: 'cooking',
 			label: t('tabCooking'),
 			icon: <ChefHat className='size-4' />,
@@ -613,14 +620,19 @@ const OwnProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
+		<PremiumSurface
+			tone='brand'
+			showOrbs={true}
+			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
+		>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
 					alt={t('coverAlt')}
 					fill
-					sizes='100vw'
+					priority
+					sizes='(max-width: 768px) 100vw, 1000px'
 					className='object-cover'
 					onError={e => {
 						;(e.target as HTMLImageElement).src = '/default-cover.svg'
@@ -661,6 +673,7 @@ const OwnProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
+						sizes='96px'
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
@@ -790,7 +803,7 @@ const OwnProfileHeader = ({
 				activeTab={activeTab}
 				onTabChange={onTabChange}
 			/>
-		</div>
+		</PremiumSurface>
 	)
 }
 
@@ -821,6 +834,11 @@ const OtherUserProfileHeader = ({
 		},
 		{ id: 'posts', label: t('tabPosts'), icon: <Grid3X3 className='size-4' /> },
 		{
+			id: 'collections',
+			label: t('tabCollections'),
+			icon: <FolderHeart className='size-4' />,
+		},
+		{
 			id: 'achievements',
 			label: t('tabAchievements'),
 			icon: <Trophy className='size-4' />,
@@ -829,14 +847,19 @@ const OtherUserProfileHeader = ({
 	]
 
 	return (
-		<div className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8'>
+		<PremiumSurface
+			tone='brand'
+			showOrbs={true}
+			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
+		>
 			{/* Cover Photo */}
 			<div className='relative h-48 overflow-hidden'>
 				<Image
 					src={user.coverUrl || '/default-cover.svg'}
 					alt={t('coverAlt')}
 					fill
-					sizes='100vw'
+					priority
+					sizes='(max-width: 768px) 100vw, 1000px'
 					className='object-cover'
 					onError={e => {
 						;(e.target as HTMLImageElement).src = '/default-cover.svg'
@@ -864,6 +887,7 @@ const OtherUserProfileHeader = ({
 						alt={user.displayName}
 						width={96}
 						height={96}
+						sizes='96px'
 						className='size-avatar-xl rounded-full border-5 border-bg-card object-cover shadow-warm'
 						onError={e => {
 							;(e.target as HTMLImageElement).src = '/placeholder-avatar.svg'
@@ -904,7 +928,7 @@ const OtherUserProfileHeader = ({
 							'flex flex-1 min-w-[9rem] items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50 md:flex-none md:min-w-0',
 							isFollowing
 								? 'border border-border-medium bg-bg-elevated hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
-								: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
+								: 'bg-brand text-white shadow-glow hover:bg-brand/90',
 						)}
 					>
 						{isFollowing ? (
@@ -989,7 +1013,7 @@ const OtherUserProfileHeader = ({
 				activeTab={activeTab}
 				onTabChange={onTabChange}
 			/>
-		</div>
+		</PremiumSurface>
 	)
 }
 
@@ -1017,6 +1041,7 @@ const MiniProfileHeader = ({
 					alt={user.displayName}
 					width={48}
 					height={48}
+					sizes='48px'
 					className='size-12 rounded-full object-cover'
 				/>
 				<span className='absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border-2 border-bg-card bg-success text-2xs font-bold tracking-tight text-white'>

@@ -9,6 +9,9 @@ export const PATHS = {
 	LEADERBOARD: '/leaderboard',
 	MESSAGES: '/messages',
 	CREATE: '/create',
+	COOK: '/cook',
+	CREATE_POST: '/post/new',
+	PROFILE: '/profile',
 	SETTINGS: '/settings',
 	AUTH: {
 		SIGN_IN: '/auth/sign-in',

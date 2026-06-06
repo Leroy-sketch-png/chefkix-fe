@@ -32,6 +32,15 @@ jest.mock('next/link', () => ({
 
 jest.mock('framer-motion', () => {
 	const React = require('react')
+	const createMotionValue = (initial = 0) => {
+		let current = initial
+		return {
+			get: () => current,
+			set: (next: number) => {
+				current = next
+			},
+		}
+	}
 
 	return {
 		motion: new Proxy(
@@ -43,6 +52,14 @@ jest.mock('framer-motion', () => {
 						React.createElement(tag, props, children),
 			},
 		),
+		useMotionValue: (value = 0) => createMotionValue(value),
+		useMotionTemplate: () => '',
+		useSpring: (value: unknown) => {
+			if (value && typeof value === 'object' && 'get' in (value as object)) {
+				return value
+			}
+			return createMotionValue(value as number)
+		},
 	}
 })
 

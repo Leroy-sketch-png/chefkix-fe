@@ -204,7 +204,7 @@ const ActiveChallengeBanner = ({
 						<span className='mb-2 block text-xs text-text-muted'>
 							{t('tryThese')}
 						</span>
-						<div className='-mr-5 flex gap-2 overflow-x-auto scrollbar-hide pb-1 pr-5'>
+						<div className='-mr-5 flex gap-2 overflow-x-auto hkx-x-rail pb-1 pr-5'>
 							{challenge.matchingRecipes.slice(0, 2).map(recipe => (
 								<Link
 									key={recipe.id}
@@ -239,7 +239,7 @@ const ActiveChallengeBanner = ({
 					onClick={onFindRecipe}
 					whileHover={{ scale: 1.05, y: -2 }}
 					whileTap={{ scale: 0.98 }}
-					className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-base font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					className='flex w-full items-center justify-center gap-2 rounded-xl bg-brand py-3.5 text-base font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
 				>
 					<ChefHat className='size-5' />
 					{t('findRecipe')}

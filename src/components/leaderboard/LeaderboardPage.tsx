@@ -236,7 +236,7 @@ function MyRankBanner({
 					onClick={onCookNow}
 					className={cn(
 						'py-2 px-4 rounded-xl text-sm font-bold text-white focus-visible:ring-2 focus-visible:ring-brand/50',
-						'bg-brand shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]',
+						'bg-brand shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow',
 						'w-full sm:w-auto',
 					)}
 				>
@@ -465,7 +465,7 @@ export function LeaderboardPage({
 					)}
 					<Link
 						href={type === 'friends' ? '/community' : '/explore'}
-						className='inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{type === 'friends' ? t('findFriends') : t('startCooking')}
 					</Link>

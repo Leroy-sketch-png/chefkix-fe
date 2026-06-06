@@ -23,6 +23,8 @@ import {
 	BUTTON_TAP,
 	DURATION_S,
 } from '@/lib/motion'
+import { MagicCard } from '@/components/ui/magic-card'
+import { NumberTicker } from '@/components/ui/number-ticker'
 
 // ============================================
 // TYPES
@@ -122,7 +124,7 @@ const StatCard = ({
 	label: string
 	colorClass?: string
 }) => (
-	<div className='flex items-center gap-2.5 rounded-xl bg-bg p-3.5'>
+	<div className='flex items-center gap-2.5 rounded-xl border border-border-subtle/50 bg-bg-card/40 backdrop-blur-sm p-3.5 shadow-card'>
 		<span className='text-xl'>{icon}</span>
 		<div className='flex flex-col'>
 			<span
@@ -131,7 +133,18 @@ const StatCard = ({
 					colorClass,
 				)}
 			>
-				{value}
+				{value.includes('/') ? (
+					<>
+						<NumberTicker value={parseInt(value.split('/')[0]) || 0} />/
+						{value.split('/')[1]}
+					</>
+				) : value.startsWith('+') ? (
+					<>
+						+<NumberTicker value={parseInt(value.replace('+', '')) || 0} />
+					</>
+				) : (
+					<NumberTicker value={parseInt(value) || 0} />
+				)}
 			</span>
 			<span className='text-2xs text-text-secondary'>{label}</span>
 		</div>
@@ -262,95 +275,109 @@ export const ChallengeHistorySection = ({
 	const t = useTranslations('challenge')
 
 	return (
-		<div className={cn('rounded-2xl bg-bg-card p-6', className)}>
-			{/* Header */}
-			<div className='mb-5 flex items-center justify-between'>
-				<div className='flex items-center gap-3'>
-					<h3 className='flex items-center gap-2 text-lg font-bold text-text-primary'>
-						<CalendarCheck className='size-5 text-brand' />
-						{t('challengeHistory')}
-					</h3>
-					<span className='rounded-xl bg-bg px-2.5 py-1 text-xs text-text-secondary'>
-						{t('last7Days')}
-					</span>
-				</div>
-				{onViewAll && (
-					<button
-						type='button'
-						onClick={onViewAll}
-						className='flex items-center gap-1 text-xs font-semibold text-brand hover:underline'
-					>
-						{t('viewAll')}
-						<ChevronRight className='size-4' />
-					</button>
-				)}
-			</div>
-
-			{/* Stats Summary */}
-			<div className='mb-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
-				<StatCard
-					icon='🔥'
-					value={String(stats.currentStreak)}
-					label={t('currentStreak')}
-					colorClass='text-streak'
-				/>
-				<StatCard
-					icon='✅'
-					value={`${stats.completedThisWeek}/${stats.totalDays}`}
-					label={t('completedStat')}
-					colorClass='text-success'
-				/>
-				<StatCard
-					icon='⚡'
-					value={`+${stats.bonusXpEarned}`}
-					label={t('bonusXP')}
-					colorClass='text-brand'
-				/>
-				<StatCard
-					icon='🏆'
-					value={String(stats.bestStreak)}
-					label={t('bestStreak')}
-					colorClass='text-warning'
-				/>
-			</div>
-
-			{/* Week Calendar */}
-			<div className='mb-6 grid grid-cols-7 gap-2'>
-				{weekDays.map((day, i) => (
-					<DayColumn key={i} day={day} />
-				))}
-			</div>
-
-			{/* Streak Motivation */}
-			{stats.currentStreak > 0 && daysToNextBadge > 0 && (
-				<div className='flex items-center justify-between rounded-xl border border-streak/20 bg-gradient-to-r from-streak/10 to-transparent px-5 py-4'>
-					<div className='flex items-center gap-3.5'>
-						<span className='text-3xl'>🎯</span>
-						<div className='text-sm text-text-primary'>
-							<strong className='text-streak'>
-								{daysToNextBadge > 1
-									? t('unlockBadgePlural', { n: daysToNextBadge })
-									: t('unlockBadgeSingle', { n: daysToNextBadge })}
-							</strong>
-							<span className='mt-0.5 block text-xs text-text-secondary'>
-								{t('completeTomorrowStreak')}
+		<div
+			className={cn(
+				'rounded-2xl overflow-hidden shadow-card border border-border-subtle',
+				className,
+			)}
+		>
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-xp)'
+				className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
+			>
+				<div className='relative z-10 w-full'>
+					{/* Header */}
+					<div className='mb-5 flex items-center justify-between'>
+						<div className='flex items-center gap-3'>
+							<h3 className='flex items-center gap-2 text-lg font-bold text-text-primary'>
+								<CalendarCheck className='size-5 text-brand' />
+								{t('challengeHistory')}
+							</h3>
+							<span className='rounded-xl bg-bg-elevated/40 border border-border-subtle/50 px-2.5 py-1 text-xs text-text-secondary'>
+								{t('last7Days')}
 							</span>
 						</div>
+						{onViewAll && (
+							<button
+								type='button'
+								onClick={onViewAll}
+								className='flex items-center gap-1 text-xs font-semibold text-brand hover:underline'
+							>
+								{t('viewAll')}
+								<ChevronRight className='size-4' />
+							</button>
+						)}
 					</div>
-					{onPreviewTomorrow && (
-						<motion.button
-							type='button'
-							onClick={onPreviewTomorrow}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl bg-streak px-4 py-2.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
-						>
-							{t('previewTomorrow')}
-							<ArrowRight className='size-4' />
-						</motion.button>
+
+					{/* Stats Summary */}
+					<div className='mb-6 grid grid-cols-2 gap-3 md:grid-cols-4'>
+						<StatCard
+							icon='🔥'
+							value={String(stats.currentStreak)}
+							label={t('currentStreak')}
+							colorClass='text-streak'
+						/>
+						<StatCard
+							icon='✅'
+							value={`${stats.completedThisWeek}/${stats.totalDays}`}
+							label={t('completedStat')}
+							colorClass='text-success'
+						/>
+						<StatCard
+							icon='⚡'
+							value={`+${stats.bonusXpEarned}`}
+							label={t('bonusXP')}
+							colorClass='text-brand'
+						/>
+						<StatCard
+							icon='🏆'
+							value={String(stats.bestStreak)}
+							label={t('bestStreak')}
+							colorClass='text-warning'
+						/>
+					</div>
+
+					{/* Week Calendar */}
+					<div className='mb-6 grid grid-cols-7 gap-2'>
+						{weekDays.map((day, i) => (
+							<DayColumn key={i} day={day} />
+						))}
+					</div>
+
+					{/* Streak Motivation */}
+					{stats.currentStreak > 0 && daysToNextBadge > 0 && (
+						<div className='flex items-center justify-between rounded-xl border border-streak/20 bg-gradient-to-r from-streak/10 to-transparent px-5 py-4'>
+							<div className='flex items-center gap-3.5'>
+								<span className='text-3xl'>🎯</span>
+								<div className='text-sm text-text-primary'>
+									<strong className='text-streak'>
+										{daysToNextBadge > 1
+											? t('unlockBadgePlural', { n: daysToNextBadge })
+											: t('unlockBadgeSingle', { n: daysToNextBadge })}
+									</strong>
+									<span className='mt-0.5 block text-xs text-text-secondary'>
+										{t('completeTomorrowStreak')}
+									</span>
+								</div>
+							</div>
+							{onPreviewTomorrow && (
+								<motion.button
+									type='button'
+									onClick={onPreviewTomorrow}
+									whileHover={BUTTON_HOVER}
+									whileTap={BUTTON_TAP}
+									className='flex items-center gap-1.5 rounded-xl bg-streak px-4 py-2.5 text-xs font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									{t('previewTomorrow')}
+									<ArrowRight className='size-4' />
+								</motion.button>
+							)}
+						</div>
 					)}
 				</div>
-			)}
+			</MagicCard>
 		</div>
 	)
 }
@@ -488,147 +515,175 @@ export const ChallengeHistoryPage = ({
 			</div>
 
 			{/* Lifetime Stats */}
-			<div className='rounded-2xl bg-bg-card p-6'>
-				<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
-					{/* Big Stat */}
-					<div className='flex flex-col items-center justify-center rounded-2xl bg-brand/10 p-6'>
-						<span className='text-6xl font-black leading-none text-brand'>
-							{stats.totalCompleted}
-						</span>
-						<span className='mt-2 text-sm text-text-secondary'>
-							{t('challengesCompleted')}
-						</span>
-					</div>
+			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
+				<MagicCard
+					mode='orb'
+					glowFrom='var(--color-brand)'
+					glowTo='var(--color-xp)'
+					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
+				>
+					<div className='relative z-10 w-full'>
+						<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
+							{/* Big Stat */}
+							<div className='flex flex-col items-center justify-center rounded-2xl bg-brand/10 p-6'>
+								<span className='text-6xl font-black leading-none text-brand'>
+									<NumberTicker value={stats.totalCompleted} />
+								</span>
+								<span className='mt-2 text-sm text-text-secondary'>
+									{t('challengesCompleted')}
+								</span>
+							</div>
 
-					{/* Small Stats Grid */}
-					<div className='grid grid-cols-3 gap-3'>
-						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>🔥</span>
-							<span className='text-xl font-bold tracking-tight text-text-primary'>
-								{stats.currentStreak}
-							</span>
-							<span className='text-xs text-text-secondary'>
-								{t('currentStreak')}
-							</span>
+							{/* Small Stats Grid */}
+							<div className='grid grid-cols-3 gap-3'>
+								<div className='flex flex-col items-center gap-2 rounded-xl bg-bg-elevated/45 border border-border-subtle/50 backdrop-blur-sm p-4'>
+									<span className='text-xl'>🔥</span>
+									<span className='text-xl font-bold tracking-tight text-text-primary'>
+										<NumberTicker value={stats.currentStreak} />
+									</span>
+									<span className='text-xs text-text-secondary'>
+										{t('currentStreak')}
+									</span>
+								</div>
+								<div className='flex flex-col items-center gap-2 rounded-xl bg-bg-elevated/45 border border-border-subtle/50 backdrop-blur-sm p-4'>
+									<span className='text-xl'>🏆</span>
+									<span className='text-xl font-bold tracking-tight text-text-primary'>
+										<NumberTicker value={stats.bestStreak} />
+									</span>
+									<span className='text-xs text-text-secondary'>
+										{t('bestStreak')}
+									</span>
+								</div>
+								<div className='flex flex-col items-center gap-2 rounded-xl bg-bg-elevated/45 border border-border-subtle/50 backdrop-blur-sm p-4'>
+									<span className='text-xl'>⚡</span>
+									<span className='text-xl font-bold tracking-tight text-text-primary'>
+										<NumberTicker value={stats.totalBonusXp} />
+									</span>
+									<span className='text-xs text-text-secondary'>
+										{t('totalBonusXP')}
+									</span>
+								</div>
+							</div>
 						</div>
-						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>🏆</span>
-							<span className='text-xl font-bold tracking-tight text-text-primary'>
-								{stats.bestStreak}
-							</span>
-							<span className='text-xs text-text-secondary'>
-								{t('bestStreak')}
-							</span>
-						</div>
-						<div className='flex flex-col items-center gap-2 rounded-xl bg-bg p-4'>
-							<span className='text-xl'>⚡</span>
-							<span className='text-xl font-bold tracking-tight text-text-primary'>
-								{stats.totalBonusXp.toLocaleString()}
-							</span>
-							<span className='text-xs text-text-secondary'>
-								{t('totalBonusXP')}
-							</span>
-						</div>
-					</div>
-				</div>
 
-				{/* Completion Rate */}
-				<div className='border-t border-border pt-4'>
-					<div className='mb-2.5 flex justify-between'>
-						<span className='text-xs text-text-secondary'>
-							{t('thisWeekCompletion')}
-						</span>
-						<span className='text-sm font-bold text-success'>
-							{stats.completedThisWeek}/{stats.totalDays} ({completionRate}%)
-						</span>
+						{/* Completion Rate */}
+						<div className='border-t border-border-subtle/60 pt-4'>
+							<div className='mb-2.5 flex justify-between'>
+								<span className='text-xs text-text-secondary'>
+									{t('thisWeekCompletion')}
+								</span>
+								<span className='text-sm font-bold text-success'>
+									{stats.completedThisWeek}/{stats.totalDays} ({completionRate}
+									%)
+								</span>
+							</div>
+							<div className='h-2.5 overflow-hidden rounded-full bg-border-subtle/55'>
+								<motion.div
+									initial={{ width: 0 }}
+									animate={{ width: `${completionRate}%` }}
+									transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
+									className='h-full rounded-full bg-gradient-to-r from-success to-success'
+								/>
+							</div>
+						</div>
 					</div>
-					<div className='h-2.5 overflow-hidden rounded-full bg-bg'>
-						<motion.div
-							initial={{ width: 0 }}
-							animate={{ width: `${completionRate}%` }}
-							transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
-							className='h-full rounded-full bg-gradient-to-r from-success to-success'
-						/>
-					</div>
-				</div>
+				</MagicCard>
 			</div>
 
 			{/* Month View */}
-			<div className='rounded-2xl bg-bg-card p-6'>
-				<div className='mb-5 flex items-center justify-center gap-6'>
-					<button
-						type='button'
-						onClick={() => onMonthChange?.('prev')}
-						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text-primary transition-colors hover:bg-bg-elevated'
-					>
-						<ChevronLeft className='size-4' />
-					</button>
-					<span className='text-lg font-bold text-text-primary'>
-						{currentMonth.toLocaleDateString(locale, {
-							month: 'long',
-							year: 'numeric',
-						})}
-					</span>
-					<button
-						type='button'
-						onClick={() => onMonthChange?.('next')}
-						className='flex size-8 items-center justify-center rounded-xl border border-border bg-bg text-text-primary transition-colors hover:bg-bg-elevated'
-					>
-						<ChevronRight className='size-4' />
-					</button>
-				</div>
-
-				{/* Simple calendar grid placeholder - would be expanded for full implementation */}
-				<div className='grid grid-cols-7 gap-1'>
-					{(
-						[
-							{ key: 'dayMon', label: t('dayMon') },
-							{ key: 'dayTue', label: t('dayTue') },
-							{ key: 'dayWed', label: t('dayWed') },
-							{ key: 'dayThu', label: t('dayThu') },
-							{ key: 'dayFri', label: t('dayFri') },
-							{ key: 'daySat', label: t('daySat') },
-							{ key: 'daySun', label: t('daySun') },
-						] as Array<{ key: string; label: string }>
-					).map(({ key, label }) => (
-						<div
-							key={key}
-							className='py-2 text-center text-xs font-semibold text-text-secondary'
-						>
-							{label}
+			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
+				<MagicCard
+					mode='orb'
+					glowFrom='var(--color-streak)'
+					glowTo='var(--color-brand)'
+					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
+				>
+					<div className='relative z-10 w-full'>
+						<div className='mb-5 flex items-center justify-center gap-6'>
+							<button
+								type='button'
+								onClick={() => onMonthChange?.('prev')}
+								className='flex size-8 items-center justify-center rounded-xl border border-border-subtle bg-bg-elevated/40 text-text-primary transition-colors hover:bg-bg-elevated'
+							>
+								<ChevronLeft className='size-4' />
+							</button>
+							<span className='text-lg font-bold text-text-primary'>
+								{currentMonth.toLocaleDateString(locale, {
+									month: 'long',
+									year: 'numeric',
+								})}
+							</span>
+							<button
+								type='button'
+								onClick={() => onMonthChange?.('next')}
+								className='flex size-8 items-center justify-center rounded-xl border border-border-subtle bg-bg-elevated/40 text-text-primary transition-colors hover:bg-bg-elevated'
+							>
+								<ChevronRight className='size-4' />
+							</button>
 						</div>
-					))}
-				</div>
+
+						{/* Simple calendar grid placeholder */}
+						<div className='grid grid-cols-7 gap-1'>
+							{(
+								[
+									{ key: 'dayMon', label: t('dayMon') },
+									{ key: 'dayTue', label: t('dayTue') },
+									{ key: 'dayWed', label: t('dayWed') },
+									{ key: 'dayThu', label: t('dayThu') },
+									{ key: 'dayFri', label: t('dayFri') },
+									{ key: 'daySat', label: t('daySat') },
+									{ key: 'daySun', label: t('daySun') },
+								] as Array<{ key: string; label: string }>
+							).map(({ key, label }) => (
+								<div
+									key={key}
+									className='py-2 text-center text-xs font-semibold text-text-secondary'
+								>
+									{label}
+								</div>
+							))}
+						</div>
+					</div>
+				</MagicCard>
 			</div>
 
 			{/* Recent History List */}
-			<div className='rounded-2xl bg-bg-card p-6'>
-				<h3 className='mb-5 text-base font-bold text-text-primary'>
-					{t('recentChallenges')}
-				</h3>
-				<div>
-					{recentDays.map((day, i) => (
-						<HistoryItem
-							key={i}
-							day={day}
-							showTodayBadge={isTodayUtil(day.date)}
-						/>
-					))}
-				</div>
+			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
+				<MagicCard
+					mode='orb'
+					glowFrom='var(--color-brand)'
+					glowTo='var(--color-success)'
+					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
+				>
+					<div className='relative z-10 w-full'>
+						<h3 className='mb-5 text-base font-bold text-text-primary'>
+							{t('recentChallenges')}
+						</h3>
+						<div>
+							{recentDays.map((day, i) => (
+								<HistoryItem
+									key={i}
+									day={day}
+									showTodayBadge={isTodayUtil(day.date)}
+								/>
+							))}
+						</div>
 
-				{onLoadMore && (
-					<motion.button
-						type='button'
-						onClick={onLoadMore}
-						disabled={isLoadingMore}
-						whileHover={BUTTON_HOVER}
-						whileTap={BUTTON_TAP}
-						className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-bg py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-muted/30 hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-					>
-						{isLoadingMore ? t('loading') : t('loadMore')}
-						<ChevronDown className='size-4' />
-					</motion.button>
-				)}
+						{onLoadMore && (
+							<motion.button
+								type='button'
+								onClick={onLoadMore}
+								disabled={isLoadingMore}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border-subtle/60 bg-bg-elevated/40 py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								{isLoadingMore ? t('loading') : t('loadMore')}
+								<ChevronDown className='size-4' />
+							</motion.button>
+						)}
+					</div>
+				</MagicCard>
 			</div>
 		</div>
 	)

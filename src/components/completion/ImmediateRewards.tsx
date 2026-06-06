@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
@@ -582,7 +582,7 @@ export const ImmediateRewards = ({
 									{/* Existing photo previews */}
 									{photoPreviewUrls.map((url, index) => (
 										<motion.div
-											key={url}
+											key={index}
 											initial={{ opacity: 0, scale: 0.8 }}
 											animate={{ opacity: 1, scale: 1 }}
 											className='group relative size-20 flex-shrink-0 overflow-hidden rounded-xl'

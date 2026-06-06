@@ -225,15 +225,15 @@ export function StoryCreator() {
 	}
 
 	return (
-		<div className='flex h-screen bg-[#18191A] text-[#E4E6EB] font-sans overflow-hidden'>
+		<div className='flex h-screen bg-bg text-text-primary font-sans overflow-hidden'>
 			{/* CỘT TRÁI: Thanh Sidebar điều khiển */}
-			<div className='w-[360px] bg-[#242526] border-r border-[#3E4042] flex flex-col z-10 shadow-2xl'>
-				<div className='flex items-center gap-3 p-4 border-b border-[#3E4042]'>
+			<div className='w-drawer bg-bg-card border-r border-border flex flex-col z-10 shadow-2xl'>
+				<div className='flex items-center gap-3 p-4 border-b border-border'>
 					<Button
 						variant='ghost'
 						size='icon'
 						onClick={() => router.back()}
-						className='rounded-full hover:bg-[#3A3B3C] text-white'
+						className='rounded-full hover:bg-bg-hover text-white'
 					>
 						<X className='w-5 h-5' />
 					</Button>
@@ -243,7 +243,7 @@ export function StoryCreator() {
 				<div className='flex-1 overflow-y-auto p-4 space-y-6'>
 					{/* Khu vực Upload Ảnh Nền */}
 					<div className='space-y-3'>
-						<h3 className='text-[15px] font-semibold text-[#B0B3B8]'>
+						<h3 className='text-label font-semibold text-text-secondary'>
 							{t('backgroundMediaLabel')}
 						</h3>
 						<input
@@ -255,7 +255,7 @@ export function StoryCreator() {
 						/>
 						<Button
 							onClick={() => fileInputRef.current?.click()}
-							className='w-full bg-[#3A3B3C] hover:bg-[#4E4F50] text-[#E4E6EB] font-semibold h-12 flex items-center justify-center gap-2 rounded-xl'
+							className='w-full bg-bg-hover hover:bg-border-subtle text-text-primary font-semibold h-12 flex items-center justify-center gap-2 rounded-xl'
 						>
 							<ImageIcon className='w-5 h-5' />
 							{mediaPreview
@@ -265,13 +265,13 @@ export function StoryCreator() {
 					</div>
 
 					{mediaPreview && (
-						<div className='space-y-4 p-4 bg-[#18191A] rounded-xl border border-[#3E4042]'>
-							<h3 className='text-[15px] font-semibold text-[#B0B3B8] mb-2'>
+						<div className='space-y-4 p-4 bg-bg rounded-xl border border-border'>
+							<h3 className='text-label font-semibold text-text-secondary mb-2'>
 								{t('editBackgroundSection')}
 							</h3>
 
 							<div className='space-y-2'>
-								<div className='flex justify-between text-xs text-[#B0B3B8]'>
+								<div className='flex justify-between text-xs text-text-secondary'>
 									<span>
 										{t('zoomLabel', { scale: imageScale.toFixed(1) })}
 									</span>
@@ -283,12 +283,12 @@ export function StoryCreator() {
 									step='0.1'
 									value={imageScale}
 									onChange={e => setImageScale(Number(e.target.value))}
-									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-xl appearance-none cursor-pointer'
+									className='w-full accent-blue-500 h-1 bg-bg-hover rounded-xl appearance-none cursor-pointer'
 								/>
 							</div>
 
 							<div className='space-y-2'>
-								<div className='flex justify-between text-xs text-[#B0B3B8]'>
+								<div className='flex justify-between text-xs text-text-secondary'>
 									<span>{t('rotateLabel', { rotation: imageRotation })}</span>
 								</div>
 								<input
@@ -298,7 +298,7 @@ export function StoryCreator() {
 									step='1'
 									value={imageRotation}
 									onChange={e => setImageRotation(Number(e.target.value))}
-									className='w-full accent-blue-500 h-1 bg-[#3A3B3C] rounded-xl appearance-none cursor-pointer'
+									className='w-full accent-blue-500 h-1 bg-bg-hover rounded-xl appearance-none cursor-pointer'
 								/>
 							</div>
 						</div>
@@ -306,13 +306,13 @@ export function StoryCreator() {
 
 					{/* Khu vực Thêm Sticker / Text */}
 					<div className='space-y-3'>
-						<h3 className='text-[15px] font-semibold text-[#B0B3B8]'>
+						<h3 className='text-label font-semibold text-text-secondary'>
 							{t('addDetailsSection')}
 						</h3>
 						<div className='grid grid-cols-2 gap-3'>
 							<button
 								onClick={handleAddText}
-								className='flex flex-col items-center justify-center p-4 bg-[#3A3B3C] hover:bg-[#4E4F50] rounded-xl transition-colors'
+								className='flex flex-col items-center justify-center p-4 bg-bg-hover hover:bg-border-subtle rounded-xl transition-colors'
 							>
 								<div className='bg-white/10 p-2 rounded-full mb-2'>
 									<TypeIcon className='w-5 h-5 text-white' />
@@ -323,7 +323,7 @@ export function StoryCreator() {
 							<div className='relative'>
 								<button
 									onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-									className='w-full flex flex-col items-center justify-center p-4 bg-[#3A3B3C] hover:bg-[#4E4F50] rounded-xl transition-colors'
+									className='w-full flex flex-col items-center justify-center p-4 bg-bg-hover hover:bg-border-subtle rounded-xl transition-colors'
 								>
 									<div className='bg-white/10 p-2 rounded-full mb-2'>
 										<Smile className='w-5 h-5 text-white' />
@@ -358,7 +358,7 @@ export function StoryCreator() {
 						/>
 						<button
 							onClick={() => stickerInputRef.current?.click()}
-							className='w-full flex items-center justify-center gap-2 p-3 bg-[#3A3B3C] hover:bg-[#4E4F50] rounded-xl transition-colors'
+							className='w-full flex items-center justify-center gap-2 p-3 bg-bg-hover hover:bg-border-subtle rounded-xl transition-colors'
 						>
 							<ImagePlus className='w-5 h-5' />
 							<span className='text-sm font-medium'>
@@ -369,11 +369,11 @@ export function StoryCreator() {
 				</div>
 
 				{/* Nút Đăng Story */}
-				<div className='p-4 border-t border-[#3E4042] bg-[#242526]'>
+				<div className='p-4 border-t border-border bg-bg-card'>
 					<Button
 						onClick={handleSubmit}
 						disabled={isLoading || !mediaPreview}
-						className='w-full bg-[#0866FF] hover:bg-[#0054D1] text-white font-semibold h-11 rounded-xl text-[15px]'
+						className='w-full bg-brand hover:bg-brand-hover text-white font-semibold h-11 rounded-xl text-label'
 					>
 						{isLoading ? t('loadingText') : t('publishButton')}
 					</Button>
@@ -381,8 +381,8 @@ export function StoryCreator() {
 			</div>
 
 			{/* CỘT PHẢI: Canvas Review */}
-			<div className='flex-1 flex items-center justify-center bg-[#18191A] p-8 relative'>
-				<div className='relative w-full max-w-[380px] aspect-[9/16] bg-black rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden border border-[#3E4042]'>
+			<div className='flex-1 flex items-center justify-center bg-bg p-8 relative'>
+				<div className='relative w-full max-w-sm aspect-[9/16] bg-black rounded-xl shadow-md overflow-hidden border border-border'>
 					{/* Lớp nền Ảnh/Video */}
 					{mediaPreview ? (
 						<img
@@ -394,7 +394,7 @@ export function StoryCreator() {
 							}}
 						/>
 					) : (
-						<div className='absolute inset-0 flex flex-col items-center justify-center text-[#B0B3B8] bg-[#242526]'>
+						<div className='absolute inset-0 flex flex-col items-center justify-center text-text-secondary bg-bg-card'>
 							<Camera className='w-16 h-16 mb-4 opacity-30' />
 							<span className='text-sm font-medium'>{t('previewLabel')}</span>
 						</div>
@@ -445,7 +445,7 @@ export function StoryCreator() {
 								)}
 
 								{item.type === 'STICKER' && (
-									<div className='text-[80px] leading-none select-none drop-shadow-2xl'>
+									<div className='text-7xl leading-none select-none drop-shadow-2xl'>
 										{item.data.emoji}
 									</div>
 								)}
@@ -470,7 +470,7 @@ export function StoryCreator() {
 									<Button
 										variant='ghost'
 										size='icon'
-										className='w-8 h-8 rounded-md text-[#FF4444] hover:bg-[#FF4444]/20 hover:text-[#FF4444]'
+										className='w-8 h-8 rounded-md text-error hover:bg-error/20 hover:text-error'
 										onClick={() => removeItem(item.id)}
 									>
 										<Trash2 className='w-4 h-4' />

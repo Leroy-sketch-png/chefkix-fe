@@ -13,6 +13,7 @@ import { UserDiscoveryClient } from '@/components/discover/UserDiscoveryClient'
 import { FollowSuggestionCard } from '@/components/social/FollowSuggestionCard'
 import { FriendCard } from '@/components/social/FriendCard'
 import { CommunitySkeleton } from '@/components/social/CommunitySkeleton'
+import { PostCard } from '@/components/social/PostCard'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { GroupsExploreGrid } from '@/components/groups'
 import {
@@ -21,7 +22,9 @@ import {
 	getSuggestedFollows,
 } from '@/services/social'
 import { getLeaderboard } from '@/services/leaderboard'
+import { getFeedPosts } from '@/services/post'
 import { Profile } from '@/lib/types'
+import type { Post } from '@/lib/types/post'
 import { Loader2 } from 'lucide-react'
 import {
 	FriendsLeaderboard,
@@ -63,6 +66,7 @@ export function CommunityPageView({
 	const [leaderboardEntries, setLeaderboardEntries] = useState<
 		LeaderboardEntry[]
 	>([])
+	const [pulsePosts, setPulsePosts] = useState<Post[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
@@ -92,15 +96,29 @@ export function CommunityPageView({
 
 		const fetchData = async () => {
 			try {
-				const leaderboardRes = await getLeaderboard({
-					type: 'global',
-					timeframe: 'weekly',
-				})
+				const [leaderboardRes, pulseRes] = await Promise.allSettled([
+					getLeaderboard({
+						type: 'global',
+						timeframe: 'weekly',
+					}),
+					getFeedPosts({ page: 0, size: 6, mode: 'trending' }),
+				])
 
 				if (cancelled) return
 
-				if (leaderboardRes.success && leaderboardRes.data?.entries) {
-					const entries: LeaderboardEntry[] = leaderboardRes.data.entries.map(
+				if (
+					pulseRes.status === 'fulfilled' &&
+					pulseRes.value.success &&
+					pulseRes.value.data
+				) {
+					setPulsePosts(pulseRes.value.data.slice(0, 6))
+				}
+
+				if (leaderboardRes.status !== 'fulfilled') throw leaderboardRes.reason
+				const leaderboardData = leaderboardRes.value
+
+				if (leaderboardData.success && leaderboardData.data?.entries) {
+					const entries: LeaderboardEntry[] = leaderboardData.data.entries.map(
 						entry => ({
 							...entry,
 							isCurrentUser: entry.userId === user?.userId,
@@ -230,7 +248,7 @@ export function CommunityPageView({
 							exit={{ opacity: 0 }}
 							className='fixed top-20 left-1/2 z-toast -translate-x-1/2'
 						>
-							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(255,90,54,0.4)]'>
+							<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-glow'>
 								<Loader2 className='size-4 animate-spin' />
 								{t('loading')}
 							</div>
@@ -261,7 +279,24 @@ export function CommunityPageView({
 							/>
 
 							{activeTab === 'discover' && (
-								<div className='animate-fadeIn'>
+								<div className='space-y-6 animate-fadeIn'>
+									{pulsePosts.length > 0 && (
+										<section className='space-y-3'>
+											<SurfaceSectionHeader
+												eyebrow='Live Food Pulse'
+												chipText={`${pulsePosts.length} trending`}
+											/>
+											<div className='space-y-4'>
+												{pulsePosts.map(post => (
+													<PostCard
+														key={post.id}
+														post={post}
+														currentUserId={user?.userId}
+													/>
+												))}
+											</div>
+										</section>
+									)}
 									<UserDiscoveryClient />
 								</div>
 							)}

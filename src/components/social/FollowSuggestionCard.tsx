@@ -132,7 +132,7 @@ export const FollowSuggestionCard = ({
 						whileTap={BUTTON_TAP}
 						onClick={handleFollowBack}
 						disabled={isFollowing || isDismissing}
-						className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)] disabled:opacity-50 disabled:cursor-not-allowed'
+						className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed'
 					>
 						{isFollowing ? (
 							<Loader2 className='size-4 animate-spin' />

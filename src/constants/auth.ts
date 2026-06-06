@@ -9,19 +9,23 @@ export const PUBLIC_ROUTES = [
 	PATHS.AUTH.SIGN_UP,
 	PATHS.AUTH.VERIFY_OTP,
 	PATHS.AUTH.GOOGLE_CALLBACK, // OAuth callback must be public
+	'/demo-cockpit',
+	'/demo-remote',
 	PATHS.FEED, // Redirects to explore and must not trigger auth gate
 	PATHS.EXPLORE, // Browse recipes without auth
 	PATHS.SEARCH, // Search recipes/users without auth
 	PATHS.COMMUNITY, // Community / discover feed
 	PATHS.LEADERBOARD, // Leaderboard (backend allows guest GET)
+	PATHS.COOK, // Command palette launcher should be reachable without auth gate
 ]
 
 const DEV_ONLY_PUBLIC_ROUTES =
-	process.env.NODE_ENV === 'development' ? ['/_dev', '/demo-cockpit'] : []
+	process.env.NODE_ENV === 'development' ? ['/_dev'] : []
 
 // Dynamic route prefixes that don't require authentication (matched with startsWith)
 export const PUBLIC_ROUTE_PREFIXES = [
 	'/recipes/', // Recipe detail pages: /recipes/[id]
+	'/collections/', // Collection detail pages: /collections/[id]
 	'/post/', // Single post pages: /post/[id]
 	'/shopping-lists/shared/', // Shared shopping list viewer: /shopping-lists/shared/[token]
 ]
@@ -42,6 +46,22 @@ export const AUTH_ROUTES = [
 	PATHS.AUTH.VERIFY_OTP,
 ]
 
+function isSafeRelativeAppPath(path: string): boolean {
+	return path.startsWith('/') && !path.startsWith('//')
+}
+
+function getPathnameFromReturnTo(returnTo: string): string | null {
+	if (!isSafeRelativeAppPath(returnTo)) {
+		return null
+	}
+
+	try {
+		return new URL(returnTo, 'https://chefkix.local').pathname
+	} catch {
+		return null
+	}
+}
+
 /**
  * Known top-level route segments that are NOT user profile pages.
  * Any single-segment path not in this set is treated as a public /{userId} profile.
@@ -52,10 +72,13 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
 	'collections',
 	'community',
 	'cook-card',
+	'cook',
 	'cook-together',
 	'create',
 	'creator',
 	'dashboard',
+	'demo-cockpit',
+	'demo-remote',
 	'discover',
 	'explore',
 	'feed',
@@ -106,4 +129,22 @@ export function isPublicRoutePath(pathname: string): boolean {
 	}
 
 	return false
+}
+
+export function getGuestBrowseHref(
+	returnTo: string | null | undefined,
+	fallback: string = PATHS.EXPLORE,
+): string {
+	if (!returnTo) {
+		return fallback
+	}
+
+	const normalizedReturnTo = returnTo.trim()
+	const pathname = getPathnameFromReturnTo(normalizedReturnTo)
+
+	if (!pathname || !isPublicRoutePath(pathname)) {
+		return fallback
+	}
+
+	return normalizedReturnTo
 }

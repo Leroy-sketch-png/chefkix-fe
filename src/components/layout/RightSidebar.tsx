@@ -20,7 +20,6 @@ import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
 import { cn } from '@/lib/utils'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
-import { usePresence } from '@/hooks/usePresence'
 import { toast } from 'sonner'
 import {
 	AlertTriangle,
@@ -29,6 +28,7 @@ import {
 	Zap,
 	Trophy,
 	Users,
+	ArrowRight,
 } from 'lucide-react'
 import { FOLLOW_PULSE, TRANSITION_SPRING } from '@/lib/motion'
 
@@ -36,7 +36,7 @@ import { FOLLOW_PULSE, TRANSITION_SPRING } from '@/lib/motion'
 // HELPER: Compute week progress from cooking session history
 // ============================================
 
-type DayStatus = 'cooked' | 'today' | 'future'
+type DayStatus = 'cooked' | 'today' | 'missed' | 'future'
 
 function computeWeekProgress(
 	cookDates: Date[],
@@ -79,7 +79,7 @@ function computeWeekProgress(
 		} else if (cookedDateSet.has(date.toDateString())) {
 			weekProgress.push('cooked')
 		} else {
-			weekProgress.push('future') // Missed days show as future (no special state)
+			weekProgress.push('missed') // Past days where user did not cook
 		}
 	}
 
@@ -97,7 +97,6 @@ export const RightSidebar = () => {
 	const router = useRouter()
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
-	usePresence() // Send heartbeat while sidebar is mounted
 	const isDiscoverySurface =
 		pathname.startsWith('/search') ||
 		pathname.startsWith('/explore') ||
@@ -238,101 +237,106 @@ export const RightSidebar = () => {
 		}
 	}, [cookDates, user?.statistics?.streakCount])
 
+	const topSuggestions = useMemo(() => suggestions.slice(0, 3), [suggestions])
+
 	return (
 		<aside
-			className='relative hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle/60 bg-bg-card/90 p-5 backdrop-blur-xl xl:flex xl:flex-col xl:gap-5'
+			className='relative hidden w-right flex-shrink-0 overflow-y-auto border-l border-border-subtle/60 bg-bg-card p-5 xl:flex xl:flex-col xl:gap-5'
 			aria-label={t('ariaComplementaryContent')}
 		>
-			{/* Ambient orbs */}
-			<div className='pointer-events-none absolute -right-10 -top-16 size-36 rounded-full bg-brand/8 blur-3xl' />
-			<div className='pointer-events-none absolute -bottom-14 -left-8 size-28 rounded-full bg-xp/8 blur-3xl' />
-			{/* Gradient left border */}
-			<div className='pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-border-subtle to-transparent' />
 			{/* Guest experience — compelling sign-up prompt instead of dead space */}
 			{!user && (
-				<div
-					className={cn(
-						'relative z-10 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 shadow-card',
-						isDiscoverySurface ? 'p-4' : 'p-6',
-					)}
+				<motion.div
+					initial={{ opacity: 0, scale: 0.95 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={TRANSITION_SPRING}
+					className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card shadow-card'
 				>
-					<p className='mb-2 text-2xs font-bold uppercase tracking-[0.18em] text-text-muted'>
-						Guest Mode
-					</p>
-					<div className='mb-4 flex items-center gap-2'>
-						<ChefHat className='size-5 text-brand' />
-						<h3 className='text-sm font-bold text-text-primary sm:text-base'>
-							{t('guestSidebarTitle')}
-						</h3>
-					</div>
-					<p className='mb-4 text-sm leading-relaxed text-text-secondary'>
-						{t('guestSidebarDesc')}
-					</p>
-					<div className='mb-4 rounded-xl border border-border-subtle bg-bg-card/80 p-3'>
-						<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
-							{t('exploreNow')}
-						</p>
-						<div className='grid gap-2'>
-							<Link
-								href={PATHS.EXPLORE}
-								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
-							>
-								<span>{tNav('explore')}</span>
-								<ChefHat className='size-4 text-brand' />
-							</Link>
-							<Link
-								href={PATHS.COMMUNITY ?? '/community'}
-								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
-							>
-								<span>{tNav('community')}</span>
-								<Users className='size-4 text-xp' />
-							</Link>
-							<Link
-								href={PATHS.LEADERBOARD}
-								className='flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-elevated'
-							>
-								<span>{tNav('leaderboard')}</span>
-								<Trophy className='size-4 text-level' />
-							</Link>
-						</div>
-					</div>
-					{!isDiscoverySurface && (
-						<div className='mb-5 flex flex-col gap-2.5'>
-							{[
-								{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
-								{
-									icon: Trophy,
-									text: t('guestBenefitLevel'),
-									color: 'text-level',
-								},
-								{
-									icon: Users,
-									text: t('guestBenefitCommunity'),
-									color: 'text-brand',
-								},
-							].map(({ icon: Icon, text, color }) => (
-								<div key={text} className='flex items-center gap-2.5'>
-									<Icon className={cn('size-4 flex-shrink-0', color)} />
-									<span className='text-sm text-text-secondary'>{text}</span>
-								</div>
-							))}
-						</div>
-					)}
-					<Link
-						href={guestSignUpHref}
-						className='flex h-10 w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-[0_6px_18px_rgba(255,90,54,0.38)] transition-all hover:shadow-[0_8px_24px_rgba(255,90,54,0.5)]'
+					<div
+						className={cn(
+							'rounded-[inherit]',
+							isDiscoverySurface ? 'p-4' : 'p-6',
+						)}
 					>
-						{t('guestSidebarCta')}
-					</Link>
-					<p className='mt-2 text-center text-xs text-text-muted'>
+						<p className='mb-2 text-2xs font-bold uppercase tracking-widest text-text-muted'>
+							{t('guestMode')}
+						</p>
+						<div className='mb-4 flex items-center gap-2'>
+							<ChefHat className='size-5 text-brand' />
+							<h3 className='text-sm font-bold text-text-primary sm:text-base'>
+								{t('guestSidebarTitle')}
+							</h3>
+						</div>
+						<p className='mb-4 text-sm leading-relaxed text-text-secondary'>
+							{t('guestSidebarDesc')}
+						</p>
+						<div className='mb-4 rounded-xl border border-border-subtle/50 bg-bg-elevated p-3'>
+							<p className='mb-2 text-xs font-bold uppercase tracking-widest text-text-muted'>
+								{t('exploreNow')}
+							</p>
+							<div className='grid gap-2'>
+								<Link
+									href={PATHS.EXPLORE}
+									className='group flex items-center justify-between rounded-lg border border-border-subtle/40 px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-card'
+								>
+									<span>{tNav('explore')}</span>
+									<ArrowRight className='size-4 text-text-muted transition-transform group-hover:translate-x-0.5' />
+								</Link>
+								<Link
+									href={PATHS.COMMUNITY ?? '/community'}
+									className='group flex items-center justify-between rounded-lg border border-border-subtle/40 px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-card'
+								>
+									<span>{tNav('community')}</span>
+									<ArrowRight className='size-4 text-text-muted transition-transform group-hover:translate-x-0.5' />
+								</Link>
+								<Link
+									href={PATHS.LEADERBOARD}
+									className='group flex items-center justify-between rounded-lg border border-border-subtle/40 px-3 py-2 text-sm font-semibold text-text-primary transition-colors hover:border-brand/30 hover:bg-bg-card'
+								>
+									<span>{tNav('leaderboard')}</span>
+									<ArrowRight className='size-4 text-text-muted transition-transform group-hover:translate-x-0.5' />
+								</Link>
+							</div>
+						</div>
+						{
+							<div className='mb-5 flex flex-col gap-2.5'>
+								{[
+									{ icon: Zap, text: t('guestBenefitXp'), color: 'text-xp' },
+									{
+										icon: Trophy,
+										text: t('guestBenefitLevel'),
+										color: 'text-level',
+									},
+									{
+										icon: Users,
+										text: t('guestBenefitCommunity'),
+										color: 'text-brand',
+									},
+								].map(({ icon: Icon, text, color }) => (
+									<div key={text} className='flex items-center gap-2.5'>
+										<Icon className={cn('size-4 flex-shrink-0', color)} />
+										<span className='text-sm text-text-secondary'>{text}</span>
+									</div>
+								))}
+							</div>
+						}
 						<Link
-							href={guestSignInHref}
-							className='font-semibold text-brand transition-colors hover:text-brand/80'
+							href={guestSignUpHref}
+							className='flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand to-brand/85 text-sm font-bold text-white shadow-glow transition-all hover:shadow-glow hover:from-brand/95 hover:to-brand/80'
 						>
-							{t('guestSidebarSignIn')}
+							{t('guestSidebarCta')}
+							<ArrowRight className='size-4' />
 						</Link>
-					</p>
-				</div>
+						<p className='mt-2 text-center text-xs text-text-muted'>
+							<Link
+								href={guestSignInHref}
+								className='font-semibold text-brand transition-colors hover:text-brand/80'
+							>
+								{t('guestSidebarSignIn')}
+							</Link>
+						</p>
+					</div>
+				</motion.div>
 			)}
 
 			{/* Authenticated sidebar content */}
@@ -380,67 +384,76 @@ export const RightSidebar = () => {
 					)}
 
 					{/* Trending Creators Card */}
-					{suggestions.length > 0 && (
-						<div className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-							<div className='mb-3.5 flex items-center justify-between'>
-								<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
-									{t('suggestedCreators')}
-								</p>
-								<Link
-									href={PATHS.COMMUNITY ?? '/community'}
-									className='text-[11px] font-medium text-brand hover:underline'
-								>
-									{t('seeAll')}
-								</Link>
-							</div>
-							<div className='flex flex-col gap-3'>
-								{suggestions.map(suggestion => {
-									const isFollowed = followedIds.includes(suggestion.userId)
-									return (
-										<div
-											key={suggestion.userId}
-											className='flex items-center gap-2.5'
-										>
-											<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-border-subtle transition-all duration-200 hover:ring-border-medium'>
-												<Image
-													src={
-														suggestion.avatarUrl || '/placeholder-avatar.svg'
-													}
-													alt={suggestion.displayName || suggestion.username}
-													fill
-													sizes='36px'
-													className='object-cover'
-												/>
-											</div>
-											<div className='min-w-0 flex-1'>
-												<strong className='block truncate text-[13px] font-semibold leading-tight text-text-primary'>
-													{suggestion.displayName || suggestion.username}
-												</strong>
-												<span className='block truncate text-[11px] leading-normal text-text-muted'>
-													@{suggestion.username}
-												</span>
-											</div>
-											<motion.button
-												type='button'
-												onClick={() => handleFollow(suggestion.userId)}
-												aria-pressed={isFollowed}
-												animate={isFollowed ? FOLLOW_PULSE.followed : undefined}
-												initial={false}
-												transition={TRANSITION_SPRING}
-												className={cn(
-													'relative h-8 shrink-0 overflow-hidden rounded-full px-3.5 text-[11px] font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
-													isFollowed
-														? 'border border-border-medium bg-bg-elevated text-text-secondary hover:border-error/50 hover:text-error'
-														: 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] hover:bg-brand/90',
-												)}
+					{topSuggestions.length > 0 && (
+						<motion.div
+							initial={{ opacity: 0, y: 12 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={TRANSITION_SPRING}
+							className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card shadow-card'
+						>
+							<div className='p-4'>
+								<div className='mb-3.5 flex items-center justify-between'>
+									<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
+										{t('suggestedCreators')}
+									</p>
+									<Link
+										href={PATHS.COMMUNITY ?? '/community'}
+										className='text-2xs font-medium text-brand hover:underline'
+									>
+										{t('seeAll')}
+									</Link>
+								</div>
+								<div className='flex flex-col gap-2.5'>
+									{topSuggestions.map(suggestion => {
+										const isFollowed = followedIds.includes(suggestion.userId)
+										return (
+											<div
+												key={suggestion.userId}
+												className='flex items-center gap-2.5 rounded-xl border border-border-subtle/50 bg-bg-elevated px-2.5 py-2'
 											>
-												{isFollowed ? t('following') : t('follow')}
-											</motion.button>
-										</div>
-									)
-								})}
+												<div className='relative size-9 flex-shrink-0 overflow-hidden rounded-full ring-2 ring-border-subtle transition-all duration-200 hover:ring-border-medium'>
+													<Image
+														src={
+															suggestion.avatarUrl || '/placeholder-avatar.svg'
+														}
+														alt={suggestion.displayName || suggestion.username}
+														fill
+														sizes='36px'
+														className='object-cover'
+													/>
+												</div>
+												<div className='min-w-0 flex-1'>
+													<strong className='block truncate text-caption font-semibold leading-tight text-text-primary'>
+														{suggestion.displayName || suggestion.username}
+													</strong>
+													<span className='block truncate text-2xs leading-normal text-text-muted'>
+														@{suggestion.username}
+													</span>
+												</div>
+												<motion.button
+													type='button'
+													onClick={() => handleFollow(suggestion.userId)}
+													aria-pressed={isFollowed}
+													animate={
+														isFollowed ? FOLLOW_PULSE.followed : undefined
+													}
+													initial={false}
+													transition={TRANSITION_SPRING}
+													className={cn(
+														'relative h-8 shrink-0 overflow-hidden rounded-full px-3 text-2xs font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand/50',
+														isFollowed
+															? 'border border-border-medium bg-bg-elevated text-text-secondary hover:border-error/50 hover:text-error'
+															: 'bg-brand text-white hover:bg-brand/90',
+													)}
+												>
+													{isFollowed ? t('following') : t('follow')}
+												</motion.button>
+											</div>
+										)
+									})}
+								</div>
 							</div>
-						</div>
+						</motion.div>
 					)}
 				</div>
 			)}

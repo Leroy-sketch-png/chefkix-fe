@@ -36,10 +36,10 @@ function StatCard({
 	}[tone]
 
 	return (
-		<div className='rounded-[1.15rem] border border-border-subtle bg-bg-card p-2.5 shadow-card sm:rounded-xl sm:p-3'>
+		<div className='rounded-radius border border-border-subtle bg-bg-card p-2.5 shadow-card sm:rounded-xl sm:p-3'>
 			<div className='flex items-center justify-between gap-2'>
 				<div>
-					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{label}
 					</p>
 					<p className='mt-1 text-base font-black tabular-nums text-text-primary sm:text-lg'>
@@ -76,13 +76,13 @@ export function PantryCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-[1.75rem] border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-success/8 p-3 shadow-card sm:p-4 md:rounded-2xl md:p-5',
+				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-success/8 p-3 shadow-card sm:p-4 md:rounded-2xl md:p-5',
 				className,
 			)}
 		>
 			<div className='mb-3 flex flex-col gap-3 sm:mb-4 lg:flex-row lg:items-center lg:justify-between'>
 				<div>
-					<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-success'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-success'>
 						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>

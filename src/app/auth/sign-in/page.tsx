@@ -5,32 +5,19 @@ import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { SignInForm } from '@/components/auth/SignInForm'
 import { staggerContainer, staggerItem } from '@/lib/motion'
-import { ChefHat, ArrowLeft } from 'lucide-react'
+import { ChefHat, ArrowLeft, Compass, Users } from 'lucide-react'
 import { DevQuickLogin } from '@/components/auth/DevQuickLogin'
 import { useTranslations } from '@/i18n/hooks'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { getGuestBrowseHref, PATHS } from '@/constants'
+
 const SignInPage = () => {
 	const t = useTranslations('auth')
 	const searchParams = useSearchParams()
 	const returnTo = searchParams.get('returnTo')
 	const showDevQuickLogin =
 		process.env.NEXT_PUBLIC_ENABLE_DEV_QUICK_LOGIN === 'true'
-	const guestExploreHref = (() => {
-		const protectedRoutes = [
-			'/create',
-			'/dashboard',
-			'/profile',
-			'/settings',
-			'/notifications',
-			'/messages',
-			'/pantry',
-			'/meal-planner',
-		]
-		const isProtected = protectedRoutes.some(route =>
-			returnTo?.startsWith(route),
-		)
-		return returnTo && !isProtected ? returnTo : '/explore'
-	})()
+	const guestExploreHref = getGuestBrowseHref(returnTo)
 	return (
 		<AuthLayout className='px-4 py-8 sm:py-8'>
 			{showDevQuickLogin ? <DevQuickLogin /> : null}
@@ -59,44 +46,54 @@ const SignInPage = () => {
 						</motion.h1>
 					</motion.div>
 
-					{/* Sign In Card with header controls moved inside for cohesive layout */}
-					<motion.div
-						variants={staggerItem}
-						className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/97 via-bg-card/92 to-bg-elevated/70 p-4 shadow-warm shadow-black/5 backdrop-blur-sm sm:p-8'
-					>
-						<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
-						<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
-						<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/30 via-white/10 to-transparent dark:from-white/8' />
-						<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 dark:ring-white/8' />
+					<motion.div variants={staggerItem}>
+						<div className='overflow-hidden rounded-3xl border border-border-subtle/80 bg-bg-card/96 shadow-card'>
+							<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-streak/8 px-4 py-4 sm:px-8 sm:py-5'>
+								<div className='mb-4 flex items-center justify-between'>
+									<Link
+										href={PATHS.HOME}
+										className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-all hover:border-brand hover:text-brand sm:size-12'
+										title={t('backToWelcome')}
+									>
+										<ArrowLeft className='size-5' />
+									</Link>
 
-						<div className='relative z-10 mb-4 flex items-center justify-between'>
-							<Link
-								href='/'
-								className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand hover:shadow-warm sm:size-12'
-								title={t('backToWelcome')}
-							>
-								<ArrowLeft className='size-5' />
-							</Link>
+									<Link
+										href={guestExploreHref}
+										className='inline-flex h-10 items-center rounded-full border border-border-subtle bg-bg-card px-4 text-xs font-bold text-text-secondary transition-all hover:border-brand hover:bg-brand/10 hover:text-brand sm:h-12 sm:px-5 sm:text-sm'
+									>
+										{t('exploreAsGuest')}
+									</Link>
+								</div>
 
-							<Link
-								href={guestExploreHref}
-								className='inline-flex h-10 items-center rounded-full border border-border-subtle bg-bg-card/50 px-4 text-xs font-bold text-text-secondary backdrop-blur-md transition-all hover:border-brand hover:bg-brand/10 hover:text-brand sm:h-12 sm:px-5 sm:text-sm'
-							>
-								{t('exploreAsGuest')}
-							</Link>
-						</div>
+								<div className='space-y-2 text-center sm:text-left'>
+									<div className='flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
+										<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
+											<Users className='size-3' />
+											{t('signInAudiencePrimary')}
+										</span>
+										<span className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1 text-2xs font-bold uppercase tracking-widest text-text-secondary'>
+											<Compass className='size-3' />
+											{t('signInAudienceSecondary')}
+										</span>
+									</div>
+									<motion.h2
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.3 }}
+										className='text-lg font-bold text-text-primary sm:text-2xl'
+									>
+										{t('pageTitle')}
+									</motion.h2>
+									<p className='text-sm text-text-secondary'>
+										{t('pageSubtitle')}
+									</p>
+								</div>
+							</div>
 
-						<motion.h2
-							initial={{ opacity: 0, y: 10 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.3 }}
-							className='relative z-10 mb-4 text-center text-lg font-bold text-text-primary sm:mb-5 sm:text-xl'
-						>
-							{t('pageTitle')}
-						</motion.h2>
-
-						<div className='relative z-10'>
-							<SignInForm />
+							<div className='px-4 py-4 sm:px-8 sm:py-6'>
+								<SignInForm />
+							</div>
 						</div>
 					</motion.div>
 				</motion.div>

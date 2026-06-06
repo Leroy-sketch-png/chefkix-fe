@@ -329,6 +329,7 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 
 			{/* Preview: re-render on mount */}
 			<motion.div
+				data-testid='taste-dna-card'
 				initial={{ opacity: 0, y: 10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ delay: 0.3 }}
@@ -340,6 +341,12 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						🧬 {t('tasteDnaShareTitle')}
 					</h3>
 					<p className='text-sm text-white/70'>{t('tasteDnaShareDesc')}</p>
+					<p
+						className='mt-2 text-xs text-white/80'
+						data-testid='taste-profile-identity'
+					>
+						{props.displayName} | Level {props.level}
+					</p>
 				</div>
 
 				<div className='flex gap-3 p-4'>
@@ -348,6 +355,7 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						onClick={handleDownload}
 						disabled={isGenerating}
 						whileTap={BUTTON_SUBTLE_TAP}
+						data-testid='download-taste-dna'
 						className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isGenerating ? (
@@ -363,6 +371,7 @@ export function TasteDNAShareCard(props: TasteDNAShareCardProps) {
 						onClick={handleShare}
 						disabled={isGenerating}
 						whileTap={BUTTON_SUBTLE_TAP}
+						data-testid='share-taste-dna'
 						className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-4 py-3 font-semibold text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 					>
 						{isCopied ? (

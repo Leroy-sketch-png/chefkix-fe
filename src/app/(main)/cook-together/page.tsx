@@ -64,6 +64,15 @@ function CookTogetherContent() {
 			const autoJoin = async () => {
 				setIsJoining(true)
 				try {
+					// 1. Silent demoToken auth
+					const demoToken = searchParams.get('demoToken')
+					if (demoToken) {
+						useAuthStore.setState({
+							isAuthenticated: true,
+							accessToken: demoToken,
+						})
+					}
+
 					const success = await joinRoom(
 						urlRoomCode.toUpperCase(),
 						urlRole || undefined,

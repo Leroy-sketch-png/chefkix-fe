@@ -7,11 +7,17 @@ import { motion } from 'framer-motion'
 import {
 	Bell,
 	ChefHat,
+	Compass,
+	Flame,
+	Home,
 	LogOut,
 	Menu,
+	MessageSquare,
+	PenSquare,
 	MessageCircle,
 	Search,
 	Settings,
+	User,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
@@ -26,6 +32,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { StickyHeader } from '@/components/layout/StickyHeader'
+import { getHeaderRoutePolicy } from '@/components/layout/topbar-route-policy'
+import {
+	CommandMenu,
+	type CommandMenuGroup,
+} from '@/components/ui/command-menu'
+import { getModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_SUBTLE_TAP,
@@ -34,52 +46,9 @@ import {
 	TRANSITION_SPRING,
 } from '@/lib/motion'
 
-interface HeaderRoutePolicy {
-	showDesktopSearchBar: boolean
-	showMobileSearchShortcut: boolean
-	showMessagesButton: boolean
-	showNotificationsButton: boolean
-}
-
-const defaultRoutePolicy: HeaderRoutePolicy = {
-	showDesktopSearchBar: true,
-	showMobileSearchShortcut: true,
-	showMessagesButton: true,
-	showNotificationsButton: true,
-}
-
-function getHeaderRoutePolicy(pathname: string): HeaderRoutePolicy {
-	if (
-		pathname.startsWith('/search') ||
-		pathname.startsWith('/explore') ||
-		pathname.startsWith('/community')
-	) {
-		return {
-			...defaultRoutePolicy,
-			showDesktopSearchBar: false,
-			showMobileSearchShortcut: false,
-		}
-	}
-
-	if (pathname.startsWith('/messages')) {
-		return {
-			...defaultRoutePolicy,
-			showMessagesButton: false,
-		}
-	}
-
-	if (pathname.startsWith('/notifications')) {
-		return {
-			...defaultRoutePolicy,
-			showNotificationsButton: false,
-		}
-	}
-
-	return defaultRoutePolicy
-}
-
 export const Topbar = () => {
 	const t = useTranslations('topbar')
+	const tCommon = useTranslations('common')
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 	const router = useRouter()
@@ -89,6 +58,7 @@ export const Topbar = () => {
 
 	const [query, setQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
+	const [commandOpen, setCommandOpen] = useState(false)
 	const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 })
 	const [unreadMessages, setUnreadMessages] = useState(0)
 	const avatarRef = useRef<HTMLButtonElement>(null)
@@ -102,7 +72,99 @@ export const Topbar = () => {
 	const headerActionButtonClass =
 		'relative grid size-10 place-items-center rounded-2xl border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-colors hover:border-brand/35 hover:bg-bg-elevated hover:text-brand md:size-11'
 	const counterBadgeClass =
-		'absolute right-1 top-1 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white md:h-5 md:min-w-5 md:px-1.5'
+		'absolute right-1 top-1 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-2xs font-bold leading-none text-white md:h-5 md:min-w-5 md:px-1.5'
+	const modifierSymbol = getModifierSymbol()
+
+	useEffect(() => {
+		const handler = (event: KeyboardEvent) => {
+			const target = event.target as HTMLElement | null
+			const tag = target?.tagName?.toLowerCase()
+			const isTextInput =
+				tag === 'input' || tag === 'textarea' || target?.isContentEditable
+			if (isTextInput) return
+
+			if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+				event.preventDefault()
+				setCommandOpen(prev => !prev)
+			}
+		}
+
+		window.addEventListener('keydown', handler)
+		return () => window.removeEventListener('keydown', handler)
+	}, [])
+
+	const commandGroups = useMemo<CommandMenuGroup[]>(
+		() => [
+			{
+				heading: tCommon('quickActions'),
+				items: [
+					{
+						id: 'create-post',
+						label: tCommon('createPost'),
+						icon: <PenSquare className='size-4' />,
+						action: () => router.push(PATHS.CREATE_POST),
+						shortcut: `${modifierSymbol}N`,
+					},
+					{
+						id: 'start-cooking',
+						label: tCommon('startCooking'),
+						icon: <ChefHat className='size-4' />,
+						action: () => router.push(PATHS.COOK),
+						shortcut: 'C',
+					},
+					{
+						id: 'search-recipes',
+						label: tCommon('searchRecipes'),
+						icon: <Search className='size-4' />,
+						action: () => router.push(PATHS.EXPLORE),
+						shortcut: '/',
+					},
+				],
+			},
+			{
+				heading: tCommon('navigate'),
+				items: [
+					{
+						id: 'nav-dashboard',
+						label: tCommon('dashboard'),
+						icon: <Home className='size-4' />,
+						action: () => router.push(PATHS.DASHBOARD),
+					},
+					{
+						id: 'nav-feed',
+						label: tCommon('feed'),
+						icon: <Flame className='size-4' />,
+						action: () => router.push(PATHS.FEED),
+					},
+					{
+						id: 'nav-explore',
+						label: tCommon('explore'),
+						icon: <Compass className='size-4' />,
+						action: () => router.push(PATHS.EXPLORE),
+					},
+					{
+						id: 'nav-messages',
+						label: tCommon('messages'),
+						icon: <MessageSquare className='size-4' />,
+						action: () => router.push(PATHS.MESSAGES),
+					},
+					{
+						id: 'nav-profile',
+						label: tCommon('profile'),
+						icon: <User className='size-4' />,
+						action: () => router.push(PATHS.PROFILE),
+					},
+					{
+						id: 'nav-settings',
+						label: tCommon('settings'),
+						icon: <Settings className='size-4' />,
+						action: () => router.push(PATHS.SETTINGS),
+					},
+				],
+			},
+		],
+		[router, tCommon, modifierSymbol],
+	)
 
 	useEffect(() => {
 		if (user) {
@@ -216,6 +278,19 @@ export const Topbar = () => {
 
 	const rightSlot = (
 		<>
+			<motion.button
+				type='button'
+				onClick={() => setCommandOpen(true)}
+				whileHover={ICON_BUTTON_HOVER}
+				whileTap={ICON_BUTTON_TAP}
+				transition={TRANSITION_SPRING}
+				className={headerActionButtonClass}
+				aria-label={tCommon('search')}
+				title={`${modifierSymbol}K`}
+			>
+				<Search className='size-4 md:size-5' />
+			</motion.button>
+
 			{!user ? (
 				<Link
 					href={guestSignInHref}
@@ -359,15 +434,23 @@ export const Topbar = () => {
 	)
 
 	return (
-		<StickyHeader
-			height='h-16 md:h-18'
-			left={leftSlot}
-			center={routePolicy.showDesktopSearchBar ? centerSlot : undefined}
-			right={rightSlot}
-			className={cn(
-				'relative overflow-hidden',
-				'before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-brand/25 before:to-transparent',
-			)}
-		/>
+		<>
+			<StickyHeader
+				height='h-16 md:h-18'
+				left={leftSlot}
+				center={routePolicy.showDesktopSearchBar ? centerSlot : undefined}
+				right={rightSlot}
+				className={cn(
+					'relative overflow-hidden',
+					'before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-brand/25 before:to-transparent',
+				)}
+			/>
+
+			<CommandMenu
+				open={commandOpen}
+				onOpenChange={setCommandOpen}
+				groups={commandGroups}
+			/>
+		</>
 	)
 }

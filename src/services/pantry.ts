@@ -23,7 +23,13 @@ export async function getPantryItems(
 			API_ENDPOINTS.PANTRY.BASE,
 			{ params },
 		)
-		return res.data.data ?? []
+		const raw = res.data.data
+		if (!raw) return []
+		if (Array.isArray(raw)) return raw
+		// Handle Spring Data Page<PantryItem> wrapper
+		const page = raw as unknown as { content?: PantryItem[] }
+		if (page.content && Array.isArray(page.content)) return page.content
+		return []
 	} catch (err) {
 		logDevError('[Pantry] getPantryItems failed:', err)
 		return []

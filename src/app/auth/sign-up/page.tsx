@@ -6,28 +6,15 @@ import { motion } from 'framer-motion'
 import { SignUpForm } from '@/components/auth/SignUpForm'
 import { useTranslations } from '@/i18n/hooks'
 import { staggerContainer, staggerItem } from '@/lib/motion'
-import { ChefHat, Sparkles, ArrowLeft } from 'lucide-react'
+import { ChefHat, Sparkles, ArrowLeft, Compass, Users } from 'lucide-react'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { getGuestBrowseHref, PATHS } from '@/constants'
+
 const SignUpPage = () => {
 	const t = useTranslations('auth')
 	const searchParams = useSearchParams()
 	const returnTo = searchParams.get('returnTo')
-	const guestExploreHref = (() => {
-		const protectedRoutes = [
-			'/create',
-			'/dashboard',
-			'/profile',
-			'/settings',
-			'/notifications',
-			'/messages',
-			'/pantry',
-			'/meal-planner',
-		]
-		const isProtected = protectedRoutes.some(route =>
-			returnTo?.startsWith(route),
-		)
-		return returnTo && !isProtected ? returnTo : '/explore'
-	})()
+	const guestExploreHref = getGuestBrowseHref(returnTo)
 	return (
 		<AuthLayout className='px-4 py-8 sm:py-8'>
 			<motion.div
@@ -42,7 +29,7 @@ const SignUpPage = () => {
 					variants={staggerItem}
 					className='mb-3 flex flex-col items-center sm:mb-4'
 				>
-					<motion.div className='mb-2 flex size-10 items-center justify-center rounded-2xl bg-gradient-xp shadow-warm shadow-xp/30 sm:mb-4 sm:size-16'>
+					<motion.div className='mb-2 flex size-10 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/20 sm:mb-4 sm:size-16'>
 						<ChefHat className='size-5 text-white sm:size-8' />
 					</motion.div>
 					<motion.h1
@@ -64,34 +51,46 @@ const SignUpPage = () => {
 					</motion.p>
 				</motion.div>
 
-				<motion.div
-					variants={staggerItem}
-					className='relative overflow-hidden rounded-3xl border border-border-subtle/80 bg-gradient-to-br from-bg-card/98 via-bg-card to-bg-elevated/70 p-4 shadow-warm shadow-black/5 sm:p-8'
-				>
-					<div className='pointer-events-none absolute -left-10 -top-14 size-32 rounded-full bg-brand/10 blur-3xl' />
-					<div className='pointer-events-none absolute -bottom-16 -right-12 size-32 rounded-full bg-xp/10 blur-3xl' />
-					<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/25 via-white/8 to-transparent' />
-					<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/18' />
+				<motion.div variants={staggerItem}>
+					<div className='overflow-hidden rounded-3xl border border-border-subtle/80 bg-bg-card/96 shadow-card'>
+						<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-xp/8 px-4 py-4 sm:px-8 sm:py-5'>
+							<div className='mb-4 flex items-center justify-between'>
+								<Link
+									href={PATHS.HOME}
+									className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-all hover:border-brand hover:text-brand sm:size-12'
+									title={t('backToWelcome')}
+								>
+									<ArrowLeft className='size-5' />
+								</Link>
 
-					<div className='relative z-10 mb-4 flex items-center justify-between'>
-						<Link
-							href='/'
-							className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-sm transition-all hover:border-brand hover:text-brand hover:shadow-warm sm:size-12'
-							title={t('backToWelcome')}
-						>
-							<ArrowLeft className='size-5' />
-						</Link>
+								<Link
+									href={guestExploreHref}
+									className='inline-flex h-10 items-center rounded-full border border-border-subtle bg-bg-card px-4 text-xs font-bold text-text-secondary transition-all hover:border-brand hover:bg-brand/10 hover:text-brand sm:h-12 sm:px-5 sm:text-sm'
+								>
+									{t('exploreAsGuest')}
+								</Link>
+							</div>
 
-						<Link
-							href={guestExploreHref}
-							className='hidden h-10 items-center rounded-full border border-border-subtle bg-bg-card/50 px-5 text-sm font-bold text-text-secondary backdrop-blur-md transition-all hover:border-brand hover:bg-brand/10 hover:text-brand sm:flex sm:h-12'
-						>
-							{t('exploreAsGuest')}
-						</Link>
-					</div>
+							<div className='space-y-2 text-center sm:text-left'>
+								<div className='flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
+									<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
+										<Users className='size-3' />
+										{t('signUpAudiencePrimary')}
+									</span>
+									<span className='inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-3 py-1 text-2xs font-bold uppercase tracking-widest text-text-secondary'>
+										<Compass className='size-3' />
+										{t('signUpAudienceSecondary')}
+									</span>
+								</div>
+								<p className='text-sm text-text-secondary'>
+									{t('signUpPageSubtitle')}
+								</p>
+							</div>
+						</div>
 
-					<div className='relative z-10'>
-						<SignUpForm />
+						<div className='px-4 py-4 sm:px-8 sm:py-6'>
+							<SignUpForm />
+						</div>
 					</div>
 				</motion.div>
 			</motion.div>

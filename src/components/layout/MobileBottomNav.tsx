@@ -32,8 +32,10 @@ import {
 } from '@/lib/motion'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
 import { Portal } from '@/components/ui/portal'
+import { ShinyButton } from '@/components/ui/shiny-button'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
+import { useScrollDirection } from '@/hooks/useScrollDirection'
 
 interface NavItem {
 	href: string
@@ -47,7 +49,7 @@ interface NavItem {
  * MobileBottomNav - 5 core items for quick access
  *
  * DESIGN DECISION: Mobile nav has 5 items (iOS/Android standard).
- * Home, Explore, Create, Profile, More.
+ * Home, Feed, Explore, Create, Profile, More.
  * "More" opens a drawer with secondary nav: Challenges, Community,
  * Cook Together, Messages, Pantry, Meal Plan, Shopping, Settings.
  * Notifications are accessible via the Topbar bell icon.
@@ -121,6 +123,8 @@ export const MobileBottomNav = () => {
 	const [drawerQuery, setDrawerQuery] = useState('')
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
+	const scrollDirection = useScrollDirection()
+	const isHidden = scrollDirection === 'down'
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
@@ -192,9 +196,16 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle bg-bg-card/95 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl md:hidden'
+				className={cn(
+					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 transition-transform duration-300 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden',
+					isHidden && 'translate-y-full',
+				)}
 				aria-label={t('ariaMobileNavigation')}
 			>
+				<div
+					aria-hidden
+					className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/30'
+				/>
 				{activeNavItems.map(item => {
 					const Icon = item.icon
 					const href =
@@ -204,47 +215,64 @@ export const MobileBottomNav = () => {
 					const active = isActive(item.href)
 					const label = t(item.labelKey)
 
-					// Special handling for the Create button (center elevated button)
+					// Special handling for the Create button (center elevated button with ShinyButton)
 					if (item.isCreate) {
 						return (
-							<Link
+							<div
 								key={item.href}
-								href={href}
 								className='relative -mt-1.5 flex max-w-20 flex-1 flex-col items-center justify-center gap-1 self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
-									whileTap={ICON_BUTTON_TAP}
+									whileTap={{ scale: 0.88 }}
 									transition={TRANSITION_SPRING}
-									className='grid size-11 place-items-center rounded-[1.35rem] border border-brand/20 bg-gradient-primary text-white shadow-card ring-1 ring-brand/10'
+									className='relative'
 								>
-									<Icon className='size-5' />
+									<ShinyButton
+										asChild
+										className='h-11 w-11 rounded-xl p-0'
+										shineDuration={1.2}
+									>
+										<Link href={href} aria-label={label}>
+											<Icon className='size-5' />
+										</Link>
+									</ShinyButton>
 								</motion.div>
-								<span className='text-[11px] font-semibold leading-tight text-text-secondary'>
+								<span className='text-2xs font-semibold leading-tight text-text-secondary'>
 									{label}
 								</span>
-							</Link>
+							</div>
 						)
 					}
 
-					// Special handling for the Get Started CTA (guest conversion button)
+					// Special handling for the Get Started CTA (guest conversion button with ShinyButton)
 					if (item.isGetStarted) {
 						return (
-							<Link
+							<div
 								key={item.href}
-								href={href}
-								className='relative -mt-1 flex flex-1 items-center justify-center self-start'
+								className='relative -mt-1 flex max-w-24 min-w-0 flex-1 items-center justify-center self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
-									whileTap={ICON_BUTTON_TAP}
+									whileTap={{ scale: 0.88 }}
 									transition={TRANSITION_SPRING}
-									className='flex min-h-10 items-center gap-1.5 rounded-2xl border border-brand/20 bg-gradient-primary px-3 py-2 text-white shadow-card ring-1 ring-brand/10'
+									className='w-full'
 								>
-									<Icon className='size-3.5' />
-									<span className='text-[11px] font-semibold'>{label}</span>
+									<ShinyButton
+										asChild
+										size='sm'
+										className='w-full justify-center gap-1 px-2.5'
+										shineDuration={1.2}
+									>
+										<Link href={href} className='flex w-full items-center justify-center gap-1'>
+											<Icon className='size-3.5' />
+											<span className='truncate text-2xs font-semibold leading-none'>
+												{label}
+											</span>
+										</Link>
+									</ShinyButton>
 								</motion.div>
-							</Link>
+							</div>
 						)
 					}
 
@@ -257,7 +285,7 @@ export const MobileBottomNav = () => {
 								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 								isAuthenticated && 'max-w-20',
 								active
-									? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+									? 'bg-brand/10 text-brand shadow-glow'
 									: 'text-text-secondary hover:bg-bg-elevated/70',
 							)}
 						>
@@ -300,7 +328,7 @@ export const MobileBottomNav = () => {
 						className={cn(
 							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
 							isMoreActive
-								? 'bg-brand/10 text-brand shadow-[0_2px_10px_rgba(255,90,54,0.18)]'
+								? 'bg-brand/10 text-brand shadow-glow'
 								: 'text-text-secondary hover:bg-bg-elevated/70',
 						)}
 					>
@@ -389,7 +417,7 @@ export const MobileBottomNav = () => {
 								)}
 								{filteredGroupedMenu.map(group => (
 									<section key={group.headingKey}>
-										<p className='mb-2 text-xs font-bold uppercase tracking-[0.14em] text-text-muted'>
+										<p className='mb-2 text-xs font-bold uppercase tracking-widest text-text-muted'>
 											{t(group.headingKey)}
 										</p>
 										<div className='grid grid-cols-3 gap-2 sm:grid-cols-4'>
@@ -457,7 +485,7 @@ export const MobileTabBar = ({
 	return (
 		<div
 			className={cn(
-				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto border-b border-border-subtle bg-bg-card/95 p-2 backdrop-blur-xl scrollbar-hide md:hidden',
+				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto hkx-x-rail border-b border-white/20 bg-white/70 p-2 backdrop-blur-2xl dark:border-white/10 dark:bg-bg-card/70 md:hidden',
 				className,
 			)}
 		>

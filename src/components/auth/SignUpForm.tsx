@@ -402,11 +402,10 @@ export function SignUpForm() {
 					<motion.div variants={staggerItem}>
 						<AnimatedButton
 							type='submit'
-							className='h-11 w-full rounded-xl bg-gradient-xp text-base font-bold shadow-card shadow-xp/30 transition-shadow hover:shadow-warm hover:shadow-xp/40 sm:h-12'
+							className='h-11 w-full rounded-xl bg-brand text-base font-semibold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow sm:h-12'
 							isLoading={isSubmitting}
 							loadingText={t('creatingAccount')}
 							disabled={usernameStatus === 'taken'}
-							shine
 						>
 							{t('getStarted')}
 						</AnimatedButton>

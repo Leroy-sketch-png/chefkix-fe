@@ -79,7 +79,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 						</div>
 						<div className='mt-3 grid grid-cols-2 gap-2 border-t border-border-subtle/70 pt-3'>
 							<div className='rounded-xl bg-bg-elevated/70 px-3 py-2'>
-								<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+								<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 									{t('followers')}
 								</p>
 								<p className='mt-1 text-base font-black tabular-nums text-text-primary'>
@@ -87,7 +87,7 @@ const UserCardComponent = ({ profile }: UserCardProps) => {
 								</p>
 							</div>
 							<div className='rounded-xl bg-bg-elevated/70 px-3 py-2'>
-								<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+								<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 									{t('level')}
 								</p>
 								<p className='mt-1 text-base font-black tabular-nums text-text-primary'>

@@ -381,7 +381,7 @@ export const FirstCookCelebration = ({
 								<h3 className='mb-4 text-xs font-bold uppercase tracking-wide text-text-muted'>
 									{t('yourChefJourney')}
 								</h3>
-								<div className='-mx-6 flex items-start gap-0 overflow-x-auto scrollbar-hide px-6 py-2 max-md:-mx-6'>
+								<div className='-mx-6 flex items-start gap-0 overflow-x-auto hkx-x-rail px-6 py-2 max-md:-mx-6'>
 									{journey.map((node, i) => (
 										<Fragment key={node.id}>
 											<JourneyNodeComponent node={node} />

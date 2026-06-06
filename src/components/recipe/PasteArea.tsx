@@ -26,6 +26,7 @@ export const PasteArea = ({
 	return (
 		<div className='overflow-hidden rounded-2xl border-2 border-dashed border-border bg-bg'>
 			<textarea
+				data-testid='recipe-ai-raw-text'
 				value={value}
 				onChange={e => onChange(e.target.value)}
 				maxLength={maxChars}
@@ -35,6 +36,7 @@ export const PasteArea = ({
 			<div className='flex items-center justify-between border-t border-border bg-bg-card px-5 py-3'>
 				<button
 					type='button'
+					data-testid='recipe-ai-paste-clipboard'
 					onClick={onPaste}
 					className='flex items-center gap-2 rounded-xl border border-border px-3.5 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg'
 				>

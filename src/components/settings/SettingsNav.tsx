@@ -202,7 +202,7 @@ export const SettingsNavCompact = ({
 	return (
 		<div
 			className={cn(
-				'flex gap-1 overflow-x-auto pb-2 scrollbar-hide',
+				'flex gap-1 overflow-x-auto hkx-x-rail pb-2',
 				className,
 			)}
 		>

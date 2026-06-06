@@ -44,6 +44,7 @@ import {
 	type NotificationFilter,
 } from '@/components/notifications'
 import type { GamifiedNotification } from '@/components/notifications/NotificationItemsGamified'
+import { transformToGamifiedNotification } from '@/lib/notifications/gamified'
 import { logDevError } from '@/lib/dev-log'
 import { ErrorState } from '@/components/ui/error-state'
 import { toast } from 'sonner'
@@ -82,231 +83,6 @@ interface SocialNotification {
 // ============================================
 // HELPERS
 // ============================================
-
-// Parse structured values from content string when data field is missing
-function parseXpFromContent(content?: string): { xp: number; recipe: string } {
-	if (!content) return { xp: 0, recipe: 'Recipe' }
-	const xpMatch = content.match(/(\d+)\s*XP/i)
-	const recipeMatch = content.match(/completing\s+(.+?)(?:[!.]|$)/i)
-	return {
-		xp: xpMatch ? parseInt(xpMatch[1], 10) : 0,
-		recipe: recipeMatch ? recipeMatch[1].trim().replace(/!$/, '') : 'Recipe',
-	}
-}
-
-function parseLevelFromContent(content?: string): number | undefined {
-	if (!content) return undefined
-	const m = content.match(/Level\s+(\d+)/i)
-	return m ? parseInt(m[1], 10) : undefined
-}
-
-function parseStreakFromContent(content?: string): number {
-	if (!content) return 0
-	const m = content.match(/(\d+)[- ]day/i)
-	return m ? parseInt(m[1], 10) : 0
-}
-
-function parseDaysFromContent(content?: string): number {
-	if (!content) return 0
-	const m = content.match(/(\d+)\s*days?\s*(?:remaining|left)/i)
-	return m ? parseInt(m[1], 10) : 0
-}
-
-function parseHoursFromContent(content?: string): number {
-	if (!content) return 0
-	const hourMatch = content.match(/(\d+)\s*hours?\s*(?:remaining|left)/i)
-	if (hourMatch) return parseInt(hourMatch[1], 10)
-	const dayMatch = content.match(/(\d+)\s*days?\s*(?:remaining|left)/i)
-	if (dayMatch) return parseInt(dayMatch[1], 10) * 24
-	if (/tomorrow/i.test(content)) return 24
-	return 0
-}
-
-function parseChallengeContent(content?: string): {
-	title?: string
-	description?: string
-	timeLabel?: string
-} {
-	if (!content) return {}
-	const normalized = content.replace(/\s+/g, ' ').trim()
-
-	const availableMatch = normalized.match(
-		/new daily challenge:\s*(.+?)\s+[—-]\s+(.+?)(?:\s*\(bonus:.*\))?$/i,
-	)
-	if (availableMatch) {
-		return {
-			title: availableMatch[1].trim(),
-			description: availableMatch[2].trim(),
-		}
-	}
-
-	const reminderPatterns = [
-		/today's challenge:\s*(.+?)\s+[—-]\s+(.+)$/i,
-		/challenge ending soon:\s*(.+?)\s+[—-]\s+(.+)$/i,
-		/challenge ending tomorrow:\s*(.+?)\s+[—-]\s+(.+)$/i,
-	]
-
-	for (const pattern of reminderPatterns) {
-		const match = normalized.match(pattern)
-		if (match) {
-			return {
-				title: match[1].trim(),
-				timeLabel: match[2].trim().replace(/[!.]+$/, ''),
-			}
-		}
-	}
-
-	return {}
-}
-
-// Transform API notification to gamified format
-const transformToGamifiedNotification = (
-	notif: APINotification,
-): GamifiedNotification | null => {
-	const data = (notif.data ?? {}) as Record<string, unknown>
-	const timestamp = new Date(notif.createdAt)
-
-	switch (notif.type) {
-		case 'XP_AWARDED': {
-			const parsed = parseXpFromContent(notif.content)
-			return {
-				id: notif.id,
-				type: 'xp_awarded',
-				recipeName: (data.recipeName as string) || parsed.recipe,
-				xpAmount: (data.xpAmount as number) || parsed.xp,
-				pendingXp: (data.pendingXp as number) || 0,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		}
-		case 'LEVEL_UP': {
-			const parsedLevel =
-				(data.newLevel as number) ?? parseLevelFromContent(notif.content)
-			return {
-				id: notif.id,
-				type: 'level_up',
-				newLevel: parsedLevel,
-				newGoalXp: (data.newGoalXp as number) ?? undefined,
-				recipesToNextLevel: (data.recipesToNextLevel as number) ?? undefined,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		}
-		case 'BADGE_EARNED':
-			return {
-				id: notif.id,
-				type: 'badge_unlocked',
-				badgeIcon: (data.badgeIcon as string) || '🏆',
-				badgeName: (data.badgeName as string) || 'Badge',
-				badgeRarity:
-					(data.badgeRarity as 'common' | 'rare' | 'epic' | 'legendary') ||
-					'common',
-				requirement: (data.requirement as string) || '',
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'CREATOR_BONUS':
-			return {
-				id: notif.id,
-				type: 'creator_bonus',
-				cookerName: (data.cookerName as string) || 'User',
-				cookerUsername: (data.cookerUsername as string) || 'user',
-				cookerAvatarUrl:
-					(data.cookerAvatarUrl as string) || '/placeholder-avatar.svg',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				xpBonus: (data.xpBonus as number) || 0,
-				totalCookRewards: (data.totalCookRewards as number) ?? undefined,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'STREAK_WARNING':
-			if (
-				((data.hoursRemaining as number) ||
-					parseHoursFromContent(notif.content)) <= 0
-			) {
-				return null
-			}
-			return {
-				id: notif.id,
-				type: 'streak_warning',
-				streakCount:
-					(data.streakCount as number) || parseStreakFromContent(notif.content),
-				hoursRemaining:
-					(data.hoursRemaining as number) ||
-					parseHoursFromContent(notif.content),
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'POST_DEADLINE': {
-			const days =
-				(data.daysRemaining as number) || parseDaysFromContent(notif.content)
-			const pendingXp = (data.pendingXp as number) || 0
-
-			// A deadline notification with zero pending XP is a contradictory nudge.
-			if (pendingXp <= 0) {
-				return null
-			}
-			return {
-				id: notif.id,
-				type: days <= 1 ? 'post_deadline_urgent' : 'post_deadline',
-				recipeName: (data.recipeName as string) || 'Recipe',
-				daysRemaining: days,
-				pendingXp,
-				...(days <= 1
-					? {
-							originalXp: (data.originalXp as number) || 0,
-							decayPercent: (data.decayPercent as number) || 0,
-						}
-					: {}),
-				timestamp,
-				isRead: notif.isRead,
-			} as GamifiedNotification
-		}
-		case 'CHALLENGE_AVAILABLE':
-		case 'CHALLENGE_REMINDER': {
-			const parsed = parseChallengeContent(notif.content)
-			return {
-				id: notif.id,
-				type: 'challenge_reminder',
-				challengeTitle: (data.challengeTitle as string) || parsed.title || '',
-				challengeDescription:
-					(data.challengeDescription as string) || parsed.description || '',
-				xpBonusPercent: (data.xpBonusPercent as number) || 0,
-				hoursRemaining:
-					(data.hoursRemaining as number) ||
-					parseHoursFromContent(parsed.timeLabel || notif.content),
-				timeLabel: parsed.timeLabel,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		}
-		case 'WEEKEND_NUDGE':
-			return {
-				id: notif.id,
-				type: 'weekend_nudge',
-				content:
-					notif.content ||
-					(data.content as string) ||
-					"It's the weekend — perfect time to try a new recipe!",
-				timestamp,
-				isRead: notif.isRead,
-			}
-		case 'PANTRY_EXPIRING':
-			return {
-				id: notif.id,
-				type: 'pantry_expiring',
-				content:
-					notif.content ||
-					(data.content as string) ||
-					'Some ingredients are expiring soon',
-				daysRemaining: (data.daysRemaining as number) || 3,
-				timestamp,
-				isRead: notif.isRead,
-			}
-		default:
-			return null
-	}
-}
 
 // Transform API notification to social format
 const transformToSocialNotification = (
@@ -647,6 +423,20 @@ export default function NotificationsPage() {
 		}
 	}
 
+	const navigateFromNotification = (id: string, path: string) => {
+		void handleMarkRead(id)
+		startNavigationTransition(() => {
+			router.push(path)
+		})
+	}
+
+	const openPostComposer = (id: string, sessionId?: string) => {
+		const target = sessionId
+			? `/post/new?session=${encodeURIComponent(sessionId)}`
+			: '/post/new'
+		navigateFromNotification(id, target)
+	}
+
 	// Filter notifications
 	const getFilteredNotifications = () => {
 		let filtered = {
@@ -677,17 +467,19 @@ export default function NotificationsPage() {
 	if (error) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='lg'>
-					<ErrorState
-						title={t('failedToLoad')}
-						message={t('failedToLoadDesc')}
-						onRetry={() => {
-							setError(false)
-							setIsLoading(true)
-							setRetryKey(k => k + 1)
-						}}
-					/>
-				</PageContainer>
+				<div data-testid='notifications-page' data-visual-ready='true'>
+					<PageContainer maxWidth='lg'>
+						<ErrorState
+							title={t('failedToLoad')}
+							message={t('failedToLoadDesc')}
+							onRetry={() => {
+								setError(false)
+								setIsLoading(true)
+								setRetryKey(k => k + 1)
+							}}
+						/>
+					</PageContainer>
+				</div>
 			</PageTransition>
 		)
 	}
@@ -712,168 +504,163 @@ export default function NotificationsPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-6'>
-					<div className='space-y-3 sm:space-y-4'>
-						<NotificationsCommandDeck
-							counts={counts}
-							activeFilter={activeFilter}
-							onFilterChange={setActiveFilter}
-							onMarkAllRead={handleMarkAllRead}
-							isMarkingAllRead={isMarkingAllRead}
-						/>
-
-						{/* Loading State — content-shaped skeleton */}
-						{isLoading && (
-							<div className='space-y-3'>
-								{Array.from({ length: 6 }).map((_, i) => (
-									<div
-										key={i}
-										className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
-									>
-										<Skeleton className='size-10 shrink-0 rounded-full' />
-										<div className='flex-1 space-y-2'>
-											<Skeleton className='h-4 w-3/4' />
-											<Skeleton className='h-3 w-1/2' />
-										</div>
-										<Skeleton className='h-3 w-12' />
-									</div>
-								))}
-							</div>
-						)}
-
-						{/* Empty State */}
-						{!isLoading && !hasNotifications && (
-							<EmptyState
-								variant='notifications'
-								title={t('noNotificationsYet')}
-								description={
-									activeFilter === 'unread'
-										? t('noUnread')
-										: t('noNotificationsDesc')
-								}
-								primaryAction={
-									activeFilter !== 'all'
-										? {
-												label: t('viewAll'),
-												onClick: () => setActiveFilter('all'),
-											}
-										: {
-												label: t('exploreRecipes'),
-												href: '/explore',
-											}
-								}
+				<div
+					data-testid='notifications-page'
+					data-visual-ready={isLoading ? 'false' : 'true'}
+				>
+					<div className='grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-6'>
+						<div className='space-y-3 sm:space-y-4'>
+							<NotificationsCommandDeck
+								counts={counts}
+								activeFilter={activeFilter}
+								onFilterChange={setActiveFilter}
+								onMarkAllRead={handleMarkAllRead}
+								isMarkingAllRead={isMarkingAllRead}
 							/>
-						)}
 
-						{/* Notifications List */}
-						{!isLoading && hasNotifications && (
-							<motion.div
-								variants={staggerContainer}
-								initial='hidden'
-								animate='visible'
-								role='log'
-								aria-live='polite'
-								aria-label={t('notificationsList')}
-								className='space-y-2.5'
-							>
-								{/* Gamified Notifications */}
-								{filtered.gamified.length > 0 && (
-									<>
-										{activeFilter === 'all' && (
-											<div className='flex items-center gap-2 py-0.5'>
-												<Sparkles className='size-4 text-xp' />
-												<span className='text-sm font-semibold text-text-secondary'>
-													{t('activitySection')}
-												</span>
+							{/* Loading State — content-shaped skeleton */}
+							{isLoading && (
+								<div className='space-y-3'>
+									{Array.from({ length: 6 }).map((_, i) => (
+										<div
+											key={i}
+											className='flex items-start gap-3 rounded-radius border border-border-subtle bg-bg-card p-4'
+										>
+											<Skeleton className='size-10 shrink-0 rounded-full' />
+											<div className='flex-1 space-y-2'>
+												<Skeleton className='h-4 w-3/4' />
+												<Skeleton className='h-3 w-1/2' />
 											</div>
-										)}
-										{filtered.gamified.map(notif => {
-											const extraProps: Record<string, unknown> = {}
-											if (notif.type === 'xp_awarded' && notif.pendingXp > 0) {
-												extraProps.onPost = () =>
-													startNavigationTransition(() => {
-														router.push('/create')
-													})
-											}
-											if (notif.type === 'streak_warning') {
-												extraProps.onFindRecipe = () =>
-													startNavigationTransition(() => {
-														router.push('/explore')
-													})
-											}
-											if (notif.type === 'badge_unlocked') {
-												extraProps.onViewBadge = () =>
-													startNavigationTransition(() => {
-														router.push('/profile/badges')
-													})
-											}
-											if (
-												notif.type === 'post_deadline' ||
-												notif.type === 'post_deadline_urgent'
-											) {
-												if (notif.pendingXp > 0) {
-													extraProps.onPostNow = () =>
-														startNavigationTransition(() => {
-															router.push('/create')
-														})
+											<Skeleton className='h-3 w-12' />
+										</div>
+									))}
+								</div>
+							)}
+
+							{/* Empty State */}
+							{!isLoading && !hasNotifications && (
+								<EmptyState
+									variant='notifications'
+									title={t('noNotificationsYet')}
+									description={
+										activeFilter === 'unread'
+											? t('noUnread')
+											: t('noNotificationsDesc')
+									}
+									primaryAction={
+										activeFilter !== 'all'
+											? {
+													label: t('viewAll'),
+													onClick: () => setActiveFilter('all'),
 												}
-											}
-											if (notif.type === 'challenge_reminder') {
-												extraProps.onSeeRecipes = () =>
-													startNavigationTransition(() => {
-														router.push('/challenges')
-													})
-											}
-											if (notif.type === 'weekend_nudge') {
-												extraProps.onExplore = () =>
-													startNavigationTransition(() => {
-														router.push('/explore')
-													})
-											}
-											if (notif.type === 'pantry_expiring') {
-												extraProps.onViewPantry = () =>
-													startNavigationTransition(() => {
-														router.push('/pantry')
-													})
-											}
-											return (
-												<NotificationItemGamified
+											: {
+													label: t('exploreRecipes'),
+													href: '/explore',
+												}
+									}
+								/>
+							)}
+
+							{/* Notifications List */}
+							{!isLoading && hasNotifications && (
+								<motion.div
+									variants={staggerContainer}
+									initial='hidden'
+									animate='visible'
+									role='log'
+									aria-live='polite'
+									aria-label={t('notificationsList')}
+									className='space-y-2.5'
+								>
+									{/* Gamified Notifications */}
+									{filtered.gamified.length > 0 && (
+										<>
+											{activeFilter === 'all' && (
+												<div className='flex items-center gap-2 py-0.5'>
+													<Sparkles className='size-4 text-xp' />
+													<span className='text-sm font-semibold text-text-secondary'>
+														{t('activitySection')}
+													</span>
+												</div>
+											)}
+											{filtered.gamified.map(notif => {
+												const extraProps: Record<string, unknown> = {}
+												if (
+													notif.type === 'xp_awarded' &&
+													notif.pendingXp > 0
+												) {
+													extraProps.onPost = () =>
+														openPostComposer(notif.id, notif.sessionId)
+												}
+												if (notif.type === 'streak_warning') {
+													extraProps.onFindRecipe = () =>
+														navigateFromNotification(notif.id, '/explore')
+												}
+												if (notif.type === 'badge_unlocked') {
+													extraProps.onViewBadge = () =>
+														navigateFromNotification(
+															notif.id,
+															'/profile/badges',
+														)
+												}
+												if (
+													notif.type === 'post_deadline' ||
+													notif.type === 'post_deadline_urgent'
+												) {
+													extraProps.onPostNow = () =>
+														openPostComposer(notif.id, notif.sessionId)
+												}
+												if (notif.type === 'challenge_reminder') {
+													extraProps.onSeeRecipes = () =>
+														navigateFromNotification(notif.id, '/challenges')
+												}
+												if (notif.type === 'weekend_nudge') {
+													extraProps.onExplore = () =>
+														navigateFromNotification(notif.id, '/explore')
+												}
+												if (notif.type === 'pantry_expiring') {
+													extraProps.onViewPantry = () =>
+														navigateFromNotification(notif.id, '/pantry')
+												}
+												return (
+													<NotificationItemGamified
+														key={notif.id}
+														{...notif}
+														{...extraProps}
+													/>
+												)
+											})}
+										</>
+									)}
+
+									{/* Social Notifications */}
+									{filtered.social.length > 0 && (
+										<>
+											{activeFilter === 'all' && (
+												<div className='flex items-center gap-2 py-0.5'>
+													<Heart className='size-4 text-error' />
+													<span className='text-sm font-semibold text-text-secondary'>
+														{t('socialSection')}
+													</span>
+												</div>
+											)}
+											{filtered.social.map(notif => (
+												<SocialNotificationItem
 													key={notif.id}
 													{...notif}
-													{...extraProps}
+													currentUserId={user?.userId}
+													onMarkRead={handleMarkRead}
 												/>
-											)
-										})}
-									</>
-								)}
+											))}
+										</>
+									)}
+								</motion.div>
+							)}
+							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-20))] md:pb-8' />
+						</div>
 
-								{/* Social Notifications */}
-								{filtered.social.length > 0 && (
-									<>
-										{activeFilter === 'all' && (
-											<div className='flex items-center gap-2 py-0.5'>
-												<Heart className='size-4 text-error' />
-												<span className='text-sm font-semibold text-text-secondary'>
-													{t('socialSection')}
-												</span>
-											</div>
-										)}
-										{filtered.social.map(notif => (
-											<SocialNotificationItem
-												key={notif.id}
-												{...notif}
-												currentUserId={user?.userId}
-												onMarkRead={handleMarkRead}
-											/>
-										))}
-									</>
-								)}
-							</motion.div>
-						)}
-						<div className='pb-[calc(var(--h-mobile-nav)+var(--space-20))] md:pb-8' />
+						<NotificationsContextRail counts={counts} className='xl:w-72' />
 					</div>
-
-					<NotificationsContextRail counts={counts} className='xl:w-72' />
 				</div>
 			</PageContainer>
 		</PageTransition>

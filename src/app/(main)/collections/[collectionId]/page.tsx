@@ -16,12 +16,20 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
+import { MagicCard } from '@/components/ui/magic-card'
 import { PostCard } from '@/components/social/PostCard'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
-import { LearningPathView } from '@/components/collections'
+import {
+	CollectionBuilder,
+	LearningPathView,
+	type CollectionBuilderData,
+} from '@/components/collections'
+import { RecipeCardEnhanced } from '@/components/recipe'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Collection, UpdateCollectionRequest } from '@/lib/types/collection'
 import { Post } from '@/lib/types'
+import type { Difficulty } from '@/lib/types/gamification'
+import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
 import {
 	getCollectionById,
 	getCollectionPosts,
@@ -29,6 +37,7 @@ import {
 	deleteCollection,
 	removePostFromCollection,
 } from '@/services/collection'
+import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
 import {
@@ -47,6 +56,7 @@ export default function CollectionDetailPage({
 	const currentUser = useAuthStore(state => state.user)
 	const [collection, setCollection] = useState<Collection | null>(null)
 	const [posts, setPosts] = useState<Post[]>([])
+	const [recipes, setRecipes] = useState<Recipe[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [showEditModal, setShowEditModal] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -65,6 +75,22 @@ export default function CollectionDetailPage({
 		setShowDeleteConfirm(false),
 	)
 
+	const loadRecipeDetails = async (recipeIds?: string[]) => {
+		if (!recipeIds?.length) {
+			return []
+		}
+
+		const recipeResults = await Promise.allSettled(
+			recipeIds.map(id => getRecipeById(id)),
+		)
+
+		return recipeResults.flatMap(result =>
+			result.status === 'fulfilled' && result.value.success && result.value.data
+				? [result.value.data]
+				: [],
+		)
+	}
+
 	useEffect(() => {
 		let cancelled = false
 		async function fetchData() {
@@ -79,6 +105,12 @@ export default function CollectionDetailPage({
 					setEditName(colRes.data.name)
 					setEditDescription(colRes.data.description || '')
 					setEditIsPublic(colRes.data.isPublic)
+					const nextRecipes = await loadRecipeDetails(colRes.data.recipeIds)
+					if (!cancelled) {
+						setRecipes(nextRecipes)
+					}
+				} else {
+					setRecipes([])
 				}
 				if (postsRes.success && postsRes.data) {
 					setPosts(postsRes.data)
@@ -110,11 +142,43 @@ export default function CollectionDetailPage({
 		const response = await updateCollection(collectionId, data)
 		if (response.success && response.data) {
 			setCollection(response.data)
+			setEditName(response.data.name)
+			setEditDescription(response.data.description || '')
+			setEditIsPublic(response.data.isPublic)
+			setRecipes(await loadRecipeDetails(response.data.recipeIds))
 			setShowEditModal(false)
 			toast.success(t('detailUpdated'))
 		} else {
 			toast.error(t('detailUpdateFailed'))
 		}
+		setIsUpdating(false)
+	}
+
+	const handleLearningPathUpdate = async (data: CollectionBuilderData) => {
+		setIsUpdating(true)
+		const response = await updateCollection(collectionId, {
+			name: data.name,
+			description: data.description || undefined,
+			isPublic: data.isPublic,
+			collectionType: data.collectionType,
+			recipeIds: data.recipeIds,
+			difficulty: data.difficulty,
+			totalXp: data.totalXp,
+			difficultyProgression: data.difficultyProgression,
+		})
+
+		if (response.success && response.data) {
+			setCollection(response.data)
+			setEditName(response.data.name)
+			setEditDescription(response.data.description || '')
+			setEditIsPublic(response.data.isPublic)
+			setRecipes(await loadRecipeDetails(response.data.recipeIds))
+			setShowEditModal(false)
+			toast.success(t('detailUpdated'))
+		} else {
+			toast.error(t('detailUpdateFailed'))
+		}
+
 		setIsUpdating(false)
 	}
 
@@ -193,39 +257,63 @@ export default function CollectionDetailPage({
 	}
 
 	const isLearningPath = collection.collectionType === 'LEARNING_PATH'
+	const recipeCount = recipes.length
+	const postCount = posts.length
+	const totalVisibleItems = recipeCount + postCount
+	const hasRecipeContent = recipeCount > 0
+	const hasPostContent = postCount > 0
+	const collectionCountLabel =
+		hasRecipeContent && !hasPostContent
+			? recipeCount === 1
+				? t('recipeSingle')
+				: t('recipePlural')
+			: hasPostContent && !hasRecipeContent
+				? postCount === 1
+					? t('postSingle')
+					: t('postPlural')
+				: totalVisibleItems === 1
+					? t('itemSingle')
+					: t('itemPlural')
 
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-					<PremiumSurface
-						eyebrow='Collection Detail'
-						chipText={collection.name}
-						showOrbs={false}
-						className='p-2 md:p-3'
-						tone='blue'
+					<MagicCard
+						mode='orb'
+						glowFrom='var(--color-brand)'
+						glowTo='var(--color-pink)'
+						className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
 					>
-						<button
-							type='button'
-							onClick={() => router.back()}
-							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
-						>
-							<ArrowLeft className='size-4' />
-							{t('detailBack')}
-						</button>
-					</PremiumSurface>
+						<div className='relative z-10 w-full p-2.5 md:p-3.5 flex items-center justify-between'>
+							<button
+								type='button'
+								onClick={() => router.back()}
+								className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
+							>
+								<ArrowLeft className='size-4' />
+								{t('detailBack')}
+							</button>
+						</div>
+					</MagicCard>
 
 					{/* Learning Path View - completely different layout */}
 					{isLearningPath ? (
-						<LearningPathView collection={collection} isOwner={isOwner} />
+						<LearningPathView
+							collection={collection}
+							isOwner={isOwner}
+							onEdit={isOwner ? () => setShowEditModal(true) : undefined}
+							onDelete={isOwner ? () => setShowDeleteConfirm(true) : undefined}
+						/>
 					) : (
 						<>
-							<PremiumSurface
-								eyebrow='Collection Meta'
-								chipText={`${collection.itemCount} ${collection.itemCount === 1 ? t('postSingle') : t('postPlural')}`}
-								className='p-3 md:p-4'
+							<MagicCard
+								mode='orb'
+								glowFrom='var(--color-brand)'
+								glowTo='var(--color-pink)'
+								className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-4 md:p-5'
 							>
-								<div className='flex items-start justify-between'>
+								<div className='relative z-10 w-full flex items-start justify-between'>
 									<div>
 										<div className='flex items-center gap-2'>
 											<h1 className='text-2xl font-bold text-text-primary'>
@@ -234,7 +322,7 @@ export default function CollectionDetailPage({
 											<span
 												className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
 													collection.isPublic
-														? 'bg-success/100/10 text-success'
+														? 'bg-success/10 text-success'
 														: 'bg-text-muted/10 text-text-muted'
 												}`}
 											>
@@ -247,15 +335,12 @@ export default function CollectionDetailPage({
 											</span>
 										</div>
 										{collection.description && (
-											<p className='mt-1 text-sm text-text-muted'>
+											<p className='mt-1.5 text-sm text-text-muted'>
 												{collection.description}
 											</p>
 										)}
-										<p className='mt-1 text-xs text-text-muted'>
-											{collection.itemCount}{' '}
-											{collection.itemCount === 1
-												? t('postSingle')
-												: t('postPlural')}
+										<p className='mt-3 text-xs text-text-muted uppercase tracking-wider font-semibold text-brand'>
+											{totalVisibleItems} {collectionCountLabel}
 										</p>
 									</div>
 									{isOwner && (
@@ -263,66 +348,135 @@ export default function CollectionDetailPage({
 											<button
 												type='button'
 												onClick={() => setShowEditModal(true)}
-												className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
+												className='rounded-xl border border-border-subtle bg-bg-card/40 p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 											>
 												<Pencil className='size-4' />
 											</button>
 											<button
 												type='button'
 												onClick={() => setShowDeleteConfirm(true)}
-												className='rounded-xl border border-border-subtle p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+												className='rounded-xl border border-border-subtle bg-bg-card/40 p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
 											>
 												<Trash2 className='size-4' />
 											</button>
 										</div>
 									)}
 								</div>
-							</PremiumSurface>
+							</MagicCard>
 
-							{/* Posts */}
-							{posts.length === 0 ? (
-								<EmptyState
-									variant='saved'
-									title={t('noPostsInCollection')}
-									description={t('noPostsInCollectionDesc')}
-									emoji='📖'
-									primaryAction={{
-										label: 'Explore Feed',
-										href: '/dashboard',
-									}}
-								/>
-							) : (
-								<PremiumSurface
-									eyebrow='Collected Posts'
-									chipText={`${posts.length} items`}
-									className='p-3 md:p-4'
+							{/* Collection contents */}
+							{!hasRecipeContent && !hasPostContent ? (
+								<MagicCard
+									mode='orb'
+									glowFrom='var(--color-brand)'
+									glowTo='var(--color-pink)'
+									className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md overflow-hidden shadow-card p-1'
 								>
-									<SurfaceSectionHeader
-										eyebrow='Saved Feed'
-										chipText='Organize and curate'
-										className='mb-3'
-									/>
-									<div className='space-y-4'>
-										{posts.map(post => (
-											<div key={post.id} className='relative'>
-												<PostCard
-													post={post}
-													currentUserId={currentUser?.userId}
-												/>
-												{isOwner && (
-													<button
-														type='button'
-														onClick={() => handleRemovePost(post.id)}
-														className='absolute right-2 top-2 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-card backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive'
-														aria-label={t('removeFromCollection')}
-													>
-														<Trash2 className='size-3.5' />
-													</button>
-												)}
-											</div>
-										))}
+									<div className='relative z-10 w-full'>
+										<EmptyState
+											variant='saved'
+											title={
+												hasRecipeContent
+													? t('noRecipesInCollection')
+													: t('noPostsInCollection')
+											}
+											description={
+												hasRecipeContent
+													? t('noRecipesInCollectionDesc')
+													: t('noPostsInCollectionDesc')
+											}
+											emoji='📖'
+											primaryAction={{
+												label: hasRecipeContent
+													? t('detailExploreRecipes')
+													: t('detailExploreFeed'),
+												href: hasRecipeContent ? '/explore' : '/feed',
+											}}
+										/>
 									</div>
-								</PremiumSurface>
+								</MagicCard>
+							) : (
+								<>
+									{hasRecipeContent && (
+										<PremiumSurface
+											eyebrow={t('detailRecipesEyebrow')}
+											chipText={t('detailItemsCount', { count: recipeCount })}
+											className='p-3 md:p-4'
+										>
+											<div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+												{recipes.map(recipe => (
+													<RecipeCardEnhanced
+														key={recipe.id}
+														variant='grid'
+														id={recipe.id}
+														title={recipe.title}
+														description={recipe.description}
+														imageUrl={getRecipeImage(recipe)}
+														cookTimeMinutes={getTotalTime(recipe)}
+														difficulty={
+															(recipe.difficulty as Difficulty) || 'Beginner'
+														}
+														xpReward={recipe.xpReward ?? 0}
+														rating={recipe.averageRating ?? 0}
+														cookCount={recipe.cookCount ?? 0}
+														skillTags={recipe.skillTags}
+														badges={recipe.rewardBadges}
+														author={
+															recipe.author?.displayName
+																? {
+																		id: recipe.author.userId,
+																		name: recipe.author.displayName,
+																		avatarUrl:
+																			recipe.author.avatarUrl ||
+																			'/placeholder-avatar.svg',
+																		isVerified: false,
+																	}
+																: undefined
+														}
+														onCook={() => router.push(`/recipes/${recipe.id}`)}
+													/>
+												))}
+											</div>
+										</PremiumSurface>
+									)}
+									{hasPostContent && (
+										<PremiumSurface
+											eyebrow={t('detailPostsEyebrow')}
+											chipText={t('detailItemsCount', { count: postCount })}
+											className='p-3 md:p-4'
+										>
+											<div className='space-y-4'>
+												{posts.map(post => (
+													<div key={post.id} className='relative group'>
+														<MagicCard
+															mode='orb'
+															glowFrom='var(--color-brand)'
+															glowTo='var(--color-success)'
+															className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-1 shadow-card transition-all group-hover:shadow-warm'
+														>
+															<div className='relative z-10 w-full'>
+																<PostCard
+																	post={post}
+																	currentUserId={currentUser?.userId}
+																/>
+															</div>
+														</MagicCard>
+														{isOwner && (
+															<button
+																type='button'
+																onClick={() => handleRemovePost(post.id)}
+																className='absolute right-4 top-4 z-20 rounded-lg bg-bg-card/80 p-1.5 text-text-muted shadow-card backdrop-blur-sm transition-colors hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+																aria-label={t('removeFromCollection')}
+															>
+																<Trash2 className='size-3.5' />
+															</button>
+														)}
+													</div>
+												))}
+											</div>
+										</PremiumSurface>
+									)}
+								</>
 							)}
 						</>
 					)}
@@ -341,8 +495,10 @@ export default function CollectionDetailPage({
 							exit={{ opacity: 0 }}
 							role='dialog'
 							aria-modal='true'
-							aria-label={t('detailEditTitle')}
-							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+							aria-label={
+								isLearningPath ? t('editLearningPath') : t('detailEditTitle')
+							}
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm'
 							onClick={() => setShowEditModal(false)}
 						>
 							<motion.div
@@ -350,67 +506,98 @@ export default function CollectionDetailPage({
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.95, y: 20 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-md rounded-2xl bg-bg-card p-6 shadow-warm'
+								className={`w-full rounded-2xl overflow-hidden shadow-warm p-0 ${
+									isLearningPath ? 'max-w-4xl' : 'max-w-md'
+								}`}
 								onClick={e => e.stopPropagation()}
 							>
-								<h2 className='mb-4 text-lg font-bold text-text-primary'>
-									{t('detailEditTitle')}
-								</h2>
-								<div className='space-y-4'>
-									<div>
-										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											{t('nameLabel')}
-										</label>
-										<input
-											type='text'
-											value={editName}
-											onChange={e => setEditName(e.target.value)}
-											maxLength={60}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
-											autoFocus
-										/>
+								<MagicCard
+									mode='orb'
+									glowFrom='var(--color-brand)'
+									glowTo={
+										isLearningPath ? 'var(--color-xp)' : 'var(--color-pink)'
+									}
+									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
+								>
+									<div className='relative z-10 w-full'>
+										{isLearningPath ? (
+											<CollectionBuilder
+												initialName={collection.name}
+												initialDescription={collection.description || ''}
+												initialRecipeIds={collection.recipeIds ?? []}
+												initialStages={collection.difficultyProgression ?? []}
+												initialType='LEARNING_PATH'
+												initialIsPublic={collection.isPublic}
+												onSave={handleLearningPathUpdate}
+												onCancel={() => setShowEditModal(false)}
+												isSaving={isUpdating}
+											/>
+										) : (
+											<>
+												<h2 className='mb-4 text-lg font-bold text-text-primary'>
+													{t('detailEditTitle')}
+												</h2>
+												<div className='space-y-4'>
+													<div>
+														<label className='mb-1 block text-sm font-medium text-text-secondary'>
+															{t('nameLabel')}
+														</label>
+														<input
+															type='text'
+															value={editName}
+															onChange={e => setEditName(e.target.value)}
+															maxLength={60}
+															className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
+															autoFocus
+														/>
+													</div>
+													<div>
+														<label className='mb-1 block text-sm font-medium text-text-secondary'>
+															{t('descriptionLabel')}
+														</label>
+														<input
+															type='text'
+															value={editDescription}
+															onChange={e => setEditDescription(e.target.value)}
+															maxLength={200}
+															className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
+														/>
+													</div>
+													<label className='flex cursor-pointer items-center gap-3'>
+														<input
+															type='checkbox'
+															checked={editIsPublic}
+															onChange={e => setEditIsPublic(e.target.checked)}
+															className='size-4 rounded border-border-subtle accent-brand'
+														/>
+														<span className='text-sm text-text-primary'>
+															{t('makePublic')}
+														</span>
+													</label>
+												</div>
+												<div className='mt-6 flex justify-end gap-3'>
+													<button
+														type='button'
+														onClick={() => setShowEditModal(false)}
+														className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+													>
+														{t('cancel')}
+													</button>
+													<button
+														type='button'
+														onClick={handleUpdate}
+														disabled={isUpdating || !editName.trim()}
+														className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
+													>
+														{isUpdating
+															? t('detailSaving')
+															: t('detailSaveChanges')}
+													</button>
+												</div>
+											</>
+										)}
 									</div>
-									<div>
-										<label className='mb-1 block text-sm font-medium text-text-secondary'>
-											{t('descriptionLabel')}
-										</label>
-										<input
-											type='text'
-											value={editDescription}
-											onChange={e => setEditDescription(e.target.value)}
-											maxLength={200}
-											className='w-full rounded-xl border border-border-subtle bg-bg px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none'
-										/>
-									</div>
-									<label className='flex cursor-pointer items-center gap-3'>
-										<input
-											type='checkbox'
-											checked={editIsPublic}
-											onChange={e => setEditIsPublic(e.target.checked)}
-											className='size-4 rounded border-border-subtle accent-brand'
-										/>
-										<span className='text-sm text-text-primary'>
-											{t('makePublic')}
-										</span>
-									</label>
-								</div>
-								<div className='mt-6 flex justify-end gap-3'>
-									<button
-										type='button'
-										onClick={() => setShowEditModal(false)}
-										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-									>
-										{t('cancel')}
-									</button>
-									<button
-										type='button'
-										onClick={handleUpdate}
-										disabled={isUpdating || !editName.trim()}
-										className='rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
-									>
-										{isUpdating ? t('detailSaving') : t('detailSaveChanges')}
-									</button>
-								</div>
+								</MagicCard>
 							</motion.div>
 						</motion.div>
 					</Portal>
@@ -428,7 +615,7 @@ export default function CollectionDetailPage({
 							role='dialog'
 							aria-modal='true'
 							aria-label={t('detailDeleteTitle')}
-							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+							className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm'
 							onClick={() => setShowDeleteConfirm(false)}
 						>
 							<motion.div
@@ -436,32 +623,41 @@ export default function CollectionDetailPage({
 								animate={{ opacity: 1, scale: 1 }}
 								exit={{ opacity: 0, scale: 0.95 }}
 								transition={TRANSITION_SPRING}
-								className='w-full max-w-sm rounded-2xl bg-bg-card p-6 shadow-warm'
+								className='w-full max-w-sm rounded-2xl overflow-hidden shadow-warm p-0'
 								onClick={e => e.stopPropagation()}
 							>
-								<h3 className='mb-2 text-lg font-bold text-text-primary'>
-									{t('detailDeleteTitle')}
-								</h3>
-								<p className='mb-6 text-sm text-text-muted'>
-									{t('detailDeleteMessage', { name: collection.name })}
-								</p>
-								<div className='flex justify-end gap-3'>
-									<button
-										type='button'
-										onClick={() => setShowDeleteConfirm(false)}
-										className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
-									>
-										{t('cancel')}
-									</button>
-									<button
-										type='button'
-										onClick={handleDelete}
-										disabled={isDeleting}
-										className='rounded-xl bg-destructive px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
-									>
-										{isDeleting ? t('detailDeleting') : t('detailDelete')}
-									</button>
-								</div>
+								<MagicCard
+									mode='orb'
+									glowFrom='var(--color-brand)'
+									glowTo='var(--color-error)'
+									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
+								>
+									<div className='relative z-10 w-full'>
+										<h3 className='mb-2 text-lg font-bold text-text-primary'>
+											{t('detailDeleteTitle')}
+										</h3>
+										<p className='mb-6 text-sm text-text-muted'>
+											{t('detailDeleteMessage', { name: collection.name })}
+										</p>
+										<div className='flex justify-end gap-3'>
+											<button
+												type='button'
+												onClick={() => setShowDeleteConfirm(false)}
+												className='rounded-xl px-4 py-2.5 text-sm font-medium text-text-muted hover:bg-bg-elevated'
+											>
+												{t('cancel')}
+											</button>
+											<button
+												type='button'
+												onClick={handleDelete}
+												disabled={isDeleting}
+												className='rounded-xl bg-destructive px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
+											>
+												{isDeleting ? t('detailDeleting') : t('detailDelete')}
+											</button>
+										</div>
+									</div>
+								</MagicCard>
 							</motion.div>
 						</motion.div>
 					</Portal>

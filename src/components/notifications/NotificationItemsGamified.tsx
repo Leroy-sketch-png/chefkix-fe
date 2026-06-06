@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import {
 	Upload,
 	Clock,
@@ -16,7 +15,6 @@ import {
 	Flame,
 	Target,
 } from 'lucide-react'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { formatShortTimeAgo, cn } from '@/lib/utils'
 import {
@@ -58,6 +56,9 @@ interface XPAwardedNotification extends BaseNotification {
 	recipeName: string
 	xpAmount: number
 	pendingXp: number
+	content?: string
+	source?: string
+	sessionId?: string
 	onPost?: () => void
 }
 
@@ -93,31 +94,31 @@ interface BadgeSurpriseNotification extends BaseNotification {
 
 interface CreatorBonusNotification extends BaseNotification {
 	type: 'creator_bonus'
-	cookerName: string
-	cookerUsername: string
-	cookerAvatarUrl: string
-	recipeName: string
-	xpBonus: number
+	content: string
+	recipeName?: string
+	xpBonus?: number
 	totalCookRewards?: number
-	postId?: string
-	onViewPost?: () => void
 }
 
 interface PostDeadlineNotification extends BaseNotification {
 	type: 'post_deadline'
+	content: string
 	recipeName: string
 	daysRemaining: number
-	pendingXp: number
+	pendingXp?: number
+	sessionId?: string
 	onPostNow?: () => void
 }
 
 interface PostDeadlineUrgentNotification extends BaseNotification {
 	type: 'post_deadline_urgent'
+	content: string
 	recipeName: string
 	daysRemaining: number
-	pendingXp: number
-	originalXp: number
-	decayPercent: number
+	pendingXp?: number
+	originalXp?: number
+	decayPercent?: number
+	sessionId?: string
 	onPostNow?: () => void
 }
 
@@ -210,11 +211,20 @@ const NotifWrapper = ({
 		animate={{ opacity: 1, x: 0 }}
 		whileHover={LIST_ITEM_HOVER}
 		className={cn(
-			'relative grid grid-cols-[2.5rem,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-[1.4rem] border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 px-3 py-3 shadow-card transition-colors hover:bg-bg-elevated md:grid-cols-[2.75rem,minmax(0,1fr),auto] md:items-center md:gap-x-4 md:px-4 md:py-3.5',
-			!isRead && 'bg-brand/5',
+			'relative overflow-hidden grid grid-cols-[2.5rem,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 px-3 py-3 shadow-card transition-colors hover:bg-bg-elevated md:grid-cols-[2.75rem,minmax(0,1fr),auto] md:items-center md:gap-x-4 md:px-4 md:py-3.5',
+			!isRead && 'bg-brand/6 border-brand/20',
 			className,
 		)}
 	>
+		<div
+			className={cn(
+				'pointer-events-none absolute inset-y-2 left-1 w-1 rounded-full transition-colors',
+				isRead ? 'bg-transparent' : 'bg-brand/60',
+			)}
+		/>
+		{!isRead && (
+			<span className='pointer-events-none absolute right-2 top-2 size-2 rounded-full bg-brand shadow-glow' />
+		)}
 		{children}
 	</motion.div>
 )
@@ -302,12 +312,27 @@ const XPAwardedItem = ({
 	recipeName,
 	xpAmount,
 	pendingXp,
+	content,
+	source,
 	timestamp,
 	isRead,
 	onPost,
 }: XPAwardedNotification) => {
 	const t = useTranslations('notifications')
 	const hasPendingXp = pendingXp > 0
+	const body = hasPendingXp ? (
+		<>
+			You earned{' '}
+			<strong className='tabular-nums font-bold text-xp'>
+				+{xpAmount.toLocaleString()} XP
+			</strong>{' '}
+			for completing{' '}
+			<span className='font-semibold text-brand'>{recipeName}</span>
+		</>
+	) : (
+		content ||
+		`You earned +${xpAmount.toLocaleString()} XP${source ? ` for ${source.toLowerCase().replace(/_/g, ' ')}` : ''}.`
+	)
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
@@ -318,22 +343,15 @@ const XPAwardedItem = ({
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
 				<NotifHeader type={t('typeXPEarned')} time={timestamp} />
-				<p className='text-sm'>
-					You earned{' '}
-					<strong className='tabular-nums font-bold text-xp'>
-						+{xpAmount.toLocaleString()} XP
-					</strong>{' '}
-					for completing{' '}
-					<span className='font-semibold text-brand'>{recipeName}</span>
-				</p>
-				<div className='mt-1.5 flex items-center gap-2'>
-					<MetaTag className='bg-xp/15 text-xp'>{t('xpInstant')}</MetaTag>
-					{hasPendingXp && (
+				<p className='text-sm'>{body}</p>
+				{hasPendingXp && (
+					<div className='mt-1.5 flex items-center gap-2'>
+						<MetaTag className='bg-xp/15 text-xp'>{t('xpInstant')}</MetaTag>
 						<span className='text-xs text-text-muted'>
 							{t('xpPendingPost', { xp: pendingXp })}
 						</span>
-					)}
-				</div>
+					</div>
+				)}
 			</div>
 
 			{/* Action */}
@@ -540,31 +558,17 @@ const BadgeSurpriseItem = ({
 
 // Creator Bonus
 const CreatorBonusItem = ({
-	cookerName,
-	cookerUsername,
-	cookerAvatarUrl,
-	recipeName,
+	content,
 	xpBonus,
 	totalCookRewards,
 	timestamp,
 	isRead,
-	onViewPost,
 }: CreatorBonusNotification) => {
 	const t = useTranslations('notifications')
 	return (
 		<NotifWrapper isRead={isRead} className='bg-info/5'>
-			{/* Avatar */}
-			<div className='relative flex-shrink-0'>
-				<Image
-					src={cookerAvatarUrl || '/placeholder-avatar.svg'}
-					alt={cookerName}
-					width={48}
-					height={48}
-					className='size-10 rounded-full object-cover'
-				/>
-				<div className='absolute -bottom-0.5 -right-0.5 flex size-icon-md items-center justify-center rounded-full border-2 border-bg-card bg-info/10 text-info'>
-					<ChefHat className='size-3' />
-				</div>
+			<div className='relative flex size-10 flex-shrink-0 items-center justify-center rounded-full bg-info/10 text-info'>
+				<ChefHat className='relative z-10 size-5' />
 			</div>
 
 			{/* Content */}
@@ -574,14 +578,13 @@ const CreatorBonusItem = ({
 					time={timestamp}
 					className='text-info'
 				/>
-				<p className='text-sm'>
-					{t('creatorCookedYour', { username: cookerUsername })}{' '}
-					<span className='font-semibold text-brand'>{recipeName}</span>
-				</p>
+				<p className='text-sm'>{content}</p>
 				<div className='mt-1.5 flex items-center gap-2'>
-					<MetaTag className='bg-xp/15 text-xp'>
-						{t('xpBonus', { amount: xpBonus })}
-					</MetaTag>
+					{xpBonus != null && xpBonus > 0 && (
+						<MetaTag className='bg-xp/15 text-xp'>
+							{t('xpBonus', { amount: xpBonus })}
+						</MetaTag>
+					)}
 					{totalCookRewards != null && (
 						<span className='text-xs text-text-muted'>
 							{t('creatorCookReward', { count: totalCookRewards })}
@@ -589,20 +592,13 @@ const CreatorBonusItem = ({
 					)}
 				</div>
 			</div>
-
-			{/* Action */}
-			<ActionButton
-				onClick={onViewPost}
-				className='border-info/20 bg-info/10 text-info hover:bg-info/15 sm:flex-shrink-0'
-			>
-				{t('seeTheirPost')}
-			</ActionButton>
 		</NotifWrapper>
 	)
 }
 
 // Post Deadline Normal
 const PostDeadlineItem = ({
+	content,
 	recipeName,
 	daysRemaining,
 	pendingXp,
@@ -621,30 +617,35 @@ const PostDeadlineItem = ({
 			{/* Content */}
 			<div className='min-w-0 flex-1'>
 				<NotifHeader type={t('typePostReminder')} time={timestamp} />
-				<p className='text-sm'>{t('postWaiting', { name: recipeName })}</p>
+				<p className='text-sm'>{content}</p>
 				<div className='mt-1.5 flex items-center gap-2'>
 					<MetaTag className='bg-text-secondary/15 text-text-secondary'>
 						{t('daysLeft', { count: daysRemaining })}
 					</MetaTag>
-					<span className='text-xs text-text-muted'>
-						{t('xpAtStake', { xp: pendingXp })}
-					</span>
+					{pendingXp != null && pendingXp > 0 && (
+						<span className='text-xs text-text-muted'>
+							{t('xpAtStake', { xp: pendingXp })}
+						</span>
+					)}
 				</div>
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onPostNow}
-				className='border-brand/20 bg-brand/10 text-brand-text hover:bg-brand/15 sm:flex-shrink-0'
-			>
-				{t('postNow')}
-			</ActionButton>
+			{onPostNow && (
+				<ActionButton
+					onClick={onPostNow}
+					className='border-brand/20 bg-brand/10 text-brand-text hover:bg-brand/15 sm:flex-shrink-0'
+				>
+					{t('postNow')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
 
 // Post Deadline Urgent
 const PostDeadlineUrgentItem = ({
+	content,
 	recipeName,
 	daysRemaining,
 	pendingXp,
@@ -655,8 +656,9 @@ const PostDeadlineUrgentItem = ({
 	onPostNow,
 }: PostDeadlineUrgentNotification) => {
 	const t = useTranslations('notifications')
-	const hasDecay = decayPercent > 0
-	const hasOriginalXp = originalXp > 0
+	const hasDecay = (decayPercent ?? 0) > 0
+	const hasOriginalXp = (originalXp ?? 0) > 0
+	const hasPendingXp = (pendingXp ?? 0) > 0
 	return (
 		<NotifWrapper
 			isRead={isRead}
@@ -674,28 +676,31 @@ const PostDeadlineUrgentItem = ({
 					time={timestamp}
 					className='text-error'
 				/>
-				<p className='text-sm'>
-					{t('deadlineExpires', { name: recipeName })}{' '}
-					<strong className='font-bold text-error'>
-						{t('daysCount', { count: daysRemaining })}
-					</strong>
-				</p>
+				<p className='text-sm'>{content}</p>
 				<div className='mt-1.5 flex items-center gap-2'>
+					<MetaTag className='bg-error/15 text-error'>
+						{t('daysLeft', { count: daysRemaining })}
+					</MetaTag>
 					{hasDecay && (
 						<MetaTag className='bg-error/15 text-error'>
 							{t('decayActive', { percent: decayPercent })}
 						</MetaTag>
 					)}
-					<span className='text-xs text-text-muted'>
-						{hasOriginalXp
-							? t('xpRemainingOf', { pending: pendingXp, original: originalXp })
-							: t('xpAtStake', { xp: pendingXp })}
-					</span>
+					{hasPendingXp && (
+						<span className='text-xs text-text-muted'>
+							{hasOriginalXp
+								? t('xpRemainingOf', {
+										pending: pendingXp,
+										original: originalXp,
+									})
+								: t('xpAtStake', { xp: pendingXp })}
+						</span>
+					)}
 				</div>
 			</div>
 
 			{/* Action */}
-			{pendingXp > 0 && (
+			{onPostNow && (
 				<ActionButton
 					onClick={onPostNow}
 					className='border-error/20 bg-error/10 text-error hover:bg-error/15'

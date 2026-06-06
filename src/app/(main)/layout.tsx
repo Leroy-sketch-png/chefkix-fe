@@ -10,11 +10,10 @@ import { MiniCookingBar } from '@/components/cooking/MiniCookingBar'
 import { CookingSidebarSwitch } from '@/components/cooking/CookingSidebarSwitch'
 import { CookingTimerProvider } from '@/components/providers/CookingTimerProvider'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
-import { KeyboardShortcuts } from '@/components/shared/KeyboardShortcuts'
-import { CommandPalette } from '@/components/shared/CommandPalette'
 import { EventTrackerProvider } from '@/components/providers/EventTrackerProvider'
 import { NotificationSocketProvider } from '@/components/providers/NotificationSocketProvider'
 import { PushNotificationProvider } from '@/components/providers/PushNotificationProvider'
+import { PresenceProvider } from '@/components/providers/PresenceProvider'
 import { DemoWidget } from '@/components/dev/DemoWidget'
 import { AppShell } from '@/components/layout/AppShell'
 
@@ -66,14 +65,13 @@ export default function MainAppLayout({
 			<MobileBottomNav />
 			{/* Centralized timer ticking + completion notifications */}
 			<CookingTimerProvider />
-			<KeyboardShortcuts />
-			<CommandPalette />
 			<EventTrackerProvider>{null}</EventTrackerProvider>
 			{/* WebSocket provider - wrapped to prevent connection errors from crashing app */}
 			<ErrorBoundary>
 				<NotificationSocketProvider />
 			</ErrorBoundary>
 			<PushNotificationProvider />
+			<PresenceProvider />
 			{SHOW_DEMO_WIDGET ? <DemoWidget /> : null}
 		</>
 	)

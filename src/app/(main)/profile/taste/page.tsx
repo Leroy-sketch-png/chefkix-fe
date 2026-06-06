@@ -159,7 +159,8 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 	return (
 		<div className='flex items-center justify-center overflow-visible'>
 			<svg
-				className='h-auto w-full max-w-[220px] sm:max-w-[280px]'
+				data-testid='taste-radar'
+				className='h-auto w-full max-w-56 sm:max-w-xs'
 				overflow='visible'
 				width={svgSize}
 				height={svgSize}
@@ -364,7 +365,7 @@ export default function TasteProfilePage() {
 						</motion.button>
 						<div className='flex-1 rounded-2xl border border-border-subtle bg-bg-card px-4 py-5 shadow-card'>
 							<div className='flex items-center gap-3'>
-								<div className='grid size-10 place-items-center rounded-2xl bg-xp text-white shadow-[0_6px_18px_rgba(150,93,255,0.28)]'>
+								<div className='grid size-10 place-items-center rounded-2xl bg-xp text-white shadow-glow'>
 									<Sparkles className='size-5' />
 								</div>
 								<div className='min-w-0'>

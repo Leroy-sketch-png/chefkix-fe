@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { UserStoryFeedResponse } from '@/lib/types/story'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useTranslations } from '@/i18n/hooks'
 import { Plus } from 'lucide-react'
 
@@ -57,15 +58,17 @@ const CreateStoryCard = ({
 							: 'flex items-start justify-between gap-2'
 					}
 				>
-					<div className='flex size-10 items-center justify-center rounded-xl border border-brand/15 bg-bg-card shadow-sm'>
-						<img
+					<div className='flex size-10 items-center justify-center rounded-xl border border-brand/15 bg-bg-card shadow-card'>
+						<Image
 							src={avatarUrl}
 							alt='Your story avatar'
+							width={32}
+							height={32}
 							className='size-8 rounded-xl object-cover'
 						/>
 					</div>
 					{!fullWidth ? (
-						<div className='flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-sm'>
+						<div className='flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-card'>
 							<Plus className='size-4' strokeWidth={2.8} />
 						</div>
 					) : null}
@@ -88,7 +91,7 @@ const CreateStoryCard = ({
 }
 
 const shellClassName =
-	'rounded-[1.5rem] border border-border-subtle bg-bg-card/70 p-3 shadow-card backdrop-blur-sm'
+	'rounded-xl border border-border-subtle bg-bg-card/70 p-3 shadow-card backdrop-blur-sm'
 
 export const StoryFeed = ({
 	stories = [],
@@ -101,12 +104,12 @@ export const StoryFeed = ({
 	const handleCreateStory = () => router.push('/story/create')
 	const hasStories = stories.length > 0
 	const stripClassName =
-		'flex items-stretch gap-3 overflow-x-auto pb-1 pt-1 snap-x scrollbar-hide -mx-1 px-1'
+		'flex items-stretch gap-3 overflow-x-auto hkx-x-rail pb-1 pt-1 snap-x -mx-1 px-1'
 
 	const header = (
 		<div className='flex items-center justify-between gap-3'>
 			<div className='min-w-0'>
-				<p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted'>
+				<p className='text-2xs font-semibold uppercase tracking-widest text-text-muted'>
 					{t('storiesHeader')}
 				</p>
 				<p className='text-xs text-text-secondary'>{t('storiesSubheader')}</p>
@@ -174,12 +177,19 @@ export const StoryFeed = ({
 						const isMe =
 							!!currentUser && storyUser.userId === currentUser.userId
 
+						// Prefer explicit hasStories flag when present, fallback to list length
+						const userHasStories =
+							typeof storyUser.hasStories === 'boolean'
+								? storyUser.hasStories
+								: true
+
 						return (
 							<button
 								type='button'
 								key={`${storyUser.userId}-${index}`}
 								className='snap-start shrink-0 text-left'
 								onClick={() => onStoryClick(storyUser)}
+								aria-pressed={userHasStories}
 							>
 								<StoryAvatar user={storyUser} isCurrentUser={isMe} />
 							</button>

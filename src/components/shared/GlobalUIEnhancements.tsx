@@ -9,6 +9,7 @@ import { AuthRequiredModal } from '@/components/auth/AuthRequiredModal'
 import { CookieConsent } from '@/components/ui/cookie-consent'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useUiStore } from '@/store/uiStore'
+import { useGlobalShortcuts } from '@/hooks/useGlobalShortcuts'
 
 /**
  * Global UI enhancements — scroll-to-top, route loading bar, offline banner.
@@ -22,6 +23,7 @@ export function GlobalUIEnhancements() {
 	const authGateOpen = useUiStore(s => s.authGateOpen)
 	const authGateAction = useUiStore(s => s.authGateAction)
 	const closeAuthGate = useUiStore(s => s.closeAuthGate)
+	useGlobalShortcuts()
 
 	// Detect route changes for loading bar
 	useEffect(() => {
@@ -33,6 +35,14 @@ export function GlobalUIEnhancements() {
 			return () => clearTimeout(timeout)
 		}
 	}, [pathname, prevPathname])
+
+	useEffect(() => {
+		if (process.env.NODE_ENV !== 'development') return
+
+		import('@/lib/design-system-rules').then(({ validateTokenUsage }) => {
+			validateTokenUsage()
+		})
+	}, [pathname])
 
 	return (
 		<>

@@ -24,14 +24,14 @@ export const StoryAvatar = ({
 
 	return (
 		<div className='flex w-20 flex-col items-center gap-2'>
-			<div className='relative rounded-[1.25rem] bg-bg-card/80 p-1.5 shadow-card transition-transform duration-200 active:scale-95'>
+			<div className='relative rounded-xl bg-bg-card/80 p-1.5 shadow-card transition-transform duration-200 active:scale-95'>
 				<div
 					className={cn(
 						'relative flex h-16 w-16 items-center justify-center rounded-full p-[3px]',
 						isAddButton
 							? 'border border-dashed border-neutral-400 bg-transparent'
 							: hasUnseen
-								? 'bg-gradient-to-br from-brand via-brand to-brand/70 shadow-[0_10px_24px_rgba(255,90,54,0.22)]'
+								? 'bg-gradient-to-br from-brand via-brand to-brand/70 shadow-glow'
 								: 'border border-border-subtle bg-bg-elevated',
 					)}
 				>
@@ -44,11 +44,11 @@ export const StoryAvatar = ({
 					</div>
 
 					{isAddButton ? (
-						<div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-sm'>
+						<div className='absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-brand text-white shadow-card'>
 							<Plus className='h-3 w-3' strokeWidth={3} />
 						</div>
 					) : hasUnseen ? (
-						<div className='absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-bg-card bg-brand shadow-sm' />
+						<div className='absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-bg-card bg-brand shadow-card' />
 					) : null}
 				</div>
 			</div>

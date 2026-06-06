@@ -4,11 +4,7 @@ import { useState, useCallback } from 'react'
 import Image, { ImageProps } from 'next/image'
 import { cn } from '@/lib/utils'
 import { ImageOff, ChefHat, User } from 'lucide-react'
-
-const KNOWN_BROKEN_IMAGE_PATTERNS = [
-	'photo-1482049016530-d79f7d5e8c6e',
-	'photo-1596097635121-14b63a7a7e7b',
-]
+import { isKnownBrokenImageSrc } from '@/lib/imageSafety'
 
 /**
  * Fallback types for different content
@@ -107,9 +103,7 @@ export const ImageWithFallback = ({
 	}
 
 	// Render custom fallback if provided
-	const isKnownBrokenSrc =
-		typeof src === 'string' &&
-		KNOWN_BROKEN_IMAGE_PATTERNS.some(pattern => src.includes(pattern))
+	const isKnownBrokenSrc = isKnownBrokenImageSrc(src)
 
 	if ((hasError || !src || isKnownBrokenSrc) && fallbackComponent) {
 		return <>{fallbackComponent}</>

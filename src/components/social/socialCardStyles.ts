@@ -6,8 +6,14 @@ export const socialCardSurface = cva(
 		variants: {
 			tone: {
 				default: '',
-				poll: 'to-info/6',
-				recentCook: 'to-brand/8',
+				poll: 'to-info/6 sm:border-l-2 sm:border-l-info/50',
+				recentCook:
+					'to-brand/8 sm:border-l-2 sm:border-l-brand/60 hover:shadow-glow',
+				quickTip: 'to-success/6 sm:border-l-2 sm:border-l-success/50',
+				battle:
+					'to-error/7 sm:border-l-2 sm:border-l-error/60 hover:shadow-lg',
+				group: 'to-accent-purple/6 sm:border-l-2 sm:border-l-accent-purple/50',
+				recipeReview: 'to-warning/6 sm:border-l-2 sm:border-l-warning/50',
 			},
 		},
 		defaultVariants: {
@@ -15,6 +21,27 @@ export const socialCardSurface = cva(
 		},
 	},
 )
+
+/** Map PostType → card tone */
+export const POST_TYPE_TO_TONE: Record<
+	string,
+	| 'default'
+	| 'poll'
+	| 'recentCook'
+	| 'quickTip'
+	| 'battle'
+	| 'group'
+	| 'recipeReview'
+> = {
+	PERSONAL: 'default',
+	QUICK: 'default',
+	POLL: 'poll',
+	RECENT_COOK: 'recentCook',
+	QUICK_TIP: 'quickTip',
+	RECIPE_BATTLE: 'battle',
+	GROUP: 'group',
+	RECIPE_REVIEW: 'recipeReview',
+}
 
 export const socialCardTopAccent =
 	'pointer-events-none absolute inset-x-0 top-0 hidden h-px bg-gradient-to-r from-transparent via-border-medium/50 to-transparent sm:block'

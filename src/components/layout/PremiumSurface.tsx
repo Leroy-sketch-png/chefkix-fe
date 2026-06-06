@@ -86,13 +86,13 @@ export function SurfaceSectionHeader({
 }: SurfaceSectionHeaderProps) {
 	return (
 		<div className={cn('flex items-center justify-between gap-3', className)}>
-			<p className='text-[10.5px] font-bold uppercase tracking-[0.2em] text-text-muted'>
+			<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 				{eyebrow}
 			</p>
 			{chipText ? (
 				<span
 					className={cn(
-						'inline-flex h-6 items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 text-[11px] font-semibold text-text-secondary tabular-nums shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+						'inline-flex h-6 items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 text-2xs font-semibold text-text-secondary tabular-nums shadow-card',
 						chipClassName,
 					)}
 				>

@@ -13,7 +13,6 @@ import {
 	Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { setStorageItem } from '@/lib/storage'
 import { updateProfile } from '@/services/profile'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
@@ -25,6 +24,15 @@ import { useTranslations } from 'next-intl'
 // ============================================
 
 const INTEREST_PICKER_DISMISSED_KEY = 'chefkix:interest-picker-dismissed'
+
+export function dismissInterestPicker(): void {
+	if (typeof window === 'undefined') return
+	try {
+		localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+	} catch {
+		/* ignored: storage access non-critical */
+	}
+}
 
 // ============================================
 // CUISINE/INTEREST TILES - Using emoji + gradients (no external CDNs for privacy)
@@ -144,7 +152,7 @@ export function InterestPicker({
 				} else if (selected.size === 0) {
 					setShowSkipConfirm(true)
 				} else {
-					setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+					dismissInterestPicker()
 					onComplete()
 				}
 			}
@@ -185,14 +193,14 @@ export function InterestPicker({
 		}
 		// If has selections or already confirmed, proceed
 		if (dismissible) {
-			setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+			dismissInterestPicker()
 		}
 		onComplete()
 	}, [dismissible, onComplete, editMode, selected.size])
 
 	const handleConfirmSkip = useCallback(() => {
 		if (dismissible) {
-			setStorageItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+			dismissInterestPicker()
 		}
 		onComplete()
 	}, [dismissible, onComplete])
@@ -219,7 +227,7 @@ export function InterestPicker({
 				setUser(response.data)
 				// Persist dismissal after successful save (only if not in edit mode)
 				if (dismissible && !editMode) {
-					localStorage.setItem(INTEREST_PICKER_DISMISSED_KEY, 'true')
+					dismissInterestPicker()
 				}
 				toast.success(editMode ? t('ipToastUpdated') : t('ipToastPersonalize'))
 				onComplete()

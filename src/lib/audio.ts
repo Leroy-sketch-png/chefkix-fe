@@ -6,6 +6,23 @@
 let audioContext: AudioContext | null = null
 
 /**
+ * Play a static sound asset from /public (best effort).
+ * Falls back silently when autoplay policies block playback.
+ */
+export function playSound(path: string): void {
+	if (typeof window === 'undefined') return
+	if (!isAudioEnabled()) return
+
+	try {
+		const audio = new Audio(path)
+		audio.volume = 0.85
+		void audio.play()
+	} catch {
+		// Ignore failures (autoplay blocked or unsupported).
+	}
+}
+
+/**
  * Get or create the AudioContext (lazy initialization)
  * Must be called after user interaction due to browser autoplay policies
  */

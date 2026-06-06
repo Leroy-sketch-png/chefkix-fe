@@ -265,11 +265,13 @@ function CreatePostContent() {
 				content: content.trim(),
 				photoUrls: photoFiles,
 				sessionId: session?.id, // Link to cooking session for XP
-				...(session &&
-					reviewRating > 0 && {
-						postType: 'RECIPE_REVIEW' as const,
-						reviewRating,
-					}),
+				...(session && {
+					postType:
+						reviewRating > 0
+							? ('RECIPE_REVIEW' as const)
+							: ('RECENT_COOK' as const),
+					...(reviewRating > 0 && { reviewRating }),
+				}),
 			})
 
 			if (response.success && response.data) {
@@ -612,6 +614,7 @@ function CreatePostContent() {
 							{/* Content textarea */}
 							<div className='px-4 pb-4'>
 								<textarea
+									data-testid='post-composer-caption'
 									value={content}
 									onChange={e => setContent(e.target.value)}
 									onKeyDown={e => {
@@ -651,7 +654,7 @@ function CreatePostContent() {
 										>
 											{previewUrls.map((url, index) => (
 												<motion.div
-													key={url}
+													key={index}
 													initial={{ opacity: 0, scale: 0.8 }}
 													animate={{ opacity: 1, scale: 1 }}
 													exit={{ opacity: 0, scale: 0.8 }}
@@ -692,6 +695,7 @@ function CreatePostContent() {
 									<Camera className='size-5' />
 									{t('addPhotosCount', { count: photoFiles.length })}
 									<input
+										data-testid='post-composer-upload'
 										type='file'
 										accept='image/*'
 										multiple
@@ -705,6 +709,7 @@ function CreatePostContent() {
 								</label>
 
 								<AnimatedButton
+									data-testid='post-composer-submit'
 									onClick={handleSubmit}
 									disabled={
 										isSubmitting || (!content.trim() && photoFiles.length === 0)
@@ -712,7 +717,7 @@ function CreatePostContent() {
 									className={cn(
 										'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',
 										session
-											? 'bg-brand text-white shadow-[0_2px_8px_rgba(255,90,54,0.35)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_16px_rgba(255,90,54,0.4)]'
+											? 'bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow'
 											: 'bg-brand text-white',
 									)}
 								>

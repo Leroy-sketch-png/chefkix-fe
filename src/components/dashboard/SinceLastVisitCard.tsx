@@ -24,6 +24,7 @@ import { AnimatedNumber } from '@/components/ui/animated-number'
 import { getActivitySummary } from '@/services/heartbeat'
 import type { NotificationSummaryResponse } from '@/lib/types/heartbeat'
 import { logDevError } from '@/lib/dev-log'
+import { MagicCard } from '@/components/ui/magic-card'
 
 // ============================================
 // TYPES
@@ -50,6 +51,7 @@ function getLastVisit(): Date | null {
 	return stored ? new Date(stored) : null
 }
 
+// Update last visit timestamp
 function setLastVisit(): void {
 	setStorageItem(LAST_VISIT_KEY, new Date().toISOString())
 }
@@ -185,57 +187,55 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					animate={{ opacity: 1, y: 0, scale: 1 }}
 					exit={{ opacity: 0, y: -20, scale: 0.95 }}
 					transition={TRANSITION_SPRING}
-					className={cn(
-						'relative overflow-hidden rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-elevated to-bg-card p-4',
-						className,
-					)}
+					className={className}
 				>
-					{/* Background decoration */}
-					<div className='absolute -right-6 -top-6 size-24 rounded-full bg-brand/5 blur-2xl' />
-					<div className='absolute -bottom-4 -left-4 size-16 rounded-full bg-accent-purple/5 blur-xl' />
-
-					{/* Dismiss button */}
-					<button
-						type='button'
-						onClick={handleDismiss}
-						className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary'
-						aria-label={t('slDismissLabel')}
+					<MagicCard
+						mode='gradient'
+						className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0'
 					>
-						<X className='size-4' />
-					</button>
+						{/* Dismiss button */}
+						<button
+							type='button'
+							onClick={handleDismiss}
+							className='absolute right-3 top-3 rounded-full p-1 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary z-50'
+							aria-label={t('slDismissLabel')}
+						>
+							<X className='size-4' />
+						</button>
 
-					{/* Content */}
-					<div className='relative'>
-						<h3 className='mb-1 text-sm font-semibold text-text-primary'>
-							{t('slWelcomeBack')}
-						</h3>
-						<p className='mb-3 text-xs text-text-muted'>
-							{t('slSinceLastVisit', {
-								timeAgo: formatTimeSince(lastVisit, t),
-							})}
-						</p>
+						{/* Content */}
+						<div className='relative min-h-[9rem] p-4'>
+							<h3 className='mb-1 text-sm font-semibold text-text-primary'>
+								{t('slWelcomeBack')}
+							</h3>
+							<p className='mb-3 text-xs text-text-muted'>
+								{t('slSinceLastVisit', {
+									timeAgo: formatTimeSince(lastVisit, t),
+								})}
+							</p>
 
-						{/* Stats grid */}
-						<div className='flex flex-wrap gap-3'>
-							{stats.map(({ icon: Icon, value, label, color, href }) => (
-								<motion.button
-									type='button'
-									key={label}
-									whileHover={BUTTON_SUBTLE_HOVER}
-									whileTap={BUTTON_SUBTLE_TAP}
-									transition={TRANSITION_SPRING}
-									onClick={() => router.push(href)}
-									className='flex items-center gap-1.5 rounded-xl bg-bg-card/80 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
-								>
-									<Icon className={cn('size-4', color)} />
-									<span className='text-sm font-semibold text-text-primary tabular-nums'>
-										<AnimatedNumber value={value} />
-									</span>
-									<span className='text-xs text-text-muted'>{label}</span>
-								</motion.button>
-							))}
+							{/* Stats grid */}
+							<div className='flex flex-wrap gap-3'>
+								{stats.map(({ icon: Icon, value, label, color, href }) => (
+									<motion.button
+										type='button'
+										key={label}
+										whileHover={BUTTON_SUBTLE_HOVER}
+										whileTap={BUTTON_SUBTLE_TAP}
+										transition={TRANSITION_SPRING}
+										onClick={() => router.push(href)}
+										className='flex items-center gap-1.5 rounded-xl bg-bg-card/85 border border-border-subtle/40 px-2.5 py-1.5 transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										<Icon className={cn('size-4', color)} />
+										<span className='text-sm font-semibold text-text-primary tabular-nums'>
+											<AnimatedNumber value={value} />
+										</span>
+										<span className='text-xs text-text-muted'>{label}</span>
+									</motion.button>
+								))}
+							</div>
 						</div>
-					</div>
+					</MagicCard>
 				</motion.div>
 			)}
 		</AnimatePresence>

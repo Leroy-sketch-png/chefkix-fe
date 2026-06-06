@@ -12,13 +12,16 @@ import {
 	Clock,
 	Flame,
 	Lock,
+	Pencil,
 	Play,
 	Star,
+	Trash2,
 	Trophy,
 	Users,
 	Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { MagicCard } from '@/components/ui/magic-card'
 import { useTranslations } from '@/i18n/hooks'
 import {
 	TRANSITION_SPRING,
@@ -41,6 +44,8 @@ import { getRecipeById } from '@/services/recipe'
 interface LearningPathViewProps {
 	collection: Collection
 	isOwner: boolean
+	onEdit?: () => void
+	onDelete?: () => void
 }
 
 /**
@@ -51,6 +56,8 @@ interface LearningPathViewProps {
 export function LearningPathView({
 	collection,
 	isOwner,
+	onEdit,
+	onDelete,
 }: LearningPathViewProps) {
 	const router = useRouter()
 	const t = useTranslations('collections')
@@ -166,145 +173,189 @@ export function LearningPathView({
 	return (
 		<div className='space-y-6'>
 			{/* Header with stats */}
-			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'>
-				{/* Collection info */}
-				<div className='mb-4 flex items-start justify-between'>
-					<div>
-						<div className='mb-2 flex items-center gap-2'>
-							<BookOpen className='size-5 text-brand' />
-							<span className='text-xs font-medium uppercase tracking-wide text-brand'>
-								Learning Path
-							</span>
-						</div>
-						<h1 className='text-2xl font-bold text-text-primary'>
-							{collection.name}
-						</h1>
-						{collection.description && (
-							<p className='mt-1 text-sm text-text-muted'>
-								{collection.description}
-							</p>
-						)}
-					</div>
-					{collection.difficulty && (
-						<span
-							className={`rounded-full border px-3 py-1 text-xs font-medium ${getDifficultyColor(collection.difficulty)}`}
-						>
-							{collection.difficulty}
-						</span>
-					)}
-				</div>
-
-				{/* Stats row */}
-				<div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
-					<div className='flex items-center gap-2'>
-						<ChefHat className='size-4 text-text-muted' />
-						<span className='text-sm tabular-nums text-text-secondary'>
-							{totalRecipes} recipes
-						</span>
-					</div>
-					{collection.estimatedTotalMinutes && (
-						<div className='flex items-center gap-2'>
-							<Clock className='size-4 text-text-muted' />
-							<span className='text-sm tabular-nums text-text-secondary'>
-								{Math.round(collection.estimatedTotalMinutes / 60)}h total
-							</span>
-						</div>
-					)}
-					{collection.totalXp != null && collection.totalXp > 0 && (
-						<div className='flex items-center gap-2'>
-							<Zap className='size-4 text-xp' />
-							<span className='text-sm tabular-nums text-text-secondary'>
-								{collection.totalXp.toLocaleString()} XP
-							</span>
-						</div>
-					)}
-					{collection.enrolledCount !== undefined && (
-						<div className='flex items-center gap-2'>
-							<Users className='size-4 text-text-muted' />
-							<span className='text-sm tabular-nums text-text-secondary'>
-								{collection.enrolledCount.toLocaleString()} enrolled
-							</span>
-						</div>
-					)}
-				</div>
-
-				{/* Rating and completion rate */}
-				{(collection.averageRating ||
-					collection.completionRate !== undefined) && (
-					<div className='mb-6 flex items-center gap-6'>
-						{collection.averageRating && (
-							<div className='flex items-center gap-1.5'>
-								<Star className='size-4 fill-warning text-warning' />
-								<span className='text-sm font-medium text-text-primary'>
-									{collection.averageRating.toFixed(1)}
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-xp)'
+				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-6'
+			>
+				<div className='relative z-10 w-full'>
+					{/* Collection info */}
+					<div className='mb-4 flex items-start justify-between gap-3'>
+						<div className='min-w-0 flex-1'>
+							<div className='mb-2 flex items-center gap-2'>
+								<BookOpen className='size-5 text-brand' />
+								<span className='text-xs font-medium uppercase tracking-wide text-brand'>
+									{t('learningPathLabel')}
 								</span>
 							</div>
-						)}
-						{collection.completionRate !== undefined && (
-							<div className='flex items-center gap-1.5'>
-								<Trophy className='size-4 text-success' />
-								<span className='text-sm text-text-secondary'>
-									{Math.round(collection.completionRate * 100)}% completion rate
-								</span>
-							</div>
-						)}
-					</div>
-				)}
-
-				{/* Enrollment / Progress section */}
-				{isLoadingProgress ? (
-					<div className='h-20 animate-pulse rounded-xl bg-bg-elevated' />
-				) : isEnrolled ? (
-					<div className='rounded-xl bg-bg-elevated p-4'>
-						<div className='mb-3 flex items-center justify-between'>
-							<span className='text-sm font-medium text-text-primary'>
-								{t('yourProgress')}
-							</span>
-							<span className='text-sm tabular-nums text-text-muted'>
-								{completedCount} of {totalRecipes} complete
-							</span>
+							<h1 className='text-2xl font-bold text-text-primary'>
+								{collection.name}
+							</h1>
+							{collection.description && (
+								<p className='mt-1 text-sm text-text-muted'>
+									{collection.description}
+								</p>
+							)}
 						</div>
-						{/* Progress bar */}
-						<div className='relative mb-3 h-3 overflow-hidden rounded-full bg-border-subtle'>
-							<motion.div
-								initial={{ width: 0 }}
-								animate={{ width: `${progressPercent}%` }}
-								transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
-								className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-brand to-brand-hover'
-							/>
-						</div>
-						<div className='flex items-center justify-between'>
-							<div className='flex items-center gap-2'>
-								<Flame className='size-4 text-xp' />
-								<span className='text-sm font-medium tabular-nums text-xp'>
-									{progress?.totalXpEarned.toLocaleString() ?? 0} XP earned
+						<div className='flex items-center gap-2'>
+							{collection.difficulty && (
+								<span
+									className={`rounded-full border px-3 py-1 text-xs font-medium ${getDifficultyColor(collection.difficulty)}`}
+								>
+									{collection.difficulty}
 								</span>
-							</div>
-							{progressPercent === 100 ? (
-								<div className='flex items-center gap-1.5 text-success'>
-									<CheckCircle2 className='size-4' />
-									<span className='text-sm font-medium'>{t('completed')}</span>
-								</div>
-							) : (
-								<span className='text-xs text-text-muted'>
-									{Math.round(progressPercent)}% complete
-								</span>
+							)}
+							{isOwner && onEdit && (
+								<button
+									type='button'
+									onClick={onEdit}
+									className='rounded-xl border border-border-subtle bg-bg-card/40 p-2.5 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
+									aria-label={t('detailEditTitle')}
+								>
+									<Pencil className='size-4' />
+								</button>
+							)}
+							{isOwner && onDelete && (
+								<button
+									type='button'
+									onClick={onDelete}
+									className='rounded-xl border border-border-subtle bg-bg-card/40 p-2.5 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive'
+									aria-label={t('detailDeleteTitle')}
+								>
+									<Trash2 className='size-4' />
+								</button>
 							)}
 						</div>
 					</div>
-				) : (
-					<motion.button
-						type='button'
-						whileHover={BUTTON_SUBTLE_HOVER}
-						whileTap={BUTTON_SUBTLE_TAP}
-						onClick={handleEnroll}
-						disabled={isEnrolling}
-						className='w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-					>
-						{isEnrolling ? 'Enrolling...' : 'Start Learning Path'}
-					</motion.button>
-				)}
-			</div>
+
+					{/* Stats row */}
+					<div className='mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4'>
+						<div className='flex items-center gap-2'>
+							<ChefHat className='size-4 text-text-muted' />
+							<span className='text-sm tabular-nums text-text-secondary'>
+								{t('learningPathRecipeCount', { count: totalRecipes })}
+							</span>
+						</div>
+						{collection.estimatedTotalMinutes && (
+							<div className='flex items-center gap-2'>
+								<Clock className='size-4 text-text-muted' />
+								<span className='text-sm tabular-nums text-text-secondary'>
+									{t('learningPathHoursTotal', {
+										count: Math.round(collection.estimatedTotalMinutes / 60),
+									})}
+								</span>
+							</div>
+						)}
+						{collection.totalXp != null && collection.totalXp > 0 && (
+							<div className='flex items-center gap-2'>
+								<Zap className='size-4 text-xp' />
+								<span className='text-sm tabular-nums text-text-secondary'>
+									{collection.totalXp.toLocaleString()} XP
+								</span>
+							</div>
+						)}
+						{collection.enrolledCount !== undefined && (
+							<div className='flex items-center gap-2'>
+								<Users className='size-4 text-text-muted' />
+								<span className='text-sm tabular-nums text-text-secondary'>
+									{t('learningPathEnrolledCount', {
+										count: collection.enrolledCount.toLocaleString(),
+									})}
+								</span>
+							</div>
+						)}
+					</div>
+
+					{/* Rating and completion rate */}
+					{(collection.averageRating ||
+						collection.completionRate !== undefined) && (
+						<div className='mb-6 flex items-center gap-6'>
+							{collection.averageRating && (
+								<div className='flex items-center gap-1.5'>
+									<Star className='size-4 fill-warning text-warning' />
+									<span className='text-sm font-medium text-text-primary'>
+										{collection.averageRating.toFixed(1)}
+									</span>
+								</div>
+							)}
+							{collection.completionRate !== undefined && (
+								<div className='flex items-center gap-1.5'>
+									<Trophy className='size-4 text-success' />
+									<span className='text-sm text-text-secondary'>
+										{t('learningPathCompletionRate', {
+											count: Math.round(collection.completionRate * 100),
+										})}
+									</span>
+								</div>
+							)}
+						</div>
+					)}
+
+					{/* Enrollment / Progress section */}
+					{isLoadingProgress ? (
+						<div className='h-20 animate-pulse rounded-xl bg-bg-elevated' />
+					) : isEnrolled ? (
+						<div className='rounded-xl bg-bg-elevated/40 p-4 border border-border-subtle'>
+							<div className='mb-3 flex items-center justify-between'>
+								<span className='text-sm font-medium text-text-primary'>
+									{t('yourProgress')}
+								</span>
+								<span className='text-sm tabular-nums text-text-muted'>
+									{t('ofComplete', {
+										completed: completedCount,
+										total: totalRecipes,
+									})}
+								</span>
+							</div>
+							{/* Progress bar */}
+							<div className='relative mb-3 h-3 overflow-hidden rounded-full bg-border-subtle'>
+								<motion.div
+									initial={{ width: 0 }}
+									animate={{ width: `${progressPercent}%` }}
+									transition={{ duration: DURATION_S.slow, ease: 'easeOut' }}
+									className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-brand to-brand-hover'
+								/>
+							</div>
+							<div className='flex items-center justify-between'>
+								<div className='flex items-center gap-2'>
+									<Flame className='size-4 text-xp' />
+									<span className='text-sm font-medium tabular-nums text-xp'>
+										{t('xpEarnedLabel', {
+											xp: progress?.totalXpEarned.toLocaleString() ?? 0,
+										})}
+									</span>
+								</div>
+								{progressPercent === 100 ? (
+									<div className='flex items-center gap-1.5 text-success'>
+										<CheckCircle2 className='size-4' />
+										<span className='text-sm font-medium'>
+											{t('completed')}
+										</span>
+									</div>
+								) : (
+									<span className='text-xs text-text-muted'>
+										{t('progressPercentComplete', {
+											count: Math.round(progressPercent),
+										})}
+									</span>
+								)}
+							</div>
+						</div>
+					) : (
+						<motion.button
+							type='button'
+							whileHover={BUTTON_SUBTLE_HOVER}
+							whileTap={BUTTON_SUBTLE_TAP}
+							onClick={handleEnroll}
+							disabled={isEnrolling}
+							className='w-full rounded-xl bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						>
+							{isEnrolling ? t('enrolling') : t('startLearningPath')}
+						</motion.button>
+					)}
+				</div>
+			</MagicCard>
 
 			{/* Difficulty Progression Stages */}
 			{collection.difficultyProgression &&
@@ -392,83 +443,99 @@ function StageCard({
 	getDifficultyColor,
 	recipeSummaries,
 }: StageCardProps) {
+	const t = useTranslations('collections')
 	const completedInStage = stage.recipeIds.filter(isRecipeCompleted).length
 	const totalInStage = stage.recipeIds.length
 	const stageComplete = completedInStage === totalInStage && totalInStage > 0
 
 	return (
 		<motion.div
-			{...CARD_HOVER}
-			className='overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card via-bg-card to-bg-elevated/60 shadow-card'
+			whileHover={CARD_HOVER}
+			transition={TRANSITION_SPRING}
+			className='group relative'
 		>
-			{/* Stage header */}
-			<button
-				type='button'
-				onClick={onToggle}
-				className='flex w-full items-center justify-between p-4 text-left'
+			<MagicCard
+				mode='orb'
+				glowFrom='var(--color-brand)'
+				glowTo='var(--color-xp)'
+				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'
 			>
-				<div className='flex items-center gap-3'>
-					<div
-						className={`flex size-8 items-center justify-center rounded-full text-sm font-bold ${
-							stageComplete
-								? 'bg-success/10 text-success'
-								: 'bg-bg-elevated text-text-muted'
-						}`}
+				<div className='relative z-10 w-full'>
+					{/* Stage header */}
+					<button
+						type='button'
+						onClick={onToggle}
+						className='flex w-full items-center justify-between p-4 text-left'
 					>
-						{stageComplete ? (
-							<CheckCircle2 className='size-5' />
-						) : (
-							stageIndex + 1
-						)}
-					</div>
-					<div>
-						<h3 className='font-semibold text-text-primary'>{stage.label}</h3>
-						<div className='flex items-center gap-2'>
-							<span
-								className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getDifficultyColor(stage.difficulty)}`}
+						<div className='flex items-center gap-3'>
+							<div
+								className={`flex size-8 items-center justify-center rounded-full text-sm font-bold ${
+									stageComplete
+										? 'bg-success/10 text-success'
+										: 'bg-bg-elevated text-text-muted'
+								}`}
 							>
-								{stage.difficulty}
-							</span>
-							<span className='text-xs text-text-muted'>
-								{completedInStage}/{totalInStage} recipes
-							</span>
+								{stageComplete ? (
+									<CheckCircle2 className='size-5' />
+								) : (
+									stageIndex + 1
+								)}
+							</div>
+							<div>
+								<h3 className='font-semibold text-text-primary group-hover:text-brand transition-colors duration-300'>
+									{stage.label}
+								</h3>
+								<div className='flex items-center gap-2'>
+									<span
+										className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getDifficultyColor(stage.difficulty)}`}
+									>
+										{stage.difficulty}
+									</span>
+									<span className='text-xs text-text-muted'>
+										{t('stageRecipeProgress', {
+											completed: completedInStage,
+											total: totalInStage,
+										})}
+									</span>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
-				<motion.div
-					animate={{ rotate: isExpanded ? 180 : 0 }}
-					className='text-text-muted'
-				>
-					<ArrowLeft className='size-4 -rotate-90' />
-				</motion.div>
-			</button>
+						<motion.div
+							animate={{ rotate: isExpanded ? 180 : 0 }}
+							className='text-text-muted'
+						>
+							<ArrowLeft className='size-4 -rotate-90' />
+						</motion.div>
+					</button>
 
-			{/* Expanded recipe list */}
-			<AnimatePresence>
-				{isExpanded && (
-					<motion.div
-						initial={{ height: 0, opacity: 0 }}
-						animate={{ height: 'auto', opacity: 1 }}
-						exit={{ height: 0, opacity: 0 }}
-						transition={TRANSITION_SPRING}
-						className='border-t border-border-subtle'
-					>
-						<div className='space-y-1 p-3'>
-							{stage.recipeIds.map((recipeId, idx) => (
-								<RecipeRow
-									key={recipeId}
-									recipeId={recipeId}
-									index={idx}
-									isCompleted={isRecipeCompleted(recipeId)}
-									isLocked={!isEnrolled && idx > 0}
-									onStart={() => onStartRecipe(recipeId)}
-									recipeName={recipeSummaries[recipeId]?.title}
-								/>
-							))}
-						</div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+					{/* Expanded recipe list */}
+					<AnimatePresence>
+						{isExpanded && (
+							<motion.div
+								initial={{ height: 0, opacity: 0 }}
+								animate={{ height: 'auto', opacity: 1 }}
+								exit={{ height: 0, opacity: 0 }}
+								transition={TRANSITION_SPRING}
+								className='border-t border-border-subtle'
+							>
+								<div className='space-y-1 p-3'>
+									{stage.recipeIds.map((recipeId, idx) => (
+										<RecipeRow
+											key={recipeId}
+											recipeId={recipeId}
+											index={idx}
+											isCompleted={isRecipeCompleted(recipeId)}
+											isLocked={!isEnrolled && idx > 0}
+											onStart={() => onStartRecipe(recipeId)}
+											recipeName={recipeSummaries[recipeId]?.title}
+										/>
+									))}
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
+				</div>
+			</MagicCard>
 		</motion.div>
 	)
 }
@@ -490,7 +557,9 @@ function RecipeRow({
 	onStart,
 	recipeName,
 }: RecipeRowProps) {
-	const displayName = recipeName || `Recipe ${index + 1}`
+	const t = useTranslations('collections')
+	const resolvedDisplayName =
+		recipeName || t('learningPathRecipeFallback', { index: index + 1 })
 	return (
 		<motion.div
 			whileHover={!isLocked ? { backgroundColor: 'var(--bg-elevated)' } : {}}
@@ -516,7 +585,7 @@ function RecipeRow({
 								: 'text-text-primary'
 					}`}
 				>
-					{displayName}
+					{resolvedDisplayName}
 				</span>
 			</div>
 			{!isLocked && !isCompleted && (
@@ -529,7 +598,7 @@ function RecipeRow({
 					className='flex items-center gap-1.5 rounded-xl bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/20'
 				>
 					<Play className='size-3' />
-					Start
+					{t('startRecipe')}
 				</button>
 			)}
 		</motion.div>

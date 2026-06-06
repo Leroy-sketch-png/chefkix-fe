@@ -1,13 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Profile } from '@/lib/types'
 import { UserCard } from './UserCard'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from '@/components/ui/input-group'
 import { EmptyStateGamified } from '@/components/shared'
 import { Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,16 +12,32 @@ import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
+import { autocompleteSearch } from '@/services/search'
+import {
+	AsyncCombobox,
+	type AsyncComboboxOption,
+} from '@/components/ui/async-combobox'
 
 const PROFILES_PER_PAGE = 20
 const SEARCH_DEBOUNCE_MS = 300
 
+function formatCompactNumber(value: number) {
+	return new Intl.NumberFormat('en', {
+		notation: 'compact',
+		maximumFractionDigits: value >= 1000 ? 1 : 0,
+	}).format(value)
+}
+
 type Props = {
 	/** Initial profiles from parent (optional, will fetch if not provided) */
 	profiles?: Profile[]
+	surfaceMode?: 'standalone' | 'embedded'
 }
 
-export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
+export const UserDiscoveryClient = ({
+	profiles: initialProfiles,
+	surfaceMode = 'standalone',
+}: Props) => {
 	const t = useTranslations('discover')
 	const [profiles, setProfiles] = useState<Profile[]>(
 		Array.isArray(initialProfiles) ? initialProfiles : [],
@@ -40,6 +52,83 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	const [retryKey, setRetryKey] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
 	const hasAnimated = useRef(false)
+	const isEmbedded = surfaceMode === 'embedded'
+	const searchShellClass = isEmbedded
+		? 'rounded-xl border border-border-subtle bg-bg-card/85 p-2 shadow-card'
+		: 'rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'
+
+	const fetchUserSearchOptions = useCallback(
+		async (query: string): Promise<AsyncComboboxOption[]> => {
+			const trimmedQuery = query.trim()
+			if (!trimmedQuery) return []
+
+			const response = await autocompleteSearch(trimmedQuery, 'users', 6)
+			const hits = response.data?.users?.hits ?? []
+			const seenUserIds = new Set<string>()
+
+			return hits
+				.map(hit => hit.document)
+				.filter(user => {
+					if (!user.id || seenUserIds.has(user.id)) return false
+					seenUserIds.add(user.id)
+					return true
+				})
+				.map(user => {
+					const displayName =
+						user.displayName?.trim() ||
+						[user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
+						user.username
+
+					return {
+						value: user.id,
+						label: displayName,
+						secondary: `@${user.username}`,
+						category:
+							user.followerCount > 0
+								? `${formatCompactNumber(user.followerCount)} ${t('followers')}`
+								: undefined,
+						data: {
+							searchTerm: user.username || displayName,
+						},
+					}
+				})
+		},
+		[t],
+	)
+
+	const renderSearchField = (disabled = false) => (
+		<div className={searchShellClass}>
+			<div className='flex items-center gap-2'>
+				<AsyncCombobox
+					value={searchTerm}
+					onChange={setSearchTerm}
+					onSelect={option => {
+						const nextSearch = String(option.data?.searchTerm ?? option.label)
+						setSearchTerm(nextSearch)
+						setDebouncedSearch(nextSearch)
+					}}
+					fetchOptions={fetchUserSearchOptions}
+					minChars={1}
+					disabled={disabled}
+					placeholder={t('searchPlaceholder')}
+					emptyMessage={t('noUsersFoundDesc')}
+					searchingMessage={t('searchingUsers')}
+					errorMessage={t('searchUnavailable')}
+					icon={<Search className='size-4' />}
+				/>
+				{searchTerm && !disabled && (
+					<button
+						type='button'
+						onClick={handleClearSearch}
+						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
+						aria-label={t('ariaClearSearch')}
+					>
+						<X className='size-4' />
+					</button>
+				)}
+			</div>
+		</div>
+	)
 
 	// Debounce search
 	useEffect(() => {
@@ -74,12 +163,16 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 					}
 				} else {
 					setLoadError(true)
-					toast.error(t('toastLoadUsersFailed'))
+					if (!isEmbedded) {
+						toast.error(t('toastLoadUsersFailed'))
+					}
 				}
 			} catch {
 				if (!cancelled) {
 					setLoadError(true)
-					toast.error(t('toastLoadUsersFailed'))
+					if (!isEmbedded) {
+						toast.error(t('toastLoadUsersFailed'))
+					}
 				}
 			} finally {
 				if (!cancelled) setIsLoading(false)
@@ -97,7 +190,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 		return () => {
 			cancelled = true
 		}
-	}, [debouncedSearch, initialProfiles, retryKey, t])
+	}, [debouncedSearch, initialProfiles, isEmbedded, retryKey, t])
 
 	// Load more callback
 	const handleLoadMore = useCallback(async () => {
@@ -173,35 +266,50 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	if (loadError && profiles.length === 0) {
 		return (
 			<div className='space-y-5'>
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
-					<InputGroup>
-						<InputGroupAddon align='inline-start'>
-							<Search className='size-4 text-text-muted' />
-						</InputGroupAddon>
-						<InputGroupInput
-							placeholder={t('searchPlaceholder')}
-							value={searchTerm}
-							onChange={e => setSearchTerm(e.target.value)}
-						/>
-					</InputGroup>
-				</div>
-				<EmptyStateGamified
-					variant='custom'
-					title={t('errorLoadUsers')}
-					description={t('errorLoadUsersDesc')}
-					className='my-2 py-6 md:py-8'
-					primaryAction={{
-						label: t('tryAgain'),
-						onClick: handleRetry,
-					}}
-					quickActions={[
-						{
-							label: 'Open leaderboard',
-							href: '/leaderboard',
-							emoji: '🏆',
-						},
-					]}
-				/>
+				{renderSearchField()}
+				{isEmbedded ? (
+					<div className='rounded-2xl border border-border-subtle bg-bg-card px-4 py-6 text-center shadow-card sm:px-6'>
+						<h3 className='text-2xl font-black tracking-tight text-text-primary'>
+							{t('errorLoadUsers')}
+						</h3>
+						<p className='mt-3 text-base text-text-secondary'>
+							{t('errorLoadUsersDesc')}
+						</p>
+						<div className='mt-5 flex flex-wrap items-center justify-center gap-3'>
+							<button
+								type='button'
+								onClick={handleRetry}
+								className='inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-6 text-base font-semibold text-white shadow-warm transition-colors hover:bg-brand/90'
+							>
+								{t('tryAgain')}
+							</button>
+							<Link
+								href='/leaderboard'
+								className='inline-flex min-h-11 items-center justify-center rounded-full border border-border-subtle bg-bg-elevated px-5 text-base font-medium text-text-primary transition-colors hover:bg-bg-hover'
+							>
+								🏆 {t('openLeaderboard')}
+							</Link>
+						</div>
+					</div>
+				) : (
+					<EmptyStateGamified
+						variant='custom'
+						title={t('errorLoadUsers')}
+						description={t('errorLoadUsersDesc')}
+						className='my-2 py-6 md:py-8'
+						primaryAction={{
+							label: t('tryAgain'),
+							onClick: handleRetry,
+						}}
+						quickActions={[
+							{
+								label: t('openLeaderboard'),
+								href: '/leaderboard',
+								emoji: '🏆',
+							},
+						]}
+					/>
+				)}
 			</div>
 		)
 	}
@@ -209,19 +317,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	if (isLoading) {
 		return (
 			<div className='space-y-5'>
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
-					<InputGroup>
-						<InputGroupAddon align='inline-start'>
-							<Search className='size-4 text-text-muted' />
-						</InputGroupAddon>
-						<InputGroupInput
-							placeholder={t('searchPlaceholder')}
-							value=''
-							disabled
-							readOnly
-						/>
-					</InputGroup>
-				</div>
+				{renderSearchField(true)}
 				<div className='grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3'>
 					{Array.from({ length: 4 }).map((_, i) => (
 						<div
@@ -250,30 +346,7 @@ export const UserDiscoveryClient = ({ profiles: initialProfiles }: Props) => {
 	return (
 		<div className='space-y-5'>
 			{/* Search Bar */}
-			<div className='rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-3'>
-				<InputGroup>
-					<InputGroupAddon align='inline-start'>
-						<Search className='size-4 text-text-muted' />
-					</InputGroupAddon>
-					<InputGroupInput
-						placeholder={t('searchPlaceholder')}
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-					/>
-					{searchTerm && (
-						<InputGroupAddon align='inline-end'>
-							<button
-								type='button'
-								onClick={handleClearSearch}
-								className='rounded-full p-1 text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
-								aria-label={t('ariaClearSearch')}
-							>
-								<X className='size-4' />
-							</button>
-						</InputGroupAddon>
-					)}
-				</InputGroup>
-			</div>
+			{renderSearchField()}
 
 			{/* Results */}
 			{profiles.length === 0 ? (

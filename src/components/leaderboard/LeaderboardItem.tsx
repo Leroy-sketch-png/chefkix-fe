@@ -212,12 +212,12 @@ function LeaderboardItemContent({
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
-					<span className='rounded-xl bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--xp),0.45)]'>
+					<span className='rounded-xl bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-glow'>
 						You
 					</span>
 				)}
 				{isLeading && (
-					<span className='rounded-xl bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(var(--medal-gold),0.45)]'>
+					<span className='rounded-xl bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-glow'>
 						🔥 Leading!
 					</span>
 				)}

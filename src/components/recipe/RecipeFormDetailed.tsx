@@ -22,6 +22,13 @@ import {
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
+import {
 	AsyncCombobox,
 	AsyncComboboxOption,
 } from '@/components/ui/async-combobox'
@@ -319,24 +326,24 @@ const IngredientRow = ({
 					maxLength={20}
 					className='w-20 rounded-xl border-2 border-border bg-bg px-3 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
-				<select
+				<Select
 					value={ingredient.unit}
-					aria-label={t('formUnitLabel')}
-					onChange={e =>
-						onChange({ ...ingredient, unit: e.target.value as MeasurementUnit })
-					}
-					className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					onValueChange={v => onChange({ ...ingredient, unit: v as MeasurementUnit })}
 				>
-					{MEASUREMENT_UNITS.map(unit => (
-						<option
-							key={unit}
-							value={unit}
-							className='bg-bg-card text-text-primary'
-						>
-							{unit}
-						</option>
-					))}
-				</select>
+					<SelectTrigger
+						aria-label={t('formUnitLabel')}
+						className='w-24 rounded-xl border-2 border-border bg-bg-card px-3 py-2.5 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+					>
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						{MEASUREMENT_UNITS.map(unit => (
+							<SelectItem key={unit} value={unit}>
+								{unit}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 				<AsyncCombobox
 					value={ingredient.name}
 					onChange={val => onChange({ ...ingredient, name: val })}
@@ -1402,7 +1409,7 @@ export const RecipeFormDetailed = ({
 							disabled={isSubmitting || isSaving}
 							whileHover={isSubmitting ? undefined : BUTTON_HOVER}
 							whileTap={isSubmitting ? undefined : BUTTON_TAP}
-							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-[0_2px_12px_rgba(255,90,54,0.4)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_20px_rgba(255,90,54,0.45)] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
+							className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none sm:flex-none focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{isSubmitting ? (
 								<Loader2 className='size-4 animate-spin' />

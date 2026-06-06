@@ -238,7 +238,7 @@ const ChallengeRecipeCard = ({
 							}}
 							whileHover={BUTTON_HOVER}
 							whileTap={BUTTON_TAP}
-							className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-semibold text-white shadow-[0_2px_8px_rgba(255,90,54,0.3)] transition-all hover:bg-brand/90 hover:shadow-[0_4px_12px_rgba(255,90,54,0.4)] focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2'
+							className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-semibold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:ring-offset-2'
 						>
 							<Play className='size-4' />
 							{t('cook')}
@@ -317,7 +317,7 @@ export const ChallengeRecipeGrid = ({
 					<div className='flex items-start gap-4'>
 						<span className='text-5xl'>{challenge.emoji}</span>
 						<div>
-							<span className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+							<span className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 								{challenge.type}
 							</span>
 							<h1 className='my-1 text-2xl font-bold tracking-tight text-text-primary md:text-3xl'>

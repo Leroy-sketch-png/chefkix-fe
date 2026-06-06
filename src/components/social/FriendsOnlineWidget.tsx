@@ -10,6 +10,7 @@ import { getFriendsPresence, PresenceInfo } from '@/services/presence'
 import { logDevError } from '@/lib/dev-log'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Ripple } from '@/components/ui/ripple'
 
 const POLL_INTERVAL_MS = 30_000 // 30s
 
@@ -28,8 +29,11 @@ export function FriendsOnlineWidget() {
 		const fetchPresence = async () => {
 			try {
 				const res = await getFriendsPresence()
-				if (mounted && res.success && res.data) {
-					setFriends(res.data.filter(f => f.online))
+				if (mounted && res.success) {
+					const onlineFriends = Array.isArray(res.data)
+						? res.data.filter(friend => friend.online)
+						: []
+					setFriends(onlineFriends)
 				}
 			} catch (err) {
 				logDevError('FriendsOnlineWidget fetch failed:', err)
@@ -75,6 +79,12 @@ export function FriendsOnlineWidget() {
 				<p className='text-xs leading-relaxed text-text-muted'>
 					{t('friendsOnlineEmpty')}
 				</p>
+				<Link
+					href='/explore'
+					className='mt-3 inline-flex items-center rounded-xl border border-border-subtle bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
+				>
+					{t('exploreNow')}
+				</Link>
 			</div>
 		)
 	}
@@ -112,7 +122,8 @@ export function FriendsOnlineWidget() {
 								href={`/${friend.userId}`}
 								className='flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-bg-elevated'
 							>
-								<div className='relative'>
+								<div className='relative flex size-7 items-center justify-center'>
+									<Ripple mainCircleSize={48} numCircles={4} />
 									<Avatar className='size-7'>
 										<AvatarImage
 											src={friend.avatarUrl || undefined}

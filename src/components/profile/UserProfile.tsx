@@ -9,6 +9,7 @@ import { Profile, Post, getProfileDisplayName } from '@/lib/types'
 import {
 	ChefHat,
 	Clock,
+	FolderHeart,
 	Heart,
 	MessageCircle,
 	Bookmark,
@@ -29,11 +30,16 @@ import {
 } from '@/services/recipe'
 import { getPostsByUser, getSavedPosts } from '@/services/post'
 import {
+	getMyCollections,
+	getUserPublicCollections,
+} from '@/services/collection'
+import {
 	Recipe,
 	getRecipeImage,
 	getTotalTime,
 	formatCookingTime,
 } from '@/lib/types/recipe'
+import { Collection } from '@/lib/types/collection'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
@@ -46,6 +52,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyStateGamified } from '@/components/shared'
 import { useAuth } from '@/hooks/useAuth'
+import { MagicCard } from '@/components/ui/magic-card'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
@@ -206,6 +214,12 @@ type UserProfileProps = {
 	initialTab?: string // Support deep linking via ?tab= query param
 }
 
+function getCollectionItemCount(collection: Collection): number {
+	const derivedCount =
+		(collection.postIds?.length ?? 0) + (collection.recipeIds?.length ?? 0)
+	return Math.max(collection.itemCount, derivedCount)
+}
+
 // ============================================
 // HELPER: Calculate XP decay multiplier based on time since completion
 // Business rules:
@@ -342,6 +356,9 @@ export const UserProfile = ({
 	const [isLoadingSavedPosts, setIsLoadingSavedPosts] = useState(false)
 	const [likedRecipes, setLikedRecipes] = useState<Recipe[]>([])
 	const [isLoadingLiked, setIsLoadingLiked] = useState(false)
+	const [userCollections, setUserCollections] = useState<Collection[]>([])
+	const [isLoadingCollections, setIsLoadingCollections] = useState(false)
+	const [hasLoadedCollections, setHasLoadedCollections] = useState(false)
 
 	// Memoized handler to prevent PostCard re-renders
 	const handleSavedPostDelete = useCallback((id: string) => {
@@ -364,6 +381,7 @@ export const UserProfile = ({
 	const effectiveCurrentUserId = currentUserId ?? currentUserProfile?.userId
 	const isOwnProfile = profile.userId === effectiveCurrentUserId
 	const t = useTranslations('profile')
+	const collectionsT = useTranslations('collections')
 
 	// Fetch user's recipes when recipes tab is active
 	useEffect(() => {
@@ -392,6 +410,42 @@ export const UserProfile = ({
 			cancelled = true
 		}
 	}, [profile.userId, activeTab, t])
+
+	useEffect(() => {
+		if (activeTab !== 'collections') return
+		let cancelled = false
+
+		const fetchCollections = async () => {
+			setIsLoadingCollections(true)
+			setHasLoadedCollections(false)
+			setUserCollections([])
+			try {
+				const response = isOwnProfile
+					? await getMyCollections()
+					: await getUserPublicCollections(profile.userId)
+				if (cancelled) return
+				if (response.success && response.data) {
+					setUserCollections(response.data)
+					return
+				}
+				toast.error(response.message || collectionsT('loadFailed'))
+			} catch (err) {
+				if (cancelled) return
+				logDevError('Failed to fetch profile collections:', err)
+				toast.error(collectionsT('loadFailed'))
+			} finally {
+				if (!cancelled) {
+					setIsLoadingCollections(false)
+					setHasLoadedCollections(true)
+				}
+			}
+		}
+
+		fetchCollections()
+		return () => {
+			cancelled = true
+		}
+	}, [activeTab, collectionsT, isOwnProfile, profile.userId])
 
 	// Fetch cooking session history when tab is active (for own profile only)
 	useEffect(() => {
@@ -463,11 +517,7 @@ export const UserProfile = ({
 				const response = await getPostsByUser(profile.userId, { limit: 20 })
 				if (cancelled) return
 				if (response.success && response.data) {
-					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
-					const personalPosts = response.data.filter(
-						post => post.postType !== 'GROUP',
-					)
-					setUserPosts(personalPosts)
+					setUserPosts(response.data)
 				}
 			} catch (err) {
 				if (cancelled) return
@@ -552,11 +602,7 @@ export const UserProfile = ({
 				const response = await getSavedPosts(0, 20)
 				if (cancelled) return
 				if (response.success && response.data) {
-					// Filter out GROUP posts (Facebook pattern: group posts only in groups)
-					const personalPosts = response.data.filter(
-						post => post.postType !== 'GROUP',
-					)
-					setSavedPosts(personalPosts)
+					setSavedPosts(response.data)
 				}
 			} catch (err) {
 				if (cancelled) return
@@ -724,6 +770,12 @@ export const UserProfile = ({
 			icon: MessageCircle,
 			count: userPosts.length,
 		},
+		{
+			id: 'collections',
+			label: t('collectionsTab'),
+			icon: FolderHeart,
+			count: hasLoadedCollections ? userCollections.length : undefined,
+		},
 		...(isOwnProfile
 			? [
 					{
@@ -755,9 +807,11 @@ export const UserProfile = ({
 	]
 
 	return (
-		<div
+		<PremiumSurface
+			tone='brand'
+			showOrbs={true}
 			data-testid='user-profile'
-			className='mx-auto w-full max-w-container-xl'
+			className='mx-auto w-full max-w-container-xl p-0 border-none bg-transparent shadow-none backdrop-blur-none relative overflow-visible'
 		>
 			{/* Block confirmation dialog */}
 			<ConfirmDialog
@@ -852,11 +906,15 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 										{userRecipes.map(recipe => (
-											<div
+											<MagicCard
 												key={recipe.id}
-												className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-card transition-shadow hover:shadow-card'
+												mode='gradient'
+												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md shadow-card transition-all hover:shadow-warm duration-300'
 											>
-												<div className='relative h-48 w-full'>
+												<div
+													className='relative h-48 w-full'
+													onClick={() => router.push(`/recipes/${recipe.id}`)}
+												>
 													<Image
 														src={
 															getRecipeImage(recipe) ||
@@ -865,11 +923,14 @@ export const UserProfile = ({
 														alt={recipe.title}
 														fill
 														sizes='(max-width: 768px) 100vw, 50vw'
-														className='object-cover'
+														className='object-cover transition-transform duration-300 group-hover:scale-[1.03]'
 													/>
 												</div>
 												<div className='p-4'>
-													<h3 className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary'>
+													<h3
+														className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary transition-colors hover:text-brand'
+														onClick={() => router.push(`/recipes/${recipe.id}`)}
+													>
 														{recipe.title}
 													</h3>
 													<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
@@ -885,14 +946,138 @@ export const UserProfile = ({
 														</span>
 													</div>
 													<Button
-														className='h-11 w-full'
+														className='h-11 w-full transition-all duration-300 group-hover:bg-brand group-hover:text-white'
 														onClick={() => router.push(`/recipes/${recipe.id}`)}
 													>
 														{t('cookNow')}
 													</Button>
 												</div>
+											</MagicCard>
+										))}
+									</div>
+								)}
+							</>
+						)}
+
+						{activeTab === 'collections' && (
+							<>
+								{isLoadingCollections ? (
+									<div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+										{[1, 2, 3, 4].map(i => (
+											<div
+												key={i}
+												className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card'
+											>
+												<Skeleton className='h-32 w-full' />
+												<div className='space-y-3 p-4'>
+													<Skeleton className='h-5 w-2/3' />
+													<Skeleton className='h-4 w-full' />
+													<Skeleton className='h-4 w-1/3' />
+												</div>
 											</div>
 										))}
+									</div>
+								) : userCollections.length === 0 ? (
+									<EmptyStateGamified
+										variant='saved'
+										title={
+											isOwnProfile
+												? t('noCollectionsOwn')
+												: t('noCollectionsOther')
+										}
+										description={
+											isOwnProfile
+												? t('noCollectionsOwnDesc')
+												: t('noCollectionsOtherDesc')
+										}
+										emoji='📁'
+										primaryAction={
+											isOwnProfile
+												? {
+														label: collectionsT('newCollection'),
+														href: '/collections',
+													}
+												: undefined
+										}
+									/>
+								) : (
+									<div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+										{userCollections.map(collection => {
+											const itemCount = getCollectionItemCount(collection)
+											const typeLabel =
+												collection.collectionType === 'LEARNING_PATH'
+													? collectionsT('typeLearningPath')
+													: collection.collectionType === 'SEASONAL'
+														? collectionsT('typeSeasonal')
+														: collectionsT('typeCollection')
+											const countLabel =
+												collection.collectionType === 'LEARNING_PATH'
+													? collectionsT('recipeCount', { count: itemCount })
+													: collectionsT('itemCount', { count: itemCount })
+
+											return (
+												<Link
+													key={collection.id}
+													href={`/collections/${collection.id}`}
+													className='block h-full'
+												>
+													<MagicCard
+														mode='gradient'
+														className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
+													>
+														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10'>
+															{collection.coverImageUrl ? (
+																<Image
+																	src={collection.coverImageUrl}
+																	alt={collection.name}
+																	fill
+																	sizes='(max-width: 768px) 100vw, 50vw'
+																	className='object-cover transition-transform duration-300 group-hover:scale-105'
+																	unoptimized
+																/>
+															) : (
+																<div className='grid size-full place-items-center'>
+																	<FolderHeart className='size-10 text-brand/30' />
+																</div>
+															)}
+															<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent' />
+															<div className='absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-2xs font-semibold text-text-primary'>
+																{typeLabel}
+															</div>
+														</div>
+														<div className='space-y-3 p-4'>
+															<div className='flex items-start justify-between gap-3'>
+																<div className='min-w-0 flex-1'>
+																	<h3 className='line-clamp-1 text-base font-semibold text-text-primary transition-colors group-hover:text-brand'>
+																		{collection.name}
+																	</h3>
+																	{collection.description && (
+																		<p className='mt-1 line-clamp-2 text-sm text-text-muted'>
+																			{collection.description}
+																		</p>
+																	)}
+																</div>
+																{collection.collectionType ===
+																	'LEARNING_PATH' &&
+																	typeof collection.totalXp === 'number' && (
+																		<span className='rounded-full bg-xp/10 px-2 py-1 text-2xs font-semibold text-xp'>
+																			{collection.totalXp} XP
+																		</span>
+																	)}
+															</div>
+															<div className='flex items-center justify-between gap-3 text-xs font-medium text-text-secondary'>
+																<span>{countLabel}</span>
+																<span>
+																	{collection.isPublic
+																		? collectionsT('public')
+																		: collectionsT('private')}
+																</span>
+															</div>
+														</div>
+													</MagicCard>
+												</Link>
+											)
+										})}
 									</div>
 								)}
 							</>
@@ -1044,9 +1229,10 @@ export const UserProfile = ({
 												) : (
 													<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 														{savedRecipes.map(recipe => (
-															<div
+															<MagicCard
 																key={recipe.id}
-																className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+																mode='gradient'
+																className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
 																onClick={() =>
 																	router.push(`/recipes/${recipe.id}`)
 																}
@@ -1060,11 +1246,11 @@ export const UserProfile = ({
 																		alt={recipe.title}
 																		fill
 																		sizes='(max-width: 768px) 100vw, 50vw'
-																		className='object-cover transition-transform group-hover:scale-105'
+																		className='object-cover transition-transform duration-300 group-hover:scale-105'
 																	/>
 																</div>
 																<div className='p-4'>
-																	<h3 className='font-semibold text-text-primary line-clamp-1'>
+																	<h3 className='font-semibold text-text-primary group-hover:text-brand line-clamp-1 transition-colors'>
 																		{recipe.title}
 																	</h3>
 																	<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
@@ -1078,7 +1264,7 @@ export const UserProfile = ({
 																		</span>
 																	</div>
 																</div>
-															</div>
+															</MagicCard>
 														))}
 													</div>
 												)}
@@ -1167,9 +1353,10 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 										{likedRecipes.map(recipe => (
-											<div
+											<MagicCard
 												key={recipe.id}
-												className='group cursor-pointer overflow-hidden rounded-xl border border-border-subtle bg-bg-card transition-all hover:shadow-card'
+												mode='gradient'
+												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
 												onClick={() => router.push(`/recipes/${recipe.id}`)}
 											>
 												<div className='relative h-40 overflow-hidden'>
@@ -1181,11 +1368,11 @@ export const UserProfile = ({
 														alt={recipe.title}
 														fill
 														sizes='(max-width: 768px) 100vw, 50vw'
-														className='object-cover transition-transform group-hover:scale-105'
+														className='object-cover transition-transform duration-300 group-hover:scale-105'
 													/>
 												</div>
 												<div className='p-4'>
-													<h3 className='font-semibold text-text-primary line-clamp-1'>
+													<h3 className='font-semibold text-text-primary group-hover:text-brand line-clamp-1 transition-colors'>
 														{recipe.title}
 													</h3>
 													<div className='mt-2 flex items-center gap-4 text-sm text-text-muted'>
@@ -1199,7 +1386,7 @@ export const UserProfile = ({
 														</span>
 													</div>
 												</div>
-											</div>
+											</MagicCard>
 										))}
 									</div>
 								)}
@@ -1240,9 +1427,32 @@ export const UserProfile = ({
 									) : (
 										<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
 											{profileUser.badges.map((badge, index) => (
-												<div
+												<MagicCard
 													key={badge.id || `badge-${index}`}
-													className='flex flex-col items-center gap-2 rounded-xl border border-border-subtle bg-bg-card p-3 transition-all hover:shadow-card'
+													mode='orb'
+													glowFrom={
+														badge.rarity === 'LEGENDARY'
+															? '#d97706'
+															: badge.rarity === 'EPIC'
+																? '#a855f7'
+																: badge.rarity === 'RARE'
+																	? '#3b82f6'
+																	: badge.rarity === 'UNCOMMON'
+																		? '#22c55e'
+																		: '#a855f7'
+													}
+													glowTo={
+														badge.rarity === 'LEGENDARY'
+															? '#f59e0b'
+															: badge.rarity === 'EPIC'
+																? '#c084fc'
+																: badge.rarity === 'RARE'
+																	? '#60a5fa'
+																	: badge.rarity === 'UNCOMMON'
+																		? '#4ade80'
+																		: '#ff5a36'
+													}
+													className='flex flex-col items-center gap-2 rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-3 transition-all hover:shadow-card hover:scale-105 duration-300'
 												>
 													<span className='text-3xl'>{badge.icon}</span>
 													<span className='text-center text-xs font-semibold text-text-primary line-clamp-1'>
@@ -1263,7 +1473,7 @@ export const UserProfile = ({
 													>
 														{badge.rarity}
 													</span>
-												</div>
+												</MagicCard>
 											))}
 										</div>
 									)}
@@ -1303,6 +1513,6 @@ export const UserProfile = ({
 					onTabChange={setActiveTab}
 				/>
 			</div>
-		</div>
+		</PremiumSurface>
 	)
 }

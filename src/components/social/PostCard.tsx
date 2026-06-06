@@ -18,6 +18,7 @@ import {
 	stopDwellTracking,
 } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
+import { safeRecipeImageSrc } from '@/lib/imageSafety'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -71,13 +72,17 @@ import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
+import { cn } from '@/lib/utils'
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { Lens } from '@/components/ui/lens'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import {
 	socialCardSurface,
 	socialCardTopAccent,
 	socialCardHeaderPadding,
+	POST_TYPE_TO_TONE,
 } from '@/components/social/socialCardStyles'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
@@ -123,18 +128,18 @@ interface PostCardProps {
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
 	QUICK:
-		'bg-warning/18 text-warning-deep border border-warning/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-	POLL: 'bg-info/18 text-info border border-info/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-warning/28 text-warning-deep border border-warning/35 shadow-card',
+	POLL: 'bg-info/28 text-info border border-info/35 shadow-md',
 	RECENT_COOK:
-		'bg-brand/18 text-brand border border-brand/20 shadow-[0_1px_4px_rgba(255,90,54,0.15)]',
+		'bg-brand/28 text-brand border border-brand/35 shadow-glow',
 	GROUP:
-		'bg-accent-purple/18 text-accent-purple border border-accent-purple/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-accent-purple/28 text-accent-purple border border-accent-purple/35 shadow-md',
 	RECIPE_REVIEW:
-		'bg-warning/22 text-warning-deep border border-warning/25 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-warning/32 text-warning-deep border border-warning/40 shadow-md',
 	QUICK_TIP:
-		'bg-success/18 text-success-deep border border-success/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-success/28 text-success-deep border border-success/35 shadow-md',
 	RECIPE_BATTLE:
-		'bg-error/18 text-error border border-error/20 shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+		'bg-error/28 text-error border border-error/35 shadow-md',
 }
 
 function PostCardErrorFallback({
@@ -225,6 +230,7 @@ const PostCardContent = ({
 
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
+	const isDesktop = useMediaQuery('(min-width: 768px)')
 	const { requireAuth, guardAction } = useAuthGate()
 	const t = useTranslations('post')
 
@@ -679,9 +685,10 @@ const PostCardContent = ({
 				transition={TRANSITION_SPRING}
 				className='mb-6'
 			>
-				<motion.div
-					whileHover={CARD_FEED_HOVER}
-					className={socialCardSurface()}
+				<div
+					className={socialCardSurface({
+						tone: POST_TYPE_TO_TONE[post.postType] ?? 'default',
+					})}
 				>
 					{/* Warm top-edge accent — barely visible but adds depth */}
 					<div className={socialCardTopAccent} />
@@ -926,7 +933,7 @@ const PostCardContent = ({
 					) : (
 						<>
 							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
-								<p className='whitespace-pre-wrap text-[15px] leading-[1.65] tracking-[0.01em] text-text-primary'>
+								<p className='whitespace-pre-wrap text-label leading-[1.65] tracking-widest text-text-primary'>
 									{post.content}
 								</p>
 								{(post.tags ?? []).length > 0 && (
@@ -981,7 +988,7 @@ const PostCardContent = ({
 															{post.battleRecipeImageA && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={post.battleRecipeImageA}
+																		src={safeRecipeImageSrc(post.battleRecipeImageA)}
 																		alt={
 																			post.battleRecipeTitleA ??
 																			t('recipeAFallback')
@@ -1059,7 +1066,7 @@ const PostCardContent = ({
 															{post.battleRecipeImageB && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={post.battleRecipeImageB}
+																		src={safeRecipeImageSrc(post.battleRecipeImageB)}
 																		alt={
 																			post.battleRecipeTitleB ??
 																			t('recipeBFallback')
@@ -1225,22 +1232,41 @@ const PostCardContent = ({
 									}}
 									aria-label={t('postByUser', { name: post.displayName })}
 								>
-									{/* Use ImageCarousel for multi-image support */}
-									<ImageCarousel
-										images={
-											post.photoUrls && post.photoUrls.length > 0
-												? post.photoUrls
-												: post.photoUrl
-													? [post.photoUrl]
-													: []
-										}
-										alt={t('postByUser', { name: post.displayName })}
-										aspectRatio='video'
-										showControls={true}
-										showIndicators={true}
-										enableSwipe={true}
-										enableKeyboard={true}
-									/>
+									{isDesktop ? (
+										<Lens zoomFactor={1.4} lensSize={170}>
+											<ImageCarousel
+												images={
+													post.photoUrls && post.photoUrls.length > 0
+														? post.photoUrls
+														: post.photoUrl
+															? [post.photoUrl]
+															: []
+												}
+												alt={t('postByUser', { name: post.displayName })}
+												aspectRatio='video'
+												showControls={true}
+												showIndicators={true}
+												enableSwipe={true}
+												enableKeyboard={true}
+											/>
+										</Lens>
+									) : (
+										<ImageCarousel
+											images={
+												post.photoUrls && post.photoUrls.length > 0
+													? post.photoUrls
+													: post.photoUrl
+														? [post.photoUrl]
+														: []
+											}
+											alt={t('postByUser', { name: post.displayName })}
+											aspectRatio='video'
+											showControls={true}
+											showIndicators={true}
+											enableSwipe={true}
+											enableKeyboard={true}
+										/>
+									)}
 
 									{/* Double-tap heart animation overlay */}
 									<AnimatePresence>
@@ -1549,7 +1575,7 @@ const PostCardContent = ({
 							</motion.div>
 						)}
 					</AnimatePresence>
-				</motion.div>
+				</div>
 
 				{/* Report Modal */}
 				<ReportModal

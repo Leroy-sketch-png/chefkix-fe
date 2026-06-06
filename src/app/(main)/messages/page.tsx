@@ -126,7 +126,7 @@ function WelcomeState({ hasConversations }: { hasConversations: boolean }) {
 				initial={{ scale: 0.8, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={TRANSITION_SPRING}
-				className='grid size-20 place-items-center rounded-2xl bg-brand shadow-[0_4px_16px_rgba(255,90,54,0.3)]'
+				className='grid size-20 place-items-center rounded-2xl bg-brand shadow-glow'
 			>
 				<Sparkles className='size-10 text-white' />
 			</motion.div>
@@ -532,7 +532,7 @@ function MessagesContent() {
 					<div className='rounded-xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/8 p-4 shadow-card'>
 						<div className='mb-3 flex items-start justify-between gap-3'>
 							<div>
-								<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+								<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 									Inbox
 								</p>
 								<h1 className='mt-1 text-xl font-black text-text-primary'>
@@ -560,7 +560,7 @@ function MessagesContent() {
 				{/* Conversations List - Scrollable */}
 				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-2'>
 					<div className='mb-2 px-2'>
-						<p className='text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted'>
+						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 							Active conversations
 						</p>
 					</div>

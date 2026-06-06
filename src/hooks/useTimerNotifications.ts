@@ -3,7 +3,11 @@
 import { useEffect, useRef } from 'react'
 import { useCookingStore } from '@/store/cookingStore'
 import { toast } from 'sonner'
-import { playTimerCompleteForStep, isAudioEnabled } from '@/lib/audio'
+import {
+	playTimerCompleteForStep,
+	isAudioEnabled,
+	playSound,
+} from '@/lib/audio'
 import { getTextToSpeech, isTTSSupported } from '@/lib/voice/TextToSpeech'
 import { showTimerNotification } from '@/lib/pushNotifications'
 import { useTranslations } from 'next-intl'
@@ -76,6 +80,7 @@ export const useTimerNotifications = () => {
 
 				// Play distinct chime for this step (different pitch per step)
 				if (isAudioEnabled()) {
+					playSound('/sounds/timer-done.mp3')
 					playTimerCompleteForStep(stepNumber)
 				}
 

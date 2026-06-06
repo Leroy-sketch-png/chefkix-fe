@@ -26,6 +26,7 @@ import {
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
 import { Portal } from '@/components/ui/portal'
+import { MagicCard } from '@/components/ui/magic-card'
 import { ErrorState } from '@/components/ui/error-state'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -55,6 +56,21 @@ const MEAL_LABELS: Record<MealType, { labelKey: string; emoji: string }> = {
 	breakfast: { labelKey: 'breakfast', emoji: '🌅' },
 	lunch: { labelKey: 'lunch', emoji: '☀️' },
 	dinner: { labelKey: 'dinner', emoji: '🌙' },
+}
+
+const MEAL_GLOW_COLORS: Record<MealType, { from: string; to: string }> = {
+	breakfast: {
+		from: 'var(--color-warning, #eab308)',
+		to: 'var(--color-brand, #ff5a36)',
+	},
+	lunch: {
+		from: 'var(--color-info, #3b82f6)',
+		to: 'var(--color-success, #10b981)',
+	},
+	dinner: {
+		from: 'var(--color-xp, #6366f1)',
+		to: 'var(--color-brand, #ff5a36)',
+	},
 }
 
 export default function MealPlannerPage() {
@@ -401,8 +417,8 @@ export default function MealPlannerPage() {
 									tone='success'
 									className='p-4'
 								>
-									<div className='overflow-x-auto scrollbar-hide'>
-										<div className='min-w-[900px]'>
+									<div className='overflow-x-auto hkx-x-rail'>
+										<div className='min-w-max'>
 											{/* Day Headers */}
 											<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
 												<div /> {/* spacer */}
@@ -430,55 +446,70 @@ export default function MealPlannerPage() {
 													</div>
 													{plannedDays.map(day => {
 														const meal = getMeal(day, mealType)
+														const glow = MEAL_GLOW_COLORS[mealType]
 														return (
 															<motion.div
 																key={`${day.dayOfWeek}-${mealType}`}
 																whileHover={CARD_HOVER}
-																className='group relative rounded-xl border border-border-subtle bg-bg-card p-3 text-left shadow-card transition-colors hover:border-brand/30'
+																className='group relative rounded-xl overflow-hidden shadow-card transition-colors'
 															>
-																<button
-																	type='button'
-																	onClick={() =>
-																		meal?.recipeId &&
-																		router.push(`/recipes/${meal.recipeId}`)
-																	}
-																	className='w-full text-left'
+																<MagicCard
+																	mode='orb'
+																	glowFrom={glow.from}
+																	glowTo={glow.to}
+																	className='h-full w-full'
 																>
-																	{meal ? (
-																		<>
-																			<p className='line-clamp-2 text-xs font-medium text-text-primary'>
-																				{meal.title}
-																			</p>
-																			<div className='mt-1.5 flex items-center gap-1.5 text-2xs text-text-muted'>
-																				<Clock className='size-3' />
-																				{formatCookingTime(
-																					meal.totalTimeMinutes,
-																				)}
-																				{meal.aiGenerated && (
-																					<span className='rounded bg-info/10 px-1 py-0.5 text-info'>
-																						AI
+																	<div className='p-3 min-h-[5.5rem] flex flex-col justify-between h-full bg-bg-card/75 backdrop-blur-md rounded-[inherit]'>
+																		<button
+																			type='button'
+																			onClick={() =>
+																				meal?.recipeId &&
+																				router.push(`/recipes/${meal.recipeId}`)
+																			}
+																			className='w-full text-left flex-1'
+																		>
+																			{meal ? (
+																				<>
+																					<p className='line-clamp-2 text-xs font-bold leading-tight text-text-primary group-hover:text-brand transition-colors'>
+																						{meal.title}
+																					</p>
+																					<div className='mt-2 flex items-center gap-1 text-3xs text-text-secondary tabular-nums'>
+																						<Clock className='size-2.5' />
+																						{formatCookingTime(
+																							meal.totalTimeMinutes,
+																						)}
+																						{meal.aiGenerated && (
+																							<span className='rounded bg-info/10 px-1 py-0.5 text-3xs font-semibold text-info uppercase tracking-wider ml-1'>
+																								AI
+																							</span>
+																						)}
+																					</div>
+																				</>
+																			) : (
+																				<div className='flex items-center justify-center h-full min-h-[3.5rem] border border-dashed border-border-subtle/50 rounded-lg hover:border-brand/40 transition-colors'>
+																					<span className='text-xs font-bold text-text-muted/60 group-hover:text-brand/70'>
+																						+{' '}
+																						{t('addMeal', {
+																							defaultValue: 'Add',
+																						})}
 																					</span>
-																				)}
-																			</div>
-																		</>
-																	) : (
-																		<p className='text-sm text-text-muted/50'>
-																			+
-																		</p>
-																	)}
-																</button>
-																{/* Swap button */}
-																<button
-																	type='button'
-																	onClick={e => {
-																		e.stopPropagation()
-																		handleSwapClick(day.dayOfWeek, mealType)
-																	}}
-																	aria-label={t('swapMeal')}
-																	className='absolute right-1 top-1 rounded-md p-2 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100'
-																>
-																	<Shuffle className='size-4' />
-																</button>
+																				</div>
+																			)}
+																		</button>
+																		{/* Swap button */}
+																		<button
+																			type='button'
+																			onClick={e => {
+																				e.stopPropagation()
+																				handleSwapClick(day.dayOfWeek, mealType)
+																			}}
+																			aria-label={t('swapMeal')}
+																			className='absolute right-1 top-1 rounded-md p-1.5 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100 z-50'
+																		>
+																			<Shuffle className='size-3.5' />
+																		</button>
+																	</div>
+																</MagicCard>
 															</motion.div>
 														)
 													})}

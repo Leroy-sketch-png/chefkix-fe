@@ -28,11 +28,12 @@ import { gzipSync } from 'zlib'
 // CONFIGURATION
 // ============================================================================
 
-const BASE_URL = 'http://localhost:3000'
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3100'
 const API_URL = 'http://localhost:8080/api/v1'
 const RAW_CAPTURES_DIR = path.join(__dirname, 'raw-captures')
 const RAW_ARCHIVE_DIR = path.join(__dirname, 'raw-archive')
 const RUN_STATE_PATH = path.join(__dirname, '.run-state.json')
+const WARMED_ROUTE_URLS = new Set<string>()
 
 const AUTH_CREDS = {
 	emailOrUsername: 'testuser',
@@ -65,6 +66,10 @@ interface RouteConfig {
 	states: VisualState[]
 	/** Optional: CSS selector to wait for before screenshot */
 	waitForSelector?: string
+	/** Optional: settled-state selector for non-loading captures */
+	readySelector?: string
+	/** Optional: require the readySelector to appear before capture */
+	requireReadySelector?: boolean
 	/** Optional: query params to append */
 	queryParams?: Record<string, string>
 	/** Optional: alternate route match for canonical redirects */
@@ -105,6 +110,7 @@ const PUBLIC_ROUTES: RouteConfig[] = [
 		requiresAuth: false,
 		states: ['guest', 'default'],
 		waitForSelector: '[data-testid="explore-page"]',
+		readySelector: '[data-testid="explore-page"][data-visual-ready="true"]',
 	},
 	{
 		path: '/search',
@@ -112,6 +118,7 @@ const PUBLIC_ROUTES: RouteConfig[] = [
 		requiresAuth: false,
 		states: ['guest', 'default'],
 		waitForSelector: '[data-testid="search-page"]',
+		readySelector: '[data-testid="search-page"][data-visual-ready="true"]',
 	},
 	{
 		path: '/community',
@@ -119,6 +126,7 @@ const PUBLIC_ROUTES: RouteConfig[] = [
 		requiresAuth: false,
 		states: ['guest', 'default'],
 		waitForSelector: '[data-testid="community-page"]',
+		readySelector: '[data-testid="community-page"][data-visual-ready="true"]',
 	},
 ]
 
@@ -130,14 +138,18 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 		name: 'dashboard',
 		requiresAuth: true,
 		states: ['default', 'empty', 'loading', 'error'],
-		waitForSelector: 'main',
-		skipScroll: true,
+		waitForSelector: '[data-testid="dashboard-page"]',
+		readySelector: '[data-testid="dashboard-page"][data-visual-ready="true"]',
+		requireReadySelector: true,
+		skipScroll: false,
 	},
 	{
 		path: '/feed',
 		name: 'feed',
 		requiresAuth: true,
 		states: ['default', 'empty'],
+		waitForSelector: '[data-testid="feed-page"]',
+		readySelector: '[data-testid="feed-page"][data-visual-ready="true"]',
 	},
 	{
 		path: '/create',
@@ -189,6 +201,9 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 		name: 'notifications',
 		requiresAuth: true,
 		states: ['default', 'empty'],
+		waitForSelector: '[data-testid="notifications-page"]',
+		readySelector:
+			'[data-testid="notifications-page"][data-visual-ready="true"]',
 	},
 	{
 		path: '/pantry',
@@ -373,46 +388,155 @@ async function autoScroll(page: Page): Promise<void> {
 	await page.waitForTimeout(200)
 }
 
-/**
- * Unlock the h-screen overflow-hidden layout so Playwright's fullPage: true
- * captures the entire scrollable content. Call AFTER autoScroll but BEFORE screenshot.
- */
 async function unlockFullPageCapture(page: Page): Promise<void> {
 	await page.evaluate(() => {
+		// Clear viewport restrictions on top level elements
+		document.documentElement.style.height = 'auto'
+		document.documentElement.style.overflow = 'visible'
+		document.body.style.height = 'auto'
+		document.body.style.overflow = 'visible'
+
 		const main = document.querySelector('main')
 		if (!main) return
 
-		// Find the h-screen overflow-hidden root container (direct parent of main in the app layout)
-		const root = main.parentElement
-		if (!root) return
+		main.style.overflow = 'visible'
+		main.style.height = 'auto'
+		main.style.maxHeight = 'none'
 
-		const style = window.getComputedStyle(root)
-		if (
-			style.overflow === 'hidden' &&
-			(style.height === `${window.innerHeight}px` ||
-				root.classList.contains('h-screen'))
-		) {
-			// Remove height constraint and overflow hidden
-			root.style.height = 'auto'
-			root.style.overflow = 'visible'
-			// Let main expand naturally instead of being its own scroll container
-			main.style.overflow = 'visible'
-			main.style.height = 'auto'
+		let el = main.parentElement
+		while (el) {
+			const style = window.getComputedStyle(el)
+			if (style.overflow === 'hidden' || style.overflowY === 'hidden') {
+				el.style.overflow = 'visible'
+				el.style.overflowY = 'visible'
+			}
+			if (
+				style.height !== 'auto' ||
+				el.classList.contains('h-screen') ||
+				el.classList.contains('min-h-screen')
+			) {
+				el.style.height = 'auto'
+				el.style.maxHeight = 'none'
+			}
+			el = el.parentElement
 		}
 	})
+}
+
+function isRetryableNavigationError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return (
+		message.includes('ERR_CONNECTION_REFUSED') ||
+		message.includes('ECONNREFUSED') ||
+		message.includes('ERR_NETWORK_IO_SUSPENDED') ||
+		message.includes('ERR_ABORTED') ||
+		message.includes('page.goto: Timeout')
+	)
+}
+
+async function waitForServerReachable(
+	baseUrl: string,
+	timeoutMs: number,
+): Promise<void> {
+	const deadline = Date.now() + timeoutMs
+
+	while (Date.now() < deadline) {
+		const controller = new AbortController()
+		const timeout = setTimeout(() => controller.abort(), 5_000)
+
+		try {
+			const response = await fetch(baseUrl, {
+				method: 'GET',
+				redirect: 'manual',
+				signal: controller.signal,
+			})
+
+			if (response.status > 0) {
+				return
+			}
+		} catch {
+			// Keep polling until the local server is reachable again.
+		} finally {
+			clearTimeout(timeout)
+		}
+
+		await new Promise(resolve => setTimeout(resolve, 1_500))
+	}
+}
+
+async function prewarmRoute(url: string): Promise<void> {
+	if (process.env.VISUAL_WARM_ROUTES === '0') {
+		return
+	}
+
+	if (WARMED_ROUTE_URLS.has(url)) {
+		return
+	}
+
+	WARMED_ROUTE_URLS.add(url)
+
+	const controller = new AbortController()
+	const timeout = setTimeout(() => controller.abort(), 30_000)
+
+	try {
+		await fetch(url, {
+			method: 'GET',
+			redirect: 'manual',
+			signal: controller.signal,
+			headers: {
+				'x-visual-prewarm': '1',
+				'cache-control': 'no-cache',
+			},
+		})
+	} catch {
+		// Prewarm is best-effort. It should never turn a workable run into a failure.
+	} finally {
+		clearTimeout(timeout)
+	}
+}
+
+async function navigateToRoute(
+	page: Page,
+	url: string,
+	gotoTimeout: number,
+): Promise<void> {
+	const attempts = 2
+
+	for (let attempt = 1; attempt <= attempts; attempt += 1) {
+		try {
+			await page.goto(url, {
+				waitUntil: 'domcontentloaded',
+				timeout: gotoTimeout,
+			})
+			return
+		} catch (error) {
+			if (attempt === attempts || !isRetryableNavigationError(error)) {
+				throw error
+			}
+
+			await waitForServerReachable(BASE_URL, Math.min(20_000, gotoTimeout))
+			await page.goto('about:blank').catch(() => {})
+			await page.waitForTimeout(1_500)
+		}
+	}
 }
 
 /** Wait for the page to stabilize: network idle + optional selector */
 async function waitForStable(
 	page: Page,
-	selector?: string,
+	route: RouteConfig,
 	state: VisualState = 'default',
 ): Promise<void> {
+	const initialSelector = route.waitForSelector
+	const settledSelector = route.readySelector ?? route.waitForSelector
+
 	if (state === 'loading') {
-		if (selector) {
-			await page.waitForSelector(selector, { timeout: 5_000 }).catch(() => {
-				// Some loading states render only generic skeletons.
-			})
+		if (initialSelector) {
+			await page
+				.waitForSelector(initialSelector, { timeout: 5_000 })
+				.catch(() => {
+					// Some loading states render only generic skeletons.
+				})
 		}
 
 		await page.waitForTimeout(1_500)
@@ -428,10 +552,16 @@ async function waitForStable(
 	})
 
 	// Wait for specific content if requested
-	if (selector) {
-		await page.waitForSelector(selector, { timeout: 10_000 }).catch(() => {
-			// Selector might not exist in empty/error states — that's OK
-		})
+	if (settledSelector) {
+		if (route.requireReadySelector && state !== 'error') {
+			await page.waitForSelector(settledSelector, { timeout: 20_000 })
+		} else {
+			await page
+				.waitForSelector(settledSelector, { timeout: 20_000 })
+				.catch(() => {
+					// Selector might not exist in empty/error states — that's OK
+				})
+		}
 	}
 
 	// Extra settle time for hydration and client-side rendering.
@@ -877,6 +1007,11 @@ test.describe('Visual Truth Machine', () => {
 			test(testName, async ({ page }, testInfo) => {
 				const device = testInfo.project.name || 'default'
 				const start = Date.now()
+				const pageErrors: string[] = []
+
+				page.on('pageerror', error => {
+					pageErrors.push(error.message)
+				})
 
 				// Skip auth-required routes if login failed
 				if (route.requiresAuth && !authTokens && state !== 'guest') {
@@ -913,18 +1048,17 @@ test.describe('Visual Truth Machine', () => {
 				}
 
 				const gotoTimeout = parseInt(
-					// Playwright reuses the active 3000 dev server in local workflows.
+					// Playwright reuses the active 3100 visual dev server in local workflows.
 					// When that server is Turbopack, cold route compilation can exceed 30s.
 					process.env.VISUAL_GOTO_TIMEOUT || '90000',
 					10,
 				)
-				await page.goto(url.toString(), {
-					waitUntil: 'domcontentloaded',
-					timeout: gotoTimeout,
-				})
+				testInfo.setTimeout(Math.max(testInfo.timeout, gotoTimeout + 120_000))
+				await prewarmRoute(url.toString())
+				await navigateToRoute(page, url.toString(), gotoTimeout)
 
 				// ---- 5. Wait for stability --------------------------------------
-				await waitForStable(page, route.waitForSelector, state)
+				await waitForStable(page, route, state)
 				await assertExpectedRoute(page, route, state)
 
 				// ---- 6. Run custom setup if any ---------------------------------
@@ -942,6 +1076,29 @@ test.describe('Visual Truth Machine', () => {
 
 				// ---- 8b. Unlock layout for full-page capture --------------------
 				await unlockFullPageCapture(page)
+
+				if (state !== 'error') {
+					const errorBoundary = page.locator('[data-error-boundary="active"]')
+					const errorBoundaryCount = await errorBoundary.count()
+
+					if (errorBoundaryCount > 0) {
+						const boundaryMessage =
+							(await errorBoundary
+								.first()
+								.getAttribute('data-error-boundary-message')) ||
+							'Unknown runtime error'
+
+						throw new Error(
+							`[${route.name}:${state}] Unexpected error boundary rendered: ${boundaryMessage}`,
+						)
+					}
+
+					if (pageErrors.length > 0) {
+						throw new Error(
+							`[${route.name}:${state}] Unexpected page error(s): ${pageErrors.join(' | ')}`,
+						)
+					}
+				}
 
 				// ---- 9. Capture screenshot --------------------------------------
 				// Never leave full-size PNGs in the workspace. Capture to memory,

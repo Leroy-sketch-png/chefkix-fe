@@ -56,7 +56,7 @@ export default function MediaStage({
 					<motion.div
 						initial={{ opacity: 0, scale: 0.9, y: 10 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
-						className='absolute bottom-4 right-4 w-[28%] max-w-[180px] aspect-video bg-bg-elevated rounded-2xl overflow-hidden border-2 border-brand shadow-warm z-20'
+						className='absolute bottom-4 right-4 w-[28%] max-w-44 aspect-video bg-bg-elevated rounded-2xl overflow-hidden border-2 border-brand shadow-warm z-20'
 					>
 						<video
 							ref={localVideoRef}

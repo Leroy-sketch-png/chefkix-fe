@@ -25,7 +25,15 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { getOrdinalSuffix, getRepeatCookXpTier } from '@/lib/cookingXp'
+import { EmptyStateGamified } from '@/components/shared'
 import type { PendingSession } from './PendingPostsSection'
 
 // =============================================================================
@@ -668,35 +676,47 @@ export const CookingHistoryTab = ({
 						{t('cookingHistory')}
 					</h3>
 					<div className='flex gap-2'>
-						<select
-							aria-label={t('filterTimeRange')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
+						<Select
 							value={filter.timeRange}
-							onChange={e =>
+							onValueChange={v =>
 								handleFilterChange({
-									timeRange: e.target.value as HistoryFilter['timeRange'],
+									timeRange: v as HistoryFilter['timeRange'],
 								})
 							}
 						>
-							<option value='all'>{t('filterAll')}</option>
-							<option value='week'>{t('filterWeek')}</option>
-							<option value='month'>{t('filterMonth')}</option>
-							<option value='year'>{t('filterYear')}</option>
-						</select>
-						<select
-							aria-label={t('filterSortBy')}
-							className='px-3 py-2 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
+							<SelectTrigger
+								aria-label={t('filterTimeRange')}
+								className='h-9 w-28 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='all'>{t('filterAll')}</SelectItem>
+								<SelectItem value='week'>{t('filterWeek')}</SelectItem>
+								<SelectItem value='month'>{t('filterMonth')}</SelectItem>
+								<SelectItem value='year'>{t('filterYear')}</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select
 							value={filter.sortBy}
-							onChange={e =>
+							onValueChange={v =>
 								handleFilterChange({
-									sortBy: e.target.value as HistoryFilter['sortBy'],
+									sortBy: v as HistoryFilter['sortBy'],
 								})
 							}
 						>
-							<option value='recent'>{t('sortRecent')}</option>
-							<option value='xp'>{t('sortXp')}</option>
-							<option value='rating'>{t('sortRating')}</option>
-						</select>
+							<SelectTrigger
+								aria-label={t('filterSortBy')}
+								className='h-9 w-28 bg-bg-card border border-border rounded-xl text-sm text-text-primary cursor-pointer'
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='recent'>{t('sortRecent')}</SelectItem>
+								<SelectItem value='xp'>{t('sortXp')}</SelectItem>
+								<SelectItem value='rating'>{t('sortRating')}</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 				</div>
 
@@ -718,10 +738,12 @@ export const CookingHistoryTab = ({
 				</div>
 
 				{completedSessions.length === 0 && expiredSessions.length === 0 && (
-					<div className='text-center py-8 text-text-secondary'>
-						<p className='text-lg'>{t('noHistory')}</p>
-						<p className='text-sm'>{t('noHistoryDesc')}</p>
-					</div>
+					<EmptyStateGamified
+						variant='cooking'
+						title={t('noHistory')}
+						description={t('noHistoryDesc')}
+						className='border-none shadow-none'
+					/>
 				)}
 			</motion.section>
 		</div>

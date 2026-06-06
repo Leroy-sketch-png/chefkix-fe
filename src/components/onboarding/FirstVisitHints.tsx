@@ -4,6 +4,7 @@ import {
 	useState,
 	useEffect,
 	useCallback,
+	useRef,
 	createContext,
 	useContext,
 	ReactNode,
@@ -198,9 +199,34 @@ export function useFirstVisitHints() {
 function HintOverlay() {
 	const t = useTranslations('onboarding')
 	const context = useContext(FirstVisitHintsContext)
-	if (!context) return null
 
-	const { activeHint, dismissHint, dismissAllHints } = context
+	const activeHint = context?.activeHint || null
+	const dismissHint = useCallback(() => {
+		if (context?.dismissHint) context.dismissHint()
+	}, [context])
+	const dismissAllHints = context?.dismissAllHints || (() => {})
+
+	const isHintOpenRef = useRef(false)
+
+	useEffect(() => {
+		isHintOpenRef.current = !!activeHint
+	}, [activeHint])
+
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (!isHintOpenRef.current) return
+			if (event.key !== 'Escape') return
+			event.preventDefault()
+			dismissHint()
+		}
+
+		document.addEventListener('keydown', handleKeyDown)
+		return () => {
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [dismissHint])
+
+	if (!context) return null
 
 	return (
 		<AnimatePresence>

@@ -225,7 +225,7 @@ export const MessagesDrawer = () => {
 		<Portal>
 			<div
 				ref={drawerRef}
-				className='fixed inset-x-2 top-20 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-modal flex h-auto w-auto flex-col overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl md:inset-x-auto md:bottom-0 md:right-6 md:top-auto md:h-drawer md:w-drawer md:rounded-t-2xl'
+				className='fixed inset-x-2 top-20 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-modal flex h-auto w-auto flex-col overflow-hidden rounded-2xl border border-border-subtle/80 bg-gradient-to-b from-bg-card/97 to-bg-card shadow-lg backdrop-blur-xl md:inset-x-auto md:bottom-0 md:right-6 md:top-auto md:h-drawer md:w-drawer md:rounded-t-2xl'
 				style={
 					width || height
 						? {

@@ -33,12 +33,9 @@ export const FORBIDDEN_PATTERNS = [
 	},
 
 	// Generic shadows (use semantic tokens)
-	{ pattern: /\bshadow-sm\b/, message: 'Use shadow-card instead of shadow-sm' },
-	{
-		pattern: /\bshadow-md\b/,
-		message: 'Use shadow-card or shadow-warm instead of shadow-md',
-	},
-	{ pattern: /\bshadow-lg\b/, message: 'Use shadow-warm instead of shadow-lg' },
+	{ pattern: /(?<!drop-)\bshadow-sm\b/, message: 'Use shadow-card instead of shadow-sm' },
+	{ pattern: /(?<!drop-)shadow-md/, message: 'Use shadow-card or shadow-warm instead of shadow-md' },
+	{ pattern: /(?<!drop-)shadow-lg/, message: 'Use shadow-warm instead of shadow-lg' },
 
 	// Arbitrary z-index (use tokens)
 	{
@@ -133,3 +130,36 @@ export const PRIMARY_PAGES = [
 
 // Primary pages: NO back button (user navigates away via sidebar)
 // Secondary pages (everything else): MUST have back button
+
+/**
+ * Dev-only checker for forbidden utility usage in rendered class names.
+ * This is a lightweight runtime guard, not a full static linter.
+ */
+export function validateTokenUsage(): void {
+	if (typeof window === 'undefined' || process.env.NODE_ENV !== 'development') {
+		return
+	}
+
+	try {
+		const violations = new Set<string>()
+		const nodes = document.querySelectorAll<HTMLElement>('[class]')
+
+		nodes.forEach(node => {
+			const className = node.className
+			if (typeof className !== 'string') return
+
+			FORBIDDEN_PATTERNS.forEach(rule => {
+				if (rule.pattern.test(className)) {
+					violations.add(`${rule.message} :: "${className}"`)
+				}
+			})
+		})
+
+		if (violations.size > 0) {
+			console.warn('[ChefKix Design System] Forbidden token usage detected:')
+			violations.forEach(message => console.warn(`- ${message}`))
+		}
+	} catch {
+		// Guard should never break the app in development.
+	}
+}

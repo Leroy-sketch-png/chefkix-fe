@@ -875,12 +875,14 @@
 html,
 body {
 	height: 100%;
+	position: relative;
 	scroll-behavior: smooth;
 }
 
 body {
 	margin: 0;
 	padding: 0;
+	overflow-x: clip;
 	font-family: var(--font-family);
 	background: var(--bg-page);
 	color: var(--text);
@@ -914,6 +916,7 @@ body {
 
 html {
 	font-size: 16px;
+	scrollbar-gutter: stable;
 }
 
 /* Typography utilities (use these explicitly, don't force globally) */
@@ -979,32 +982,127 @@ img[alt]:after {
 	padding: 1rem;
 }
 
-/* ============ CUSTOM SCROLLBAR - BRAND ACCENT ============ */
-::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
+/* ============ SCROLLBAR SYSTEM (FOUNDATIONAL) ============ */
+/* Scrollbars are globally hidden for a true immersive social media UX */
+* {
+	scrollbar-width: none !important;
+	-ms-overflow-style: none !important;
 }
 
-::-webkit-scrollbar-track {
-	background: var(--bg);
-	border-radius: 8px;
+*::-webkit-scrollbar {
+	display: none !important;
 }
 
-::-webkit-scrollbar-thumb {
-	background: linear-gradient(
-		135deg,
-		var(--color-brand) 0%,
-		var(--color-brand-hover) 100%
+/* Horizontal scrollbars are forbidden at UX level */
+.overflow-x-auto,
+.overflow-x-scroll {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+/* Product-wide horizontal rail contract */
+.hkx-x-rail {
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	overscroll-behavior-y: none;
+	-webkit-overflow-scrolling: touch;
+	touch-action: pan-x;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	scroll-padding-inline: 0.5rem;
+	padding-bottom: 2px;
+
+	/* Subtle edge cue so users discover hidden horizontal content */
+	mask-image: linear-gradient(
+		to right,
+		transparent,
+		black 10px,
+		black calc(100% - 10px),
+		transparent
 	);
-	border-radius: 8px;
-	border: 2px solid var(--bg);
+	-webkit-mask-image: linear-gradient(
+		to right,
+		transparent,
+		black 10px,
+		black calc(100% - 10px),
+		transparent
+	);
 }
 
-::-webkit-scrollbar-thumb:hover {
-	background: var(--color-brand-hover);
+.hkx-x-rail::-webkit-scrollbar {
+	display: none;
 }
 
 /* ============ MICRO-INTERACTIONS & POLISH ============ */
+
+/* Animated gradient text sweep (for headings, premium text) */
+@keyframes gradient-text {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.animate-gradient-text {
+	animation: gradient-text 4s ease infinite;
+	background-size: 300% 100%;
+}
+
+/* Shiny button shine sweep effect */
+@keyframes shine-sweep {
+	0% {
+		background-position: -200% center;
+	}
+	100% {
+		background-position: 200% center;
+	}
+}
+
+.animate-shine-sweep {
+	animation: shine-sweep 3s ease-in-out infinite;
+}
+
+/* Slow continuous rotation (for decorative elements, spinners) */
+@keyframes spin-slow {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin-slow {
+	animation: spin-slow 8s linear infinite;
+}
+
+/* Animated background position (for gradient animations) */
+@keyframes background-position-spin {
+	0% {
+		background-position: 0% 0%;
+	}
+	50% {
+		background-position: 100% 100%;
+	}
+	100% {
+		background-position: 0% 0%;
+	}
+}
+
+.animate-background-position-spin {
+	animation: background-position-spin 6s ease infinite;
+}
+
 @keyframes shimmer {
 	0% {
 		background-position: -1000px 0;
@@ -1127,37 +1225,14 @@ select {
 	scroll-behavior: smooth;
 }
 
-/* Custom scrollbar for better UX */
+/* Scoped vertical scrollbar utility (force hidden) */
 .overflow-y-auto::-webkit-scrollbar {
-	width: 8px;
+	display: none !important;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-	background: var(--border-subtle);
-	border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-	background: var(--border-medium);
-}
-
-/* Firefox scrollbar */
+/* Firefox scrollbar (force hidden) */
 .overflow-y-auto {
-	scrollbar-width: thin;
-	scrollbar-color: var(--border-subtle) transparent;
-}
-
-/* Hide scrollbar for webkit browsers but keep functionality */
-.scrollbar-hide::-webkit-scrollbar {
-	display: none;
-}
-.scrollbar-hide {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
+	scrollbar-width: none !important;
 }
 
 /* Removed @layer base - it was overriding component styles globally */
@@ -1497,4 +1572,50 @@ select {
 	animation-name: story-progress;
 	animation-timing-function: linear;
 	animation-fill-mode: forwards;
+}
+
+/* Horizontal wave shift for WavyBackground component */
+@keyframes wave-shift {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-5%);
+	}
+}
+
+.animate-wave {
+	animation: wave-shift 12s ease-in-out infinite alternate;
+}
+
+@keyframes ripple {
+	0%,
+	100% {
+		transform: translate(-50%, -50%) scale(1);
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(0.9);
+	}
+}
+
+.animate-ripple {
+	animation: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
+}
+
+/* DEMO HARDENING: Anti-Glitch Loader Pass */
+/* Prevent spinners from flashing on fast network responses (<200ms) */
+html.chefkix-demo-cockpit .animate-spin {
+	animation:
+		spin 1s linear infinite,
+		delayedFadeIn 0.3s ease-in forwards !important;
+	animation-delay: 0s, 200ms !important;
+	opacity: 0 !important;
+}
+@keyframes delayedFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }

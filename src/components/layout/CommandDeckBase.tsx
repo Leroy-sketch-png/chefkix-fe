@@ -43,7 +43,7 @@ export function CommandDeckStatCard({
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
 			<div className='flex items-center justify-between gap-2'>
 				<div className='flex-1'>
-					<p className='text-[10px] font-bold uppercase tracking-[0.14em] text-text-muted'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{label}
 					</p>
 					<p className='mt-1.5 text-xl font-black tabular-nums text-text-primary'>
@@ -118,7 +118,7 @@ export function CommandDeckBase({
 				<div>
 					<p
 						className={cn(
-							'text-[11px] font-bold uppercase tracking-[0.16em]',
+							'text-2xs font-bold uppercase tracking-widest',
 							eyebrowClass,
 						)}
 					>

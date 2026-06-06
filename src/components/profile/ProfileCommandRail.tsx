@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { MagicCard } from '@/components/ui/magic-card'
 import { motion } from 'framer-motion'
 import {
 	Activity,
@@ -41,7 +42,7 @@ interface ProfileCommandRailProps {
 function StatChip({ label, value }: { label: string; value: string }) {
 	return (
 		<div className='rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2'>
-			<p className='text-[10px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+			<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 				{label}
 			</p>
 			<p className='mt-1 text-sm font-bold text-text-primary'>{value}</p>
@@ -77,8 +78,11 @@ export function ProfileCommandRail({
 				className,
 			)}
 		>
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-brand'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
+				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 					{t('railEyebrow')}
 				</p>
 				<h3 className='mt-1 text-lg font-black text-text-primary'>
@@ -91,10 +95,13 @@ export function ProfileCommandRail({
 					<StatChip label={t('railStatStreak')} value={`${streakCount}d`} />
 					<StatChip label={t('followersLabel')} value={followers.toString()} />
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railJumpToSection')}
 				</p>
 				<div className='mt-3 grid gap-2'>
@@ -118,7 +125,7 @@ export function ProfileCommandRail({
 									{tab.label}
 								</span>
 								{typeof tab.count === 'number' && (
-									<span className='rounded-full bg-bg-card px-2 py-0.5 text-[10px] font-bold text-text-muted'>
+									<span className='rounded-full bg-bg-card px-2 py-0.5 text-2xs font-bold text-text-muted'>
 										{tab.count}
 									</span>
 								)}
@@ -126,10 +133,13 @@ export function ProfileCommandRail({
 						)
 					})}
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
+			>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railIntensitySignals')}
 				</p>
 				<div className='mt-3 grid gap-2 text-xs text-text-secondary'>
@@ -146,10 +156,13 @@ export function ProfileCommandRail({
 						<span>{t('railPendingLoops', { count: pendingPosts })}</span>
 					</div>
 				</div>
-			</div>
+			</MagicCard>
 
-			<div className='rounded-xl border border-brand/20 bg-gradient-to-br from-brand/8 via-bg-card to-xp/8 p-4 shadow-card'>
-				<p className='text-[11px] font-bold uppercase tracking-[0.16em] text-text-muted'>
+			<MagicCard
+				mode='gradient'
+				className='rounded-2xl border-none bg-gradient-to-br from-brand/8 via-bg-card/75 to-xp/8 p-4 shadow-card backdrop-blur-md'
+			>
+				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					{t('railQuickMoves')}
 				</p>
 				<div className='mt-3 grid gap-2'>
@@ -181,7 +194,7 @@ export function ProfileCommandRail({
 						</Link>
 					</Button>
 				</div>
-			</div>
+			</MagicCard>
 		</motion.aside>
 	)
 }

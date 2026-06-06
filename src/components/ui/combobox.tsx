@@ -15,7 +15,7 @@ import { DURATION_S } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
-import { Search, Loader2 } from 'lucide-react'
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 
 export interface ComboboxOption {
 	value: string
@@ -76,6 +76,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 			top: 0,
 			left: 0,
 			width: 0,
+			openUp: false,
 		})
 
 		// Filter options based on input value
@@ -102,15 +103,42 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 			if (isOpen && containerRef.current) {
 				const rect = containerRef.current.getBoundingClientRect()
 				const spaceBelow = window.innerHeight - rect.bottom
-				const dropdownUp = spaceBelow < 260
+				const dropdownUp = spaceBelow < 260 && rect.top > 280
 
 				setDropdownPosition({
-					top: dropdownUp ? rect.top : rect.bottom + 4,
+					top: dropdownUp ? Math.max(8, rect.top - 6) : rect.bottom + 6,
 					left: rect.left,
 					width: rect.width,
+					openUp: dropdownUp,
 				})
 			}
 		}, [isOpen, value])
+
+		useEffect(() => {
+			if (!isOpen) return
+
+			const handleResizeOrScroll = () => {
+				if (!containerRef.current) return
+				const rect = containerRef.current.getBoundingClientRect()
+				const spaceBelow = window.innerHeight - rect.bottom
+				const dropdownUp = spaceBelow < 260 && rect.top > 280
+
+				setDropdownPosition({
+					top: dropdownUp ? Math.max(8, rect.top - 6) : rect.bottom + 6,
+					left: rect.left,
+					width: rect.width,
+					openUp: dropdownUp,
+				})
+			}
+
+			window.addEventListener('resize', handleResizeOrScroll)
+			window.addEventListener('scroll', handleResizeOrScroll, true)
+
+			return () => {
+				window.removeEventListener('resize', handleResizeOrScroll)
+				window.removeEventListener('scroll', handleResizeOrScroll, true)
+			}
+		}, [isOpen])
 
 		// Reset selected index when options change
 		useEffect(() => {
@@ -182,6 +210,10 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 			blurTimeoutRef.current = setTimeout(() => setIsOpen(false), 150)
 		}
 
+		const optionId = (index: number) => `${listboxId}-option-${index}`
+
+		const showDropdown = isOpen && (filtered.length > 0 || isLoading)
+
 		return (
 			<div ref={containerRef} className='relative w-full'>
 				<div className='relative'>
@@ -202,32 +234,46 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 						placeholder={resolvedPlaceholder}
 						disabled={disabled}
 						className={cn(
-							'w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand',
+							'w-full rounded-xl border border-border-subtle bg-bg px-3 py-2 pr-10 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40',
 							icon && 'pl-9',
 							className,
 						)}
 						role='combobox'
 						aria-expanded={isOpen}
 						aria-controls={listboxId}
+						aria-activedescendant={
+							showDropdown && filtered[selectedIndex]
+								? optionId(selectedIndex)
+								: undefined
+						}
 						aria-autocomplete='list'
 						autoComplete='off'
 					/>
+					<div className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-muted'>
+						{isOpen ? <ChevronUp className='size-4' /> : <ChevronDown className='size-4' />}
+					</div>
 				</div>
 
 				<AnimatePresence>
-					{isOpen && (filtered.length > 0 || isLoading) && (
+					{showDropdown && (
 						<Portal>
-							<motion.div
-								initial={{ opacity: 0, y: 4 }}
+							<>
+								<div className='fixed inset-0 z-dropdown' onMouseDown={() => setIsOpen(false)} />
+								<motion.div
+								initial={{ opacity: 0, y: dropdownPosition.openUp ? -4 : 4 }}
 								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: 4 }}
+								exit={{ opacity: 0, y: dropdownPosition.openUp ? -4 : 4 }}
 								transition={{ duration: DURATION_S.instant }}
-								className='fixed z-dropdown overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-warm'
+								className={cn(
+									'fixed z-dropdown overflow-hidden rounded-xl border border-border-subtle bg-bg-card shadow-warm',
+									dropdownPosition.openUp && '-translate-y-full',
+								)}
 								style={{
 									top: `${dropdownPosition.top}px`,
 									left: `${dropdownPosition.left}px`,
 									width: `${dropdownPosition.width}px`,
 								}}
+								onMouseDown={e => e.stopPropagation()}
 							>
 								{isLoading ? (
 									<div className='flex items-center justify-center gap-2 p-3 text-sm text-text-secondary'>
@@ -240,13 +286,14 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 									</div>
 								) : (
 									<ul
-										className='max-h-56 overflow-y-auto py-1'
+										className='max-h-64 overflow-y-auto py-1'
 										role='listbox'
 										id={listboxId}
 									>
 										{filtered.map((option, index) => (
 											<li
 												key={option.value}
+												id={optionId(index)}
 												role='option'
 												aria-selected={index === selectedIndex}
 											>
@@ -255,7 +302,7 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 													onClick={() => selectOption(option)}
 													onMouseEnter={() => setSelectedIndex(index)}
 													className={cn(
-														'flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors',
+														'flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors',
 														index === selectedIndex
 															? 'bg-brand/10 text-brand'
 															: 'text-text-primary hover:bg-bg-hover',
@@ -284,7 +331,8 @@ export const Combobox = forwardRef<ComboboxRef, ComboboxProps>(
 									</kbd>{' '}
 									select
 								</div>
-							</motion.div>
+								</motion.div>
+							</>
 						</Portal>
 					)}
 				</AnimatePresence>

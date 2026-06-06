@@ -106,7 +106,7 @@ const CURATED_CATEGORIES = [
  * 2. Displays TasteDetector forming as user interacts
  * 3. Transitions to personalized feed after 5+ interactions
  *
- * Uses semantic tokens per DESIGN_SYSTEM.md.
+ * Uses semantic tokens per 30-frontend-design-system.md.
  *
  * Usage:
  * ```tsx

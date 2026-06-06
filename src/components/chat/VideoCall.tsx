@@ -33,7 +33,7 @@ export default function VideoCall({
 	)
 
 	return (
-		<div className='flex flex-col items-center justify-center p-6 bg-bg space-y-4 rounded-[32px] w-full max-w-4xl mx-auto relative'>
+		<div className='flex flex-col items-center justify-center p-6 bg-bg space-y-4 rounded-3xl w-full max-w-4xl mx-auto relative'>
 			<IncomingCallOverlay
 				isReceivingCall={webRTC.isReceivingCall}
 				isCallActive={webRTC.isCallActive}

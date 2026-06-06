@@ -3,12 +3,20 @@ import {
 	Compass,
 	Filter,
 	Flame,
-	Search,
 	Sparkles,
-	TrendingUp,
+	ArrowUpDown,
+	Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SlideTabs } from '@/components/ui/slide-tabs'
+import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 
 interface ExploreCommandDeckProps {
 	activeFiltersCount: number
@@ -38,42 +46,6 @@ interface ExploreCommandDeckProps {
 	children: React.ReactNode
 }
 
-function StatChip({
-	label,
-	value,
-	icon: Icon,
-	tone,
-}: {
-	label: string
-	value: string
-	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'xp' | 'muted'
-}) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
-
-	return (
-		<div className='rounded-lg border border-border-subtle bg-bg-card p-3'>
-			<div className='flex items-center justify-between gap-2'>
-				<div>
-					<p className='text-2xs font-bold uppercase tracking-[0.14em] text-text-muted'>
-						{label}
-					</p>
-					<p className='mt-1 text-sm font-black tabular-nums text-text-primary'>
-						{value}
-					</p>
-				</div>
-				<div className={cn('rounded-md border p-1.5', toneClass)}>
-					<Icon className='size-3.5' />
-				</div>
-			</div>
-		</div>
-	)
-}
-
 export function ExploreCommandDeck({
 	activeFiltersCount,
 	resultCount,
@@ -90,7 +62,8 @@ export function ExploreCommandDeck({
 	const activeSortLabel =
 		sortOptions.find(option => option.value === sortValue)?.label ??
 		labels.sortNewest
-	const shouldShowSortControl = resultCount > 0 || activeFiltersCount > 0
+	const hasResultSignals =
+		resultCount > 0 || activeFiltersCount > 0 || viewMode === 'trending'
 
 	return (
 		<motion.section
@@ -98,45 +71,50 @@ export function ExploreCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/6 p-3 shadow-card sm:p-4 md:p-5',
+				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-3 shadow-card sm:p-4 md:p-5',
 				className,
 			)}
 		>
-			<div className='mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:items-center sm:gap-3'>
-				<div>
-					<p className='text-xs font-bold uppercase tracking-[0.16em] text-brand'>
+			{/* Header: identity + mode signal */}
+			<div className='mb-3 flex flex-wrap items-start justify-between gap-3 sm:mb-4'>
+				<div className='min-w-0'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{labels.eyebrow}
 					</p>
-					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>
-						{labels.heading}
+					<h2 className='mt-1 text-base font-black leading-tight text-text-primary sm:text-[1.1rem]'>
+						<AnimatedGradientText
+							from='var(--color-brand)'
+							via='var(--color-streak)'
+							to='var(--color-xp)'
+							duration={7}
+						>
+							{labels.heading}
+						</AnimatedGradientText>
 					</h2>
+					<p className='mt-1 text-xs font-medium text-text-secondary'>
+						Find one dish worth cooking tonight.
+					</p>
 				</div>
-				<div className='hidden items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand sm:inline-flex'>
+
+				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand'>
 					<Sparkles className='size-3.5' />
 					{labels.modeChip}
 				</div>
 			</div>
 
-			<div className='mb-3 sm:mb-4'>{children}</div>
-
-			<div className='mb-4 hidden grid-cols-2 gap-2 sm:grid'>
-				<StatChip
-					label={labels.results}
-					value={resultCount.toString()}
-					icon={Compass}
-					tone='muted'
-				/>
-				<StatChip
-					label={labels.activeFilters}
-					value={activeFiltersCount.toString()}
-					icon={Filter}
-					tone={activeFiltersCount > 0 ? 'brand' : 'muted'}
-				/>
+			{/* Search slot: one clear command zone */}
+			<div className='mb-3 rounded-2xl border border-border-subtle/80 bg-bg-card/70 p-2 sm:mb-4 sm:p-2.5'>
+				<div className='pointer-events-none mb-2 inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-text-muted'>
+					<Search className='size-3' />
+					Command Input
+				</div>
+				{children}
 			</div>
 
-			<div className='flex flex-col gap-2 sm:gap-3'>
-				<div className='flex items-center gap-2 sm:flex-wrap sm:items-center'>
-					<div className='min-w-0 flex-1 sm:flex-none'>
+			{/* Controls row */}
+			<div className='flex flex-col gap-2.5 sm:gap-3'>
+				<div className='flex items-center gap-2'>
+					<div className='min-w-0 flex-1'>
 						<SlideTabs
 							tabs={[
 								{
@@ -171,37 +149,68 @@ export function ExploreCommandDeck({
 							variant='pill'
 							size='sm'
 							fullWidth
-							className='w-full sm:w-auto'
+							className='w-full'
 						/>
 					</div>
 
-					{shouldShowSortControl && (
-						<div className='w-36 shrink-0 sm:flex sm:w-auto sm:items-center sm:gap-2'>
-							<label
-								htmlFor='explore-sort-select'
-								className='sr-only text-xs font-semibold uppercase tracking-[0.12em] text-text-muted sm:not-sr-only'
-							>
-								{labels.sort}
-							</label>
-							<select
-								id='explore-sort-select'
-								aria-label={labels.sort}
+					<div className='w-40 shrink-0 sm:w-44'>
+						<label htmlFor='explore-sort-select' className='sr-only'>
+							{labels.sort}
+						</label>
+						<div className='relative'>
+							<ArrowUpDown className='pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-muted' />
+							<Select
 								value={sortValue}
-								onChange={event => onSortChange(event.target.value)}
+								onValueChange={onSortChange}
 								disabled={sortDisabled}
-								className={cn(
-									'h-10 w-full rounded-xl border border-border-medium bg-bg-card px-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-44 sm:w-auto',
-								)}
 							>
-								{sortOptions.map(option => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</select>
+								<SelectTrigger
+									id='explore-sort-select'
+									aria-label={labels.sort}
+									className={cn(
+										'h-9 w-full rounded-xl border border-border-medium bg-bg-card pl-8 pr-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10',
+									)}
+								>
+									<SelectValue placeholder={labels.sort} />
+								</SelectTrigger>
+								<SelectContent>
+									{sortOptions.map(option => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
-					)}
+					</div>
 				</div>
+
+				{hasResultSignals && (
+					<div className='flex flex-wrap items-center gap-2 text-2xs font-semibold text-text-muted sm:text-xs'>
+						{resultCount > 0 && (
+							<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2 py-1'>
+								<Compass className='size-3.5' />
+								{labels.results}: {resultCount.toString()}
+							</span>
+						)}
+						{activeFiltersCount > 0 && (
+							<span className='inline-flex items-center gap-1 rounded-full border border-brand/30 bg-brand/10 px-2 py-1 text-brand'>
+								<Filter className='size-3.5' />
+								{labels.activeFilters}: {activeFiltersCount.toString()}
+							</span>
+						)}
+						{viewMode === 'trending' && (
+							<span className='inline-flex items-center gap-1 rounded-full border border-xp/25 bg-xp/10 px-2 py-1 text-xp'>
+								<Flame className='size-3.5' />
+								{labels.modeTrending}
+							</span>
+						)}
+						<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2 py-1'>
+							<ArrowUpDown className='size-3.5' />
+							{labels.sort}: {activeSortLabel}
+						</span>
+					</div>
+				)}
 			</div>
 		</motion.section>
 	)
