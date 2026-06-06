@@ -51,6 +51,29 @@ const DEMO_REMOTE_COMMAND_TYPES = new Set<DemoRemoteCommand['type']>([
 	'TOGGLE_QR_OVERLAY',
 ])
 
+function getRouteReadinessPattern(path: string): RegExp | null {
+	const target = new URL(path, window.location.origin)
+	if (target.pathname === '/welcome') return /Scroll what is worth saving|cook when you're ready/i
+	if (target.pathname === '/search') return /Results for|Search results|No recipes found/i
+	if (target.pathname.startsWith('/cook-together')) return /Cooking Room|Room Code|participants/i
+	if (target.pathname === '/pantry') return /Pantry|Shopping|inventory/i
+	if (target.pathname === '/creator') return /Creator|analytics|rewards/i
+	if (target.pathname === '/admin/reports') return /Moderation Dashboard|Reports/i
+	if (target.pathname === '/dashboard') return /Dashboard|Tonight|feed/i
+	return null
+}
+
+function isRouteContentReady(path: string): boolean {
+	const body = document.body?.innerText || ''
+	if (body.length < 220) return false
+
+	const readinessPattern = getRouteReadinessPattern(path)
+	if (readinessPattern && !readinessPattern.test(body)) return false
+	if (/loading|please wait|skeleton/i.test(body) && body.length < 500) return false
+
+	return true
+}
+
 interface TemporalSnapshot {
 	url: string
 	scrollY: number
@@ -75,7 +98,8 @@ async function waitForRouteReady(path: string, timeoutMs = 240000) {
 		)
 		if (
 			window.location.pathname === target.pathname &&
-			(!target.search || paramsMatch)
+			(!target.search || paramsMatch) &&
+			isRouteContentReady(path)
 		) {
 			return true
 		}

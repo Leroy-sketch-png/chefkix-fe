@@ -248,6 +248,13 @@ async function assertCockpitRoute(page, planned) {
 		undefined,
 		{ timeout: 60000 },
 	)
+	await page
+		.waitForFunction(
+			() => (document.body?.innerText || '').trim().length >= 200,
+			undefined,
+			{ timeout: 60000 },
+		)
+		.catch(() => {})
 	const snapshot = await routeSnapshot(page)
 	if (snapshot.bodyLength < 200) {
 		throw new Error(`${planned.label}: cockpit body is suspiciously sparse`)

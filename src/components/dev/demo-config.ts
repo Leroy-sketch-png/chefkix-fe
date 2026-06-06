@@ -1,4 +1,3 @@
-import { abandonSession, getCurrentSession } from '@/services/cookingSession'
 import type { CookingRoom, RoomParticipant } from '@/lib/types/room'
 import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
@@ -987,27 +986,13 @@ async function createCookTogetherShortcut(
 		throw new Error('Could not create a demo cooking room')
 	}
 
-	const clearCurrentCookingSession = async () => {
-		const currentSessionResponse = await getCurrentSession({ timeoutMs: 5000 })
-		const currentSessionId = currentSessionResponse.data?.sessionId
-
-		if (currentSessionResponse.success && currentSessionId) {
-			await abandonSession(currentSessionId)
-			return true
-		}
-
-		return false
-	}
-
-	await clearCurrentCookingSession()
+	await clearBackendDemoCookingState(accessToken)
 
 	let createdRoom = await tryCreateRoom()
 
 	if (!createdRoom) {
-		const clearedSession = await clearCurrentCookingSession()
-		if (clearedSession) {
-			createdRoom = await tryCreateRoom()
-		}
+		await clearBackendDemoCookingState(accessToken)
+		createdRoom = await tryCreateRoom()
 	}
 
 	const effectiveRoomCode = createdRoom?.roomCode || null
@@ -1128,6 +1113,53 @@ const DEMO_TOKEN_MIN_TTL_SECONDS = 5 * 60
 const DEMO_TOKEN_WARM_ATTEMPTS = 3
 const DEMO_TOKEN_WARM_RETRY_MS = 500
 const COOKING_STORAGE_KEYS = ['chefkix-cooking-session', 'cooking-storage']
+
+async function clearBackendDemoCookingState(
+	accessToken: string,
+): Promise<{ sessionAbandoned: boolean; roomLeft: boolean }> {
+	const headers = {
+		Authorization: `Bearer ${accessToken}`,
+		'Content-Type': 'application/json',
+	}
+	const baseUrl = getDemoBaseUrl()
+	const [roomResult, sessionResult] = await Promise.allSettled([
+		(async () => {
+			const res = await fetch(`${baseUrl}/api/v1/cooking-rooms/leave-active`, {
+				method: 'POST',
+				headers,
+				signal: AbortSignal.timeout(8000),
+			})
+			if (!res.ok) return false
+			const payload = (await res.json().catch(() => null)) as {
+				success?: boolean
+				data?: { roomsLeft?: number }
+			} | null
+			return Boolean(payload?.success) && (payload?.data?.roomsLeft ?? 0) > 0
+		})(),
+		(async () => {
+			const res = await fetch(
+				`${baseUrl}/api/v1/cooking-sessions/abandon-active`,
+				{
+					method: 'POST',
+					headers,
+					signal: AbortSignal.timeout(8000),
+				},
+			)
+			if (!res.ok) return false
+			const payload = (await res.json().catch(() => null)) as {
+				success?: boolean
+				data?: { abandoned?: boolean }
+			} | null
+			return Boolean(payload?.success && payload?.data?.abandoned)
+		})(),
+	])
+
+	return {
+		roomLeft: roomResult.status === 'fulfilled' && roomResult.value,
+		sessionAbandoned:
+			sessionResult.status === 'fulfilled' && sessionResult.value,
+	}
+}
 
 let _vault: DemoTokenVault = {
 	tokens: {},
@@ -1400,47 +1432,7 @@ function restoreLocalStorageValue(
 export async function cleanupDemoState(
 	accessToken: string,
 ): Promise<{ sessionAbandoned: boolean; roomLeft: boolean }> {
-	const headers = {
-		Authorization: `Bearer ${accessToken}`,
-		'Content-Type': 'application/json',
-	}
-
-	const results = await Promise.allSettled([
-		// Abandon active cooking session
-		(async () => {
-			const res = await fetch(
-				`${getDemoBaseUrl()}/api/v1/cooking-sessions/current`,
-				{
-					headers,
-					signal: AbortSignal.timeout(5000),
-				},
-			)
-			if (!res.ok) return false
-			const data = (await res.json()) as {
-				success?: boolean
-				data?: { sessionId?: string }
-			}
-			const sessionId = data?.data?.sessionId
-			if (!sessionId) return false
-			const abandonRes = await fetch(
-				`${getDemoBaseUrl()}/api/v1/cooking-sessions/${sessionId}/abandon`,
-				{ method: 'POST', headers, signal: AbortSignal.timeout(5000) },
-			)
-			return abandonRes.ok
-		})(),
-		// Leave active cooking room
-		(async () => {
-			const res = await fetch(
-				`${getDemoBaseUrl()}/api/v1/cooking-rooms/leave`,
-				{
-					method: 'POST',
-					headers,
-					signal: AbortSignal.timeout(5000),
-				},
-			)
-			return res.ok
-		})(),
-	])
+	const backendCleanup = await clearBackendDemoCookingState(accessToken)
 
 	// Also clear cooking store state in-memory
 	await import('@/store/cookingStore')
@@ -1469,9 +1461,8 @@ export async function cleanupDemoState(
 	}
 
 	return {
-		sessionAbandoned:
-			results[0].status === 'fulfilled' && results[0].value === true,
-		roomLeft: results[1].status === 'fulfilled' && results[1].value === true,
+		sessionAbandoned: backendCleanup.sessionAbandoned,
+		roomLeft: backendCleanup.roomLeft,
 	}
 }
 
@@ -1912,25 +1903,35 @@ export async function runPreShowChecklist(
 				'Content-Type': 'application/json',
 			}
 
-			// Create
-			const createRes = await fetch(`${base}/api/v1/cooking-rooms`, {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({ recipeId }),
-				signal: AbortSignal.timeout(10000),
-			})
-			const createData = (await createRes.json()) as {
-				success?: boolean
-				data?: { roomCode?: string }
-				statusCode?: number
+			await clearBackendDemoCookingState(accessToken)
+
+			const createRoom = async () => {
+				const createRes = await fetch(`${base}/api/v1/cooking-rooms`, {
+					method: 'POST',
+					headers,
+					body: JSON.stringify({ recipeId }),
+					signal: AbortSignal.timeout(10000),
+				})
+				const createData = (await createRes.json()) as {
+					success?: boolean
+					data?: { roomCode?: string }
+					statusCode?: number
+				}
+				return { createRes, createData }
 			}
 
-			// 409 means user has an active session — still means room service works
+			let { createRes, createData } = await createRoom()
+			if (createRes.status === 409 || createData.statusCode === 409) {
+				await clearBackendDemoCookingState(accessToken)
+				;({ createRes, createData } = await createRoom())
+			}
+
+			// 409 after one cleanup retry means the co-cook beat is not safe.
 			if (createRes.status === 409 || createData.statusCode === 409) {
 				return {
-					status: 'pass',
+					status: 'fail',
 					detail:
-						'Room service responds (active session conflict — will auto-resolve during beat)',
+						'Room creation still conflicts after cleanup - co-cook beat will not work',
 				}
 			}
 			if (!createRes.ok || !createData.success || !createData.data?.roomCode) {

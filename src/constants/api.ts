@@ -141,6 +141,7 @@ export const API_ENDPOINTS = {
 		BASE: `${API_PREFIX}/cooking-sessions`,
 		CURRENT: `${API_PREFIX}/cooking-sessions/current`,
 		PENDING: `${API_PREFIX}/cooking-sessions/pending`,
+		ABANDON_ACTIVE: `${API_PREFIX}/cooking-sessions/abandon-active`,
 		GET_BY_ID: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}`,
 		NAVIGATE: (sessionId: string) =>
@@ -167,6 +168,7 @@ export const API_ENDPOINTS = {
 	COOKING_ROOMS: {
 		BASE: `${API_PREFIX}/cooking-rooms`,
 		JOIN: `${API_PREFIX}/cooking-rooms/join`,
+		LEAVE_ACTIVE: `${API_PREFIX}/cooking-rooms/leave-active`,
 		GET: (roomCode: string) => `${API_PREFIX}/cooking-rooms/${roomCode}`,
 		LEAVE: (roomCode: string) =>
 			`${API_PREFIX}/cooking-rooms/${roomCode}/leave`,

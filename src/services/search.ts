@@ -26,7 +26,9 @@ export async function unifiedSearch(
 		return response.data
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<UnifiedSearchResponse>>
-		logDevError('[search] unifiedSearch failed', axiosError)
+		if ((axiosError.response?.status ?? 0) >= 500) {
+			logDevError('[search] unifiedSearch failed', axiosError)
+		}
 		return (
 			axiosError.response?.data ?? {
 				success: false,
