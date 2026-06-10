@@ -32,6 +32,7 @@ export type DemoSceneId =
 	| 'admin-reports'
 	| 'admin-bans'
 	| 'admin-appeals'
+	| 'cooking-audio'
 
 export type DemoRuntimeActionId = 'co-cook'
 
@@ -265,7 +266,7 @@ export const DEMO_ROUTES: DemoRoute[] = [
 		label: 'Meal Planner',
 		path: '/meal-planner',
 		icon: '📅',
-		description: 'Weekly meals',
+		description: 'Plan Today cooking batch',
 	},
 	{
 		label: 'Creator',
@@ -365,6 +366,15 @@ export const DEMO_PITCH_SHORTCUTS: DemoPitchShortcut[] = [
 		requiresAuth: true,
 	},
 	{
+		id: 'cooking-audio',
+		label: 'Cooking Audio',
+		icon: 'Audio',
+		description: 'Open a cooking session with coordinated audio controls',
+		kind: 'scene',
+		sceneId: 'cooking-audio',
+		requiresAuth: true,
+	},
+	{
 		id: 'co-cook',
 		label: 'Start Room',
 		icon: '👩‍🍳',
@@ -385,9 +395,9 @@ export const DEMO_PITCH_SHORTCUTS: DemoPitchShortcut[] = [
 	},
 	{
 		id: 'meal-planner',
-		label: 'Meal Planner',
+		label: 'Plan Today',
 		icon: '📅',
-		description: 'AI meal planning and shopping-list flow',
+		description: 'One coherent cooking batch with planned leftovers',
 		kind: 'path',
 		path: '/meal-planner',
 		requiresAuth: true,
@@ -490,11 +500,12 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 			'We are not a utility search result. We are a retention engine that captures both discovery and execution time.',
 		fallbackNote:
 			"If the welcome flow is already complete, open Dashboard first and narrate the same story from Tonight's Pick.",
-		actions: ['cold-start', 'dashboard', 'hero-recipe'],
+		actions: ['cold-start', 'dashboard', 'hero-recipe', 'cooking-audio'],
 		readinessCheckIds: [
 			'welcome-route',
 			'dashboard-tonight-pick',
 			'hero-recipe-route',
+			'kitchen-audio-route',
 		],
 	},
 	{
@@ -550,7 +561,11 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		fallbackNote:
 			'If meal-plan generation is slow, stay in Pantry and explain that the same inventory powers the missing-ingredients shopping jump.',
 		actions: ['pantry', 'meal-planner', 'shopping-list'],
-		readinessCheckIds: ['pantry-data', 'shopping-lists-data'],
+		readinessCheckIds: [
+			'pantry-data',
+			'cook-plan-today',
+			'shopping-lists-data',
+		],
 	},
 	{
 		id: 'creator-engine',
@@ -886,6 +901,11 @@ async function resolveDemoScenePath(
 
 	switch (sceneId) {
 		case 'hero-recipe':
+			return (
+				manifest?.scenes.heroRecipePath ||
+				(await getFallbackHeroRecipePath(accessToken))
+			)
+		case 'cooking-audio':
 			return (
 				manifest?.scenes.heroRecipePath ||
 				(await getFallbackHeroRecipePath(accessToken))

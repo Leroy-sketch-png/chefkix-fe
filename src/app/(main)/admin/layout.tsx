@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Shield, FileWarning, Ban, Scale, BadgeCheck } from 'lucide-react'
+import { Shield, FileWarning, Ban, Scale } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
@@ -12,11 +12,6 @@ const adminNavItems = [
 	{ href: '/admin/reports', labelKey: 'navReports', icon: FileWarning },
 	{ href: '/admin/bans', labelKey: 'navBans', icon: Ban },
 	{ href: '/admin/appeals', labelKey: 'navAppeals', icon: Scale },
-	{
-		href: '/admin/verification',
-		labelKey: 'navVerification',
-		icon: BadgeCheck,
-	},
 ]
 
 export default function AdminLayout({

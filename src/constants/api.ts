@@ -288,6 +288,17 @@ export const API_ENDPOINTS = {
 		SHOPPING_LIST: (id: string) =>
 			`${API_PREFIX}/meal-plans/${id}/shopping-list`,
 	},
+	COOK_PLANS: {
+		BASE: `${API_PREFIX}/cook-plans`,
+		CURRENT: `${API_PREFIX}/cook-plans/current`,
+		GET: (id: string) => `${API_PREFIX}/cook-plans/${id}`,
+		SWAP: (
+			id: string,
+			batchId: string,
+			dishRecipeId: string,
+		) =>
+			`${API_PREFIX}/cook-plans/${id}/batches/${batchId}/dishes/${dishRecipeId}`,
+	},
 	// Shopping Lists (standalone persistent lists)
 	SHOPPING_LISTS: {
 		BASE: `${API_PREFIX}/shopping-lists`,

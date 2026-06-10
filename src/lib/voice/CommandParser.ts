@@ -15,6 +15,8 @@ export type VoiceAction =
 	| 'COMPLETE_STEP'
 	| 'SHOW_HELP'
 	| 'TOGGLE_MESSY_HANDS'
+	| 'MUTE_GUIDANCE'
+	| 'RESUME_GUIDANCE'
 
 interface CommandDef {
 	keywords: string[]
@@ -25,6 +27,18 @@ interface CommandDef {
 
 /** Order matters — longer/more specific phrases first to avoid false matches */
 export const COMMANDS: CommandDef[] = [
+	{
+		keywords: ['chefkix quiet', 'stop talking', 'mute chefkix', 'be quiet'],
+		action: 'MUTE_GUIDANCE',
+		label: 'Quiet ChefKix',
+		icon: '🔇',
+	},
+	{
+		keywords: ['resume guidance', 'start talking', 'unmute chefkix'],
+		action: 'RESUME_GUIDANCE',
+		label: 'Resume Guidance',
+		icon: '🔊',
+	},
 	{
 		keywords: ['next step', 'next', 'forward', 'continue'],
 		action: 'NEXT_STEP',

@@ -21,6 +21,11 @@ const beatPlan = [
 		label: 'Beat 1',
 		button: /Beat\s*1/i,
 		url: /\/welcome(?:$|[?#])/i,
+		scene: {
+			label: 'Cooking Audio scene',
+			button: /^Cooking Audio$/i,
+			url: /\/recipes\/[^/?#]+\?[^#]*cook=/i,
+		},
 	},
 	{
 		label: 'Beat 2',
@@ -36,6 +41,11 @@ const beatPlan = [
 		label: 'Beat 4',
 		button: /Beat\s*4/i,
 		url: /\/pantry(?:$|[?#])/i,
+		scene: {
+			label: 'Plan Today scene',
+			button: /^Plan Today$/i,
+			url: /\/meal-planner(?:$|[?#])/i,
+		},
 	},
 	{
 		label: 'Beat 5',
@@ -356,6 +366,28 @@ async function main() {
 				gate,
 				snapshot,
 			})
+			if (planned.scene) {
+				const previousSceneGate = await gateText(remote)
+				await clickButton(
+					remote,
+					planned.scene.button,
+					planned.scene.label,
+				)
+				const sceneGate = await waitForGateTerminal(
+					remote,
+					planned.scene.label,
+					previousSceneGate,
+				)
+				const sceneSnapshot = await assertCockpitRoute(
+					cockpit,
+					planned.scene,
+				)
+				steps.push({
+					step: planned.scene.label,
+					gate: sceneGate,
+					snapshot: sceneSnapshot,
+				})
+			}
 			await remote.waitForTimeout(1200)
 		}
 

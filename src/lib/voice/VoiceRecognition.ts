@@ -48,7 +48,7 @@ interface SpeechRecognition extends EventTarget {
 	onresult: ((event: SpeechRecognitionEvent) => void) | null
 	onerror: ((event: Event) => void) | null
 	onend: (() => void) | null
-	start(): void
+	start(): boolean
 	stop(): void
 }
 
@@ -138,15 +138,17 @@ export class VoiceRecognition {
 		this.recognition = rec
 	}
 
-	start(): void {
-		if (!this.recognition) return
+	start(): boolean {
+		if (!this.recognition) return false
 		this.intentionalStop = false
 		try {
 			this.recognition.start()
 			this._isListening = true
 			this.opts.onListeningChange(true)
+			return true
 		} catch {
 			// May already be running
+			return false
 		}
 	}
 

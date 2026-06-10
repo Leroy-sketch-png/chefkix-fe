@@ -9,7 +9,11 @@ import {
 	getDemoVault,
 	getDemoEnvMode,
 	setDemoEnvMode,
+	loadDemoReadinessReport,
+	getBeatReadinessStatus,
+	getDemoPitchShortcut,
 	type DemoEnvMode,
+	type DemoReadinessReport,
 	type PreShowReport,
 } from '@/components/dev/demo-config'
 import { usePaceTimerState, formatTime } from '@/components/dev/PaceTimer'
@@ -38,6 +42,8 @@ export default function DemoRemote() {
 	const [isRunningChecks, setIsRunningChecks] = useState(false)
 	const [flashMsg, setFlashMsg] = useState<string | null>(null)
 	const [commandRuns, setCommandRuns] = useState<CommandRun[]>([])
+	const [readinessReport, setReadinessReport] =
+		useState<DemoReadinessReport | null>(null)
 
 	const [envMode, setEnvModeState] = useState<DemoEnvMode>('cloud')
 	const [latency, setLatency] = useState<number>(0)
@@ -106,6 +112,10 @@ export default function DemoRemote() {
 			setChannel(ch)
 			return () => ch.close()
 		}
+	}, [])
+
+	useEffect(() => {
+		void loadDemoReadinessReport().then(setReadinessReport)
 	}, [])
 
 	const flash = useCallback((msg: string) => {
@@ -693,46 +703,68 @@ export default function DemoRemote() {
 							<div
 								style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}
 							>
-								{DEMO_PITCH_BEATS.map((beat, idx) => (
-									<button
-										key={beat.id}
-										disabled={isCockpitBusy}
-										onClick={() =>
-											sendCommand({ type: 'GOTO_BEAT', beatIndex: idx })
-										}
-										style={{
-											background:
-												timer.state.currentBeatIndex === idx
-													? '#1f6feb22'
-													: '#0d1117',
-											border: `1px solid ${timer.state.currentBeatIndex === idx ? '#1f6feb' : '#30363d'}`,
-											color: '#e6edf3',
-											padding: '12px',
-											borderRadius: 4,
-											cursor: isCockpitBusy ? 'wait' : 'pointer',
-											opacity: isCockpitBusy ? 0.6 : 1,
-											display: 'flex',
-											justifyContent: 'space-between',
-											alignItems: 'center',
-										}}
-									>
-										<div>
-											<div
-												style={{
-													fontSize: 11,
-													color: '#8b949e',
-													textAlign: 'left',
-													marginBottom: 2,
-												}}
-											>
-												Beat {idx + 1}
+								{DEMO_PITCH_BEATS.map((beat, idx) => {
+									const readiness = getBeatReadinessStatus(
+										beat,
+										readinessReport,
+									)
+									const blocked = isCockpitBusy || readiness !== 'ready'
+									return (
+										<button
+											key={beat.id}
+											disabled={blocked}
+											onClick={() =>
+												sendCommand({ type: 'GOTO_BEAT', beatIndex: idx })
+											}
+											style={{
+												background:
+													timer.state.currentBeatIndex === idx
+														? '#1f6feb22'
+														: '#0d1117',
+												border: `1px solid ${timer.state.currentBeatIndex === idx ? '#1f6feb' : '#30363d'}`,
+												color: '#e6edf3',
+												padding: '12px',
+												borderRadius: 4,
+												cursor: blocked ? 'not-allowed' : 'pointer',
+												opacity: blocked ? 0.55 : 1,
+												display: 'flex',
+												justifyContent: 'space-between',
+												alignItems: 'center',
+											}}
+										>
+											<div>
+												<div
+													style={{
+														fontSize: 11,
+														color: '#8b949e',
+														textAlign: 'left',
+														marginBottom: 2,
+													}}
+												>
+													Beat {idx + 1}
+												</div>
+												<div style={{ fontSize: 14, fontWeight: 600 }}>
+													{beat.title}
+												</div>
+												<div
+													style={{
+														fontSize: 10,
+														color:
+															readiness === 'ready'
+																? '#3fb950'
+																: readiness === 'warning'
+																	? '#d29922'
+																	: '#f85149',
+														textAlign: 'left',
+														marginTop: 4,
+													}}
+												>
+													{readiness || 'unresolved'}
+												</div>
 											</div>
-											<div style={{ fontSize: 14, fontWeight: 600 }}>
-												{beat.title}
-											</div>
-										</div>
-									</button>
-								))}
+										</button>
+									)
+								})}
 							</div>
 						</section>
 					</div>
@@ -762,6 +794,9 @@ export default function DemoRemote() {
 							{(() => {
 								const currentBeat =
 									DEMO_PITCH_BEATS[timer.state.currentBeatIndex]
+								const currentReadiness = currentBeat
+									? getBeatReadinessStatus(currentBeat, readinessReport)
+									: null
 								const script = currentBeat
 									? DEMO_PITCH_SCRIPT[currentBeat.id]
 									: null
@@ -786,7 +821,9 @@ export default function DemoRemote() {
 												{script.title}
 											</div>
 											<button
-												disabled={isCockpitBusy}
+												disabled={
+													isCockpitBusy || currentReadiness !== 'ready'
+												}
 												onClick={() =>
 													sendCommand({
 														type: 'GHOST_DRIVER_BEAT',
@@ -799,8 +836,14 @@ export default function DemoRemote() {
 													border: '1px solid #30363d',
 													padding: '6px 12px',
 													borderRadius: 4,
-													cursor: isCockpitBusy ? 'wait' : 'pointer',
-													opacity: isCockpitBusy ? 0.6 : 1,
+													cursor:
+														isCockpitBusy || currentReadiness !== 'ready'
+															? 'not-allowed'
+															: 'pointer',
+													opacity:
+														isCockpitBusy || currentReadiness !== 'ready'
+															? 0.6
+															: 1,
 													fontSize: 12,
 													fontWeight: 600,
 												}}
@@ -817,6 +860,66 @@ export default function DemoRemote() {
 											}}
 										>
 											{script.objective}
+										</div>
+
+										<div style={{ marginBottom: 24 }}>
+											<h3
+												style={{
+													fontSize: 12,
+													textTransform: 'uppercase',
+													color: '#c9d1d9',
+													marginBottom: 10,
+												}}
+											>
+												Manual scene controls
+											</h3>
+											<div
+												style={{
+													display: 'grid',
+													gridTemplateColumns:
+														'repeat(2, minmax(0, 1fr))',
+													gap: 8,
+												}}
+											>
+												{currentBeat.actions.map(actionId => {
+													const shortcut = getDemoPitchShortcut(actionId)
+													const readiness = getBeatReadinessStatus(
+														currentBeat,
+														readinessReport,
+													)
+													const blocked =
+														isCockpitBusy ||
+														readiness !== 'ready' ||
+														!shortcut
+													return (
+														<button
+															key={actionId}
+															disabled={blocked}
+															onClick={() =>
+																sendCommand({
+																	type: 'GOTO_ACTION',
+																	actionId,
+																})
+															}
+															style={{
+																background: '#161b22',
+																color: blocked ? '#6e7681' : '#e6edf3',
+																border: '1px solid #30363d',
+																padding: '10px',
+																borderRadius: 4,
+																cursor: blocked
+																	? 'not-allowed'
+																	: 'pointer',
+																textAlign: 'left',
+																fontSize: 12,
+																fontWeight: 600,
+															}}
+														>
+															{shortcut?.label || actionId}
+														</button>
+													)
+												})}
+											</div>
 										</div>
 
 										<div style={{ marginBottom: 24 }}>

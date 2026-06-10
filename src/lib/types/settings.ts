@@ -99,6 +99,13 @@ export interface CookingPreferences {
 
 export type Theme = 'light' | 'dark' | 'system'
 
+export interface KitchenAudioPreferences {
+	spokenGuidanceEnabled: boolean
+	timerVoiceEnabled: boolean
+	timerChimesEnabled: boolean
+	soundEffectsEnabled: boolean
+}
+
 export interface AppPreferences {
 	/** light | dark | system */
 	theme: Theme
@@ -110,6 +117,8 @@ export interface AppPreferences {
 	reducedMotion: boolean
 	/** Timer dings, XP sounds */
 	soundEffects: boolean
+	/** Independent kitchen audio channels */
+	kitchenAudio: KitchenAudioPreferences
 	/** Prevent sleep during cooking session */
 	keepScreenOn: boolean
 }
@@ -177,6 +186,12 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = {
 	autoPlayVideos: true,
 	reducedMotion: false,
 	soundEffects: true,
+	kitchenAudio: {
+		spokenGuidanceEnabled: false,
+		timerVoiceEnabled: true,
+		timerChimesEnabled: true,
+		soundEffectsEnabled: true,
+	},
 	keepScreenOn: true,
 }
 

@@ -1,159 +1,116 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import {
-	CalendarDays,
-	Sparkles,
-	ShoppingCart,
-	Clock,
-	ChefHat,
-	X,
-	RefreshCw,
-	Copy,
 	Check,
-	Trash2,
-	Search,
-	Shuffle,
+	ChefHat,
+	Clock3,
+	Copy,
 	Loader2,
+	Minus,
+	Plus,
+	RefreshCw,
+	ShoppingBasket,
+	Sparkles,
+	Users,
+	Utensils,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { MealPlannerCommandDeck } from '@/components/meal-planner/MealPlannerCommandDeck'
-import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
-import { Portal } from '@/components/ui/portal'
-import { MagicCard } from '@/components/ui/magic-card'
-import { ErrorState } from '@/components/ui/error-state'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
-import {
-	generateMealPlan,
-	getCurrentMealPlan,
-	deleteMealPlan,
-	getShoppingList,
-	swapMeal,
-} from '@/services/mealplan'
-import { getAllRecipes } from '@/services/recipe'
-import { Recipe, getTotalTime, formatCookingTime } from '@/lib/types/recipe'
-import type {
-	MealPlan,
-	PlannedDay,
-	PlannedMeal,
-	ShoppingItem,
-} from '@/lib/types/mealplan'
-import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
+import { ImageWithFallback } from '@/components/ui/image-with-fallback'
+import { Switch } from '@/components/ui/switch'
+import { createCookPlan, getCurrentCookPlan } from '@/services/cookplan'
+import { getAllSettings } from '@/services/settings'
+import type { CookPlan, CookPlanMode, MealRole } from '@/lib/types/cookplan'
 
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner'] as const
-type MealType = (typeof MEAL_TYPES)[number]
+const MODES: CookPlanMode[] = [
+	'COOK_ONCE_TODAY',
+	'DINNER_WITH_LEFTOVERS',
+]
 
-const MEAL_LABELS: Record<MealType, { labelKey: string; emoji: string }> = {
-	breakfast: { labelKey: 'breakfast', emoji: '🌅' },
-	lunch: { labelKey: 'lunch', emoji: '☀️' },
-	dinner: { labelKey: 'dinner', emoji: '🌙' },
+function localDateKey() {
+	const now = new Date()
+	const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+	return local.toISOString().slice(0, 10)
 }
 
-const MEAL_GLOW_COLORS: Record<MealType, { from: string; to: string }> = {
-	breakfast: {
-		from: 'var(--color-warning, #eab308)',
-		to: 'var(--color-brand, #ff5a36)',
-	},
-	lunch: {
-		from: 'var(--color-info, #3b82f6)',
-		to: 'var(--color-success, #10b981)',
-	},
-	dinner: {
-		from: 'var(--color-xp, #6366f1)',
-		to: 'var(--color-brand, #ff5a36)',
-	},
+function mealRoleLabel(role: MealRole) {
+	return role.charAt(0) + role.slice(1).toLowerCase()
 }
 
 export default function MealPlannerPage() {
-	const router = useRouter()
-	const [plan, setPlan] = useState<MealPlan | null>(null)
+	const t = useTranslations('mealPlanner')
+	const planDate = useMemo(localDateKey, [])
+	const [mode, setMode] = useState<CookPlanMode>('COOK_ONCE_TODAY')
+	const [householdSize, setHouseholdSize] = useState(2)
+	const [maxActiveMinutes, setMaxActiveMinutes] = useState(60)
+	const [pantryFirst, setPantryFirst] = useState(true)
+	const [plan, setPlan] = useState<CookPlan | null>(null)
 	const [loading, setLoading] = useState(true)
-	const [fetchError, setFetchError] = useState(false)
 	const [generating, setGenerating] = useState(false)
-	const [showShopping, setShowShopping] = useState(false)
-	const [shoppingList, setShoppingList] = useState<ShoppingItem[]>([])
-	const [loadingShopping, setLoadingShopping] = useState(false)
-	const [copiedList, setCopiedList] = useState(false)
+	const [copied, setCopied] = useState(false)
 	const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
 
-	// Auto-reset copiedList after 2s with proper cleanup
-	useEffect(() => {
-		if (!copiedList) return
-		const id = setTimeout(() => setCopiedList(false), 2000)
-		return () => clearTimeout(id)
-	}, [copiedList])
-	const [confirmingDelete, setConfirmingDelete] = useState(false)
-	const [isDeleting, setIsDeleting] = useState(false)
-	const [useAI, setUseAI] = useState(false)
-
-	// Swap meal state
-	const [swapping, setSwapping] = useState<{
-		day: string
-		type: MealType
-	} | null>(null)
-	const [swapSearch, setSwapSearch] = useState('')
-	const [swapResults, setSwapResults] = useState<Recipe[]>([])
-	const [swapLoading, setSwapLoading] = useState(false)
-	const [isSwapping, setIsSwapping] = useState(false)
-	const swapSearchRef = useRef<HTMLInputElement>(null)
-	const swapFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-	const t = useTranslations('mealPlanner')
-
-	useEscapeKey(confirmingDelete, () => setConfirmingDelete(false))
-	useEscapeKey(!!swapping, () => setSwapping(null))
-
-	// Cleanup swap focus timeout on unmount
-	useEffect(() => {
-		return () => {
-			if (swapFocusTimeoutRef.current) clearTimeout(swapFocusTimeoutRef.current)
-		}
-	}, [])
-
-	const isMountedRef = useRef(true)
-	useEffect(() => {
-		isMountedRef.current = true
-		return () => {
-			isMountedRef.current = false
-		}
-	}, [])
-
-	// ── Fetch current plan ────────────────────────────────
-
-	const fetchPlan = useCallback(async () => {
-		setFetchError(false)
+	const load = useCallback(async () => {
+		setLoading(true)
 		try {
-			const data = await getCurrentMealPlan()
-			if (!isMountedRef.current) return
-			setPlan(data)
-		} catch (err: unknown) {
-			if (!isMountedRef.current) return
-			setFetchError(true)
+			const [currentPlan, settingsResponse] = await Promise.all([
+				getCurrentCookPlan(planDate),
+				getAllSettings(),
+			])
+			setPlan(currentPlan)
+			if (currentPlan) {
+				setMode(currentPlan.mode)
+				setHouseholdSize(currentPlan.householdSize)
+				setMaxActiveMinutes(currentPlan.maxActiveMinutes)
+				setPantryFirst(currentPlan.pantryFirst)
+			} else if (settingsResponse.success && settingsResponse.data?.cooking) {
+				const cooking = settingsResponse.data.cooking
+				setHouseholdSize(
+					Math.min(12, Math.max(1, cooking.defaultServings || 2)),
+				)
+				if (cooking.maxCookingTimeMinutes) {
+					setMaxActiveMinutes(
+						Math.min(240, Math.max(15, cooking.maxCookingTimeMinutes)),
+					)
+				}
+			}
+		} catch {
+			toast.error(t('failedLoad'))
 		} finally {
-			if (isMountedRef.current) setLoading(false)
+			setLoading(false)
 		}
-	}, [])
+	}, [planDate, t])
 
 	useEffect(() => {
-		fetchPlan()
-	}, [fetchPlan])
+		void load()
+	}, [load])
 
-	// ── Generate ──────────────────────────────────────────
+	useEffect(() => {
+		if (!copied) return
+		const timeout = window.setTimeout(() => setCopied(false), 2000)
+		return () => window.clearTimeout(timeout)
+	}, [copied])
 
-	const handleGenerate = async () => {
+	const generate = async () => {
 		setGenerating(true)
+		setCheckedItems(new Set())
 		try {
-			const newPlan = await generateMealPlan({ days: 7 }, useAI)
-			setPlan(newPlan)
-			toast.success(t('planGenerated'))
+			const nextPlan = await createCookPlan({
+				planDate,
+				mode,
+				householdSize,
+				maxActiveMinutes,
+				pantryFirst,
+			})
+			setPlan(nextPlan)
+			if (nextPlan.cookBatches.length > 0) {
+				toast.success(t('todayPlanGenerated'))
+			}
 		} catch {
 			toast.error(t('failedGenerate'))
 		} finally {
@@ -161,151 +118,47 @@ export default function MealPlannerPage() {
 		}
 	}
 
-	// ── Delete ────────────────────────────────────────────
-
-	const handleDelete = async () => {
-		if (!plan || isDeleting) return
-		setIsDeleting(true)
-		try {
-			await deleteMealPlan(plan.id)
-			setPlan(null)
-			setConfirmingDelete(false)
-			toast.success(t('planDeleted'))
-		} catch {
-			toast.error(t('failedDelete'))
-		} finally {
-			setIsDeleting(false)
-		}
-	}
-
-	// ── Shopping List ─────────────────────────────────────
-
-	const handleShowShopping = async () => {
-		if (!plan) return
-		setShowShopping(true)
-		setLoadingShopping(true)
-		try {
-			const list = await getShoppingList(plan.id)
-			setShoppingList(list)
-		} catch {
-			toast.error(t('failedLoadShopping'))
-			setShoppingList(plan.shoppingList || [])
-		} finally {
-			setLoadingShopping(false)
-		}
-	}
-
 	const copyShoppingList = async () => {
-		const text = shoppingList
-			.map(
-				item =>
-					`${item.ingredient}${item.quantity ? ` (${item.quantity})` : ''} — ${item.recipes.join(', ')}`,
+		if (!plan) return
+		const text = plan.shoppingList
+			.map(item =>
+				[item.quantity, item.unit, item.ingredient]
+					.filter(Boolean)
+					.join(' '),
 			)
 			.join('\n')
 		try {
 			await navigator.clipboard.writeText(text)
-			setCopiedList(true)
+			setCopied(true)
 		} catch {
 			toast.error(t('failedCopy'))
 		}
 	}
 
-	const toggleChecked = (ingredient: string) => {
-		setCheckedItems(prev => {
-			const next = new Set(prev)
+	const toggleShoppingItem = (ingredient: string) => {
+		setCheckedItems(current => {
+			const next = new Set(current)
 			if (next.has(ingredient)) next.delete(ingredient)
 			else next.add(ingredient)
 			return next
 		})
 	}
 
-	// ── Swap Meal ─────────────────────────────────────────
-
-	const handleSwapClick = (day: string, type: MealType) => {
-		setSwapping({ day, type })
-		setSwapSearch('')
-		setSwapResults([])
-		fetchSwapSuggestions('')
-		if (swapFocusTimeoutRef.current) clearTimeout(swapFocusTimeoutRef.current)
-		swapFocusTimeoutRef.current = setTimeout(
-			() => swapSearchRef.current?.focus(),
-			100,
-		)
-	}
-
-	const fetchSwapSuggestions = useCallback(async (query: string) => {
-		setSwapLoading(true)
-		try {
-			const response = await getAllRecipes({
-				search: query || undefined,
-				size: 8,
-				page: 0,
-			})
-			if (response.success && response.data) {
-				setSwapResults(response.data)
-			}
-		} catch {
-			setSwapResults([])
-		} finally {
-			setSwapLoading(false)
-		}
-	}, [])
-
-	// Debounce swap search
-	useEffect(() => {
-		if (!swapping) return
-		const timeout = setTimeout(() => fetchSwapSuggestions(swapSearch), 300)
-		return () => clearTimeout(timeout)
-	}, [swapSearch, swapping, fetchSwapSuggestions])
-
-	const handleSwapSelect = async (recipe: Recipe) => {
-		if (!swapping || !plan || isSwapping) return
-		setIsSwapping(true)
-		try {
-			const updated = await swapMeal(plan.id, swapping.day, swapping.type, {
-				recipeId: recipe.id,
-				title: recipe.title,
-				totalTimeMinutes: getTotalTime(recipe),
-				servings: recipe.servings,
-				aiGenerated: false,
-			})
-			setPlan(updated)
-			setSwapping(null)
-			toast.success(t('swappedTo', { title: recipe.title }))
-		} catch {
-			toast.error(t('failedSwap'))
-		} finally {
-			setIsSwapping(false)
-		}
-	}
-
-	// ── Helpers ───────────────────────────────────────────
-
-	const getMeal = (day: PlannedDay, type: MealType): PlannedMeal | null => {
-		return day[type] ?? null
-	}
-	const plannedDays = Array.isArray(plan?.days) ? plan.days : []
-	const hasPlan = plan !== null && plannedDays.length > 0
-	const totalMealsPlanned = plannedDays.reduce((sum, day) => {
-		return (
-			sum +
-			MEAL_TYPES.reduce((count, type) => (day[type] ? count + 1 : count), 0)
-		)
-	}, 0)
-
-	// ── Skeleton ──────────────────────────────────────────
+	const hasPlan = Boolean(plan?.cookBatches.length)
+	const batch = plan?.cookBatches[0]
 
 	if (loading) {
 		return (
 			<PageTransition>
-				<PageContainer maxWidth='xl'>
-					<div className='space-y-6 py-6'>
-						<div className='h-10 w-52 animate-pulse rounded-xl bg-bg-elevated' />
-						<div className='grid grid-cols-7 gap-3'>
-							{Array.from({ length: 21 }).map((_, i) => (
+				<PageContainer maxWidth='xl' className='px-4 py-6 sm:px-6'>
+					<div className='space-y-4'>
+						<div className='h-14 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='h-48 animate-pulse rounded-lg bg-bg-elevated' />
+						<div className='grid gap-3 md:grid-cols-3'>
+							{Array.from({ length: 3 }).map((_, index) => (
 								<div
-									key={i}
-									className='h-24 animate-pulse rounded-xl bg-bg-elevated'
+									key={index}
+									className='h-64 animate-pulse rounded-lg bg-bg-elevated'
 								/>
 							))}
 						</div>
@@ -314,502 +167,403 @@ export default function MealPlannerPage() {
 			</PageTransition>
 		)
 	}
-	if (fetchError) {
-		return (
-			<PageTransition>
-				<PageContainer maxWidth='xl'>
-					<ErrorState
-						title={t('failedLoad')}
-						message={t('failedLoadDesc')}
-						onRetry={() => {
-							setLoading(true)
-							fetchPlan()
-						}}
-					/>
-				</PageContainer>
-			</PageTransition>
-		)
-	}
+
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='2xl'>
-				<div className='grid grid-cols-1 gap-6 py-6'>
-					<div className='space-y-6'>
-						<MealPlannerCommandDeck
-							hasPlan={hasPlan}
-							plannedDays={plannedDays.length}
-							totalMealsPlanned={totalMealsPlanned}
-							useAI={useAI}
-							generating={generating}
-							onToggleAI={() => setUseAI(prev => !prev)}
-							onGenerate={handleGenerate}
-							onShowShopping={handleShowShopping}
-							onClearPlan={() => setConfirmingDelete(true)}
-							canShowShopping={hasPlan}
-						/>
-
-						{/* ── AI Mode Notice ─────────────────── */}
-						{useAI && !plan?.reasoning && (
-							<p className='text-xs text-text-muted'>
-								<Sparkles className='mr-1 inline size-3 text-brand' />
-								{t('aiModeNotice')}
+			<PageContainer maxWidth='xl' className='px-4 py-6 sm:px-6'>
+				<div className='space-y-6'>
+					<header className='flex flex-col gap-2 border-b border-border-subtle pb-5 sm:flex-row sm:items-end sm:justify-between'>
+						<div>
+							<p className='text-xs font-semibold uppercase text-brand'>
+								{t('planTodayEyebrow')}
 							</p>
-						)}
+							<h1 className='text-2xl font-bold text-text-primary sm:text-3xl'>
+								{t('planTodayTitle')}
+							</h1>
+							<p className='mt-1 max-w-2xl text-sm text-text-muted'>
+								{t('planTodaySubtitle')}
+							</p>
+						</div>
+						<div className='text-sm font-medium text-text-secondary'>
+							{new Intl.DateTimeFormat(undefined, {
+								weekday: 'long',
+								month: 'long',
+								day: 'numeric',
+							}).format(new Date(`${planDate}T12:00:00`))}
+						</div>
+					</header>
 
-						{/* ── AI Reasoning Banner ───────────── */}
-						{plan?.reasoning && (
-							<motion.div
-								initial={{ opacity: 0, y: -10 }}
-								animate={{ opacity: 1, y: 0 }}
-							>
-								<Alert variant='info' className='rounded-xl'>
-									<Sparkles className='size-4' />
-									<AlertDescription>
-										<p className='text-sm text-text-primary'>
-											{plan.reasoning}
-										</p>
-										{plan.pantryUtilizationPercent != null &&
-											plan.pantryUtilizationPercent > 0 && (
-												<p className='mt-1 text-xs text-text-muted'>
-													{t('pantryUtilization')}{' '}
-													{Math.round(plan.pantryUtilizationPercent)}%
-												</p>
-											)}
-									</AlertDescription>
-								</Alert>
-							</motion.div>
-						)}
-
-						{/* ── No Plan State ─────────────────── */}
-						{!hasPlan ? (
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								className='flex flex-col items-center justify-center gap-4 py-20'
-							>
-								<CalendarDays className='size-16 text-text-muted/40' />
-								<h2 className='text-lg font-semibold text-text-secondary'>
-									{t('noPlanYet')}
-								</h2>
-								<p className='max-w-sm text-center text-sm text-text-muted'>
-									{t('noPlanDesc')}
-								</p>
-								<button
-									type='button'
-									onClick={handleGenerate}
-									disabled={generating}
-									className='flex items-center gap-2 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-50'
-								>
-									{generating ? (
-										<RefreshCw className='size-4 animate-spin' />
-									) : (
-										<ChefHat className='size-4' />
-									)}
-									{t('generatePlan')}
-								</button>
-							</motion.div>
-						) : (
-							/* ── 7-Day Grid ──────────────────── */
+					<section
+						aria-labelledby='plan-controls-title'
+						className='border-b border-border-subtle pb-6'
+					>
+						<div className='mb-4 flex items-center justify-between gap-3'>
 							<div>
-								<PremiumSurface
-									eyebrow={t('weekMatrix')}
-									chipText={t('daysCount', { count: plannedDays.length })}
-									tone='success'
-									className='p-4'
+								<h2
+									id='plan-controls-title'
+									className='text-base font-semibold text-text-primary'
 								>
-									<div className='overflow-x-auto hkx-x-rail'>
-										<div className='min-w-max'>
-											{/* Day Headers */}
-											<div className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'>
-												<div /> {/* spacer */}
-												{plannedDays.map(day => (
-													<div
-														key={day.dayOfWeek}
-														className='rounded-xl bg-bg-elevated px-3 py-2 text-center text-sm font-semibold text-text-primary'
-													>
-														{day.dayOfWeek.slice(0, 3)}
-													</div>
-												))}
-											</div>
-
-											{/* Meal Rows */}
-											{MEAL_TYPES.map(mealType => (
-												<div
-													key={mealType}
-													className='mb-2 grid grid-cols-[80px_repeat(7,1fr)] gap-2'
-												>
-													<div className='flex items-center justify-center gap-1 text-sm font-medium text-text-secondary'>
-														<span>{MEAL_LABELS[mealType].emoji}</span>
-														<span className='hidden lg:inline'>
-															{t(MEAL_LABELS[mealType].labelKey)}
-														</span>
-													</div>
-													{plannedDays.map(day => {
-														const meal = getMeal(day, mealType)
-														const glow = MEAL_GLOW_COLORS[mealType]
-														return (
-															<motion.div
-																key={`${day.dayOfWeek}-${mealType}`}
-																whileHover={CARD_HOVER}
-																className='group relative rounded-xl overflow-hidden shadow-card transition-colors'
-															>
-																<MagicCard
-																	mode='orb'
-																	glowFrom={glow.from}
-																	glowTo={glow.to}
-																	className='h-full w-full'
-																>
-																	<div className='p-3 min-h-[5.5rem] flex flex-col justify-between h-full bg-bg-card/75 backdrop-blur-md rounded-[inherit]'>
-																		<button
-																			type='button'
-																			onClick={() =>
-																				meal?.recipeId &&
-																				router.push(`/recipes/${meal.recipeId}`)
-																			}
-																			className='w-full text-left flex-1'
-																		>
-																			{meal ? (
-																				<>
-																					<p className='line-clamp-2 text-xs font-bold leading-tight text-text-primary group-hover:text-brand transition-colors'>
-																						{meal.title}
-																					</p>
-																					<div className='mt-2 flex items-center gap-1 text-3xs text-text-secondary tabular-nums'>
-																						<Clock className='size-2.5' />
-																						{formatCookingTime(
-																							meal.totalTimeMinutes,
-																						)}
-																						{meal.aiGenerated && (
-																							<span className='rounded bg-info/10 px-1 py-0.5 text-3xs font-semibold text-info uppercase tracking-wider ml-1'>
-																								AI
-																							</span>
-																						)}
-																					</div>
-																				</>
-																			) : (
-																				<div className='flex items-center justify-center h-full min-h-[3.5rem] border border-dashed border-border-subtle/50 rounded-lg hover:border-brand/40 transition-colors'>
-																					<span className='text-xs font-bold text-text-muted/60 group-hover:text-brand/70'>
-																						+{' '}
-																						{t('addMeal', {
-																							defaultValue: 'Add',
-																						})}
-																					</span>
-																				</div>
-																			)}
-																		</button>
-																		{/* Swap button */}
-																		<button
-																			type='button'
-																			onClick={e => {
-																				e.stopPropagation()
-																				handleSwapClick(day.dayOfWeek, mealType)
-																			}}
-																			aria-label={t('swapMeal')}
-																			className='absolute right-1 top-1 rounded-md p-1.5 text-text-muted opacity-70 transition-all hover:bg-bg-elevated hover:text-brand active:opacity-100 md:opacity-60 md:group-hover:opacity-100 focus-visible:opacity-100 z-50'
-																		>
-																			<Shuffle className='size-3.5' />
-																		</button>
-																	</div>
-																</MagicCard>
-															</motion.div>
-														)
-													})}
-												</div>
-											))}
-										</div>
-									</div>
-								</PremiumSurface>
+									{t('choosePlanShape')}
+								</h2>
+								<p className='text-sm text-text-muted'>
+									{t('constraintsFromSettings')}
+								</p>
 							</div>
-						)}
+							<Button onClick={generate} disabled={generating}>
+								{generating ? (
+									<Loader2 className='animate-spin' />
+								) : hasPlan ? (
+									<RefreshCw />
+								) : (
+									<Sparkles />
+								)}
+								{generating
+									? t('buildingPlan')
+									: hasPlan
+										? t('rebuildToday')
+										: t('buildToday')}
+							</Button>
+						</div>
 
-						{/* ── Shopping List Drawer ──────────── */}
-						<AnimatePresence>
-							{showShopping && (
-								<motion.div
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: 20 }}
-									transition={TRANSITION_SPRING}
-									className='shadow-warm'
-								>
-									<PremiumSurface tone='success' className='p-5'>
-										<div className='mb-4 flex items-center justify-between'>
-											<SurfaceSectionHeader
-												eyebrow={t('shoppingList')}
-												chipText={t('itemsCount', {
-													count: shoppingList.length,
-												})}
-												className='mb-0'
-												chipClassName='bg-bg-elevated'
-											/>
-											<div className='flex items-center gap-2'>
-												<button
-													type='button'
-													onClick={copyShoppingList}
-													className='flex items-center gap-1.5 rounded-xl bg-bg-elevated px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-elevated/80'
-												>
-													{copiedList ? (
-														<Check className='size-3.5' />
-													) : (
-														<Copy className='size-3.5' />
-													)}
-													{copiedList ? t('copied') : t('copyList')}
-												</button>
-												<button
-													type='button'
-													onClick={() => setShowShopping(false)}
-													aria-label={t('closeShoppingList')}
-													className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
-												>
-													<X className='size-4' />
-												</button>
-											</div>
-										</div>
-
-										{loadingShopping ? (
-											<div className='space-y-2'>
-												{Array.from({ length: 5 }).map((_, i) => (
-													<div
-														key={i}
-														className='h-10 animate-pulse rounded-xl bg-bg-elevated'
-													/>
-												))}
-											</div>
-										) : shoppingList.length === 0 ? (
-											<div className='flex flex-col items-center gap-2 py-8 text-center'>
-												<Check className='size-8 text-green-500' />
-												<p className='text-sm font-medium text-text-secondary'>
-													{t('allCovered')}
-												</p>
-											</div>
-										) : (
-											<ul className='divide-y divide-border-subtle'>
-												{shoppingList.map(item => (
-													<li
-														key={item.ingredient}
-														className='flex items-center gap-3 py-2.5'
-													>
-														<button
-															type='button'
-															onClick={() => toggleChecked(item.ingredient)}
-															className={`flex size-5 items-center justify-center rounded border transition-colors ${
-																checkedItems.has(item.ingredient)
-																	? 'border-brand bg-brand text-white'
-																	: 'border-border-subtle bg-bg hover:border-brand/50'
-															}`}
-														>
-															{checkedItems.has(item.ingredient) && (
-																<Check className='size-3' />
-															)}
-														</button>
-														<div className='flex-1'>
-															<span
-																className={`font-medium ${
-																	checkedItems.has(item.ingredient)
-																		? 'text-text-muted line-through'
-																		: 'text-text-primary'
-																}`}
-															>
-																{item.ingredient}
-															</span>
-															{item.quantity && (
-																<span className='ml-2 text-xs text-text-secondary'>
-																	({item.quantity})
-																</span>
-															)}
-														</div>
-														<div className='flex flex-wrap gap-1'>
-															{item.recipes.map(recipe => (
-																<span
-																	key={recipe}
-																	className='rounded bg-bg-elevated px-1.5 py-0.5 text-2xs text-text-muted'
-																>
-																	{recipe}
-																</span>
-															))}
-														</div>
-													</li>
-												))}
-											</ul>
-										)}
-									</PremiumSurface>
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</div>
-				</div>
-
-				{/* ── Swap Meal Modal ── */}
-				<AnimatePresence>
-					{swapping && (
-						<Portal>
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
-								onClick={() => setSwapping(null)}
+						<div className='grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,1fr)]'>
+							<div
+								role='radiogroup'
+								aria-label={t('planMode')}
+								className='grid grid-cols-2 rounded-lg border border-border-medium bg-bg-elevated p-1'
 							>
-								<motion.div
-									initial={{ scale: 0.95, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.95, opacity: 0 }}
-									onClick={e => e.stopPropagation()}
-									role='dialog'
-									aria-modal='true'
-									aria-labelledby='swap-meal-title'
-									className='flex w-full max-w-md flex-col rounded-xl bg-bg-card shadow-warm'
-									style={{ maxHeight: '80vh' }}
-								>
-									<div className='border-b border-border-subtle p-5'>
-										<div className='mb-4 flex items-center justify-between'>
-											<div>
-												<h3
-													className='text-lg font-bold text-text-primary'
-													id='swap-meal-title'
-												>
-													{t('swapMeal')}
-												</h3>
-												<p className='text-xs text-text-muted'>
-													{swapping.day} &middot;{' '}
-													{MEAL_LABELS[swapping.type].emoji}{' '}
-													{t(MEAL_LABELS[swapping.type].labelKey)}
-												</p>
-											</div>
-											<button
-												type='button'
-												onClick={() => setSwapping(null)}
-												aria-label={t('closeSwapPanel')}
-												className='rounded-md p-1.5 text-text-muted hover:bg-bg-elevated'
-											>
-												<X className='size-4' />
-											</button>
-										</div>
-										<div className='relative'>
-											<Search className='absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted' />
-											<input
-												ref={swapSearchRef}
-												type='text'
-												placeholder={t('searchRecipes')}
-												value={swapSearch}
-												onChange={e => setSwapSearch(e.target.value)}
-												aria-label={t('searchRecipes')}
-												className='w-full rounded-xl border border-border-subtle bg-bg py-2 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/30'
-											/>
-										</div>
-									</div>
+								{MODES.map(option => (
+									<button
+										key={option}
+										type='button'
+										role='radio'
+										aria-checked={mode === option}
+										onClick={() => setMode(option)}
+										className={`min-h-20 rounded-md px-3 py-3 text-left transition-colors ${
+											mode === option
+												? 'bg-bg-card text-text-primary shadow-card'
+												: 'text-text-secondary hover:text-text-primary'
+										}`}
+									>
+										<span className='block text-sm font-semibold'>
+											{option === 'COOK_ONCE_TODAY'
+												? t('cookOnceToday')
+												: t('dinnerLeftovers')}
+										</span>
+										<span className='mt-1 block text-xs leading-5 text-text-muted'>
+											{option === 'COOK_ONCE_TODAY'
+												? t('cookOnceTodayDesc')
+												: t('dinnerLeftoversDesc')}
+										</span>
+									</button>
+								))}
+							</div>
 
-									<div className='flex-1 overflow-y-auto p-2'>
-										{swapLoading ? (
-											<div className='flex items-center justify-center py-8'>
-												<Loader2 className='size-5 animate-spin text-brand' />
+							<div className='grid gap-4 sm:grid-cols-3 lg:grid-cols-1'>
+								<div className='flex items-center justify-between gap-3'>
+									<div className='flex items-center gap-2'>
+										<Users className='size-4 text-text-muted' />
+										<span className='text-sm font-medium text-text-primary'>
+											{t('household')}
+										</span>
+									</div>
+									<div className='flex items-center gap-2'>
+										<Button
+											variant='outline'
+											size='icon'
+											aria-label={t('decreaseHousehold')}
+											disabled={householdSize <= 1}
+											onClick={() =>
+												setHouseholdSize(value => Math.max(1, value - 1))
+											}
+										>
+											<Minus />
+										</Button>
+										<span className='w-8 text-center font-semibold tabular-nums text-text-primary'>
+											{householdSize}
+										</span>
+										<Button
+											variant='outline'
+											size='icon'
+											aria-label={t('increaseHousehold')}
+											disabled={householdSize >= 12}
+											onClick={() =>
+												setHouseholdSize(value => Math.min(12, value + 1))
+											}
+										>
+											<Plus />
+										</Button>
+									</div>
+								</div>
+
+								<label className='block'>
+									<span className='mb-2 flex items-center justify-between gap-3 text-sm font-medium text-text-primary'>
+										<span className='flex items-center gap-2'>
+											<Clock3 className='size-4 text-text-muted' />
+											{t('activeTime')}
+										</span>
+										<span className='tabular-nums'>
+											{t('minutesShort', { count: maxActiveMinutes })}
+										</span>
+									</span>
+									<input
+										type='range'
+										min={15}
+										max={180}
+										step={15}
+										value={maxActiveMinutes}
+										onChange={event =>
+											setMaxActiveMinutes(Number(event.target.value))
+										}
+										className='w-full accent-brand'
+									/>
+								</label>
+
+								<div className='flex items-center justify-between gap-3'>
+									<div>
+										<p className='text-sm font-medium text-text-primary'>
+											{t('pantryFirst')}
+										</p>
+										<p className='text-xs text-text-muted'>
+											{t('pantryFirstDesc')}
+										</p>
+									</div>
+									<Switch
+										checked={pantryFirst}
+										onCheckedChange={setPantryFirst}
+									/>
+								</div>
+							</div>
+						</div>
+					</section>
+
+					{plan && !hasPlan ? (
+						<section className='border-l-4 border-warning bg-warning/5 px-5 py-4'>
+							<h2 className='font-semibold text-text-primary'>
+								{t('noSafePlan')}
+							</h2>
+							<p className='mt-1 text-sm text-text-muted'>
+								{t('noSafePlanDesc')}
+							</p>
+							<ul className='mt-3 space-y-2'>
+								{plan.unmetConstraints.map(constraint => (
+									<li
+										key={constraint}
+										className='flex gap-2 text-sm text-text-secondary'
+									>
+										<span aria-hidden='true'>-</span>
+										<span>{constraint}</span>
+									</li>
+								))}
+							</ul>
+						</section>
+					) : null}
+
+					{!plan ? (
+						<section className='flex min-h-48 flex-col items-center justify-center border border-dashed border-border-medium px-6 py-10 text-center'>
+							<ChefHat className='size-10 text-text-muted' />
+							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
+								{t('oneBatchNotTwentyOneMeals')}
+							</h2>
+							<p className='mt-1 max-w-xl text-sm text-text-muted'>
+								{t('emptyTodayDesc')}
+							</p>
+						</section>
+					) : null}
+
+					{hasPlan && batch ? (
+						<>
+							<section className='grid gap-4 border-b border-border-subtle pb-6 md:grid-cols-[1fr_auto] md:items-end'>
+								<div>
+									<p className='text-xs font-semibold uppercase text-success'>
+										{t('todayCoverage')}
+									</p>
+									<h2 className='mt-1 text-xl font-bold text-text-primary'>
+										{batch.title}
+									</h2>
+									<div className='mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-text-secondary'>
+										<span className='flex items-center gap-1.5'>
+											<Clock3 className='size-4 text-text-muted' />
+											{t('activeMinutesSummary', {
+												active: batch.activeMinutes,
+												budget: plan?.maxActiveMinutes ?? maxActiveMinutes,
+											})}
+										</span>
+										<span className='flex items-center gap-1.5'>
+											<Utensils className='size-4 text-text-muted' />
+											{t('dishCount', { count: batch.dishes.length })}
+										</span>
+									</div>
+								</div>
+								<div className='flex flex-wrap gap-2'>
+									{plan?.eatingOccasions.map(occasion => (
+										<span
+											key={occasion.name}
+											className='rounded-md border border-success/30 bg-success/5 px-3 py-2 text-sm font-medium text-text-primary'
+										>
+											{occasion.name} - {occasion.servings}
+										</span>
+									))}
+								</div>
+							</section>
+
+							<section aria-labelledby='planned-dishes-title'>
+								<div className='mb-3 flex items-center justify-between'>
+									<h2
+										id='planned-dishes-title'
+										className='text-base font-semibold text-text-primary'
+									>
+										{t('plannedDishes')}
+									</h2>
+									<span className='text-xs text-text-muted'>
+										{t('everyDishCookable')}
+									</span>
+								</div>
+								<div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+									{batch.dishes.map(dish => (
+										<Link
+											key={dish.recipeId}
+											href={`/recipes/${dish.recipeId}`}
+											className='group overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-colors hover:border-brand/40'
+										>
+											<div className='relative aspect-video overflow-hidden bg-bg-elevated'>
+												<ImageWithFallback
+													src={dish.coverImageUrl || ''}
+													alt={dish.title}
+													fill
+													fallbackType='recipe'
+													className='object-cover transition-transform duration-300 group-hover:scale-[1.02]'
+												/>
 											</div>
-										) : swapResults.length === 0 ? (
-											<div className='flex flex-col items-center gap-2 py-8 text-center'>
-												<Search className='size-6 text-text-muted/40' />
-												<p className='text-sm text-text-muted'>
-													{t('noRecipesFound')}
-												</p>
+											<div className='p-4'>
+												<div className='flex items-start justify-between gap-3'>
+													<div>
+														<h3 className='font-semibold leading-5 text-text-primary group-hover:text-brand'>
+															{dish.title}
+														</h3>
+														{dish.cuisineType ? (
+															<p className='mt-1 text-xs text-text-muted'>
+																{dish.cuisineType} - {mealRoleLabel(dish.mealRole)}
+															</p>
+														) : null}
+													</div>
+													<ChefHat className='size-4 shrink-0 text-brand' />
+												</div>
+												<div className='mt-4 grid grid-cols-3 gap-2 border-t border-border-subtle pt-3 text-xs'>
+													<div>
+														<p className='text-text-muted'>{t('active')}</p>
+														<p className='mt-0.5 font-semibold text-text-primary'>
+															{t('minutesShort', {
+																count: dish.activeMinutes,
+															})}
+														</p>
+													</div>
+													<div>
+														<p className='text-text-muted'>{t('yield')}</p>
+														<p className='mt-0.5 font-semibold text-text-primary'>
+															{dish.plannedServings}
+														</p>
+													</div>
+													<div>
+														<p className='text-text-muted'>{t('fromPantry')}</p>
+														<p className='mt-0.5 font-semibold text-text-primary'>
+															{dish.pantryIngredientCount}
+														</p>
+													</div>
+												</div>
 											</div>
-										) : (
-											<div className='space-y-1'>
-												{swapResults.map(recipe => (
+										</Link>
+									))}
+								</div>
+							</section>
+
+							<section
+								aria-labelledby='shopping-title'
+								className='border-t border-border-subtle pt-6'
+							>
+								<div className='mb-3 flex items-center justify-between gap-3'>
+									<div>
+										<h2
+											id='shopping-title'
+											className='flex items-center gap-2 text-base font-semibold text-text-primary'
+										>
+											<ShoppingBasket className='size-4 text-brand' />
+											{t('shoppingAdditions')}
+										</h2>
+										<p className='text-sm text-text-muted'>
+											{t('scaledForHousehold', {
+												count: plan?.householdSize ?? householdSize,
+											})}
+										</p>
+									</div>
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={copyShoppingList}
+										disabled={!plan?.shoppingList.length}
+									>
+										{copied ? <Check /> : <Copy />}
+										{copied ? t('copied') : t('copyList')}
+									</Button>
+								</div>
+
+								{plan?.shoppingList.length === 0 ? (
+									<div className='flex items-center gap-2 border border-success/30 bg-success/5 px-4 py-3 text-sm text-text-secondary'>
+										<Check className='size-4 text-success' />
+										{t('allCovered')}
+									</div>
+								) : (
+									<ul className='grid gap-x-6 md:grid-cols-2'>
+										{plan?.shoppingList.map(item => {
+											const checked = checkedItems.has(item.ingredient)
+											return (
+												<li
+													key={`${item.ingredient}-${item.unit || ''}`}
+													className='flex items-center gap-3 border-b border-border-subtle py-3'
+												>
 													<button
 														type='button'
-														key={recipe.id}
-														onClick={() => handleSwapSelect(recipe)}
-														disabled={isSwapping}
-														className='flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-bg-elevated disabled:opacity-50'
+														aria-label={t('toggleShoppingItem', {
+															item: item.ingredient,
+														})}
+														aria-pressed={checked}
+														onClick={() =>
+															toggleShoppingItem(item.ingredient)
+														}
+														className={`flex size-5 shrink-0 items-center justify-center rounded border ${
+															checked
+																? 'border-brand bg-brand text-white'
+																: 'border-border-medium bg-bg-card'
+														}`}
 													>
-														<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10'>
-															<ChefHat className='size-5 text-brand' />
-														</div>
-														<div className='min-w-0 flex-1'>
-															<p className='truncate text-sm font-medium text-text-primary'>
-																{recipe.title}
-															</p>
-															<div className='flex items-center gap-2 text-xs text-text-muted'>
-																<span className='flex items-center gap-1'>
-																	<Clock className='size-3' />
-																	{formatCookingTime(getTotalTime(recipe))}
-																</span>
-																<span>
-																	{t('servings', { count: recipe.servings })}
-																</span>
-															</div>
-														</div>
-														{isSwapping && (
-															<Loader2 className='size-4 animate-spin text-brand' />
-														)}
+														{checked ? <Check className='size-3' /> : null}
 													</button>
-												))}
-											</div>
-										)}
-									</div>
-								</motion.div>
-							</motion.div>
-						</Portal>
-					)}
-				</AnimatePresence>
+													<div className='min-w-0 flex-1'>
+														<p
+															className={`text-sm font-medium ${
+																checked
+																	? 'text-text-muted line-through'
+																	: 'text-text-primary'
+															}`}
+														>
+															{[item.quantity, item.unit, item.ingredient]
+																.filter(Boolean)
+																.join(' ')}
+														</p>
+														<p className='truncate text-xs text-text-muted'>
+															{item.sourceRecipes.join(', ')}
+														</p>
+													</div>
+												</li>
+											)
+										})}
+									</ul>
+								)}
+							</section>
+						</>
+					) : null}
 
-				{/* ── Delete Confirmation Dialog ── */}
-				<AnimatePresence>
-					{confirmingDelete && (
-						<Portal>
-							<motion.div
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								exit={{ opacity: 0 }}
-								className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
-								onClick={() => setConfirmingDelete(false)}
-							>
-								<motion.div
-									initial={{ scale: 0.95, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.95, opacity: 0 }}
-									onClick={e => e.stopPropagation()}
-									role='alertdialog'
-									aria-modal='true'
-									aria-labelledby='delete-plan-title'
-									aria-describedby='delete-plan-desc'
-									className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
-								>
-									<h3
-										className='mb-2 text-lg font-bold text-text-primary'
-										id='delete-plan-title'
-									>
-										{t('deletePlanTitle')}
-									</h3>
-									<p
-										className='mb-6 text-sm text-text-muted'
-										id='delete-plan-desc'
-									>
-										{t('deletePlanDesc')}
-									</p>
-									<div className='flex justify-end gap-3'>
-										<button
-											type='button'
-											onClick={() => setConfirmingDelete(false)}
-											className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
-										>
-											{t('cancel')}
-										</button>
-										<button
-											type='button'
-											onClick={handleDelete}
-											disabled={isDeleting}
-											className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:opacity-50'
-										>
-											{isDeleting ? t('deleting') : t('delete')}
-										</button>
-									</div>
-								</motion.div>
-							</motion.div>
-						</Portal>
-					)}
-				</AnimatePresence>
-
-				{/* Bottom breathing room for MobileBottomNav */}
-				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+					<div className='pb-[calc(var(--h-mobile-nav)+var(--space-8))] md:pb-4' />
+				</div>
 			</PageContainer>
 		</PageTransition>
 	)

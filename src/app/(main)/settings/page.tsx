@@ -89,6 +89,7 @@ import {
 } from '@/services/verification'
 import { playTimerChime } from '@/hooks/useTimerNotifications'
 import { setAudioEnabled } from '@/lib/audio'
+import { getKitchenAudioCoordinator } from '@/lib/voice'
 import {
 	requestNotificationPermission,
 	isNotificationSupported,
@@ -566,13 +567,26 @@ export default function SettingsPage() {
 				const response = await getAllSettings()
 				if (cancelled) return
 				if (response.success && response.data) {
-					setSettings(response.data)
+					const kitchenAudio = {
+						...DEFAULT_USER_SETTINGS.app.kitchenAudio,
+						...response.data.app?.kitchenAudio,
+					}
+					const normalizedSettings = {
+						...response.data,
+						app: {
+							...DEFAULT_USER_SETTINGS.app,
+							...response.data.app,
+							kitchenAudio,
+						},
+					}
+					setSettings(normalizedSettings)
 					// Sync push timerAlerts preference to localStorage for use outside settings page
 					setTimerAlertsEnabled(
 						response.data.notifications?.push?.timerAlerts ?? true,
 					)
 					// Sync sound effects setting to localStorage for audio.ts
 					setAudioEnabled(response.data.app?.soundEffects ?? true)
+					getKitchenAudioCoordinator().setPreferences(kitchenAudio)
 				} else {
 					setSettings({
 						userId: user?.userId || '',
@@ -2200,13 +2214,70 @@ export default function SettingsPage() {
 								<SettingsCard title={t('soundAndMotion')}>
 									<div>
 										<ToggleRow
+											label={t('spokenGuidance')}
+											description={t('spokenGuidanceDesc')}
+											icon={Volume2}
+											checked={
+												settings.app.kitchenAudio.spokenGuidanceEnabled
+											}
+											onCheckedChange={checked => {
+												const kitchenAudio = {
+													...settings.app.kitchenAudio,
+													spokenGuidanceEnabled: checked,
+												}
+												getKitchenAudioCoordinator().chooseSpokenGuidance(
+													checked,
+												)
+												handleUpdateApp({ kitchenAudio })
+											}}
+										/>
+										<ToggleRow
+											label={t('timerVoice')}
+											description={t('timerVoiceDesc')}
+											icon={Volume2}
+											checked={settings.app.kitchenAudio.timerVoiceEnabled}
+											onCheckedChange={checked => {
+												const kitchenAudio = {
+													...settings.app.kitchenAudio,
+													timerVoiceEnabled: checked,
+												}
+												getKitchenAudioCoordinator().setPreferences({
+													timerVoiceEnabled: checked,
+												})
+												handleUpdateApp({ kitchenAudio })
+											}}
+										/>
+										<ToggleRow
+											label={t('timerChimes')}
+											description={t('timerChimesDesc')}
+											icon={Timer}
+											checked={settings.app.kitchenAudio.timerChimesEnabled}
+											onCheckedChange={checked => {
+												const kitchenAudio = {
+													...settings.app.kitchenAudio,
+													timerChimesEnabled: checked,
+												}
+												getKitchenAudioCoordinator().setPreferences({
+													timerChimesEnabled: checked,
+												})
+												handleUpdateApp({ kitchenAudio })
+											}}
+										/>
+										<ToggleRow
 											label={t('soundEffects')}
 											description={t('soundEffectsDesc')}
 											icon={Volume2}
 											checked={settings.app.soundEffects}
 											onCheckedChange={checked => {
 												setAudioEnabled(checked)
-												handleUpdateApp({ soundEffects: checked })
+												const kitchenAudio = {
+													...settings.app.kitchenAudio,
+													soundEffectsEnabled: checked,
+												}
+												handleUpdateApp({
+													soundEffects: checked,
+													kitchenAudio,
+												})
 											}}
 										/>
 										{/* Test Timer Sound Button */}
@@ -2226,7 +2297,9 @@ export default function SettingsPage() {
 												variant='outline'
 												size='sm'
 												onClick={() => {
-													if (!settings?.app.soundEffects) {
+													if (
+														!settings?.app.kitchenAudio.timerChimesEnabled
+													) {
 														toast.info(t('soundDisabledHint'))
 														return
 													}
