@@ -14,7 +14,7 @@ import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
-import { notifyTimerUrgent, isAudioEnabled, setAudioEnabled } from '@/lib/audio'
+import { notifyTimerUrgent } from '@/lib/audio'
 import { diag } from '@/lib/diagnostics'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
@@ -36,8 +36,6 @@ import {
 	Check,
 	Zap,
 	Trophy,
-	Volume2,
-	VolumeX,
 	Loader2,
 	AlertCircle,
 	LogOut,
@@ -55,6 +53,8 @@ import type { StepRenderMode } from './StepV2Renderer'
 import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
+import { KitchenAudioControl } from './KitchenAudioControl'
+import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { OfflineBanner } from './OfflineBanner'
 import { AiAssistPanel } from './AiAssistPanel'
 import { AnimatedNumber } from '@/components/ui/animated-number'
@@ -204,17 +204,11 @@ const StepTimer = ({
 	// Completion sounds are handled by useTimerNotifications
 	// We only handle the 30-second URGENT warning sound here
 
-	const [audioEnabled, setAudioEnabledState] = useState(true)
 	const hasPlayedUrgentRef = useRef(false)
 	const previousSecondsRef = useRef(seconds)
 
 	const isUrgent = seconds <= 30 && seconds > 0
 	const isComplete = seconds === 0
-
-	// Initialize audio preference from localStorage
-	useEffect(() => {
-		setAudioEnabledState(isAudioEnabled())
-	}, [])
 
 	// Reset urgent flag when timer restarts
 	useEffect(() => {
@@ -230,13 +224,12 @@ const StepTimer = ({
 		if (
 			isRunning &&
 			seconds === 30 &&
-			audioEnabled &&
 			!hasPlayedUrgentRef.current
 		) {
 			hasPlayedUrgentRef.current = true
 			notifyTimerUrgent()
 		}
-	}, [seconds, isRunning, audioEnabled])
+	}, [seconds, isRunning])
 
 	// Call onComplete when timer hits 0
 	useEffect(() => {
@@ -244,12 +237,6 @@ const StepTimer = ({
 			onComplete()
 		}
 	}, [seconds, isRunning, onComplete])
-
-	const toggleAudio = useCallback(() => {
-		const newState = !audioEnabled
-		setAudioEnabledState(newState)
-		setAudioEnabled(newState)
-	}, [audioEnabled])
 
 	const t = useTranslations('cooking')
 	const minutes = Math.floor(seconds / 60)
@@ -337,22 +324,6 @@ const StepTimer = ({
 					{display}
 				</motion.span>
 
-				{/* Audio toggle button */}
-				<motion.button
-					type='button'
-					onClick={toggleAudio}
-					whileHover={ICON_BUTTON_HOVER}
-					whileTap={ICON_BUTTON_TAP}
-					title={audioEnabled ? t('muteTimer') : t('unmuteTimer')}
-					aria-label={audioEnabled ? t('muteTimer') : t('unmuteTimer')}
-					className='grid size-10 place-items-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
-				>
-					{audioEnabled ? (
-						<Volume2 className='size-5' />
-					) : (
-						<VolumeX className='size-5' />
-					)}
-				</motion.button>
 			</div>
 		</motion.div>
 	)
@@ -730,11 +701,20 @@ export const CookingPlayer = () => {
 						instruction: step.description,
 						tips: tipsText,
 					})
-		voice.speak(speech)
-	}, [step, voice, instructionDetail, t])
+		void voice.speak(speech, {
+			channel: 'user-request',
+			dedupeKey: `repeat-step:${session?.sessionId}:${step.stepNumber}`,
+			interruption: 'replace-lower-priority',
+		})
+	}, [step, voice, instructionDetail, session?.sessionId, t])
 
 	useClapDetection({
-		enabled: isOpen && !!session && session.status === 'in_progress',
+		enabled:
+			isOpen &&
+			!!session &&
+			session.status === 'in_progress' &&
+			!voice.isListening &&
+			!voice.isSpeaking,
 		onDoubleclap: handleDoubleclap,
 	})
 
@@ -782,7 +762,7 @@ export const CookingPlayer = () => {
 		// Update aria-live region for screen readers
 		setLiveAnnouncement(announcement)
 
-		if (isAudioEnabled() && voice.hasTTS) {
+		if (voice.hasTTS) {
 			const speech =
 				instructionDetail === 'condensed'
 					? t('ttsStepCondensed', {
@@ -794,7 +774,11 @@ export const CookingPlayer = () => {
 							instruction: step.description,
 							tips: tipsText,
 						})
-			voice.speak(speech)
+			void voice.speak(speech, {
+				channel: 'step-guidance',
+				dedupeKey: `step-guidance:${session?.sessionId}:${step.stepNumber}:${instructionDetail}`,
+				interruption: 'replace-lower-priority',
+			})
 		}
 	}, [
 		isOpen,
@@ -803,6 +787,7 @@ export const CookingPlayer = () => {
 		showCompletion,
 		voice,
 		instructionDetail,
+		session?.sessionId,
 		totalSteps,
 		t,
 	])
@@ -2010,6 +1995,14 @@ export const CookingPlayer = () => {
 									show={voice.showHelp}
 									onClose={() => voice.setShowHelp(false)}
 								/>
+								<KitchenAudioChoiceDialog
+									active={
+										isOpen &&
+										!!session &&
+										session.status === 'in_progress' &&
+										!isPreviewMode
+									}
+								/>
 
 								{/* Navigation */}
 								<div className='flex items-center justify-between border-t border-border-subtle/60 bg-gradient-to-r from-bg-elevated via-bg-card to-bg-elevated p-4'>
@@ -2046,6 +2039,7 @@ export const CookingPlayer = () => {
 
 									{/* Voice Mode Button - between nav buttons */}
 									<VoiceModeButton voice={voice} />
+									<KitchenAudioControl />
 
 									{/* Messy Hands toggle (Kitchen Protocol: Task 8) */}
 									<motion.button

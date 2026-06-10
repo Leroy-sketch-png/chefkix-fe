@@ -15,6 +15,12 @@ import {
 	type VoiceAction,
 } from './CommandParser'
 import { getTextToSpeech, isTTSSupported } from './TextToSpeech'
+import {
+	getKitchenAudioCoordinator,
+	type KitchenAudioChannel,
+	type KitchenAudioInterruption,
+} from './KitchenAudioCoordinator'
+import { useKitchenAudio } from './useKitchenAudio'
 
 export interface VoiceEvent {
 	type: 'command' | 'unrecognized' | 'error' | 'low-confidence'
@@ -41,7 +47,19 @@ export interface UseVoiceModeReturn {
 	/** Whether TTS is available */
 	hasTTS: boolean
 	/** Speak text via TTS */
-	speak: (text: string) => Promise<void>
+	speak: (
+		text: string,
+		options?: {
+			channel?: KitchenAudioChannel
+			dedupeKey?: string
+			interruption?: KitchenAudioInterruption
+		},
+	) => Promise<void>
+	isSpeaking: boolean
+	spokenGuidanceEnabled: boolean
+	guidanceChoiceMade: boolean
+	chooseSpokenGuidance: (enabled: boolean) => void
+	stopSpokenGuidance: () => void
 	/** Whether help overlay should show */
 	showHelp: boolean
 	setShowHelp: (show: boolean) => void
@@ -56,6 +74,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 	const [lastEvent, setLastEvent] = useState<VoiceEvent | null>(null)
 	const [showHelp, setShowHelp] = useState(false)
 	const recognitionRef = useRef<VoiceRecognition | null>(null)
+	const audio = useKitchenAudio()
 
 	// Refs for stable callbacks in continuous mode (avoids stale closures)
 	const handleResultRef = useRef<
@@ -86,10 +105,17 @@ export function useVoiceMode(): UseVoiceModeReturn {
 	}, [])
 
 	const speak = useCallback(
-		async (text: string) => {
+		async (
+			text: string,
+			options?: {
+				channel?: KitchenAudioChannel
+				dedupeKey?: string
+				interruption?: KitchenAudioInterruption
+			},
+		) => {
 			if (!hasTTS) return
 			try {
-				await getTextToSpeech().speak(text)
+				await getTextToSpeech().speak(text, options)
 			} catch {
 				// TTS errors are non-critical
 			}
@@ -244,6 +270,29 @@ export function useVoiceMode(): UseVoiceModeReturn {
 					}
 					break
 				}
+
+				case 'MUTE_GUIDANCE':
+					audio.stopSpokenGuidance()
+					setLastEvent({
+						type: 'command',
+						message: 'Spoken guidance muted. Timer alerts stay on.',
+						icon: cmd.icon,
+					})
+					break
+
+				case 'RESUME_GUIDANCE':
+					audio.chooseSpokenGuidance(true)
+					setLastEvent({
+						type: 'command',
+						message: 'Spoken guidance resumed',
+						icon: cmd.icon,
+					})
+					await speak('Spoken guidance resumed', {
+						channel: 'user-request',
+						dedupeKey: 'guidance-resumed',
+						interruption: 'interrupt',
+					})
+					break
 			}
 		},
 		[
@@ -258,6 +307,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			formatTimeRemaining,
 			interactionMode,
 			setInteractionMode,
+			audio,
 		],
 	)
 
@@ -266,6 +316,13 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			const cmd = parseCommand(transcript, confidence)
 
 			if (cmd) {
+				if (
+					audio.isSpeaking &&
+					cmd.action !== 'MUTE_GUIDANCE' &&
+					cmd.action !== 'RESUME_GUIDANCE'
+				) {
+					return
+				}
 				executeCommand(cmd)
 			} else if (confidence < 0.6) {
 				setLastEvent({
@@ -281,12 +338,13 @@ export function useVoiceMode(): UseVoiceModeReturn {
 				})
 			}
 		},
-		[executeCommand],
+		[executeCommand, audio.isSpeaking],
 	)
 
 	const handleError = useCallback((error: string) => {
 		if (error === 'not-allowed') {
 			microphonePermissionDenied = true
+			getKitchenAudioCoordinator().releaseMicrophone('voice')
 			setLastEvent({ type: 'error', message: 'Microphone access denied' })
 			setIsListening(false)
 			setIsContinuous(false)
@@ -304,8 +362,16 @@ export function useVoiceMode(): UseVoiceModeReturn {
 
 		if (isListening) {
 			recognitionRef.current?.stop()
+			getKitchenAudioCoordinator().releaseMicrophone('voice')
 			setIsListening(false)
 			setIsContinuous(false)
+			return
+		}
+		if (!getKitchenAudioCoordinator().acquireMicrophone('voice')) {
+			setLastEvent({
+				type: 'error',
+				message: 'Microphone is busy with another kitchen input',
+			})
 			return
 		}
 
@@ -315,12 +381,21 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			continuous: false,
 			onResult: handleResult,
 			onError: handleError,
-			onEnd: () => setIsListening(false),
+			onEnd: () => {
+				getKitchenAudioCoordinator().releaseMicrophone('voice')
+				setIsListening(false)
+			},
 			onListeningChange: handleListeningChange,
 		})
 
 		recognitionRef.current = rec
-		rec.start()
+		if (!rec.start()) {
+			getKitchenAudioCoordinator().releaseMicrophone('voice')
+			setLastEvent({
+				type: 'error',
+				message: 'Voice recognition could not start',
+			})
+		}
 	}, [supported, isListening, handleResult, handleError, handleListeningChange])
 
 	// Continuous listening: always-on voice recognition that auto-restarts
@@ -338,6 +413,13 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			if (options?.force) {
 				microphonePermissionDenied = false
 			}
+			if (!getKitchenAudioCoordinator().acquireMicrophone('voice')) {
+				setLastEvent({
+					type: 'error',
+					message: 'Microphone is busy with another kitchen input',
+				})
+				return
+			}
 
 			// Stop any existing recognition
 			recognitionRef.current?.stop()
@@ -350,6 +432,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 				onError: e => handleErrorRef.current(e),
 				onEnd: () => {
 					// Only fires when intentionally stopped (continuous auto-restarts otherwise)
+					getKitchenAudioCoordinator().releaseMicrophone('voice')
 					setIsListening(false)
 					setIsContinuous(false)
 				},
@@ -357,14 +440,22 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			})
 
 			recognitionRef.current = rec
-			rec.start()
-			setIsContinuous(true)
+			if (rec.start()) {
+				setIsContinuous(true)
+			} else {
+				getKitchenAudioCoordinator().releaseMicrophone('voice')
+				setLastEvent({
+					type: 'error',
+					message: 'Continuous voice recognition could not start',
+				})
+			}
 		},
 		[supported, isContinuous, handleListeningChange],
 	)
 
 	const stopContinuous = useCallback(() => {
 		recognitionRef.current?.stop()
+		getKitchenAudioCoordinator().releaseMicrophone('voice')
 		setIsContinuous(false)
 	}, [])
 
@@ -372,6 +463,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 	useEffect(() => {
 		return () => {
 			recognitionRef.current?.stop()
+			getKitchenAudioCoordinator().releaseMicrophone('voice')
 		}
 	}, [])
 
@@ -385,6 +477,11 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		lastEvent,
 		hasTTS,
 		speak,
+		isSpeaking: audio.isSpeaking,
+		spokenGuidanceEnabled: audio.preferences.spokenGuidanceEnabled,
+		guidanceChoiceMade: audio.guidanceChoiceMade,
+		chooseSpokenGuidance: audio.chooseSpokenGuidance,
+		stopSpokenGuidance: audio.stopSpokenGuidance,
 		showHelp,
 		setShowHelp,
 	}

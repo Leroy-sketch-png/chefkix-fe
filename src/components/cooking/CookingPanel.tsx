@@ -11,12 +11,13 @@ import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { VoiceModeButton } from './VoiceModeButton'
 import { VoiceCommandToast } from './VoiceCommandToast'
 import { VoiceHelpOverlay } from './VoiceHelpOverlay'
+import { KitchenAudioControl } from './KitchenAudioControl'
+import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { useStepPhotos } from '@/hooks/useStepPhotos'
 import { useClapDetection } from '@/hooks/useClapDetection'
 import { useVoiceMode } from '@/lib/voice'
-import { isAudioEnabled } from '@/lib/audio'
 import {
 	TRANSITION_SPRING,
 	BUTTON_TAP,
@@ -253,11 +254,15 @@ export const CookingPanel = () => {
 						instruction: step.description,
 						tips: tipsText,
 					})
-		voice.speak(speech)
-	}, [step, voice, instructionDetail, t])
+		void voice.speak(speech, {
+			channel: 'user-request',
+			dedupeKey: `repeat-step:${session?.sessionId}:${step.stepNumber}`,
+			interruption: 'replace-lower-priority',
+		})
+	}, [step, voice, instructionDetail, session?.sessionId, t])
 
 	useClapDetection({
-		enabled: hasActiveSession,
+		enabled: hasActiveSession && !voice.isListening && !voice.isSpeaking,
 		onDoubleclap: handleDoubleclap,
 	})
 
@@ -283,7 +288,7 @@ export const CookingPanel = () => {
 		})
 		setLiveAnnouncement(announcement)
 
-		if (isAudioEnabled() && voice.hasTTS) {
+		if (voice.hasTTS) {
 			const speech =
 				instructionDetail === 'condensed'
 					? t('ttsStepCondensed', {
@@ -295,7 +300,11 @@ export const CookingPanel = () => {
 							instruction: step.description,
 							tips: tipsText,
 						})
-			voice.speak(speech)
+			void voice.speak(speech, {
+				channel: 'step-guidance',
+				dedupeKey: `step-guidance:${session?.sessionId}:${step.stepNumber}:${instructionDetail}`,
+				interruption: 'replace-lower-priority',
+			})
 		}
 	}, [
 		hasActiveSession,
@@ -304,6 +313,7 @@ export const CookingPanel = () => {
 		cookingMode,
 		voice,
 		instructionDetail,
+		session?.sessionId,
 		totalSteps,
 		t,
 	])
@@ -738,6 +748,7 @@ export const CookingPanel = () => {
 							<ChevronLeft className='size-5' />
 						</button>
 						<VoiceModeButton voice={voice} />
+						<KitchenAudioControl />
 						<motion.button
 							type='button'
 							onClick={handleNextStep}
@@ -810,6 +821,7 @@ export const CookingPanel = () => {
 				show={voice.showHelp}
 				onClose={() => voice.setShowHelp(false)}
 			/>
+			<KitchenAudioChoiceDialog active={hasActiveSession} />
 		</aside>
 	)
 }

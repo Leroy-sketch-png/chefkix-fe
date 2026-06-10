@@ -3,6 +3,8 @@
  * Uses Web Audio API to generate sounds programmatically (no external files needed)
  */
 
+import { getKitchenAudioCoordinator } from '@/lib/voice/KitchenAudioCoordinator'
+
 let audioContext: AudioContext | null = null
 
 /**
@@ -70,6 +72,7 @@ export function playTimerCompleteSound(): void {
  * Step 6+: cycles back
  */
 export function playTimerCompleteForStep(stepNumber: number): void {
+	if (!isTimerChimeEnabled()) return
 	const ctx = getAudioContext()
 	if (!ctx) return
 
@@ -114,6 +117,7 @@ export function playTimerCompleteForStep(stepNumber: number): void {
  * Single short beep for 30-second warning
  */
 export function playTimerUrgentSound(): void {
+	if (!isTimerChimeEnabled()) return
 	const ctx = getAudioContext()
 	if (!ctx) return
 
@@ -169,25 +173,22 @@ export function notifyTimerUrgent(): void {
  * Check if audio is enabled (user preference)
  */
 export function isAudioEnabled(): boolean {
-	try {
-		if (typeof localStorage === 'undefined') return true
-		return localStorage.getItem('chefkix-audio-enabled') !== 'false'
-	} catch {
-		return true
-	}
+	return getKitchenAudioCoordinator().getSnapshot().preferences
+		.soundEffectsEnabled
+}
+
+export function isTimerChimeEnabled(): boolean {
+	return getKitchenAudioCoordinator().getSnapshot().preferences
+		.timerChimesEnabled
 }
 
 /**
  * Toggle audio enabled state
  */
 export function setAudioEnabled(enabled: boolean): void {
-	try {
-		if (typeof localStorage !== 'undefined') {
-			localStorage.setItem('chefkix-audio-enabled', String(enabled))
-		}
-	} catch {
-		/* storage unavailable */
-	}
+	getKitchenAudioCoordinator().setPreferences({
+		soundEffectsEnabled: enabled,
+	})
 }
 
 // ============================================

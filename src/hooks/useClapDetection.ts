@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { logDevError } from '@/lib/dev-log'
+import { getKitchenAudioCoordinator } from '@/lib/voice'
 
 interface UseClapDetectionOptions {
 	/** Whether clap detection is active */
@@ -64,6 +65,7 @@ export function useClapDetection({
 			audioContextRef.current = null
 		}
 		analyserRef.current = null
+		getKitchenAudioCoordinator().releaseMicrophone('clap')
 	}, [])
 
 	useEffect(() => {
@@ -83,6 +85,7 @@ export function useClapDetection({
 		let mounted = true
 
 		const start = async () => {
+			if (!getKitchenAudioCoordinator().acquireMicrophone('clap')) return
 			try {
 				const stream = await navigator.mediaDevices.getUserMedia({
 					audio: { echoCancellation: true, noiseSuppression: true },
@@ -153,6 +156,7 @@ export function useClapDetection({
 
 				rafRef.current = requestAnimationFrame(detect)
 			} catch {
+				getKitchenAudioCoordinator().releaseMicrophone('clap')
 				// ignored: media API non-critical
 			}
 		}

@@ -9,63 +9,40 @@ export function isTTSSupported(): boolean {
 	return typeof window !== 'undefined' && 'speechSynthesis' in window
 }
 
+import {
+	getKitchenAudioCoordinator,
+	type KitchenAudioChannel,
+	type KitchenAudioInterruption,
+} from './KitchenAudioCoordinator'
+
 interface SpeakOptions {
 	rate?: number
 	pitch?: number
 	volume?: number
+	channel?: KitchenAudioChannel
+	dedupeKey?: string
+	interruption?: KitchenAudioInterruption
 }
 
 class TextToSpeech {
-	private synth: SpeechSynthesis | null = null
-
-	constructor() {
-		if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-			this.synth = window.speechSynthesis
-		}
-	}
-
 	speak(text: string, options?: SpeakOptions): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (!this.synth) {
-				reject(new Error('SpeechSynthesis not supported'))
-				return
-			}
-
-			// Cancel any in-progress speech
-			this.synth.cancel()
-
-			const utterance = new SpeechSynthesisUtterance(text)
-			utterance.rate = options?.rate ?? 1.0
-			utterance.pitch = options?.pitch ?? 1.0
-			utterance.volume = options?.volume ?? 1.0
-			utterance.lang = 'en-US'
-
-			// Timeout guard: resolve if speak() is a no-op (voices not loaded, browser quirk)
-			const timeout = setTimeout(() => resolve(), 15000)
-
-			utterance.onend = () => {
-				clearTimeout(timeout)
-				resolve()
-			}
-			utterance.onerror = e => {
-				clearTimeout(timeout)
-				if (e.error === 'canceled') {
-					resolve() // Not really an error
-				} else {
-					reject(new Error(`TTS error: ${e.error}`))
-				}
-			}
-
-			this.synth.speak(utterance)
+		return getKitchenAudioCoordinator().speak({
+			text,
+			channel: options?.channel ?? 'user-request',
+			dedupeKey: options?.dedupeKey ?? `legacy:${text}`,
+			interruption: options?.interruption ?? 'replace-lower-priority',
+			rate: options?.rate,
+			pitch: options?.pitch,
+			volume: options?.volume,
 		})
 	}
 
 	cancel(): void {
-		this.synth?.cancel()
+		getKitchenAudioCoordinator().cancelAll()
 	}
 
 	get isSpeaking(): boolean {
-		return this.synth?.speaking ?? false
+		return getKitchenAudioCoordinator().getSnapshot().isSpeaking
 	}
 }
 

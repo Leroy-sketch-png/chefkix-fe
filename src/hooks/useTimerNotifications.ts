@@ -5,10 +5,12 @@ import { useCookingStore } from '@/store/cookingStore'
 import { toast } from 'sonner'
 import {
 	playTimerCompleteForStep,
-	isAudioEnabled,
-	playSound,
+	isTimerChimeEnabled,
 } from '@/lib/audio'
-import { getTextToSpeech, isTTSSupported } from '@/lib/voice/TextToSpeech'
+import {
+	getKitchenAudioCoordinator,
+	isTTSSupported,
+} from '@/lib/voice'
 import { showTimerNotification } from '@/lib/pushNotifications'
 import { useTranslations } from 'next-intl'
 
@@ -79,14 +81,18 @@ export const useTimerNotifications = () => {
 				})
 
 				// Play distinct chime for this step (different pitch per step)
-				if (isAudioEnabled()) {
-					playSound('/sounds/timer-done.mp3')
+				if (isTimerChimeEnabled()) {
 					playTimerCompleteForStep(stepNumber)
 				}
 
 				// TTS: announce completion
-				if (isAudioEnabled() && isTTSSupported()) {
-					getTextToSpeech().speak(t('timerStepDone', { step: stepTitle }))
+				if (isTTSSupported()) {
+					void getKitchenAudioCoordinator().speak({
+						channel: 'timer-critical',
+						dedupeKey: `timer-complete:${session.sessionId}:${stepNumber}`,
+						text: t('timerStepDone', { step: stepTitle }),
+						interruption: 'interrupt',
+					})
 				}
 
 				// Vibrate on mobile if supported
@@ -106,7 +112,7 @@ export const useTimerNotifications = () => {
 
 		// Contextual timer announcements at milestones (Wave 2: Kitchen Protocol)
 		// Speak "{StepTitle}: {time} remaining" when crossing a threshold
-		if (isAudioEnabled() && isTTSSupported()) {
+		if (isTTSSupported()) {
 			current.forEach((timer, stepNumber) => {
 				const prevRemaining = previous.get(stepNumber)
 				if (prevRemaining === undefined) return // Timer just started, skip
@@ -129,12 +135,15 @@ export const useTimerNotifications = () => {
 						!announced.has(milestone)
 					) {
 						announced.add(milestone)
-						getTextToSpeech().speak(
-							t('timerMilestone', {
+						void getKitchenAudioCoordinator().speak({
+							channel: 'timer-milestone',
+							dedupeKey: `timer-milestone:${session.sessionId}:${stepNumber}:${milestone}`,
+							text: t('timerMilestone', {
 								step: stepTitle,
 								time: formatTimeRemaining(milestone, t),
 							}),
-						)
+							interruption: 'queue',
+						})
 						break // Only one announcement per tick
 					}
 				}
