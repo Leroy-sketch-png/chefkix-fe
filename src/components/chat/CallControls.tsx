@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Mic, MicOff, Video, VideoOff, Phone, PhoneOff } from 'lucide-react'
+import { Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from 'lucide-react'
 import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 
 interface Props {
@@ -14,16 +14,17 @@ interface Props {
 	onEndCall: () => void
 }
 
-// Sub-component giúp code DRY (Don't Repeat Yourself)
 const CircleBtn = ({
 	active,
 	onClick,
 	icon,
+	label,
 	isDanger = false,
 }: {
 	active?: boolean
 	onClick: () => void
 	icon: React.ReactNode
+	label: string
 	isDanger?: boolean
 }) => {
 	const baseStyle =
@@ -40,6 +41,8 @@ const CircleBtn = ({
 			whileTap={BUTTON_TAP}
 			onClick={onClick}
 			className={`${baseStyle} ${colorStyle}`}
+			aria-label={label}
+			title={label}
 		>
 			{icon}
 		</motion.button>
@@ -57,10 +60,11 @@ export default function CallControls({
 	onEndCall,
 }: Props) {
 	return (
-		<div className='flex gap-5 items-center justify-center pt-4 w-full'>
+		<div className='flex w-full items-center justify-center gap-5 pt-4'>
 			<CircleBtn
 				active={isMicOn}
 				onClick={onToggleAudio}
+				label={isMicOn ? 'Mute microphone' : 'Unmute microphone'}
 				icon={
 					isMicOn ? (
 						<Mic size={22} strokeWidth={1.8} />
@@ -72,6 +76,7 @@ export default function CallControls({
 			<CircleBtn
 				active={isCameraOn}
 				onClick={onToggleVideo}
+				label={isCameraOn ? 'Turn camera off' : 'Turn camera on'}
 				icon={
 					isCameraOn ? (
 						<Video size={22} strokeWidth={1.8} />
@@ -81,22 +86,23 @@ export default function CallControls({
 				}
 			/>
 
-			<div className='w-px h-8 bg-border-subtle mx-1' />
+			<div className='mx-1 h-8 w-px bg-border-subtle' />
 
 			{!isCallActive && !isCalling ? (
 				<motion.button
 					whileHover={BUTTON_HOVER}
 					whileTap={BUTTON_TAP}
 					onClick={onMakeCall}
-					className='h-14 px-8 bg-brand text-white rounded-full font-medium flex items-center gap-2 shadow-warm hover:opacity-90'
+					className='flex h-14 items-center gap-2 rounded-full bg-brand px-8 font-medium text-white shadow-warm hover:opacity-90'
 				>
 					<Phone size={22} strokeWidth={1.8} />
-					<span>Bắt đầu gọi</span>
+					<span>Start call</span>
 				</motion.button>
 			) : (
 				<CircleBtn
 					isDanger
 					onClick={onEndCall}
+					label='End call'
 					icon={<PhoneOff size={24} strokeWidth={1.8} />}
 				/>
 			)}
