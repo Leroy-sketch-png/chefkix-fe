@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { IoReadinessPanel } from '@/components/dev/IoReadinessPanel'
 
 const DEMO_COCKPIT_SESSION_KEY = 'chefkix-demo-cockpit-enabled'
 
@@ -13,83 +14,27 @@ export default function DemoCockpitPage() {
 	}, [])
 
 	return (
-		<main
-			style={{
-				minHeight: '100vh',
-				display: 'grid',
-				placeItems: 'center',
-				background: '#0d1117',
-				color: '#e6edf3',
-				fontFamily:
-					'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-				padding: 24,
-			}}
-		>
-			<section
-				aria-label='Demo cockpit armed'
-				style={{
-					width: 'min(680px, 100%)',
-					textAlign: 'center',
-					display: 'grid',
-					gap: 18,
-				}}
-			>
-				<div
-					style={{
-						margin: '0 auto',
-						width: 12,
-						height: 12,
-						borderRadius: 999,
-						background: '#3fb950',
-						boxShadow: '0 0 0 8px rgba(63, 185, 80, 0.14)',
-					}}
-				/>
-				<div style={{ display: 'grid', gap: 8 }}>
-					<p
-						style={{
-							margin: 0,
-							color: '#8b949e',
-							fontSize: 12,
-							fontWeight: 800,
-							letterSpacing: 0,
-							textTransform: 'uppercase',
-						}}
-					>
-						ChefKix Live Demo Cockpit
-					</p>
-					<h1
-						style={{
-							margin: 0,
-							fontSize: 40,
-							lineHeight: 1.05,
-							fontWeight: 850,
-							letterSpacing: 0,
-						}}
-					>
-						Armed and waiting for the remote
-					</h1>
-				</div>
-				<p
-					style={{
-						margin: 0,
-						color: '#c9d1d9',
-						fontSize: 16,
-						lineHeight: 1.6,
-					}}
-				>
-					Command bus online. Presenter control is active.
-				</p>
-				<div
-					style={{
-						margin: '8px auto 0',
-						color: '#8b949e',
-						fontSize: 12,
-						fontVariantNumeric: 'tabular-nums',
-					}}
-				>
-					{armedAt ? `Armed at ${armedAt}` : 'Arming...'}
-				</div>
-			</section>
+		<main className='min-h-screen bg-bg px-4 py-8 text-text-primary sm:px-6'>
+			<div className='mx-auto max-w-6xl space-y-8'>
+				<header className='flex flex-col gap-4 border-b border-border-subtle pb-6 sm:flex-row sm:items-end sm:justify-between'>
+					<div>
+						<p className='text-xs font-semibold uppercase text-success'>
+							ChefKix live demo cockpit
+						</p>
+						<h1 className='mt-1 text-3xl font-bold'>
+							Armed and waiting for the remote
+						</h1>
+						<p className='mt-2 text-sm text-text-muted'>
+							Command bus online. Presenter control is active.
+						</p>
+					</div>
+					<div className='flex items-center gap-2 text-sm text-text-muted'>
+						<span className='size-2 rounded-full bg-success' />
+						{armedAt ? `Armed at ${armedAt}` : 'Arming...'}
+					</div>
+				</header>
+				<IoReadinessPanel />
+			</div>
 		</main>
 	)
 }

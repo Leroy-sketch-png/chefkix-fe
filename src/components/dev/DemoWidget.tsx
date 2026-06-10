@@ -2074,6 +2074,7 @@ function CheatEngine() {
 }
 
 export function DemoWidget() {
+	const pathname = usePathname()
 	const [autoRunActive, setAutoRunActive] = useState(false)
 	const [showDebugUI, setShowDebugUI] = useState(false)
 	const [cockpitRuntimeMounted, setCockpitRuntimeMounted] = useState(false)
@@ -2098,9 +2099,11 @@ export function DemoWidget() {
 				}, 2000)
 			}
 
-			setCockpitRuntimeMounted(isDemoCockpitSession())
+			setCockpitRuntimeMounted(
+				pathname === '/demo-cockpit' || isDemoCockpitSession(),
+			)
 		}
-	}, [])
+	}, [pathname])
 
 	return (
 		<>
@@ -2114,7 +2117,9 @@ export function DemoWidget() {
 				</>
 			)}
 			<PaceTimer />
-			{cockpitRuntimeMounted ? null : <PhantomConductor />}
+			{pathname === '/demo-remote' || cockpitRuntimeMounted ? null : (
+				<PhantomConductor />
+			)}
 		</>
 	)
 }

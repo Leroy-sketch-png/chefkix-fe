@@ -13,6 +13,8 @@ import {
 	getDemoBaseUrl,
 	warmTokenVault,
 	preloadCriticalData,
+	loadDemoReadinessReport,
+	getBeatReadinessStatus,
 } from './demo-config'
 import { useAuthStore } from '@/store/authStore'
 import { usePaceTimer } from './PaceTimer'
@@ -22,6 +24,7 @@ import { DemoQROverlay } from './DemoQROverlay'
 export interface DemoRemoteCommand {
 	type:
 		| 'GOTO_BEAT'
+		| 'GOTO_ACTION'
 		| 'SAFE_HARBOR'
 		| 'RETRY_BEAT'
 		| 'CLEANUP'
@@ -31,6 +34,7 @@ export interface DemoRemoteCommand {
 		| 'GHOST_DRIVER_BEAT'
 		| 'TOGGLE_QR_OVERLAY'
 	beatIndex?: number
+	actionId?: string
 	commandId?: string
 	issuedAt?: number
 }
@@ -41,6 +45,7 @@ const COCKPIT_LOCK_STORAGE_KEY = 'chefkix-demo-cockpit-lock-v1'
 const COCKPIT_LOCK_STALE_MS = 5000
 const DEMO_REMOTE_COMMAND_TYPES = new Set<DemoRemoteCommand['type']>([
 	'GOTO_BEAT',
+	'GOTO_ACTION',
 	'SAFE_HARBOR',
 	'RETRY_BEAT',
 	'CLEANUP',
@@ -57,6 +62,10 @@ function getRouteReadinessPattern(path: string): RegExp | null {
 	if (target.pathname === '/search') return /Results for|Search results|No recipes found/i
 	if (target.pathname.startsWith('/cook-together')) return /Cooking Room|Room Code|participants/i
 	if (target.pathname === '/pantry') return /Pantry|Shopping|inventory/i
+	if (target.pathname === '/meal-planner')
+		return /One cooking session|Plan today|Cook once today/i
+	if (target.pathname.startsWith('/recipes/') && target.searchParams.has('cook'))
+		return /Cooking|Step|Guide me aloud|Stay quiet/i
 	if (target.pathname === '/creator') return /Creator|analytics|rewards/i
 	if (target.pathname === '/admin/reports') return /Moderation Dashboard|Reports/i
 	if (target.pathname === '/dashboard') return /Dashboard|Tonight|feed/i
@@ -441,6 +450,16 @@ export function PhantomConductor() {
 					)
 					return
 				}
+				const readinessReport = await loadDemoReadinessReport()
+				const readinessStatus = getBeatReadinessStatus(beat, readinessReport)
+				if (readinessStatus !== 'ready') {
+					postCommandStatus(
+						command,
+						'FAILED',
+						`Beat readiness is ${readinessStatus || 'unresolved'}; run demo prep before advancing`,
+					)
+					return
+				}
 
 				const firstAction = beat.actions[0]
 				const shortcut = firstAction
@@ -497,6 +516,78 @@ export function PhantomConductor() {
 						postCommandStatus(command, 'FAILED', message)
 					}
 				}
+			}
+
+			if (command.type === 'GOTO_ACTION' && command.actionId) {
+				const shortcut = getDemoPitchShortcut(command.actionId)
+				const beat = DEMO_PITCH_BEATS.find(candidate =>
+					candidate.actions.includes(command.actionId!),
+				)
+				if (!shortcut || !beat) {
+					postCommandStatus(
+						command,
+						'FAILED',
+						`Unknown demo action: ${command.actionId}`,
+					)
+					return
+				}
+
+				const readinessReport = await loadDemoReadinessReport()
+				const readinessStatus = getBeatReadinessStatus(beat, readinessReport)
+				if (readinessStatus !== 'ready') {
+					postCommandStatus(
+						command,
+						'FAILED',
+						`Action readiness is ${readinessStatus || 'unresolved'}`,
+					)
+					return
+				}
+				if (beat.personaUsername) {
+					const vault = getDemoVault()
+					if (!vault.isWarmed || !isDemoVaultFresh(beat.personaUsername)) {
+						await warmTokenVault()
+					}
+					if (!swapPersonaFromVault(beat.personaUsername, true)) {
+						postCommandStatus(
+							command,
+							'FAILED',
+							`Demo persona unavailable or stale: ${beat.personaUsername}`,
+						)
+						return
+					}
+				}
+				if (shortcut.requiresAuth && !useAuthStore.getState().accessToken) {
+					postCommandStatus(command, 'FAILED', 'Action requires authentication')
+					return
+				}
+
+				try {
+					const resolved = await resolveDemoShortcut(
+						shortcut,
+						useAuthStore.getState().accessToken,
+					)
+					if (resolved.copiedText) {
+						await navigator.clipboard
+							.writeText(resolved.copiedText)
+							.catch(() => undefined)
+					}
+					router.push(resolved.path)
+					const ready = await waitForRouteReady(resolved.path)
+					postCommandStatus(
+						command,
+						ready ? 'SUCCESS' : 'FAILED',
+						ready
+							? `${shortcut.label} ready at ${resolved.path}`
+							: `${shortcut.label} did not become ready`,
+					)
+				} catch (error) {
+					postCommandStatus(
+						command,
+						'FAILED',
+						error instanceof Error ? error.message : 'Action failed',
+					)
+				}
+				return
 			}
 
 			if (command.type === 'TOGGLE_QR_OVERLAY') {
