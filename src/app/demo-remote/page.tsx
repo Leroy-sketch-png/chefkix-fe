@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
 	DEMO_PITCH_BEATS,
 	runPreShowChecklist,
@@ -19,6 +19,10 @@ import {
 import { usePaceTimerState, formatTime } from '@/components/dev/PaceTimer'
 import type { DemoRemoteCommand } from '@/components/dev/PhantomConductor'
 import { DEMO_PITCH_SCRIPT } from '@/components/dev/demo-script'
+import {
+	applyDemoCockpitStatus,
+	type DemoCockpitPresence,
+} from '@/lib/demo-cockpit-presence'
 import styles from './demo-remote.module.css'
 
 type CommandRunStatus = 'queued' | 'running' | 'success' | 'failed'
@@ -52,6 +56,10 @@ export default function DemoRemote() {
 	const [cockpitStatus, setCockpitStatus] = useState<
 		'ACTIVE' | 'STANDBY' | 'UNKNOWN'
 	>('UNKNOWN')
+	const cockpitPresenceRef = useRef<DemoCockpitPresence>({
+		activeCockpitId: null,
+		status: 'UNKNOWN',
+	})
 	const [wakeLockStatus, setWakeLockStatus] = useState<string>('UNKNOWN')
 
 	useEffect(() => {
@@ -63,9 +71,18 @@ export default function DemoRemote() {
 					setLatency(e.data.latency)
 					setLatencyHistory(prev => [...prev.slice(-20), e.data.latency])
 					setCockpitStatus('ACTIVE')
+					cockpitPresenceRef.current = {
+						...cockpitPresenceRef.current,
+						status: 'ACTIVE',
+					}
 				}
 				if (e.data?.type === 'COCKPIT_STATUS') {
-					setCockpitStatus(e.data.status === 'ACTIVE' ? 'ACTIVE' : 'STANDBY')
+					const nextPresence = applyDemoCockpitStatus(
+						cockpitPresenceRef.current,
+						e.data,
+					)
+					cockpitPresenceRef.current = nextPresence
+					setCockpitStatus(nextPresence.status)
 				}
 				if (e.data?.type === 'WAKE_LOCK_STATUS') {
 					setWakeLockStatus(String(e.data.status || 'UNKNOWN'))
