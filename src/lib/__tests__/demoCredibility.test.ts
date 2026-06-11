@@ -91,4 +91,15 @@ describe('demo credibility guardrails', () => {
 			contractVersion: 1,
 		})
 	})
+
+	it('keeps one authoritative cockpit conductor owner', () => {
+		const runtime = readWorkspaceFile(
+			'src/components/dev/DemoCockpitRuntime.tsx',
+		)
+		const legacyWidget = readWorkspaceFile('src/components/dev/DemoWidget.tsx')
+
+		expect(runtime.match(/<PhantomConductor/g) ?? []).toHaveLength(1)
+		expect(legacyWidget).not.toContain('PhantomConductor')
+		expect(legacyWidget).not.toContain('isDemoCockpitSession')
+	})
 })

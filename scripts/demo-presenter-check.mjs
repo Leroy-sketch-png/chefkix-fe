@@ -176,6 +176,13 @@ async function commandGateState(page) {
 }
 
 async function clickButton(page, name, label) {
+	await page.waitForFunction(
+		() =>
+			/CONTROL (LIVE|WITH WAKE RISK)/i.test(document.body?.innerText || ''),
+		undefined,
+		{ timeout: 30000 },
+	)
+
 	const visibleDialogs = await page.getByRole('dialog').allTextContents()
 	if (visibleDialogs.length > 0) {
 		throw new Error(

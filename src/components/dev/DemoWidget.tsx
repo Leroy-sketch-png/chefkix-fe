@@ -23,8 +23,6 @@ import {
 	type DemoPitchShortcut,
 } from './demo-config'
 import { usePaceTimer, PaceTimer } from './PaceTimer'
-import { PhantomConductor } from './PhantomConductor'
-import { isDemoCockpitSession } from './DemoCockpitRuntime'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -2077,7 +2075,6 @@ export function DemoWidget() {
 	const pathname = usePathname()
 	const [autoRunActive, setAutoRunActive] = useState(false)
 	const [showDebugUI, setShowDebugUI] = useState(false)
-	const [cockpitRuntimeMounted, setCockpitRuntimeMounted] = useState(false)
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -2098,10 +2095,6 @@ export function DemoWidget() {
 					runOmniDemo()
 				}, 2000)
 			}
-
-			setCockpitRuntimeMounted(
-				pathname === '/demo-cockpit' || isDemoCockpitSession(),
-			)
 		}
 	}, [pathname])
 
@@ -2117,9 +2110,6 @@ export function DemoWidget() {
 				</>
 			)}
 			<PaceTimer />
-			{pathname === '/demo-remote' || cockpitRuntimeMounted ? null : (
-				<PhantomConductor />
-			)}
 		</>
 	)
 }
