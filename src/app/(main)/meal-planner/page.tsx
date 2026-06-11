@@ -27,10 +27,7 @@ import { createCookPlan, getCurrentCookPlan } from '@/services/cookplan'
 import { getAllSettings } from '@/services/settings'
 import type { CookPlan, CookPlanMode, MealRole } from '@/lib/types/cookplan'
 
-const MODES: CookPlanMode[] = [
-	'COOK_ONCE_TODAY',
-	'DINNER_WITH_LEFTOVERS',
-]
+const MODES: CookPlanMode[] = ['COOK_ONCE_TODAY', 'DINNER_WITH_LEFTOVERS']
 
 function localDateKey() {
 	const now = new Date()
@@ -122,9 +119,7 @@ export default function MealPlannerPage() {
 		if (!plan) return
 		const text = plan.shoppingList
 			.map(item =>
-				[item.quantity, item.unit, item.ingredient]
-					.filter(Boolean)
-					.join(' '),
+				[item.quantity, item.unit, item.ingredient].filter(Boolean).join(' '),
 			)
 			.join('\n')
 		try {
@@ -145,6 +140,15 @@ export default function MealPlannerPage() {
 	}
 
 	const hasPlan = Boolean(plan?.cookBatches.length)
+	const planMatchesControls = Boolean(
+		plan &&
+			plan.mode === mode &&
+			plan.householdSize === householdSize &&
+			plan.maxActiveMinutes === maxActiveMinutes &&
+			plan.pantryFirst === pantryFirst,
+	)
+	const hasPendingChanges = Boolean(plan) && !planMatchesControls
+	const showPlan = hasPlan && planMatchesControls && !generating
 	const batch = plan?.cookBatches[0]
 
 	if (loading) {
@@ -195,6 +199,7 @@ export default function MealPlannerPage() {
 
 					<section
 						aria-labelledby='plan-controls-title'
+						aria-busy={generating}
 						className='border-b border-border-subtle pb-6'
 					>
 						<div className='mb-4 flex items-center justify-between gap-3'>
@@ -219,9 +224,11 @@ export default function MealPlannerPage() {
 								)}
 								{generating
 									? t('buildingPlan')
-									: hasPlan
-										? t('rebuildToday')
-										: t('buildToday')}
+									: hasPendingChanges
+										? t('applyChanges')
+										: hasPlan
+											? t('rebuildToday')
+											: t('buildToday')}
 							</Button>
 						</div>
 
@@ -237,8 +244,9 @@ export default function MealPlannerPage() {
 										type='button'
 										role='radio'
 										aria-checked={mode === option}
+										disabled={generating}
 										onClick={() => setMode(option)}
-										className={`min-h-20 rounded-md px-3 py-3 text-left transition-colors ${
+										className={`min-h-20 rounded-md px-3 py-3 text-left transition-colors disabled:cursor-wait disabled:opacity-60 ${
 											mode === option
 												? 'bg-bg-card text-text-primary shadow-card'
 												: 'text-text-secondary hover:text-text-primary'
@@ -271,7 +279,7 @@ export default function MealPlannerPage() {
 											variant='outline'
 											size='icon'
 											aria-label={t('decreaseHousehold')}
-											disabled={householdSize <= 1}
+											disabled={generating || householdSize <= 1}
 											onClick={() =>
 												setHouseholdSize(value => Math.max(1, value - 1))
 											}
@@ -285,7 +293,7 @@ export default function MealPlannerPage() {
 											variant='outline'
 											size='icon'
 											aria-label={t('increaseHousehold')}
-											disabled={householdSize >= 12}
+											disabled={generating || householdSize >= 12}
 											onClick={() =>
 												setHouseholdSize(value => Math.min(12, value + 1))
 											}
@@ -311,10 +319,11 @@ export default function MealPlannerPage() {
 										max={180}
 										step={15}
 										value={maxActiveMinutes}
+										disabled={generating}
 										onChange={event =>
 											setMaxActiveMinutes(Number(event.target.value))
 										}
-										className='w-full accent-brand'
+										className='w-full accent-brand disabled:cursor-wait disabled:opacity-60'
 									/>
 								</label>
 
@@ -329,6 +338,7 @@ export default function MealPlannerPage() {
 									</div>
 									<Switch
 										checked={pantryFirst}
+										disabled={generating}
 										onCheckedChange={setPantryFirst}
 									/>
 								</div>
@@ -336,7 +346,38 @@ export default function MealPlannerPage() {
 						</div>
 					</section>
 
-					{plan && !hasPlan ? (
+					{generating ? (
+						<section
+							role='status'
+							aria-live='polite'
+							className='flex min-h-48 flex-col items-center justify-center border border-border-medium bg-bg-elevated/40 px-6 py-10 text-center'
+						>
+							<Loader2 className='size-8 animate-spin text-brand' />
+							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
+								{t('buildingPlan')}
+							</h2>
+							<p className='mt-1 max-w-xl text-sm text-text-muted'>
+								{t('buildingPlanDesc')}
+							</p>
+						</section>
+					) : null}
+
+					{hasPendingChanges && !generating ? (
+						<section
+							role='status'
+							className='flex min-h-48 flex-col items-center justify-center border border-brand/30 bg-brand/5 px-6 py-10 text-center'
+						>
+							<RefreshCw className='size-8 text-brand' />
+							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
+								{t('changesPending')}
+							</h2>
+							<p className='mt-1 max-w-xl text-sm text-text-muted'>
+								{t('changesPendingDesc')}
+							</p>
+						</section>
+					) : null}
+
+					{plan && !hasPlan && planMatchesControls && !generating ? (
 						<section className='border-l-4 border-warning bg-warning/5 px-5 py-4'>
 							<h2 className='font-semibold text-text-primary'>
 								{t('noSafePlan')}
@@ -358,7 +399,7 @@ export default function MealPlannerPage() {
 						</section>
 					) : null}
 
-					{!plan ? (
+					{!plan && !generating ? (
 						<section className='flex min-h-48 flex-col items-center justify-center border border-dashed border-border-medium px-6 py-10 text-center'>
 							<ChefHat className='size-10 text-text-muted' />
 							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
@@ -370,7 +411,7 @@ export default function MealPlannerPage() {
 						</section>
 					) : null}
 
-					{hasPlan && batch ? (
+					{showPlan && batch ? (
 						<>
 							<section className='grid gap-4 border-b border-border-subtle pb-6 md:grid-cols-[1fr_auto] md:items-end'>
 								<div>
@@ -442,7 +483,8 @@ export default function MealPlannerPage() {
 														</h3>
 														{dish.cuisineType ? (
 															<p className='mt-1 text-xs text-text-muted'>
-																{dish.cuisineType} - {mealRoleLabel(dish.mealRole)}
+																{dish.cuisineType} -{' '}
+																{mealRoleLabel(dish.mealRole)}
 															</p>
 														) : null}
 													</div>
@@ -526,9 +568,7 @@ export default function MealPlannerPage() {
 															item: item.ingredient,
 														})}
 														aria-pressed={checked}
-														onClick={() =>
-															toggleShoppingItem(item.ingredient)
-														}
+														onClick={() => toggleShoppingItem(item.ingredient)}
 														className={`flex size-5 shrink-0 items-center justify-center rounded border ${
 															checked
 																? 'border-brand bg-brand text-white'

@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
 	title: 'Explore Recipes | Chefkix',
 	description:
-		'Discover thousands of delicious recipes from chefs around the world. Filter by cuisine, dietary restrictions, and difficulty level.',
+		'Discover community recipes and filter by cuisine, dietary restrictions, and difficulty level.',
 	openGraph: {
 		title: 'Explore Recipes | Chefkix',
 		description: 'Discover amazing recipes from chefs worldwide',

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 interface NumberTickerProps {
 	/** Target value */
 	value: number
-	/** Starting value (default 0) */
+	/** Optional starting value for an intentional count animation */
 	from?: number
 	/** Decimal places */
 	decimals?: number
@@ -34,7 +34,7 @@ interface NumberTickerProps {
  */
 export function NumberTicker({
 	value,
-	from = 0,
+	from,
 	decimals = 0,
 	prefix = '',
 	suffix = '',
@@ -45,12 +45,13 @@ export function NumberTicker({
 }: NumberTickerProps) {
 	const ref = React.useRef<HTMLSpanElement>(null)
 	const inView = useInView(ref, { once, margin: '0px 0px -40px 0px' })
-	const motionValue = useSpring(from, {
+	const initialValue = from ?? value
+	const motionValue = useSpring(initialValue, {
 		duration: duration * 1000,
 		bounce: 0,
 	})
 	const [display, setDisplay] = React.useState(
-		formatNum(from, decimals, locale),
+		formatNum(initialValue, decimals, locale),
 	)
 
 	React.useEffect(() => {

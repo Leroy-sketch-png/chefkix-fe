@@ -258,13 +258,7 @@ const MultiplePendingPosts = ({
 			{/* Header */}
 			<div className='flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-brand/5 to-transparent'>
 				<div className='flex items-center gap-3'>
-					<motion.span
-						className='text-lg'
-						animate={{ scale: [1, 1.15, 1] }}
-						transition={{ repeat: Infinity, duration: 2 }}
-					>
-						📸
-					</motion.span>
+					<Camera className='size-5 text-brand' />
 					<h3 className='text-base font-bold text-text-primary'>
 						{t('pdRecipesWaiting', { count: sessions.length })}
 					</h3>

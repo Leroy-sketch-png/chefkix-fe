@@ -228,14 +228,16 @@ export function ActiveChallengesWidget({
 											time: formatCountdown(daily.endsAt, t('ended')),
 										})}
 									</span>
-									<span className='ml-auto font-semibold tabular-nums text-xp'>
-										+
-										<NumberTicker
-											value={daily.bonusXp}
-											className='tabular-nums font-bold'
-										/>{' '}
-										XP
-									</span>
+									{daily.bonusXp > 0 ? (
+										<span className='ml-auto font-semibold tabular-nums text-xp'>
+											+
+											<NumberTicker
+												value={daily.bonusXp}
+												className='tabular-nums font-bold'
+											/>{' '}
+											XP
+										</span>
+									) : null}
 								</div>
 							</div>
 							<ChevronRight className='size-4 text-text-muted transition-transform group-hover:translate-x-0.5' />

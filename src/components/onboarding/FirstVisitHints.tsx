@@ -338,13 +338,13 @@ export const FIRST_VISIT_HINTS = {
 		id: 'explore-recipes',
 		title: 'Discover Recipes',
 		description:
-			'Browse thousands of recipes from our community. Filter by cuisine, difficulty, or cooking time to find your perfect dish.',
+			'Browse community recipes and filter by cuisine, difficulty, or cooking time to find a dish that fits.',
 	},
 	SEARCH_BAR: {
 		id: 'search-bar',
 		title: 'Quick Search',
 		description:
-			'Looking for something specific? Press "/" or tap the search icon to find recipes, cooks, or posts instantly.',
+			'Looking for something specific? Press "/" or tap the search icon to find recipes, cooks, or posts.',
 	},
 
 	// ─────────────────────────────────────────
@@ -354,13 +354,13 @@ export const FIRST_VISIT_HINTS = {
 		id: 'start-cooking',
 		title: 'Start Your First Cook',
 		description:
-			'Tap "Cook" on any recipe to enter guided cooking mode. You\'ll get step-by-step instructions with auto-synced timers - perfect for keeping your hands free.',
+			'Tap "Cook" on any recipe to enter guided cooking mode with step-by-step instructions, optional timers, and hands-free controls.',
 	},
 	COOK_MODE_TIMERS: {
 		id: 'cook-mode-timers',
-		title: 'Auto Timers',
+		title: 'Step Timers',
 		description:
-			'Each cooking step has its own timer. They start automatically and will alert you when done - even if your screen is off or you switch apps.',
+			'Start a timer when a step needs one. Timer chimes remain available when spoken guidance is muted.',
 	},
 	COOK_MODE_VOICE: {
 		id: 'cook-mode-voice',
@@ -372,7 +372,7 @@ export const FIRST_VISIT_HINTS = {
 		id: 'cook-mode-complete',
 		title: 'You Did It!',
 		description:
-			'Every completed cook earns you XP and builds your streak. Snap a photo of your dish to share your creation with the community!',
+			'Complete the cook to record your progress, then share a photo or note with the community.',
 	},
 
 	// ─────────────────────────────────────────
@@ -382,13 +382,13 @@ export const FIRST_VISIT_HINTS = {
 		id: 'earn-xp',
 		title: 'Earn XP & Level Up',
 		description:
-			'Complete cooking sessions to earn XP. More complex recipes = more XP. Level up to unlock badges, titles, and show off your cooking journey.',
+			'Complete cooking sessions to earn XP and build a visible record of your cooking progress.',
 	},
 	STREAKS: {
 		id: 'streaks',
 		title: 'Build Your Streak',
 		description:
-			"Cook something every day to build a streak. Longer streaks mean bonus XP multipliers and exclusive streak badges. Don't break the chain!",
+			'Keep cooking within your streak window to build consistency. The dashboard shows when your current streak needs attention.',
 	},
 	LEVELS_BADGES: {
 		id: 'levels-badges',
@@ -454,13 +454,13 @@ export const FIRST_VISIT_HINTS = {
 		id: 'shopping-list',
 		title: 'Smart Shopping Lists',
 		description:
-			'Tap "Add to Shopping List" on any recipe to automatically add its ingredients. Lists sync across devices and can be shared with family.',
+			'Tap "Add to Shopping List" on a recipe to collect its ingredients in one practical checklist.',
 	},
 	CHALLENGES: {
 		id: 'challenges',
 		title: 'Weekly Challenges',
 		description:
-			'Take on themed cooking challenges to earn bonus XP and exclusive badges. New challenges drop every week.',
+			'Browse active cooking challenges, check their requirements, and track your progress in one place.',
 	},
 
 	// ─────────────────────────────────────────

@@ -19,10 +19,20 @@ export function AnimatedCircularProgressBar({
 }: AnimatedCircularProgressBarProps) {
 	const circumference = 2 * Math.PI * 45
 	const percentPx = circumference / 100
-	const currentPercent = Math.round(((value - min) / (max - min)) * 100)
+	const range = Math.max(max - min, 1)
+	const currentPercent = Math.min(
+		100,
+		Math.max(0, Math.round(((value - min) / range) * 100)),
+	)
 
 	return (
 		<div
+			role='progressbar'
+			aria-label='Level progress'
+			aria-valuemin={0}
+			aria-valuemax={100}
+			aria-valuenow={currentPercent}
+			aria-valuetext={`${currentPercent}% complete`}
 			className={cn('relative size-40 text-2xl font-semibold', className)}
 			style={
 				{
@@ -98,7 +108,7 @@ export function AnimatedCircularProgressBar({
 				/>
 			</svg>
 			<span className='animate-in fade-in absolute inset-0 m-auto size-fit text-sm font-black'>
-				{currentPercent}
+				{currentPercent}%
 			</span>
 		</div>
 	)
