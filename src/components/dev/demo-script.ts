@@ -41,11 +41,15 @@ export const DEMO_PITCH_SCRIPT: Record<string, DemoScriptBeat> = {
 		title: '3. One-To-One Co-Cook',
 		objective:
 			'Demonstrate the implemented shared-cooking workflow without implying unbuilt multi-party scale.',
-		proofPoints: ['1:1 shared cooking', 'TURN relay readiness'],
+		proofPoints: [
+			'1:1 shared cooking',
+			'TURN relay readiness',
+			'Audio-only fallback',
+		],
 		prompts: [
-			'Open the camera and microphone preflight before room entry.',
+			'Keep camera, clap, and voice controls off unless the cockpit marks them green.',
 			'Show the invite path and the explicit connection state.',
-			'Point out manual reconnect and audio-only fallback.',
+			'Lead with manual reconnect and audio-only fallback as the resilient path.',
 		],
 		fallbackLine:
 			'The product proof today is a bounded one-to-one cooking session with explicit recovery when the network is imperfect.',

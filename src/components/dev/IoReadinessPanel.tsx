@@ -443,6 +443,13 @@ export function IoReadinessPanel() {
 					<p className='mt-1 text-sm text-text-muted'>
 						{summary.detail} Evidence expires after 4 hours.
 					</p>
+					<p
+						className={`mt-2 text-sm font-semibold ${
+							summary.stageOk ? 'text-success' : 'text-error'
+						}`}
+					>
+						{summary.stageDetail}
+					</p>
 				</div>
 				<Button variant='outline' size='icon' onClick={reset} title='Reset evidence'>
 					<RotateCcw />

@@ -33,8 +33,54 @@ describe('io certification summary', () => {
 		)
 
 		expect(summary.ok).toBe(true)
+		expect(summary.stageOk).toBe(true)
 		expect(summary.passed).toBe(IO_CERTIFICATION_CHECKS.length)
 		expect(summary.detail).toContain('6/6')
+	})
+
+	it('keeps the core stage path ready when optional device checks fail', () => {
+		const now = Date.parse('2026-06-11T08:00:00.000Z')
+		const results = passingResults('2026-06-11T07:30:00.000Z')
+		results.media = {
+			status: 'fail',
+			detail: 'NotAllowedError: Permission denied',
+			verifiedAt: '2026-06-11T07:30:00.000Z',
+		}
+		results.clap = {
+			status: 'fail',
+			detail: 'Microphone unavailable',
+			verifiedAt: '2026-06-11T07:30:00.000Z',
+		}
+		results.voice = {
+			status: 'fail',
+			detail: 'Recognition error: not-allowed',
+			verifiedAt: '2026-06-11T07:30:00.000Z',
+		}
+
+		const summary = summarizeIoCertification(results, now)
+
+		expect(summary.ok).toBe(false)
+		expect(summary.stageOk).toBe(true)
+		expect(summary.stagePassed).toBe(summary.stageTotal)
+		expect(summary.optionalUnavailable).toHaveLength(3)
+		expect(summary.stageDetail).toContain('Core stage path ready')
+	})
+
+	it('blocks the stage path when timer isolation is not verified', () => {
+		const now = Date.parse('2026-06-11T08:00:00.000Z')
+		const results = passingResults('2026-06-11T07:30:00.000Z')
+		results.timer = {
+			status: 'fail',
+			detail: 'Presenter could not hear the output',
+			verifiedAt: '2026-06-11T07:30:00.000Z',
+		}
+
+		const summary = summarizeIoCertification(results, now)
+
+		expect(summary.stageOk).toBe(false)
+		expect(summary.stageBlocking).toContain(
+			'Timer while narration muted: Presenter could not hear the output',
+		)
 	})
 
 	it('rejects stale physical evidence', () => {

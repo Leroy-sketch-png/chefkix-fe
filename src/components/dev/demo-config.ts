@@ -1649,12 +1649,12 @@ export async function runPreShowChecklist(
 	// 2. Physical I/O evidence from the cockpit panel
 	const ioCheck = await runPreShowCheck(
 		'io-certification',
-		'Physical I/O Certification',
+		'Stage I/O Profile',
 		async () => {
 			const summary = getStoredIoCertificationSummary()
 			return {
-				status: summary.ok ? 'pass' : 'fail',
-				detail: summary.detail,
+				status: summary.ok ? 'pass' : summary.stageOk ? 'warn' : 'fail',
+				detail: summary.ok ? summary.detail : summary.stageDetail,
 			}
 		},
 	)
