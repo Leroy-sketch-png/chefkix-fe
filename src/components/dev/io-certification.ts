@@ -50,6 +50,21 @@ export interface IoCertificationSummary {
 	oldestVerifiedAt?: string
 }
 
+export function getIoCertificationGateResult(
+	summary: IoCertificationSummary,
+): {
+	status: 'pass' | 'warn' | 'fail'
+	detail: string
+} {
+	if (summary.ok) {
+		return { status: 'pass', detail: summary.detail }
+	}
+	if (summary.stageOk) {
+		return { status: 'warn', detail: summary.stageDetail }
+	}
+	return { status: 'fail', detail: summary.stageDetail }
+}
+
 export const EMPTY_IO_CERTIFICATION_RESULTS: IoCertificationResults =
 	IO_CERTIFICATION_CHECKS.reduce((acc, check) => {
 		acc[check.id] = {

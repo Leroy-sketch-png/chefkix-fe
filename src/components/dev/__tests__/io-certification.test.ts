@@ -1,4 +1,5 @@
 import {
+	getIoCertificationGateResult,
 	IO_CERTIFICATION_CHECKS,
 	parseIoCertificationResults,
 	summarizeIoCertification,
@@ -64,6 +65,7 @@ describe('io certification summary', () => {
 		expect(summary.stagePassed).toBe(summary.stageTotal)
 		expect(summary.optionalUnavailable).toHaveLength(3)
 		expect(summary.stageDetail).toContain('Core stage path ready')
+		expect(getIoCertificationGateResult(summary).status).toBe('warn')
 	})
 
 	it('blocks the stage path when timer isolation is not verified', () => {
@@ -81,6 +83,7 @@ describe('io certification summary', () => {
 		expect(summary.stageBlocking).toContain(
 			'Timer while narration muted: Presenter could not hear the output',
 		)
+		expect(getIoCertificationGateResult(summary).status).toBe('fail')
 	})
 
 	it('rejects stale physical evidence', () => {

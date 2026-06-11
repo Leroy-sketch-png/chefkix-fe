@@ -2,7 +2,10 @@ import type { CookingRoom, RoomParticipant } from '@/lib/types/room'
 import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { useCookingStore } from '@/store/cookingStore'
-import { getStoredIoCertificationSummary } from '@/components/dev/io-certification'
+import {
+	getIoCertificationGateResult,
+	getStoredIoCertificationSummary,
+} from '@/components/dev/io-certification'
 
 export interface DemoAccount {
 	label: string
@@ -1652,10 +1655,7 @@ export async function runPreShowChecklist(
 		'Stage I/O Profile',
 		async () => {
 			const summary = getStoredIoCertificationSummary()
-			return {
-				status: summary.ok ? 'pass' : summary.stageOk ? 'warn' : 'fail',
-				detail: summary.ok ? summary.detail : summary.stageDetail,
-			}
+			return getIoCertificationGateResult(summary)
 		},
 	)
 	push(ioCheck)
