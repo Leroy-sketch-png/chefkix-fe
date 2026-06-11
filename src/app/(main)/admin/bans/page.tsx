@@ -126,7 +126,6 @@ export default function BansPage() {
 					eyebrow='User Lookup'
 					chipText={searched ? 'Results Loaded' : 'Awaiting Search'}
 					className='p-3 md:p-4'
-					showOrbs={false}
 				>
 					<div className='flex gap-2'>
 						<div className='relative flex-1'>

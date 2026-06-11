@@ -230,7 +230,6 @@ export function DashboardCommandDeck({
 		>
 			<PremiumSurface
 				tone='brand'
-				showOrbs={true}
 				className='overflow-hidden rounded-3xl border-border-subtle/80 p-4 shadow-card sm:p-5 lg:p-6'
 			>
 				<div className='grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start lg:gap-6'>

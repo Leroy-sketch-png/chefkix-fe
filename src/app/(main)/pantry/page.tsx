@@ -569,7 +569,6 @@ export default function PantryPage() {
 							>
 								<PremiumSurface
 									tone='success'
-									showOrbs={false}
 									className='bg-bg-card/85 sm:p-4 border-none shadow-none backdrop-blur-none'
 								>
 									<div className='space-y-3'>

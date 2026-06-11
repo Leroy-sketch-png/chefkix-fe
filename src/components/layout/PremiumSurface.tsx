@@ -25,54 +25,34 @@ interface PremiumSurfaceProps {
 	chipText?: string
 	chipClassName?: string
 	tone?: SurfaceTone
-	showOrbs?: boolean
 }
 
-const toneClasses: Record<
-	SurfaceTone,
-	{ left: string; right: string; border: string; gradient: string }
-> = {
+const toneClasses: Record<SurfaceTone, { border: string; gradient: string }> = {
 	brand: {
-		left: 'bg-brand/12',
-		right: 'bg-xp/10',
 		border: 'border-brand/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
 	},
 	xp: {
-		left: 'bg-xp/14',
-		right: 'bg-brand/10',
 		border: 'border-xp/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
 	},
 	success: {
-		left: 'bg-brand/10',
-		right: 'bg-success/12',
 		border: 'border-success/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
 	},
 	streak: {
-		left: 'bg-streak/14',
-		right: 'bg-brand/10',
 		border: 'border-streak/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
 	},
 	blue: {
-		left: 'bg-brand/8',
-		right: 'bg-info/14',
 		border: 'border-info/15',
 		gradient: 'from-bg-card/97 via-bg-card/90 to-bg-elevated/75',
 	},
-	/** Glass: transparent frosted surface — use over image backgrounds or colorful sections */
 	glass: {
-		left: 'bg-white/8',
-		right: 'bg-white/4',
 		border: 'border-white/15',
 		gradient: 'from-white/12 via-white/8 to-white/4',
 	},
-	/** Depth: darker, contrasty — use for featured/hero sections that need weight */
 	depth: {
-		left: 'bg-brand/8',
-		right: 'bg-xp/8',
 		border: 'border-border-medium',
 		gradient: 'from-bg-elevated/95 via-bg-elevated/90 to-bg/85',
 	},
@@ -111,49 +91,19 @@ export function PremiumSurface({
 	chipText,
 	chipClassName,
 	tone = 'brand',
-	showOrbs = true,
 }: PremiumSurfaceProps) {
-	const orbs = toneClasses[tone]
+	const surface = toneClasses[tone]
 
 	return (
 		<div
 			className={cn(
 				'relative overflow-hidden rounded-3xl border bg-gradient-to-br p-3 shadow-card backdrop-blur-sm transition-colors duration-300',
-				orbs.gradient,
-				orbs.border,
+				surface.gradient,
+				surface.border,
 				className,
 			)}
 		>
-			{showOrbs ? (
-				<>
-					{/* Primary orb — top-left */}
-					<div
-						className={cn(
-							'pointer-events-none absolute -left-12 -top-14 size-36 rounded-full blur-3xl',
-							orbs.left,
-						)}
-					/>
-					{/* Secondary orb — bottom-right */}
-					<div
-						className={cn(
-							'pointer-events-none absolute -bottom-18 -right-14 size-36 rounded-full blur-3xl',
-							orbs.right,
-						)}
-					/>
-					{/* Micro orb — center for depth */}
-					<div
-						className={cn(
-							'pointer-events-none absolute left-1/2 top-1/3 size-20 -translate-x-1/2 rounded-full blur-2xl opacity-40',
-							orbs.left,
-						)}
-					/>
-				</>
-			) : null}
-
-			{/* Top sheen — double gradient for glass depth */}
 			<div className='pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/30 via-white/10 to-transparent dark:from-white/8 dark:via-white/3' />
-
-			{/* Subtle inner border highlight */}
 			<div className='pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/20 dark:ring-white/8' />
 
 			<div className={cn('relative z-10', contentClassName)}>

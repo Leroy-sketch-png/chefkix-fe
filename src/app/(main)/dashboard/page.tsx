@@ -551,7 +551,6 @@ export default function DashboardPage() {
 			className='px-4 py-3'
 			eyebrow={t('profileBoost')}
 			chipText={t('actionNeeded')}
-			showOrbs={true}
 		>
 			<div className='flex flex-wrap items-center gap-3'>
 				<span className='text-xs font-semibold text-text-secondary'>
@@ -612,7 +611,7 @@ export default function DashboardPage() {
 				)}
 			</AnimatePresence>
 			<PageTransition>
-				<MeshGradient className='min-h-full' speed={0.5}>
+				<MeshGradient className='min-h-full'>
 					<PageContainer maxWidth='lg'>
 						<div
 							data-testid='dashboard-page'
@@ -847,7 +846,6 @@ export default function DashboardPage() {
 												? t('feedModeFollowing')
 												: t('feedModeForYou')
 										}
-										showOrbs={true}
 									>
 										{shouldShowTasteSetupPrompt && (
 											<div className='mb-4 rounded-2xl border border-brand/15 bg-gradient-to-r from-brand/6 via-bg-card to-streak/6 p-4'>
@@ -896,7 +894,6 @@ export default function DashboardPage() {
 										className='p-3 md:p-4'
 										eyebrow={t('creatorComposer')}
 										chipText={t('readyToPost')}
-										showOrbs={true}
 									>
 										<CreatePostForm
 											onPostCreated={handlePostCreated}

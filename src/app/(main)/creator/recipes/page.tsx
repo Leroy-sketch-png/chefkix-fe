@@ -481,7 +481,6 @@ export default function MyRecipesPage() {
 								: t('recipeControlsAllVisible')
 						}
 						className='mb-6 p-3 md:p-4'
-						showOrbs={false}
 					>
 						<motion.div
 							initial={{ opacity: 0, y: 10 }}

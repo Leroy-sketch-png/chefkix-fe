@@ -203,8 +203,6 @@ const HeroSection = () => {
 						{/* Main Image */}
 						<motion.div
 							className='absolute right-0 top-1/2 -translate-y-1/2 w-96 lg:w-[28rem] h-[32rem] rounded-3xl overflow-hidden shadow-2xl z-20 border-8 border-bg/80'
-							animate={{ y: ['-50%', '-52%', '-50%'] }}
-							transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
 						>
 							<Image
 								src='/images/hero/cacio-e-pepe.png'
@@ -231,13 +229,6 @@ const HeroSection = () => {
 						{/* Secondary Image 1 */}
 						<motion.div
 							className='absolute left-4 top-8 w-64 h-80 rounded-3xl overflow-hidden shadow-xl z-10 border-8 border-bg/80'
-							animate={{ y: [0, -15, 0] }}
-							transition={{
-								duration: 7,
-								repeat: Infinity,
-								ease: 'easeInOut',
-								delay: 1,
-							}}
 						>
 							<Image
 								src='/images/hero/miso-ramen.png'
@@ -260,13 +251,6 @@ const HeroSection = () => {
 						{/* Secondary Image 2 */}
 						<motion.div
 							className='absolute left-10 bottom-6 size-60 rounded-3xl overflow-hidden shadow-2xl z-30 border-8 border-bg/80'
-							animate={{ y: [0, 15, 0] }}
-							transition={{
-								duration: 5,
-								repeat: Infinity,
-								ease: 'easeInOut',
-								delay: 2,
-							}}
 						>
 							<Image
 								src='/images/hero/avocado-toast.png'

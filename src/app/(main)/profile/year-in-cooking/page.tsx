@@ -603,7 +603,6 @@ export default function YearInCookingPage() {
 				<PremiumSurface
 					eyebrow='Export'
 					chipText='Share-ready'
-					showOrbs={false}
 					className='p-3 md:p-4'
 				>
 					<div className='flex justify-center gap-3'>

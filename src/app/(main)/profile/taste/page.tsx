@@ -411,7 +411,6 @@ export default function TasteProfilePage() {
 								: t('tasteRadarChipCalibrating')
 						}
 						className='mx-auto mb-6 max-w-lg p-2.5 sm:p-6'
-						showOrbs={false}
 					>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}

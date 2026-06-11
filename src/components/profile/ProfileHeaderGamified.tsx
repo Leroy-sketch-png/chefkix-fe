@@ -622,7 +622,6 @@ const OwnProfileHeader = ({
 	return (
 		<PremiumSurface
 			tone='brand'
-			showOrbs={true}
 			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
 		>
 			{/* Cover Photo */}
@@ -849,7 +848,6 @@ const OtherUserProfileHeader = ({
 	return (
 		<PremiumSurface
 			tone='brand'
-			showOrbs={true}
 			className='overflow-hidden rounded-2xl border border-border-subtle/60 bg-gradient-to-b from-bg-card to-bg-elevated/50 shadow-warm ring-1 ring-white/8 p-0'
 		>
 			{/* Cover Photo */}

@@ -811,7 +811,6 @@ function RecipeDetailContent() {
 				<PremiumSurface
 					eyebrow='Recipe Detail'
 					chipText='Cooking workspace'
-					showOrbs={true}
 					className='mb-4 p-2 md:p-3'
 					tone='blue'
 				>

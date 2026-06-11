@@ -267,7 +267,6 @@ function FollowersContent() {
 						TABS.find(tab => tab.key === activeTab)?.labelKey || 'tabFollowers',
 					)}
 					className='mb-6 p-3 md:p-4'
-					showOrbs={false}
 				>
 					<div className='flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
 						{TABS.map(tab => (

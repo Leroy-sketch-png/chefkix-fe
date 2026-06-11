@@ -1471,7 +1471,6 @@ export default function DevDashboard() {
 					{/* Infrastructure Status */}
 					<PremiumSurface
 						tone='brand'
-						showOrbs={true}
 						eyebrow='Infrastructure Status'
 					>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
@@ -1534,7 +1533,6 @@ export default function DevDashboard() {
 					{/* Test Accounts Cockpit */}
 					<PremiumSurface
 						tone='xp'
-						showOrbs={true}
 						eyebrow='Test Personas & Quick Sign-In'
 					>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
@@ -1690,7 +1688,6 @@ export default function DevDashboard() {
 				{/* Timeline Beat Conductor */}
 				<PremiumSurface
 					tone='streak'
-					showOrbs={true}
 					eyebrow='Investor Pitch Beat Conductor'
 					chipText='Timeline'
 				>
@@ -1988,7 +1985,6 @@ export default function DevDashboard() {
 				{/* Row 2: API Playgrounds & Endpoint Tests */}
 				<PremiumSurface
 					tone='success'
-					showOrbs={true}
 					eyebrow='API Endpoint Tests'
 					chipText='Playground'
 				>
@@ -2128,7 +2124,6 @@ export default function DevDashboard() {
 				{/* Row 3: OTP Dev Mode Banner */}
 				<PremiumSurface
 					tone='blue'
-					showOrbs={true}
 					eyebrow='Bypassed Dev Email & OTP Channel'
 				>
 					<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4'>
@@ -2210,7 +2205,7 @@ export default function DevDashboard() {
 				{/* Bottom Row: Commands & Quick Links */}
 				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 					{/* Quick Links */}
-					<PremiumSurface tone='brand' showOrbs={true} eyebrow='Quick Links'>
+					<PremiumSurface tone='brand' eyebrow='Quick Links'>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
 							{QUICK_LINKS.map(link => (
 								<motion.a
@@ -2240,7 +2235,6 @@ export default function DevDashboard() {
 					{/* Infrastructure Control Panel */}
 					<PremiumSurface
 						tone='depth'
-						showOrbs={true}
 						eyebrow='Dev Commands Reference'
 					>
 						<div className='grid grid-cols-1 gap-2 mt-4'>
@@ -2314,7 +2308,6 @@ export default function DevDashboard() {
 				{token && (
 					<PremiumSurface
 						tone='xp'
-						showOrbs={false}
 						eyebrow='cURL Request Generator'
 					>
 						<div

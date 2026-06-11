@@ -70,7 +70,6 @@ function CookCardContent() {
 					eyebrow='Card Preview'
 					chipText='Live'
 					className='mx-auto max-w-2xl p-3 md:p-4'
-					showOrbs={false}
 				>
 					<div className='mx-auto max-w-md'>
 						<CookCardRenderer sessionId={sessionId} />

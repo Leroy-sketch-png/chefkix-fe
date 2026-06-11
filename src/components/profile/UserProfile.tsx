@@ -809,7 +809,6 @@ export const UserProfile = ({
 	return (
 		<PremiumSurface
 			tone='brand'
-			showOrbs={true}
 			data-testid='user-profile'
 			className='mx-auto w-full max-w-container-xl p-0 border-none bg-transparent shadow-none backdrop-blur-none relative overflow-visible'
 		>
