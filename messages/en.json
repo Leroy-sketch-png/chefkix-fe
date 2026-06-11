@@ -487,6 +487,7 @@
 		"syncing": "Syncing...",
 		"syncNow": "Sync Now",
 		"failedToLoad": "Couldn't load feed",
+		"coldStartBanner": "<strong>Starting with community favorites.</strong> Save, cook, and follow to shape your For You feed.",
 		"emptyFollowing": "No posts from people you follow",
 		"emptyFollowingDesc": "Follow chefs to see their latest creations here.",
 		"discoverPeople": "Discover People",

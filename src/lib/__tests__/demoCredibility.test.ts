@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const readWorkspaceFile = (path: string) =>
@@ -101,5 +101,33 @@ describe('demo credibility guardrails', () => {
 		expect(runtime.match(/<PhantomConductor/g) ?? []).toHaveLength(1)
 		expect(legacyWidget).not.toContain('PhantomConductor')
 		expect(legacyWidget).not.toContain('isDemoCockpitSession')
+	})
+
+	it('defines every dashboard translation used by the page cluster', () => {
+		const messages = JSON.parse(readWorkspaceFile('messages/en.json')) as {
+			dashboard: Record<string, string>
+		}
+		const componentSources = readdirSync(
+			join(process.cwd(), 'src/components/dashboard'),
+		)
+			.filter(file => file.endsWith('.tsx'))
+			.map(file => readWorkspaceFile(`src/components/dashboard/${file}`))
+			.filter(source => source.includes("useTranslations('dashboard')"))
+		const dashboardSources = [
+			readWorkspaceFile('src/app/(main)/dashboard/page.tsx'),
+			...componentSources,
+		]
+		const usedKeys = new Set<string>()
+
+		for (const source of dashboardSources) {
+			for (const match of source.matchAll(/\b(?:t|td)(?:\.rich)?\('([^']+)'/g)) {
+				usedKeys.add(match[1])
+			}
+		}
+
+		expect([...usedKeys].sort()).not.toEqual([])
+		for (const key of usedKeys) {
+			expect(messages.dashboard).toHaveProperty(key)
+		}
 	})
 })
