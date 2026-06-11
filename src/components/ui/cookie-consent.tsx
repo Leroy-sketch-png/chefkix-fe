@@ -7,10 +7,12 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useAuth } from '@/hooks/useAuth'
+import { shouldSuppressCookieConsent } from '@/lib/cookie-consent-policy'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 
 const STORAGE_KEY = 'chefkix-cookie-consent'
+const DEMO_COCKPIT_SESSION_KEY = 'chefkix-demo-cockpit-enabled'
 
 interface CookieConsentProps {
 	/** Called when user accepts cookies. */
@@ -40,16 +42,16 @@ export function CookieConsent({
 	const isMobile = useMediaQuery('(max-width: 767px)')
 	const pathname = usePathname()
 	const { isAuthenticated, isHydrated } = useAuth()
+	const [isDemoCockpitSession, setIsDemoCockpitSession] = useState(false)
 	const isDiscoverySurface =
 		pathname?.startsWith('/search') ||
 		pathname?.startsWith('/explore') ||
 		pathname?.startsWith('/community') ||
 		pathname?.startsWith('/feed')
-	const isSuppressedSurface =
-		pathname === '/' ||
-		pathname?.startsWith('/auth') ||
-		pathname === '/privacy' ||
-		pathname === '/terms'
+	const isSuppressedSurface = shouldSuppressCookieConsent(
+		pathname,
+		isDemoCockpitSession,
+	)
 	const useCompactCopy = isMobile || isDiscoverySurface
 	const shouldDeferGuestDiscoveryConsent =
 		!isAuthenticated && isDiscoverySurface
@@ -57,6 +59,16 @@ export function CookieConsent({
 		(isMobile || shouldDeferGuestDiscoveryConsent) && !isSuppressedSurface
 	const avoidDesktopGuestRail =
 		!isMobile && !isAuthenticated && isDiscoverySurface
+
+	useEffect(() => {
+		try {
+			setIsDemoCockpitSession(
+				window.sessionStorage.getItem(DEMO_COCKPIT_SESSION_KEY) === 'true',
+			)
+		} catch {
+			setIsDemoCockpitSession(false)
+		}
+	}, [pathname])
 
 	useEffect(() => {
 		if (!isHydrated) {

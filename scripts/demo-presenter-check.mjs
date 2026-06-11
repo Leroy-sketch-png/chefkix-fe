@@ -176,6 +176,16 @@ async function commandGateState(page) {
 }
 
 async function clickButton(page, name, label) {
+	const visibleDialogs = await page.getByRole('dialog').allTextContents()
+	if (visibleDialogs.length > 0) {
+		throw new Error(
+			`${label}: unexpected dialog blocks presenter controls: ${visibleDialogs
+				.map(text => text.trim().replace(/\s+/g, ' '))
+				.filter(Boolean)
+				.join(' | ')}`,
+		)
+	}
+
 	const button = page.getByRole('button', { name }).first()
 	await button.waitFor({ state: 'visible', timeout: timeoutMs })
 	await button.click({ timeout: 60000 })
