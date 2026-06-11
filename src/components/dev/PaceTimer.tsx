@@ -53,25 +53,29 @@ export interface PaceTimerRef {
 	reset: () => void
 }
 
+const PACE_TIMER_COMMANDS: PaceTimerRef = {
+	advanceBeat: () => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(new CustomEvent('chefkix-pace-advance'))
+	},
+	setBeat: (beatIndex: number) => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(
+			new CustomEvent('chefkix-pace-set-beat', { detail: beatIndex }),
+		)
+	},
+	start: () => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(new CustomEvent('chefkix-pace-start'))
+	},
+	reset: () => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(new CustomEvent('chefkix-pace-reset'))
+	},
+}
+
 export function usePaceTimer(): PaceTimerRef {
-	return {
-		advanceBeat: () => {
-			if (typeof window === 'undefined') return
-			window.dispatchEvent(new CustomEvent('chefkix-pace-advance'))
-		},
-		setBeat: (beatIndex: number) => {
-			if (typeof window === 'undefined') return
-			window.dispatchEvent(new CustomEvent('chefkix-pace-set-beat', { detail: beatIndex }))
-		},
-		start: () => {
-			if (typeof window === 'undefined') return
-			window.dispatchEvent(new CustomEvent('chefkix-pace-start'))
-		},
-		reset: () => {
-			if (typeof window === 'undefined') return
-			window.dispatchEvent(new CustomEvent('chefkix-pace-reset'))
-		},
-	}
+	return PACE_TIMER_COMMANDS
 }
 
 /**
@@ -86,20 +90,23 @@ export function usePaceTimerState() {
 			try {
 				const raw = localStorage.getItem(PACE_TIMER_STORAGE_KEY)
 				if (raw) setStateRaw(JSON.parse(raw))
-			} catch { /* ignore */ }
+			} catch {
+				/* ignore */
+			}
+		}
+		const onStorage = (event: StorageEvent) => {
+			if (event.key === PACE_TIMER_STORAGE_KEY) sync()
 		}
 		sync()
-		window.addEventListener('storage', (e) => {
-			if (e.key === PACE_TIMER_STORAGE_KEY) sync()
-		})
-		
+		window.addEventListener('storage', onStorage)
+
 		const interval = setInterval(() => setNow(Date.now()), 1000)
 		return () => {
-			window.removeEventListener('storage', sync)
+			window.removeEventListener('storage', onStorage)
 			clearInterval(interval)
 		}
 	}, [])
-	
+
 	const beat = DEMO_PITCH_BEATS[state.currentBeatIndex]
 	const budgetMinutes = beat ? (BEAT_DURATIONS_MINUTES[beat.id] ?? 3) : 3
 	const budgetMs = budgetMinutes * 60 * 1000
@@ -122,7 +129,7 @@ export function usePaceTimerState() {
 		rawElapsedMs,
 		totalElapsedMs,
 		overMs: rawElapsedMs - budgetMs,
-		paceColor: getPaceColor(rawElapsedMs, budgetMs)
+		paceColor: getPaceColor(rawElapsedMs, budgetMs),
 	}
 }
 

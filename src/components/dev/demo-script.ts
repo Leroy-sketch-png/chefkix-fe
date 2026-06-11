@@ -2,7 +2,7 @@ export interface DemoScriptBeat {
 	beatId: string
 	title: string
 	objective: string
-	mustSayNumbers: string[]
+	proofPoints: string[]
 	prompts: string[]
 	fallbackLine: string
 }
@@ -10,74 +10,86 @@ export interface DemoScriptBeat {
 export const DEMO_PITCH_SCRIPT: Record<string, DemoScriptBeat> = {
 	'conversion-moat': {
 		beatId: 'conversion-moat',
-		title: '1. Conversion Moat',
-		objective: 'Establish the core user value and zero-friction onboarding.',
-		mustSayNumbers: ['60% lower CAC', 'Day 1 Retention > 40%'],
+		title: '1. Kitchen Continuity',
+		objective:
+			'Establish the core value: discovery continues into a usable cooking session.',
+		proofPoints: ['Personalized recipe reasons', 'Cook mode on a real recipe'],
 		prompts: [
-			'Highlight the personalized Taste Graph generation.',
-			'Show how quickly a new user finds a Hero Recipe.',
-			'Emphasize that there is ZERO generic feed algorithm.'
+			'Point to the reasons ChefKix gives for the recipe recommendation.',
+			'Open the hero recipe and start the actual guided cooking flow.',
+			'Show that spoken guidance can be quiet without muting timer alerts.',
 		],
-		fallbackLine: 'The magic is that within 30 seconds of install, the user is already looking at their perfect recipe.'
+		fallbackLine:
+			'ChefKix earns trust by carrying one useful recipe from discovery into the hands-dirty moment.',
 	},
 	'taste-graph': {
 		beatId: 'taste-graph',
-		title: '2. The Taste Graph',
-		objective: 'Showcase the AI-driven compatibility and semantic search.',
-		mustSayNumbers: ['300M+ edges in the graph', '<200ms semantic retrieval'],
+		title: '2. Search And Taste Context',
+		objective:
+			'Show that search, explicit preferences, and cooking history form one product story.',
+		proofPoints: ['Natural-language food intent', 'Real recipe destinations'],
 		prompts: [
 			'Search for "cozy winter food".',
-			'Point out the compatibility scores on the recipe cards.',
-			'Explain how the vector DB matches flavor profiles, not just text tags.'
+			'Point out the preference context shown on the result surfaces.',
+			'Open a result to prove the search path ends at a cookable recipe.',
 		],
-		fallbackLine: 'We don\'t match keywords, we match palates. That\'s why our search feels telepathic.'
+		fallbackLine:
+			'People describe cravings, not database categories. ChefKix keeps that intent connected to what they can actually cook.',
 	},
 	'viral-loop': {
 		beatId: 'viral-loop',
-		title: '3. Co-Cook & Viral Loop',
-		objective: 'Demonstrate the multiplayer cooking experience.',
-		mustSayNumbers: ['K-Factor of 1.4', 'Avg 45 mins session length'],
+		title: '3. One-To-One Co-Cook',
+		objective:
+			'Demonstrate the implemented shared-cooking workflow without implying unbuilt multi-party scale.',
+		proofPoints: ['1:1 shared cooking', 'TURN relay readiness'],
 		prompts: [
-			'Trigger the "Start Cooking" flow.',
-			'Explain the invite mechanic (second screen syncs instantly).',
-			'Show how shared progress creates built-in accountability and retention.'
+			'Open the camera and microphone preflight before room entry.',
+			'Show the invite path and the explicit connection state.',
+			'Point out manual reconnect and audio-only fallback.',
 		],
-		fallbackLine: 'Cooking is inherently social. By bringing the multiplayer aspect into the kitchen, our users recruit their friends for us.'
+		fallbackLine:
+			'The product proof today is a bounded one-to-one cooking session with explicit recovery when the network is imperfect.',
 	},
 	'commerce-intent': {
 		beatId: 'commerce-intent',
-		title: '4. High-Intent Commerce',
-		objective: 'Prove the monetization model via the Pantry.',
-		mustSayNumbers: ['22% conversion on grocery integration', '$14 LTV bump'],
+		title: '4. Plan Today',
+		objective:
+			'Show a realistic household cooking batch grounded in pantry, effort, and yield.',
+		proofPoints: ['2 planning modes', '2-4 compatible dishes per batch'],
 		prompts: [
-			'Navigate to the Pantry view.',
-			'Show the low-inventory warning on key ingredients.',
-			'Highlight the one-click "Add to Cart" API integration.'
+			'Choose Cook Once Today or Dinner With Leftovers.',
+			'Adjust household size and active-time budget.',
+			'Show that every dish opens a real recipe and rolls into one shopping list.',
 		],
-		fallbackLine: 'Because we know exactly what they are cooking tonight, we own the highest-intent grocery funnel in the industry.'
+		fallbackLine:
+			'The durable value is a plan a working household can execute; commerce is a future handoff, not a claim in this demo.',
 	},
 	'creator-engine': {
 		beatId: 'creator-engine',
 		title: '5. Creator Engine',
-		objective: 'Show how supply is generated and rewarded.',
-		mustSayNumbers: ['Top creators earn $2k/mo', '15% MoM supply growth'],
+		objective:
+			'Show the concrete feedback and trust tools available to a recipe creator.',
+		proofPoints: ['Recipe-level analytics', 'Step-level completion evidence'],
 		prompts: [
 			'Swap to the Creator Persona (chef_minh).',
 			'Show the Heatmap and analytics dashboard.',
-			'Explain the tipping/premium recipe unlock mechanics.'
+			'Connect creator decisions to visible recipe and step performance.',
 		],
-		fallbackLine: 'We give creators the best tools to monetize their recipes, ensuring the platform always has premium, exclusive content.'
+		fallbackLine:
+			'Creator value here is measurable feedback on what cooks complete, not an unproven earnings promise.',
 	},
 	'trust-layer': {
 		beatId: 'trust-layer',
 		title: '6. The Trust Layer (Admin)',
-		objective: 'Demonstrate scalable moderation and safety.',
-		mustSayNumbers: ['99.9% automated resolution', 'Zero toxic engagement'],
+		objective:
+			'Demonstrate the moderation workflow that is implemented and visible today.',
+		proofPoints: ['Reports queue', 'Bans and appeals workflow'],
 		prompts: [
 			'Swap to the Admin Persona (admin_demo).',
 			'Show the moderation queue.',
-			'Explain how the AI pre-filters toxic recipe comments before humans see them.'
+			'Open the adjacent ban and appeal controls.',
 		],
-		fallbackLine: 'Our community feels safe because our moderation engine scales sub-linearly with user growth.'
+		fallbackLine:
+			'ChefKix has an explicit human-operable trust workflow; automation leverage is something production evidence must earn.',
 	}
 }

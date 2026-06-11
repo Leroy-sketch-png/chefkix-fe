@@ -18,34 +18,14 @@ import { Button } from '@/components/ui/button'
 import { notifyTimerComplete } from '@/lib/audio'
 import { getKitchenAudioCoordinator } from '@/lib/voice/KitchenAudioCoordinator'
 import { getTurnServer, probeTurnRelay } from '@/hooks/useWebRTC'
-
-type CheckStatus = 'idle' | 'running' | 'confirm' | 'pass' | 'fail'
-
-interface CheckResult {
-	status: CheckStatus
-	detail: string
-	verifiedAt?: string
-}
-
-type CheckId =
-	| 'media'
-	| 'speaker'
-	| 'clap'
-	| 'voice'
-	| 'timer'
-	| 'turn'
-
-type Results = Record<CheckId, CheckResult>
-
-const STORAGE_KEY = 'chefkix-demo-io-certification-v1'
-const EMPTY_RESULTS: Results = {
-	media: { status: 'idle', detail: 'Not checked' },
-	speaker: { status: 'idle', detail: 'Not checked' },
-	clap: { status: 'idle', detail: 'Requires microphone preview' },
-	voice: { status: 'idle', detail: 'Not checked' },
-	timer: { status: 'idle', detail: 'Not checked' },
-	turn: { status: 'idle', detail: 'Not checked' },
-}
+import {
+	EMPTY_IO_CERTIFICATION_RESULTS,
+	IO_CERTIFICATION_STORAGE_KEY,
+	summarizeIoCertification,
+	type IoCertificationCheckId,
+	type IoCertificationResults,
+	type IoCertificationStatus,
+} from '@/components/dev/io-certification'
 
 function nowLabel() {
 	return new Date().toISOString()
@@ -84,7 +64,7 @@ async function getUserMediaBounded(
 	}
 }
 
-function statusClasses(status: CheckStatus) {
+function statusClasses(status: IoCertificationStatus) {
 	switch (status) {
 		case 'pass':
 			return 'border-success/40 bg-success/5 text-success'
@@ -107,23 +87,31 @@ export function IoReadinessPanel() {
 	const animationRef = useRef<number | null>(null)
 	const currentLevelRef = useRef(0)
 	const [micLevel, setMicLevel] = useState(0)
-	const [results, setResults] = useState<Results>(() => {
-		if (typeof window === 'undefined') return EMPTY_RESULTS
+	const [results, setResults] = useState<IoCertificationResults>(() => {
+		if (typeof window === 'undefined') return EMPTY_IO_CERTIFICATION_RESULTS
 		try {
-			const stored = window.localStorage.getItem(STORAGE_KEY)
-			return stored ? (JSON.parse(stored) as Results) : EMPTY_RESULTS
+			const stored = window.localStorage.getItem(IO_CERTIFICATION_STORAGE_KEY)
+			return stored
+				? {
+						...EMPTY_IO_CERTIFICATION_RESULTS,
+						...(JSON.parse(stored) as Partial<IoCertificationResults>),
+					}
+				: EMPTY_IO_CERTIFICATION_RESULTS
 		} catch {
-			return EMPTY_RESULTS
+			return EMPTY_IO_CERTIFICATION_RESULTS
 		}
 	})
 
-	const passed = useMemo(
-		() => Object.values(results).filter(result => result.status === 'pass').length,
+	const summary = useMemo(
+		() => summarizeIoCertification(results),
 		[results],
 	)
 
 	useEffect(() => {
-		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(results))
+		window.localStorage.setItem(
+			IO_CERTIFICATION_STORAGE_KEY,
+			JSON.stringify(results),
+		)
 	}, [results])
 
 	useEffect(() => {
@@ -135,8 +123,8 @@ export function IoReadinessPanel() {
 	}, [])
 
 	const setResult = (
-		id: CheckId,
-		status: CheckStatus,
+		id: IoCertificationCheckId,
+		status: IoCertificationStatus,
 		detail: string,
 	) => {
 		setResults(current => ({
@@ -387,12 +375,12 @@ export function IoReadinessPanel() {
 	}
 
 	const reset = () => {
-		setResults(EMPTY_RESULTS)
-		window.localStorage.removeItem(STORAGE_KEY)
+		setResults(EMPTY_IO_CERTIFICATION_RESULTS)
+		window.localStorage.removeItem(IO_CERTIFICATION_STORAGE_KEY)
 	}
 
 	const checks: Array<{
-		id: CheckId
+		id: IoCertificationCheckId
 		title: string
 		icon: React.ReactNode
 		action: () => void
@@ -453,7 +441,7 @@ export function IoReadinessPanel() {
 						I/O certification
 					</h2>
 					<p className='mt-1 text-sm text-text-muted'>
-						{passed}/6 checks passed. Evidence persists in this browser.
+						{summary.detail} Evidence expires after 4 hours.
 					</p>
 				</div>
 				<Button variant='outline' size='icon' onClick={reset} title='Reset evidence'>

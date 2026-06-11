@@ -2,6 +2,7 @@ import type { CookingRoom, RoomParticipant } from '@/lib/types/room'
 import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { useCookingStore } from '@/store/cookingStore'
+import { getStoredIoCertificationSummary } from '@/components/dev/io-certification'
 
 export interface DemoAccount {
 	label: string
@@ -495,9 +496,9 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		proof:
 			"Show the welcome flow, land on Tonight's Pick, then jump straight into the hero recipe so the audience sees conversion turn into a guided cooking session.",
 		presenterLine:
-			'Cold traffic does not hit a dead recipe index. In seconds, ChefKix turns intent into a personalized cooking loop we can hold for the full session.',
+			'ChefKix does not stop at recipe discovery. The same real recipe continues into a guided cooking session built for the hands-dirty moment.',
 		investorTranslation:
-			'We are not a utility search result. We are a retention engine that captures both discovery and execution time.',
+			'The demonstrated differentiation is continuity from discovery into execution. Retention impact remains a metric to validate with real cohorts.',
 		fallbackNote:
 			"If the welcome flow is already complete, open Dashboard first and narrate the same story from Tonight's Pick.",
 		actions: ['cold-start', 'dashboard', 'hero-recipe', 'cooking-audio'],
@@ -512,14 +513,14 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		id: 'taste-graph',
 		phase: 'Phase 2',
 		minutes: '4-7 min',
-		title: 'Semantic Search And Taste Graph',
+		title: 'Search And Taste Context',
 		personaUsername: 'testuser',
 		proof:
-			'Use the cozy-winter-food query, then pivot to Taste DNA and Year In Cooking to show that ChefKix compounds behavior into a proprietary preference graph.',
+			'Use the cozy-winter-food query, then pivot to Taste DNA and Year In Cooking to show search alongside explicit preference and history surfaces.',
 		presenterLine:
-			'Every search, save, and cooking session sharpens the graph. The product gets more personal because the data gets richer.',
+			'Search intent, stated preferences, and cooking history are presented as one connected product experience.',
 		investorTranslation:
-			'This is the data moat: a behavioral food graph that improves recommendations, creator targeting, and future monetization.',
+			'ChefKix is collecting first-party food intent in useful product contexts. Any moat or monetization claim must be earned with longitudinal evidence.',
 		fallbackNote:
 			'If search latency spikes, go straight to Taste DNA and explain that the graph powers what the user already sees across the app.',
 		actions: ['semantic-search', 'taste-dna', 'year-in-cooking'],
@@ -536,11 +537,11 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		title: 'Co-Cook And Social Gravity',
 		personaUsername: 'testuser',
 		proof:
-			'Start a room, copy the second-screen watch URL, then show taste compatibility and messages to frame ChefKix as participatory social media, not solitary meal prep.',
+			'Start a one-to-one room, show the connection and recovery states, then pivot to taste compatibility and messages.',
 		presenterLine:
-			'Users are not just browsing recipes. They are inviting friends, comparing taste overlap, and giving each other reasons to return.',
+			'The implemented social proof is a bounded one-to-one cooking workflow with explicit network recovery.',
 		investorTranslation:
-			'This is zero-CAC growth behavior: multiplayer cooking, social proof, and relationship surfaces that manufacture return visits.',
+			'The invitation flow creates a credible growth hypothesis. K-factor and retention effects are not claimed until measured.',
 		fallbackNote:
 			'If room creation hits a local state conflict, pivot to Taste Compatibility and Messages. The social loop story still lands cleanly.',
 		actions: ['co-cook', 'taste-compatibility', 'messages', 'referral'],
@@ -550,14 +551,14 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		id: 'commerce-intent',
 		phase: 'Phase 4',
 		minutes: '11-14 min',
-		title: 'Pantry To Commerce Intent',
+		title: 'Pantry To Plan Today',
 		personaUsername: 'testuser',
 		proof:
-			'Open pantry, generate a meal plan, then jump to a shopping list to show the system converting ingredient reality into monetizable purchase intent.',
+			'Open pantry, generate one coherent daily cooking batch, then show the scaled shopping list and real recipe destinations.',
 		presenterLine:
-			'We meet the user at the exact moment they realize what is missing, and that is the cleanest commerce moment in food.',
+			'ChefKix turns household constraints and pantry reality into one plan a working person can execute.',
 		investorTranslation:
-			'This is the revenue bridge: pantry intelligence becomes basket intent without waiting for ad clicks or generic sponsorships.',
+			'The shopping list is a credible future commerce handoff. This demo does not imply a completed retailer integration.',
 		fallbackNote:
 			'If meal-plan generation is slow, stay in Pantry and explain that the same inventory powers the missing-ingredients shopping jump.',
 		actions: ['pantry', 'meal-planner', 'shopping-list'],
@@ -576,9 +577,9 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		proof:
 			'Switch to Chef Minh, open creator heatmaps, then show review and battle surfaces to prove ChefKix rewards creators with tools and trust signals other platforms skip.',
 		presenterLine:
-			'Creators do not just publish here. They get analytics, verified participation signals, and better reasons to build an audience on our rails.',
+			'Creators get visible recipe and step performance feedback instead of publishing into a black box.',
 		investorTranslation:
-			'This is the UGC supply flywheel: stronger creator tooling means better content, which improves retention and monetization.',
+			'The demonstrated creator value is actionable feedback. Supply growth and creator earnings remain metrics to prove.',
 		fallbackNote:
 			'If you need a faster path, open Creator Heatmap first and explain reviews and battles as the trust layer on top of creator growth.',
 		actions: ['creator-heatmap', 'recipe-review', 'recipe-battle'],
@@ -598,9 +599,9 @@ export const DEMO_PITCH_BEATS: DemoPitchBeat[] = [
 		proof:
 			'Switch to the admin persona and open reports, bans, and appeals so the room sees that moderation, escalation, and platform trust are already operational surfaces.',
 		presenterLine:
-			'Consumer social products break when trust is manual. We already have the control plane in place.',
+			'Reports, bans, and appeals are explicit operator workflows rather than hidden promises.',
 		investorTranslation:
-			'This is what lets the product scale globally without linear moderation headcount or brand-safety panic.',
+			'The demo proves an operable trust surface. Automation rate and staffing leverage require production evidence.',
 		fallbackNote:
 			'If time is tight, open Reports only and narrate bans and appeals as adjacent control surfaces on the same trust stack.',
 		actions: ['admin-reports', 'admin-bans', 'admin-appeals'],
@@ -1493,6 +1494,7 @@ export async function cleanupDemoState(
 
 export type PreShowCheckId =
 	| 'services-health'
+	| 'io-certification'
 	| 'vault-warm'
 	| 'hero-recipe'
 	| 'semantic-search'
@@ -1644,7 +1646,21 @@ export async function runPreShowChecklist(
 	)
 	push(serviceCheck)
 
-	// 2. Vault warm status
+	// 2. Physical I/O evidence from the cockpit panel
+	const ioCheck = await runPreShowCheck(
+		'io-certification',
+		'Physical I/O Certification',
+		async () => {
+			const summary = getStoredIoCertificationSummary()
+			return {
+				status: summary.ok ? 'pass' : 'fail',
+				detail: summary.detail,
+			}
+		},
+	)
+	push(ioCheck)
+
+	// 3. Vault warm status
 	const vaultCheck = await runPreShowCheck(
 		'vault-warm',
 		'Persona Vault',
@@ -1682,7 +1698,7 @@ export async function runPreShowChecklist(
 	)
 	push(vaultCheck)
 
-	// 3. Hero recipe exists
+	// 4. Hero recipe exists
 	const heroCheck = await runPreShowCheck(
 		'hero-recipe',
 		'Hero Recipe',
@@ -1724,7 +1740,7 @@ export async function runPreShowChecklist(
 	)
 	push(heroCheck)
 
-	// 4. Semantic search (requires AI service)
+	// 5. Semantic search (requires AI service)
 	const searchCheck = await runPreShowCheck(
 		'semantic-search',
 		'Semantic Search',
@@ -1766,7 +1782,7 @@ export async function runPreShowChecklist(
 	)
 	push(searchCheck)
 
-	// 5. Messages exist
+	// 6. Messages exist
 	const messagesCheck = await runPreShowCheck(
 		'messages-exist',
 		'Messages',
@@ -1800,7 +1816,7 @@ export async function runPreShowChecklist(
 	)
 	push(messagesCheck)
 
-	// 6. Pantry populated
+	// 7. Pantry populated
 	const pantryCheck = await runPreShowCheck(
 		'pantry-populated',
 		'Pantry Data',
@@ -1831,7 +1847,7 @@ export async function runPreShowChecklist(
 	)
 	push(pantryCheck)
 
-	// 7. Admin has reports (must use admin_demo token)
+	// 8. Admin has reports (must use admin_demo token)
 	const adminCheck = await runPreShowCheck(
 		'admin-reports',
 		'Admin Reports',
@@ -1870,7 +1886,7 @@ export async function runPreShowChecklist(
 	)
 	push(adminCheck)
 
-	// 8. Creator stats (chef_minh)
+	// 9. Creator stats (chef_minh)
 	const creatorCheck = await runPreShowCheck(
 		'creator-stats',
 		'Creator Stats',
@@ -1900,7 +1916,7 @@ export async function runPreShowChecklist(
 	)
 	push(creatorCheck)
 
-	// 9. Room creation probe (create + immediately abandon)
+	// 10. Room creation probe (create + immediately abandon)
 	const roomCheck = await runPreShowCheck(
 		'room-probe',
 		'Room Creation',
@@ -1980,7 +1996,7 @@ export async function runPreShowChecklist(
 	)
 	push(roomCheck)
 
-	// 10. Manifest freshness
+	// 11. Manifest freshness
 	const manifestCheck = await runPreShowCheck(
 		'manifest-freshness',
 		'Demo Manifest',

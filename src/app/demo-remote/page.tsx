@@ -19,6 +19,7 @@ import {
 import { usePaceTimerState, formatTime } from '@/components/dev/PaceTimer'
 import type { DemoRemoteCommand } from '@/components/dev/PhantomConductor'
 import { DEMO_PITCH_SCRIPT } from '@/components/dev/demo-script'
+import styles from './demo-remote.module.css'
 
 type CommandRunStatus = 'queued' | 'running' | 'success' | 'failed'
 
@@ -123,10 +124,16 @@ export default function DemoRemote() {
 		setTimeout(() => setFlashMsg(null), 2000)
 	}, [])
 
+	const commandBlockReason = !channel
+		? 'Remote bus is not connected'
+		: cockpitStatus !== 'ACTIVE'
+			? 'Cockpit heartbeat is not active. Open /demo-cockpit on the main screen before sending commands.'
+			: null
+
 	const sendCommand = useCallback(
 		(cmd: DemoRemoteCommand) => {
-			if (!channel) {
-				flash('Remote bus is not connected')
+			if (!channel || commandBlockReason) {
+				flash(commandBlockReason || 'Remote bus is not connected')
 				return
 			}
 
@@ -182,10 +189,14 @@ export default function DemoRemote() {
 				)
 			}, COMMAND_COMPLETION_TIMEOUT_MS)
 		},
-		[channel, flash],
+		[channel, commandBlockReason, flash],
 	)
 
 	const runChecks = async () => {
+		if (commandBlockReason) {
+			flash(commandBlockReason)
+			return
+		}
 		setIsRunningChecks(true)
 		try {
 			const vault = await warmTokenVault()
@@ -215,6 +226,24 @@ export default function DemoRemote() {
 	const latestCommand = commandRuns[0]
 	const isCockpitBusy =
 		latestCommand?.status === 'queued' || latestCommand?.status === 'running'
+	const isControlBlocked = Boolean(commandBlockReason) || isCockpitBusy
+	const wakeLockIssue =
+		wakeLockStatus === 'ERROR' || wakeLockStatus === 'UNSUPPORTED'
+	const operatorGateColor = commandBlockReason
+		? '#f85149'
+		: wakeLockIssue
+			? '#d29922'
+			: '#3fb950'
+	const operatorGateLabel = commandBlockReason
+		? 'NO CONTROL'
+		: wakeLockIssue
+			? 'CONTROL WITH WAKE RISK'
+			: 'CONTROL LIVE'
+	const operatorGateDetail =
+		commandBlockReason ||
+		(wakeLockIssue
+			? `Wake lock is ${wakeLockStatus}. Keep the laptop plugged in and set display sleep manually.`
+			: 'Cockpit heartbeat is live. Commands remain manually paced.')
 	const commandColor =
 		latestCommand?.status === 'success'
 			? '#3fb950'
@@ -225,21 +254,11 @@ export default function DemoRemote() {
 					: '#8b949e'
 
 	return (
-		<div
-			style={{
-				minHeight: '100vh',
-				background: '#0d1117',
-				color: '#e6edf3',
-				fontFamily: 'system-ui, sans-serif',
-				padding: 20,
-			}}
-		>
-			<div style={{ maxWidth: 800, margin: '0 auto' }}>
+		<div className={styles.page}>
+			<div className={styles.shell}>
 				<header
+					className={styles.header}
 					style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
 						marginBottom: 24,
 						paddingBottom: 16,
 						borderBottom: '1px solid #30363d',
@@ -251,7 +270,7 @@ export default function DemoRemote() {
 							Control the main screen via BroadcastChannel
 						</div>
 					</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+					<div className={styles.headerControls}>
 						{flashMsg && (
 							<div style={{ color: '#3fb950', fontSize: 14, fontWeight: 600 }}>
 								{flashMsg}
@@ -398,11 +417,56 @@ export default function DemoRemote() {
 					</div>
 				</header>
 
+				<section
+					className={styles.authority}
+					style={{
+						background: '#161b22',
+						border: `2px solid ${operatorGateColor}`,
+						borderRadius: 8,
+						padding: 16,
+						marginBottom: 24,
+						gap: 16,
+					}}
+				>
+					<div>
+						<div
+							style={{
+								fontSize: 11,
+								textTransform: 'uppercase',
+								color: '#8b949e',
+								fontWeight: 800,
+							}}
+						>
+							Presenter command authority
+						</div>
+						<div
+							style={{
+								marginTop: 4,
+								fontSize: 20,
+								fontWeight: 900,
+								color: operatorGateColor,
+							}}
+						>
+							{operatorGateLabel}
+						</div>
+					</div>
+					<div
+						className={styles.authorityDetail}
+						style={{ color: '#c9d1d9', fontSize: 14 }}
+					>
+						{operatorGateDetail}
+					</div>
+				</section>
+
 				<div
-					style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}
+					className={styles.workspaceGrid}
+					style={{
+						gap: 24,
+						alignItems: 'start',
+					}}
 				>
 					{/* LEFT COL: PACING & PANIC */}
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+					<div className={styles.workspaceColumn}>
 						<section
 							style={{
 								background: '#161b22',
@@ -492,6 +556,10 @@ export default function DemoRemote() {
 						</section>
 
 						<section
+							data-testid='demo-command-gate'
+							data-command-id={latestCommand?.commandId || ''}
+							data-command-status={latestCommand?.status || 'idle'}
+							data-command-type={latestCommand?.type || ''}
 							style={{
 								background: '#161b22',
 								border: `1px solid ${commandColor}`,
@@ -681,7 +749,7 @@ export default function DemoRemote() {
 					</div>
 
 					{/* RIGHT COL: BEATS & CHECKLIST */}
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+					<div className={styles.workspaceColumn}>
 						<section
 							style={{
 								background: '#161b22',
@@ -708,7 +776,7 @@ export default function DemoRemote() {
 										beat,
 										readinessReport,
 									)
-									const blocked = isCockpitBusy || readiness !== 'ready'
+									const blocked = isControlBlocked || readiness !== 'ready'
 									return (
 										<button
 											key={beat.id}
@@ -770,7 +838,7 @@ export default function DemoRemote() {
 					</div>
 
 					{/* RIGHT COL: TELEPROMPTER & CHECKLIST */}
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+					<div className={styles.teleprompterColumn}>
 						<section
 							style={{
 								background: '#0d1117',
@@ -810,9 +878,8 @@ export default function DemoRemote() {
 								return (
 									<div>
 										<div
+											className={styles.teleprompterHeader}
 											style={{
-												display: 'flex',
-												justifyContent: 'space-between',
 												alignItems: 'flex-start',
 												marginBottom: 8,
 											}}
@@ -822,7 +889,7 @@ export default function DemoRemote() {
 											</div>
 											<button
 												disabled={
-													isCockpitBusy || currentReadiness !== 'ready'
+													isControlBlocked || currentReadiness !== 'ready'
 												}
 												onClick={() =>
 													sendCommand({
@@ -837,11 +904,11 @@ export default function DemoRemote() {
 													padding: '6px 12px',
 													borderRadius: 4,
 													cursor:
-														isCockpitBusy || currentReadiness !== 'ready'
+														isControlBlocked || currentReadiness !== 'ready'
 															? 'not-allowed'
 															: 'pointer',
 													opacity:
-														isCockpitBusy || currentReadiness !== 'ready'
+														isControlBlocked || currentReadiness !== 'ready'
 															? 0.6
 															: 1,
 													fontSize: 12,
@@ -874,10 +941,8 @@ export default function DemoRemote() {
 												Manual scene controls
 											</h3>
 											<div
+												className={styles.sceneGrid}
 												style={{
-													display: 'grid',
-													gridTemplateColumns:
-														'repeat(2, minmax(0, 1fr))',
 													gap: 8,
 												}}
 											>
@@ -888,7 +953,7 @@ export default function DemoRemote() {
 														readinessReport,
 													)
 													const blocked =
-														isCockpitBusy ||
+														isControlBlocked ||
 														readiness !== 'ready' ||
 														!shortcut
 													return (
@@ -933,12 +998,12 @@ export default function DemoRemote() {
 													paddingBottom: 4,
 												}}
 											>
-												Must-Say Numbers
+												Live Proof To Point At
 											</h3>
 											<div
 												style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}
 											>
-												{script.mustSayNumbers.map((num, i) => (
+												{script.proofPoints.map((proofPoint, i) => (
 													<div
 														key={i}
 														style={{
@@ -951,7 +1016,7 @@ export default function DemoRemote() {
 															border: '1px solid #1f6feb',
 														}}
 													>
-														{num}
+														{proofPoint}
 													</div>
 												))}
 											</div>
@@ -1037,9 +1102,8 @@ export default function DemoRemote() {
 							}}
 						>
 							<div
+								className={styles.checklistHeader}
 								style={{
-									display: 'flex',
-									justifyContent: 'space-between',
 									alignItems: 'center',
 									marginBottom: 12,
 								}}
@@ -1056,14 +1120,16 @@ export default function DemoRemote() {
 								</h2>
 								<button
 									onClick={runChecks}
-									disabled={isRunningChecks}
+									disabled={isRunningChecks || Boolean(commandBlockReason)}
 									style={{
 										background: '#21262d',
 										color: '#e6edf3',
 										border: '1px solid #30363d',
 										padding: '6px 12px',
 										borderRadius: 4,
-										cursor: isRunningChecks ? 'wait' : 'pointer',
+										cursor:
+											isRunningChecks || commandBlockReason ? 'not-allowed' : 'pointer',
+										opacity: commandBlockReason ? 0.55 : 1,
 									}}
 								>
 									{isRunningChecks ? 'Running...' : 'Run Checks'}

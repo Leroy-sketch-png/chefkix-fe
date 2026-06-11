@@ -12,6 +12,17 @@ const baseUrl = process.env.CHEFKIX_DEMO_BASE_URL || 'http://localhost:3000'
 const headless = process.env.CHEFKIX_DEMO_HEADLESS !== '0'
 const timeoutMs = Number(process.env.CHEFKIX_DEMO_TIMEOUT_MS || 420000)
 const reportDir = path.join(rootDir, 'test-results', 'demo-presenter-check')
+const seedHeadlessIoEvidence =
+	headless && process.env.CHEFKIX_DEMO_SEED_IO_CERT !== '0'
+const ioCertificationStorageKey = 'chefkix-demo-io-certification-v1'
+const ioCertificationCheckIds = [
+	'media',
+	'speaker',
+	'clap',
+	'voice',
+	'timer',
+	'turn',
+]
 
 const knownBrokenImagePattern =
 	/photo-1482049016530-d79f7d5e8c6e|photo-1596097635121-14b63a7a7e7b/i
@@ -24,7 +35,8 @@ const beatPlan = [
 		scene: {
 			label: 'Cooking Audio scene',
 			button: /^Cooking Audio$/i,
-			url: /\/recipes\/[^/?#]+\?[^#]*cook=/i,
+			url: /\/recipes\/[^/?#]+(?:[?#].*)?$/i,
+			content: /Guide me aloud|Stay quiet|Cooking|Step/i,
 		},
 	},
 	{
@@ -154,6 +166,15 @@ async function gateText(page) {
 	})
 }
 
+async function commandGateState(page) {
+	return page.getByTestId('demo-command-gate').evaluate(element => ({
+		commandId: element.getAttribute('data-command-id') || '',
+		status: element.getAttribute('data-command-status') || 'idle',
+		type: element.getAttribute('data-command-type') || '',
+		text: element.innerText.trim(),
+	}))
+}
+
 async function clickButton(page, name, label) {
 	const button = page.getByRole('button', { name }).first()
 	await button.waitFor({ state: 'visible', timeout: timeoutMs })
@@ -174,43 +195,43 @@ async function waitForBody(page, pattern, label) {
 	return bodyText(page)
 }
 
-async function waitForGateTerminal(page, label, previousGate = '') {
-	await page
-		.waitForFunction(
-			previous => {
-				const text = document.body?.innerText || ''
-				const match = text.match(
-					/Cockpit Command Gate([\s\S]*?)(Panic Actions|Presenter Notes|$)/i,
-				)
-				const gate = (match ? match[1] : text).trim()
-				return gate !== previous && /(queued|running|success|failed)/i.test(gate)
-			},
-			previousGate,
-			{ timeout: 30000 },
-		)
-		.catch(() => {})
+async function waitForGateTerminal(page, label, previousCommandId = '') {
+	const gate = page.getByTestId('demo-command-gate')
+	await gate.waitFor({ state: 'visible', timeout: 30000 })
+	await page.waitForFunction(
+		previousId => {
+			const element = document.querySelector(
+				'[data-testid="demo-command-gate"]',
+			)
+			const commandId = element?.getAttribute('data-command-id') || ''
+			return Boolean(commandId) && commandId !== previousId
+		},
+		previousCommandId,
+		{ timeout: 30000 },
+	)
 
 	await page.waitForFunction(
 		() => {
-			const text = document.body?.innerText || ''
-			const match = text.match(
-				/Cockpit Command Gate([\s\S]*?)(Panic Actions|Presenter Notes|$)/i,
+			const element = document.querySelector(
+				'[data-testid="demo-command-gate"]',
 			)
-			const gate = (match ? match[1] : text).trim()
-			return /(success|failed)/i.test(gate)
+			const status = element?.getAttribute('data-command-status') || ''
+			return status === 'success' || status === 'failed'
 		},
 		undefined,
 		{ timeout: timeoutMs },
 	)
 
-	const gate = await gateText(page)
-	if (/failed/i.test(gate)) {
-		throw new Error(`${label}: command gate failed: ${gate}`)
+	const state = await commandGateState(page)
+	if (state.status === 'failed') {
+		throw new Error(`${label}: command gate failed: ${state.text}`)
 	}
-	if (!/success/i.test(gate)) {
-		throw new Error(`${label}: command gate did not report success: ${gate}`)
+	if (state.status !== 'success') {
+		throw new Error(
+			`${label}: command gate did not report success: ${state.text}`,
+		)
 	}
-	return gate
+	return state.text
 }
 
 async function routeSnapshot(page) {
@@ -251,7 +272,8 @@ async function routeSnapshot(page) {
 }
 
 async function assertCockpitRoute(page, planned) {
-	await page.waitForURL(planned.url, { timeout: timeoutMs })
+	const routeTimeoutMs = Math.min(timeoutMs, 60000)
+	await page.waitForURL(planned.url, { timeout: routeTimeoutMs })
 	await page.waitForLoadState('domcontentloaded', { timeout: 60000 }).catch(() => {})
 	await page.waitForFunction(
 		() => document.readyState === 'interactive' || document.readyState === 'complete',
@@ -265,6 +287,13 @@ async function assertCockpitRoute(page, planned) {
 			{ timeout: 60000 },
 		)
 		.catch(() => {})
+	if (planned.content) {
+		await page.waitForFunction(
+			source => new RegExp(source, 'i').test(document.body?.innerText || ''),
+			planned.content.source,
+			{ timeout: routeTimeoutMs },
+		)
+	}
 	const snapshot = await routeSnapshot(page)
 	if (snapshot.bodyLength < 200) {
 		throw new Error(`${planned.label}: cockpit body is suspiciously sparse`)
@@ -320,6 +349,29 @@ async function main() {
 	const context = await browser.newContext({
 		viewport: { width: 1440, height: 1000 },
 	})
+	if (seedHeadlessIoEvidence) {
+		await context.addInitScript(
+			({ key, ids }) => {
+				const verifiedAt = new Date().toISOString()
+				const evidence = Object.fromEntries(
+					ids.map(id => [
+						id,
+						{
+							status: 'pass',
+							detail:
+								'Headless presenter-check route seed. Physical laptop I/O still requires cockpit certification.',
+							verifiedAt,
+						},
+					]),
+				)
+				window.localStorage.setItem(key, JSON.stringify(evidence))
+			},
+			{
+				key: ioCertificationStorageKey,
+				ids: ioCertificationCheckIds,
+			},
+		)
+	}
 	const cockpit = await context.newPage()
 	const remote = await context.newPage()
 	installSignals(cockpit, 'cockpit', signals)
@@ -335,7 +387,11 @@ async function main() {
 			timeout: timeoutMs,
 		})
 		await waitForBody(remote, /Run Checks/, 'remote shell')
-		await waitForBody(remote, /ACTIVE|STANDBY|UNKNOWN/, 'remote radar')
+		await waitForBody(
+			remote,
+			/CONTROL (LIVE|WITH WAKE RISK)/,
+			'remote command authority',
+		)
 		steps.push({
 			step: 'load remote and cockpit',
 			remoteUrl: remote.url(),
@@ -343,13 +399,13 @@ async function main() {
 			gate: await gateText(remote),
 		})
 
-		const preflightGateBefore = await gateText(remote)
+		const preflightGateBefore = await commandGateState(remote)
 		await clickButton(remote, /^Run Checks$/i, 'Run Checks')
 		await waitForBody(remote, /Verdict:\s*GO/, 'pre-show checklist')
 		const preflightGate = await waitForGateTerminal(
 			remote,
 			'Run Checks',
-			preflightGateBefore,
+			preflightGateBefore.commandId,
 		)
 		steps.push({
 			step: 'Run Checks',
@@ -357,9 +413,13 @@ async function main() {
 		})
 
 		for (const planned of beatPlan) {
-			const previousGate = await gateText(remote)
+			const previousGate = await commandGateState(remote)
 			await clickButton(remote, planned.button, planned.label)
-			const gate = await waitForGateTerminal(remote, planned.label, previousGate)
+			const gate = await waitForGateTerminal(
+				remote,
+				planned.label,
+				previousGate.commandId,
+			)
 			const snapshot = await assertCockpitRoute(cockpit, planned)
 			steps.push({
 				step: planned.label,
@@ -367,7 +427,7 @@ async function main() {
 				snapshot,
 			})
 			if (planned.scene) {
-				const previousSceneGate = await gateText(remote)
+				const previousSceneGate = await commandGateState(remote)
 				await clickButton(
 					remote,
 					planned.scene.button,
@@ -376,7 +436,7 @@ async function main() {
 				const sceneGate = await waitForGateTerminal(
 					remote,
 					planned.scene.label,
-					previousSceneGate,
+					previousSceneGate.commandId,
 				)
 				const sceneSnapshot = await assertCockpitRoute(
 					cockpit,
@@ -396,6 +456,7 @@ async function main() {
 			ok: summary.hardFailureCount === 0,
 			baseUrl,
 			headless,
+			seedHeadlessIoEvidence,
 			timeoutMs,
 			startedAt: new Date().toISOString(),
 			steps,
@@ -431,6 +492,7 @@ async function main() {
 			ok: false,
 			baseUrl,
 			headless,
+			seedHeadlessIoEvidence,
 			timeoutMs,
 			error: String(error?.stack || error),
 			steps,

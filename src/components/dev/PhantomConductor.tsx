@@ -105,9 +105,13 @@ async function waitForRouteReady(path: string, timeoutMs = 240000) {
 		const paramsMatch = [...target.searchParams.entries()].every(
 			([key, value]) => current.searchParams.get(key) === value,
 		)
+		const consumedCookTrigger =
+			target.pathname.startsWith('/recipes/') &&
+			target.searchParams.get('cook') === 'true' &&
+			current.pathname === target.pathname
 		if (
 			window.location.pathname === target.pathname &&
-			(!target.search || paramsMatch) &&
+			(!target.search || paramsMatch || consumedCookTrigger) &&
 			isRouteContentReady(path)
 		) {
 			return true
@@ -121,7 +125,6 @@ async function waitForRouteReady(path: string, timeoutMs = 240000) {
 
 export function PhantomConductor() {
 	const router = useRouter()
-	const { accessToken } = useAuthStore()
 	const paceTimer = usePaceTimer()
 	const isPrimaryCockpitRef = useRef(false)
 	const releaseLockRef = useRef<(() => void) | null>(null)
@@ -426,13 +429,14 @@ export function PhantomConductor() {
 				return
 			}
 
-			if (command.type === 'CLEANUP' && accessToken) {
+			const currentAccessToken = useAuthStore.getState().accessToken
+			if (command.type === 'CLEANUP' && currentAccessToken) {
 				postCommandStatus(command, 'SUCCESS', 'Cleanup started; cockpit may reload')
-				await cleanupDemoState(accessToken)
+				await cleanupDemoState(currentAccessToken)
 				return
 			}
 
-			if (command.type === 'CLEANUP' && !accessToken) {
+			if (command.type === 'CLEANUP' && !currentAccessToken) {
 				postCommandStatus(command, 'FAILED', 'Cleanup requires an active token')
 				return
 			}
@@ -500,11 +504,13 @@ export function PhantomConductor() {
 						// Update pace timer
 						paceTimer.setBeat(command.beatIndex)
 						const ready = await waitForRouteReady(resolved.path)
+						const currentPath =
+							window.location.pathname + window.location.search
 						postCommandStatus(
 							command,
 							ready ? 'SUCCESS' : 'FAILED',
 							ready
-								? `${beat.title} ready at ${resolved.path}`
+								? `${beat.title} ready at ${currentPath}`
 								: `Beat route did not load: ${resolved.path}`,
 						)
 					} catch (err) {
@@ -573,11 +579,13 @@ export function PhantomConductor() {
 					}
 					router.push(resolved.path)
 					const ready = await waitForRouteReady(resolved.path)
+					const currentPath =
+						window.location.pathname + window.location.search
 					postCommandStatus(
 						command,
 						ready ? 'SUCCESS' : 'FAILED',
 						ready
-							? `${shortcut.label} ready at ${resolved.path}`
+							? `${shortcut.label} ready at ${currentPath}`
 							: `${shortcut.label} did not become ready`,
 					)
 				} catch (error) {
@@ -594,7 +602,7 @@ export function PhantomConductor() {
 				postCommandStatus(command, 'SUCCESS', 'QR overlay command delivered')
 			}
 		},
-		[router, accessToken, paceTimer, postCommandStatus],
+		[router, paceTimer, postCommandStatus],
 	)
 
 	// BroadcastChannel listener
