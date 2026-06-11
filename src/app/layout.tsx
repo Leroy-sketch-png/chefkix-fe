@@ -47,6 +47,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
+	metadataBase: new URL(
+		process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
+	),
 	title: {
 		default: 'Chefkix - Gamified Cooking Recipes & Community',
 		template: '%s | Chefkix',
@@ -119,6 +122,13 @@ export default async function RootLayout({
 						__html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(t==='system'||!t)&&window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.classList.add('dark')}}catch(e){}})()`,
 					}}
 				/>
+				{process.env.NEXT_PUBLIC_CHEFKIX_DEMO_PROFILE === '1' ? (
+					<script
+						dangerouslySetInnerHTML={{
+							__html: `(function(){if(!('serviceWorker'in navigator))return;window.addEventListener('load',function(){navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}).catch(function(){});if('caches'in window){caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}).catch(function(){})}})})()`,
+						}}
+					/>
+				) : null}
 			</head>
 			<body
 				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} relative font-sans antialiased`}
