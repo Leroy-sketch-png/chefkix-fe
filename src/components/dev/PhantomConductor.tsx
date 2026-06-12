@@ -802,25 +802,20 @@ export function PhantomConductor() {
 		}
 	}, [])
 
-	// Heartbeat Radar (every 1.5 seconds)
+	// Broadcast delivery radar. Backend health is certified separately by Run Checks.
 	useEffect(() => {
 		if (typeof window === 'undefined') return
 		const channel = new BroadcastChannel(DEMO_BUS_NAME)
-		const interval = setInterval(async () => {
+		const publishRadar = () => {
 			if (!isPrimaryCockpitRef.current) return
-			const start = performance.now()
 			try {
-				const baseUrl = getDemoBaseUrl()
-				// Use a lightweight endpoint to ping
-				await fetch(`${baseUrl}/api/v1/actuator/health`, {
-					signal: AbortSignal.timeout(2000),
-				}).catch(() => {})
-				const latency = Math.round(performance.now() - start)
-				channel.postMessage({ type: 'RADAR_PING', latency })
-			} catch (err) {
-				channel.postMessage({ type: 'RADAR_PING', latency: 2000 })
+				channel.postMessage({ type: 'RADAR_PING', sentAt: Date.now() })
+			} catch {
+				// Presence timeout on the remote is the authoritative failure signal.
 			}
-		}, 1500)
+		}
+		publishRadar()
+		const interval = setInterval(publishRadar, 1500)
 		return () => {
 			clearInterval(interval)
 			channel.close()

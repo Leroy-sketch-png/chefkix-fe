@@ -69,8 +69,12 @@ export default function DemoRemote() {
 			const ch = new BroadcastChannel('chefkix-demo-bus')
 			ch.onmessage = e => {
 				if (e.data?.type === 'RADAR_PING') {
-					setLatency(e.data.latency)
-					setLatencyHistory(prev => [...prev.slice(-20), e.data.latency])
+					const nextLatency =
+						typeof e.data.sentAt === 'number'
+							? Math.max(0, Date.now() - e.data.sentAt)
+							: 0
+					setLatency(nextLatency)
+					setLatencyHistory(prev => [...prev.slice(-20), nextLatency])
 					setCockpitStatus('ACTIVE')
 					cockpitPresenceRef.current = {
 						...cockpitPresenceRef.current,

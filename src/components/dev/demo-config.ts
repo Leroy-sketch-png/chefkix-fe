@@ -899,6 +899,16 @@ async function getFallbackHeroRecipePath(
 	return '/explore'
 }
 
+async function getPreparedHeroRecipePath(
+	accessToken?: string | null,
+): Promise<string> {
+	const manifest = await loadDemoManifest()
+	return (
+		manifest?.scenes.heroRecipePath ||
+		(await getFallbackHeroRecipePath(accessToken))
+	)
+}
+
 async function resolveDemoScenePath(
 	sceneId: DemoSceneId,
 	accessToken?: string | null,
@@ -907,15 +917,9 @@ async function resolveDemoScenePath(
 
 	switch (sceneId) {
 		case 'hero-recipe':
-			return (
-				manifest?.scenes.heroRecipePath ||
-				(await getFallbackHeroRecipePath(accessToken))
-			)
+			return getPreparedHeroRecipePath(accessToken)
 		case 'cooking-audio':
-			return (
-				manifest?.scenes.heroRecipePath ||
-				(await getFallbackHeroRecipePath(accessToken))
-			)
+			return getPreparedHeroRecipePath(accessToken)
 		case 'taste-compatibility':
 			return (
 				manifest?.scenes.compatibilityProfilePath ||
@@ -1713,7 +1717,7 @@ export async function runPreShowChecklist(
 		'hero-recipe',
 		'Hero Recipe',
 		async () => {
-			const path = await getFallbackHeroRecipePath(accessToken)
+			const path = await getPreparedHeroRecipePath(accessToken)
 			if (path === '/explore')
 				return {
 					status: 'warn',
@@ -1726,13 +1730,31 @@ export async function runPreShowChecklist(
 					status: 'fail',
 					detail: 'Could not extract recipe ID from resolved path',
 				}
-			const res = await fetch(`${base}/api/v1/recipes/${recipeId}`, {
-				headers: authHeaders,
-				signal: AbortSignal.timeout(6000),
-			})
-			const data = (await res.json()) as {
+			let res: Response | null = null
+			let data: {
 				success?: boolean
 				data?: { title?: string; steps?: unknown[] }
+			} | null = null
+			let lastError: unknown = null
+			for (let attempt = 1; attempt <= 2; attempt += 1) {
+				try {
+					res = await fetch(`${base}/api/v1/recipes/${recipeId}`, {
+						headers: authHeaders,
+						signal: AbortSignal.timeout(6000),
+					})
+					data = (await res.json()) as {
+						success?: boolean
+						data?: { title?: string; steps?: unknown[] }
+					}
+					break
+				} catch (error) {
+					lastError = error
+				}
+			}
+			if (!res || !data) {
+				const reason =
+					lastError instanceof Error ? lastError.message : 'request failed'
+				throw new Error(`Hero recipe probe failed after retry: ${reason}`)
 			}
 			if (!data.success || !data.data)
 				return { status: 'fail', detail: `Recipe ${recipeId} not found` }
@@ -1936,7 +1958,7 @@ export async function runPreShowChecklist(
 					status: 'warn',
 					detail: 'No auth token — cannot probe room creation',
 				}
-			const heroPath = await getFallbackHeroRecipePath(accessToken)
+			const heroPath = await getPreparedHeroRecipePath(accessToken)
 			const recipeId = extractRecipeIdFromPath(heroPath)
 			if (!recipeId)
 				return {

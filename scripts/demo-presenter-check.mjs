@@ -418,7 +418,29 @@ async function main() {
 
 		const preflightGateBefore = await commandGateState(remote)
 		await clickButton(remote, /^Run Checks$/i, 'Run Checks')
-		await waitForBody(remote, /Verdict:\s*GO/, 'pre-show checklist')
+		await waitForBody(
+			remote,
+			/Verdict:\s*(?:GO|CAUTION|NO-GO)/,
+			'pre-show checklist',
+		)
+		const preShowResult = await remote.evaluate(() => {
+			const text = document.body?.innerText || ''
+			const verdict = text.match(/Verdict:\s*(GO|CAUTION|NO-GO)/i)?.[1] || ''
+			const failedChecks = Array.from(
+				text.matchAll(/FAIL\s+([^\n]+)\s+([^\n]+)/gi),
+				match => `${match[1]}: ${match[2]}`,
+			)
+			return { verdict, failedChecks }
+		})
+		if (preShowResult.verdict !== 'GO') {
+			throw new Error(
+				`pre-show checklist returned ${preShowResult.verdict || 'UNKNOWN'}${
+					preShowResult.failedChecks.length
+						? `: ${preShowResult.failedChecks.join('; ')}`
+						: ''
+				}`,
+			)
+		}
 		const preflightGate = await waitForGateTerminal(
 			remote,
 			'Run Checks',
