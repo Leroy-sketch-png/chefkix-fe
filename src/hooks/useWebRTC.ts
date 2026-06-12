@@ -165,15 +165,19 @@ export function useWebRTC({
 	const wsRef = useRef<WebSocket | null>(null)
 	const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const iceRestartAttemptedRef = useRef(false)
+	const iceCandidateBufferRef = useRef<RTCIceCandidateInit[]>([])
 
 	const [isCameraOn, setIsCameraOn] = useState(false)
 	const [isMicOn, setIsMicOn] = useState(true)
 	const [isJoined, setIsJoined] = useState(false)
 	const [isCallActive, setIsCallActive] = useState(false)
+	const isCallActiveRef = useRef(false)
 	const [isReceivingCall, setIsReceivingCall] = useState(false)
 	const [isCalling, setIsCalling] = useState(false)
 	const [remoteOffer, setRemoteOffer] =
 		useState<RTCSessionDescriptionInit | null>(null)
+	// Ref mirror so acceptCall always reads the current offer, not a stale closure
+	const remoteOfferRef = useRef<RTCSessionDescriptionInit | null>(null)
 	const [mediaState, setMediaState] =
 		useState<MediaReadinessState>('idle')
 	const [connectionState, setConnectionState] =
@@ -276,6 +280,7 @@ export function useWebRTC({
 		}
 		peerConnectionRef.current?.close()
 		peerConnectionRef.current = null
+		iceCandidateBufferRef.current = []
 		setConnectionState('closed')
 		setIceConnectionState('closed')
 	}, [])
@@ -293,26 +298,44 @@ export function useWebRTC({
 		setIsCameraOn(false)
 		setIsMicOn(true)
 		setIsJoined(false)
+		isCallActiveRef.current = false
 		setIsCallActive(false)
 		setIsReceivingCall(false)
 		setIsCalling(false)
 		setRemoteOffer(null)
+		remoteOfferRef.current = null
 		setMediaState('idle')
 		onClose()
 	}, [cleanupPeer, onClose, sendMessage, stopAllRingtones])
+
+	const flushIceCandidateBuffer = useCallback(async () => {
+		if (!peerConnectionRef.current) return
+		for (const candidate of iceCandidateBufferRef.current) {
+			try {
+				await peerConnectionRef.current.addIceCandidate(candidate)
+			} catch (error) {
+				logDevError('[WebRTC] Failed to add buffered ICE candidate', error)
+			}
+		}
+		iceCandidateBufferRef.current = []
+	}, [])
 
 	const handleReceiveAnswer = useCallback(
 		async (answer: RTCSessionDescriptionInit) => {
 			if (!peerConnectionRef.current) return
 			await peerConnectionRef.current.setRemoteDescription(answer)
+			isCallActiveRef.current = true
 			setIsCallActive(true)
+			await flushIceCandidateBuffer()
 		},
-		[],
+		[flushIceCandidateBuffer],
 	)
 
 	const handleNewIceCandidate = useCallback(
 		async (candidate: RTCIceCandidateInit) => {
-			if (peerConnectionRef.current) {
+			if (!peerConnectionRef.current || !peerConnectionRef.current.remoteDescription) {
+				iceCandidateBufferRef.current.push(candidate)
+			} else {
 				await peerConnectionRef.current.addIceCandidate(candidate)
 			}
 		},
@@ -353,7 +376,14 @@ export function useWebRTC({
 						setIsReceivingCall(true)
 						break
 					case 'offer':
+						remoteOfferRef.current = message.data as RTCSessionDescriptionInit
 						setRemoteOffer(message.data as RTCSessionDescriptionInit)
+						// Show incoming overlay even if ring was missed (covers race condition)
+						// Use ref — onmessage closure captures the initial false, not live state
+						if (!isCallActiveRef.current) {
+							playIncomingRingtone()
+							setIsReceivingCall(true)
+						}
 						break
 					case 'answer':
 						stopAllRingtones()
@@ -505,22 +535,40 @@ export function useWebRTC({
 			stopAllRingtones()
 			setIsReceivingCall(false)
 			try {
-				const mediaReady = await startMedia(withVideo)
-				if (!mediaReady || !remoteOffer) return
+				// Read from ref — immune to stale closure; always has the latest offer
+				const offer = remoteOfferRef.current
+				if (!offer) {
+					logDevError('[WebRTC] acceptCall called but remoteOffer is null', {})
+					toast.error('Call setup failed — please ask the other person to call again.')
+					return
+				}
+
+				// Skip re-acquiring media if we already have an active stream from mount
+				const hasLiveStream =
+					localStreamRef.current !== null &&
+					localStreamRef.current.getTracks().some(t => t.readyState === 'live')
+
+				if (!hasLiveStream) {
+					const mediaReady = await startMedia(withVideo)
+					if (!mediaReady) return
+				}
+
 				const peer = initializePeerConnection()
-				await peer.setRemoteDescription(remoteOffer)
+				await peer.setRemoteDescription(offer)
 				const answer = await peer.createAnswer()
 				await peer.setLocalDescription(answer)
 				sendMessage('answer', answer)
+				isCallActiveRef.current = true
 				setIsCallActive(true)
+				await flushIceCandidateBuffer()
 			} catch (error) {
 				logDevError('[WebRTC] Call acceptance failed', error)
 				toast.error('Could not connect the co-cook call.')
 			}
 		},
 		[
+			flushIceCandidateBuffer,
 			initializePeerConnection,
-			remoteOffer,
 			sendMessage,
 			startMedia,
 			stopAllRingtones,
@@ -532,6 +580,7 @@ export function useWebRTC({
 		stopAllRingtones()
 		setIsReceivingCall(false)
 		setRemoteOffer(null)
+		remoteOfferRef.current = null
 	}, [sendMessage, stopAllRingtones])
 
 	const reconnect = useCallback(async () => {
