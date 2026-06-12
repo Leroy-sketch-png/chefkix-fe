@@ -343,6 +343,12 @@ export const UserProfile = ({
 	initialTab,
 }: UserProfileProps) => {
 	const [profile, setProfile] = useState<Profile>(initialProfile)
+
+	// Sync local state when prop changes (fixes stale identity on URL change)
+	useEffect(() => {
+		setProfile(initialProfile)
+	}, [initialProfile])
+
 	const [isFollowLoading, setIsFollowLoading] = useState(false)
 	const [isBlockLoading, setIsBlockLoading] = useState(false)
 	const [activeTab, setActiveTab] = useState(initialTab || 'recipes')

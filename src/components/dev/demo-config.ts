@@ -130,7 +130,9 @@ export type DemoEnvMode = 'cloud' | 'local'
 
 export function getDemoEnvMode(): DemoEnvMode {
 	if (typeof window === 'undefined') return 'cloud'
-	const storedMode = localStorage.getItem('chefkix-demo-env-mode') as DemoEnvMode
+	const storedMode = localStorage.getItem(
+		'chefkix-demo-env-mode',
+	) as DemoEnvMode
 	if (storedMode === 'cloud' || storedMode === 'local') return storedMode
 
 	if (
@@ -1075,14 +1077,24 @@ export async function resolveDemoShortcut(
 	shortcut: DemoPitchShortcut,
 	accessToken?: string | null,
 ): Promise<ResolvedDemoShortcut> {
+	const injectUserIdIfProfile = (path: string) => {
+		if (path === '/profile') {
+			const currentUser = useAuthStore.getState().user
+			if (currentUser) return `/${currentUser.userId}`
+		}
+		return path
+	}
+
 	switch (shortcut.kind) {
 		case 'path':
-			return { path: shortcut.path || '/dashboard' }
+			return { path: injectUserIdIfProfile(shortcut.path || '/dashboard') }
 		case 'scene':
 			return {
-				path: await resolveDemoScenePath(
-					shortcut.sceneId || 'hero-recipe',
-					accessToken,
+				path: injectUserIdIfProfile(
+					await resolveDemoScenePath(
+						shortcut.sceneId || 'hero-recipe',
+						accessToken,
+					),
 				),
 			}
 		case 'runtime':
@@ -1271,12 +1283,10 @@ async function warmTokenVaultInner(
 			continue
 		}
 
-		let warmed:
-			| {
-					username: string
-					entry: DemoVaultEntry
-			  }
-			| null = null
+		let warmed: {
+			username: string
+			entry: DemoVaultEntry
+		} | null = null
 
 		for (let attempt = 1; attempt <= DEMO_TOKEN_WARM_ATTEMPTS; attempt += 1) {
 			try {
