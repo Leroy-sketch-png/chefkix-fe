@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { PhantomConductor } from './PhantomConductor'
+import { PaceTimer } from './PaceTimer'
 
 const DEMO_COCKPIT_SESSION_KEY = 'chefkix-demo-cockpit-enabled'
 
@@ -29,5 +30,10 @@ export function DemoCockpitRuntime() {
 
 	if (!enabled) return null
 
-	return <PhantomConductor />
+	return (
+		<>
+			<PhantomConductor />
+			<PaceTimer />
+		</>
+	)
 }

@@ -19,6 +19,8 @@ interface PaceTimerState {
 	currentBeatIndex: number
 	beatStartedAt: number | null
 	sessionStartedAt: number | null
+	sessionPausedAt: number | null
+	sessionPausedElapsedMs: number
 	isPaused: boolean
 	pausedElapsedMs: number
 }
@@ -28,6 +30,8 @@ const DEFAULT_STATE: PaceTimerState = {
 	currentBeatIndex: 0,
 	beatStartedAt: null,
 	sessionStartedAt: null,
+	sessionPausedAt: null,
+	sessionPausedElapsedMs: 0,
 	isPaused: false,
 	pausedElapsedMs: 0,
 }
@@ -50,6 +54,8 @@ export interface PaceTimerRef {
 	advanceBeat: () => void
 	setBeat: (beatIndex: number) => void
 	start: () => void
+	pause: () => void
+	resume: () => void
 	reset: () => void
 }
 
@@ -67,6 +73,14 @@ const PACE_TIMER_COMMANDS: PaceTimerRef = {
 	start: () => {
 		if (typeof window === 'undefined') return
 		window.dispatchEvent(new CustomEvent('chefkix-pace-start'))
+	},
+	pause: () => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(new CustomEvent('chefkix-pace-pause'))
+	},
+	resume: () => {
+		if (typeof window === 'undefined') return
+		window.dispatchEvent(new CustomEvent('chefkix-pace-resume'))
 	},
 	reset: () => {
 		if (typeof window === 'undefined') return
@@ -89,9 +103,11 @@ export function usePaceTimerState() {
 		const sync = () => {
 			try {
 				const raw = localStorage.getItem(PACE_TIMER_STORAGE_KEY)
-				if (raw) setStateRaw(JSON.parse(raw))
+				setStateRaw(
+					raw ? { ...DEFAULT_STATE, ...JSON.parse(raw) } : DEFAULT_STATE,
+				)
 			} catch {
-				/* ignore */
+				setStateRaw(DEFAULT_STATE)
 			}
 		}
 		const onStorage = (event: StorageEvent) => {
@@ -117,8 +133,16 @@ export function usePaceTimerState() {
 			? state.pausedElapsedMs + (now - state.beatStartedAt)
 			: 0
 
+	const currentSessionPauseMs =
+		state.isPaused && state.sessionPausedAt ? now - state.sessionPausedAt : 0
 	const totalElapsedMs = state.sessionStartedAt
-		? (state.isPaused ? state.pausedElapsedMs : now - state.sessionStartedAt)
+		? Math.max(
+				0,
+				now -
+					state.sessionStartedAt -
+					state.sessionPausedElapsedMs -
+					currentSessionPauseMs,
+			)
 		: 0
 
 	return {
@@ -138,17 +162,26 @@ export function PaceTimer() {
 	const [now, setNow] = useState(Date.now())
 	const stateRef = useRef<PaceTimerState>(DEFAULT_STATE)
 
-	const setState = useCallback((updater: Partial<PaceTimerState> | ((prev: PaceTimerState) => Partial<PaceTimerState>)) => {
-		setStateRaw(prev => {
-			const patch = typeof updater === 'function' ? updater(prev) : updater
-			const next = { ...prev, ...patch }
-			stateRef.current = next
-			try {
-				localStorage.setItem(PACE_TIMER_STORAGE_KEY, JSON.stringify(next))
-			} catch { /* ignore */ }
-			return next
-		})
-	}, [])
+	const setState = useCallback(
+		(
+			updater:
+				| Partial<PaceTimerState>
+				| ((prev: PaceTimerState) => Partial<PaceTimerState>),
+		) => {
+			setStateRaw(prev => {
+				const patch = typeof updater === 'function' ? updater(prev) : updater
+				const next = { ...prev, ...patch }
+				stateRef.current = next
+				try {
+					localStorage.setItem(PACE_TIMER_STORAGE_KEY, JSON.stringify(next))
+				} catch {
+					/* ignore */
+				}
+				return next
+			})
+		},
+		[],
+	)
 
 	useEffect(() => {
 		try {
@@ -161,7 +194,9 @@ export function PaceTimer() {
 					return next
 				})
 			}
-		} catch { /* ignore */ }
+		} catch {
+			/* ignore */
+		}
 	}, [])
 
 	useEffect(() => {
@@ -173,37 +208,116 @@ export function PaceTimer() {
 	useEffect(() => {
 		const onAdvance = () => {
 			setState(prev => {
-				const nextIndex = Math.min(prev.currentBeatIndex + 1, DEMO_PITCH_BEATS.length - 1)
-				return { currentBeatIndex: nextIndex, beatStartedAt: Date.now(), pausedElapsedMs: 0 }
+				const nextIndex = Math.min(
+					prev.currentBeatIndex + 1,
+					DEMO_PITCH_BEATS.length - 1,
+				)
+				const now = Date.now()
+				return {
+					currentBeatIndex: nextIndex,
+					beatStartedAt: now,
+					sessionStartedAt: prev.sessionStartedAt ?? now,
+					isPaused: false,
+					pausedElapsedMs: 0,
+					isVisible: true,
+					sessionPausedAt: null,
+					sessionPausedElapsedMs:
+						prev.sessionPausedElapsedMs +
+						(prev.isPaused && prev.sessionPausedAt
+							? now - prev.sessionPausedAt
+							: 0),
+				}
 			})
 		}
 		const onSetBeat = (e: Event) => {
 			const idx = (e as CustomEvent<number>).detail
 			if (typeof idx === 'number') {
-				setState({ currentBeatIndex: idx, beatStartedAt: Date.now(), pausedElapsedMs: 0 })
+				setState(prev => {
+					const now = Date.now()
+					return {
+						currentBeatIndex: idx,
+						beatStartedAt: now,
+						sessionStartedAt: prev.sessionStartedAt ?? now,
+						isPaused: false,
+						pausedElapsedMs: 0,
+						isVisible: true,
+						sessionPausedAt: null,
+						sessionPausedElapsedMs:
+							prev.sessionPausedElapsedMs +
+							(prev.isPaused && prev.sessionPausedAt
+								? now - prev.sessionPausedAt
+								: 0),
+					}
+				})
 			}
 		}
 		const onStart = () => {
-			setState(prev => ({
-				beatStartedAt: Date.now(),
-				sessionStartedAt: prev.sessionStartedAt ?? Date.now(),
-				isPaused: false,
-				pausedElapsedMs: 0,
-				isVisible: true,
-			}))
+			setState(prev => {
+				const now = Date.now()
+				return {
+					beatStartedAt: now,
+					sessionStartedAt: prev.sessionStartedAt ?? now,
+					sessionPausedAt: null,
+					sessionPausedElapsedMs:
+						prev.sessionPausedElapsedMs +
+						(prev.isPaused && prev.sessionPausedAt
+							? now - prev.sessionPausedAt
+							: 0),
+					isPaused: false,
+					pausedElapsedMs: 0,
+					isVisible: true,
+				}
+			})
+		}
+		const onPause = () => {
+			setState(prev => {
+				if (prev.isPaused || !prev.beatStartedAt) return {}
+				const now = Date.now()
+				return {
+					isPaused: true,
+					pausedElapsedMs: prev.pausedElapsedMs + (now - prev.beatStartedAt),
+					sessionPausedAt: now,
+				}
+			})
+		}
+		const onResume = () => {
+			setState(prev => {
+				if (!prev.isPaused) return {}
+				const now = Date.now()
+				return {
+					isPaused: false,
+					beatStartedAt: now,
+					sessionPausedAt: null,
+					sessionPausedElapsedMs:
+						prev.sessionPausedElapsedMs +
+						(prev.sessionPausedAt ? now - prev.sessionPausedAt : 0),
+				}
+			})
 		}
 		const onReset = () => {
-			setState({ ...DEFAULT_STATE })
-			try { localStorage.removeItem(PACE_TIMER_STORAGE_KEY) } catch { /* ignore */ }
+			stateRef.current = DEFAULT_STATE
+			setStateRaw(DEFAULT_STATE)
+			try {
+				localStorage.removeItem(PACE_TIMER_STORAGE_KEY)
+			} catch {
+				/* ignore */
+			}
 		}
 		window.addEventListener('chefkix-pace-advance', onAdvance)
 		window.addEventListener('chefkix-pace-set-beat', onSetBeat as EventListener)
 		window.addEventListener('chefkix-pace-start', onStart)
+		window.addEventListener('chefkix-pace-pause', onPause)
+		window.addEventListener('chefkix-pace-resume', onResume)
 		window.addEventListener('chefkix-pace-reset', onReset)
 		return () => {
 			window.removeEventListener('chefkix-pace-advance', onAdvance)
-			window.removeEventListener('chefkix-pace-set-beat', onSetBeat as EventListener)
+			window.removeEventListener(
+				'chefkix-pace-set-beat',
+				onSetBeat as EventListener,
+			)
 			window.removeEventListener('chefkix-pace-start', onStart)
+			window.removeEventListener('chefkix-pace-pause', onPause)
+			window.removeEventListener('chefkix-pace-resume', onResume)
 			window.removeEventListener('chefkix-pace-reset', onReset)
 		}
 	}, [setState])
@@ -211,10 +325,16 @@ export function PaceTimer() {
 	// Listen for state updates from the remote control
 	useEffect(() => {
 		const onStorage = (e: StorageEvent) => {
-			if (e.key === PACE_TIMER_STORAGE_KEY && e.newValue) {
+			if (e.key === PACE_TIMER_STORAGE_KEY) {
 				try {
-					setStateRaw(JSON.parse(e.newValue))
-				} catch { /* ignore */ }
+					setStateRaw(
+						e.newValue
+							? { ...DEFAULT_STATE, ...JSON.parse(e.newValue) }
+							: DEFAULT_STATE,
+					)
+				} catch {
+					setStateRaw(DEFAULT_STATE)
+				}
 			}
 		}
 		window.addEventListener('storage', onStorage)
@@ -248,7 +368,7 @@ export function PaceTimer() {
 				height: 2,
 				zIndex: 999999,
 				pointerEvents: 'none',
-				background: 'transparent'
+				background: 'transparent',
 			}}
 			aria-hidden='true'
 		>
@@ -258,7 +378,7 @@ export function PaceTimer() {
 					width: `${progressWidth}%`,
 					background: paceColor,
 					transition: 'width 1s linear, background 0.3s ease',
-					boxShadow: `0 0 4px ${paceColor}88` // Subtle glow
+					boxShadow: `0 0 4px ${paceColor}88`, // Subtle glow
 				}}
 			/>
 		</div>

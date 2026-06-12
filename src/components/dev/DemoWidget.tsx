@@ -22,7 +22,7 @@ import {
 	type DemoReadinessStatus,
 	type DemoPitchShortcut,
 } from './demo-config'
-import { usePaceTimer, PaceTimer } from './PaceTimer'
+import { usePaceTimer } from './PaceTimer'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -2109,7 +2109,6 @@ export function DemoWidget() {
 					{showDebugUI && <GhostHUD />}
 				</>
 			)}
-			<PaceTimer />
 		</>
 	)
 }

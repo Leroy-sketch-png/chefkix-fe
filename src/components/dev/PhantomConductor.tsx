@@ -33,6 +33,10 @@ export interface DemoRemoteCommand {
 		| 'PRELOAD'
 		| 'GHOST_DRIVER_BEAT'
 		| 'TOGGLE_QR_OVERLAY'
+		| 'START_TIMER'
+		| 'PAUSE_TIMER'
+		| 'RESUME_TIMER'
+		| 'RESET_TIMER'
 	beatIndex?: number
 	actionId?: string
 	commandId?: string
@@ -54,20 +58,31 @@ const DEMO_REMOTE_COMMAND_TYPES = new Set<DemoRemoteCommand['type']>([
 	'PRELOAD',
 	'GHOST_DRIVER_BEAT',
 	'TOGGLE_QR_OVERLAY',
+	'START_TIMER',
+	'PAUSE_TIMER',
+	'RESUME_TIMER',
+	'RESET_TIMER',
 ])
 
 function getRouteReadinessPattern(path: string): RegExp | null {
 	const target = new URL(path, window.location.origin)
-	if (target.pathname === '/welcome') return /Scroll what is worth saving|cook when you're ready/i
-	if (target.pathname === '/search') return /Results for|Search results|No recipes found/i
-	if (target.pathname.startsWith('/cook-together')) return /Cooking Room|Room Code|participants/i
+	if (target.pathname === '/welcome')
+		return /Scroll what is worth saving|cook when you're ready/i
+	if (target.pathname === '/search')
+		return /Results for|Search results|No recipes found/i
+	if (target.pathname.startsWith('/cook-together'))
+		return /Cooking Room|Room Code|participants/i
 	if (target.pathname === '/pantry') return /Pantry|Shopping|inventory/i
 	if (target.pathname === '/meal-planner')
 		return /One cooking session|Plan today|Cook once today/i
-	if (target.pathname.startsWith('/recipes/') && target.searchParams.has('cook'))
+	if (
+		target.pathname.startsWith('/recipes/') &&
+		target.searchParams.has('cook')
+	)
 		return /Cooking|Step|Guide me aloud|Stay quiet/i
 	if (target.pathname === '/creator') return /Creator|analytics|rewards/i
-	if (target.pathname === '/admin/reports') return /Moderation Dashboard|Reports/i
+	if (target.pathname === '/admin/reports')
+		return /Moderation Dashboard|Reports/i
 	if (target.pathname === '/dashboard') return /Dashboard|Tonight|feed/i
 	return null
 }
@@ -78,7 +93,8 @@ function isRouteContentReady(path: string): boolean {
 
 	const readinessPattern = getRouteReadinessPattern(path)
 	if (readinessPattern && !readinessPattern.test(body)) return false
-	if (/loading|please wait|skeleton/i.test(body) && body.length < 500) return false
+	if (/loading|please wait|skeleton/i.test(body) && body.length < 500)
+		return false
 
 	return true
 }
@@ -345,7 +361,11 @@ export function PhantomConductor() {
 							issuedAt: command.issuedAt,
 						})
 					} else {
-						postCommandStatus(command, 'FAILED', 'No current beat is available to retry')
+						postCommandStatus(
+							command,
+							'FAILED',
+							'No current beat is available to retry',
+						)
 					}
 				} catch (err) {
 					const message =
@@ -431,7 +451,11 @@ export function PhantomConductor() {
 
 			const currentAccessToken = useAuthStore.getState().accessToken
 			if (command.type === 'CLEANUP' && currentAccessToken) {
-				postCommandStatus(command, 'SUCCESS', 'Cleanup started; cockpit may reload')
+				postCommandStatus(
+					command,
+					'SUCCESS',
+					'Cleanup started; cockpit may reload',
+				)
 				await cleanupDemoState(currentAccessToken)
 				return
 			}
@@ -470,7 +494,11 @@ export function PhantomConductor() {
 					? getDemoPitchShortcut(firstAction)
 					: undefined
 				if (!shortcut) {
-					postCommandStatus(command, 'FAILED', `No shortcut for beat: ${beat.title}`)
+					postCommandStatus(
+						command,
+						'FAILED',
+						`No shortcut for beat: ${beat.title}`,
+					)
 					return
 				}
 
@@ -579,8 +607,7 @@ export function PhantomConductor() {
 					}
 					router.push(resolved.path)
 					const ready = await waitForRouteReady(resolved.path)
-					const currentPath =
-						window.location.pathname + window.location.search
+					const currentPath = window.location.pathname + window.location.search
 					postCommandStatus(
 						command,
 						ready ? 'SUCCESS' : 'FAILED',
@@ -600,6 +627,31 @@ export function PhantomConductor() {
 
 			if (command.type === 'TOGGLE_QR_OVERLAY') {
 				postCommandStatus(command, 'SUCCESS', 'QR overlay command delivered')
+				return
+			}
+
+			if (command.type === 'START_TIMER') {
+				paceTimer.start()
+				postCommandStatus(command, 'SUCCESS', 'Pace timer started')
+				return
+			}
+
+			if (command.type === 'PAUSE_TIMER') {
+				paceTimer.pause()
+				postCommandStatus(command, 'SUCCESS', 'Pace timer paused')
+				return
+			}
+
+			if (command.type === 'RESUME_TIMER') {
+				paceTimer.resume()
+				postCommandStatus(command, 'SUCCESS', 'Pace timer resumed')
+				return
+			}
+
+			if (command.type === 'RESET_TIMER') {
+				paceTimer.reset()
+				postCommandStatus(command, 'SUCCESS', 'Pace timer reset')
+				return
 			}
 		},
 		[router, paceTimer, postCommandStatus],

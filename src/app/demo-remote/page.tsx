@@ -60,6 +60,7 @@ export default function DemoRemote() {
 		activeCockpitId: null,
 		status: 'UNKNOWN',
 	})
+	const heartbeatTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const [wakeLockStatus, setWakeLockStatus] = useState<string>('UNKNOWN')
 
 	useEffect(() => {
@@ -75,6 +76,17 @@ export default function DemoRemote() {
 						...cockpitPresenceRef.current,
 						status: 'ACTIVE',
 					}
+
+					if (heartbeatTimeoutRef.current) {
+						clearTimeout(heartbeatTimeoutRef.current)
+					}
+					heartbeatTimeoutRef.current = setTimeout(() => {
+						setCockpitStatus('UNKNOWN')
+						cockpitPresenceRef.current = {
+							...cockpitPresenceRef.current,
+							status: 'UNKNOWN',
+						}
+					}, 3000)
 				}
 				if (e.data?.type === 'COCKPIT_STATUS') {
 					const nextPresence = applyDemoCockpitStatus(
@@ -128,7 +140,12 @@ export default function DemoRemote() {
 				}
 			}
 			setChannel(ch)
-			return () => ch.close()
+			return () => {
+				if (heartbeatTimeoutRef.current) {
+					clearTimeout(heartbeatTimeoutRef.current)
+				}
+				ch.close()
+			}
 		}
 	}, [])
 
@@ -197,8 +214,7 @@ export default function DemoRemote() {
 							? {
 									...item,
 									status: 'failed',
-									detail:
-										'Cockpit command did not finish within 270 seconds',
+									detail: 'Cockpit command did not finish within 270 seconds',
 									updatedAt: Date.now(),
 								}
 							: item,
@@ -521,22 +537,38 @@ export default function DemoRemote() {
 										{formatTime(timer.rawElapsedMs)}
 									</div>
 									<div
-										style={{ fontSize: 14, color: '#8b949e', marginBottom: 12 }}
+										style={{
+											fontSize: 14,
+											color: '#8b949e',
+											marginBottom: 12,
+											display: 'flex',
+											justifyContent: 'space-between',
+										}}
 									>
-										Budget: {timer.budgetMinutes}:00
+										<span>Budget: {timer.budgetMinutes}:00</span>
+										<span>Total Time: {formatTime(timer.totalElapsedMs)}</span>
 									</div>
 
 									<div style={{ display: 'flex', gap: 8 }}>
 										<button
 											onClick={() => {
-												// Start/Pause is just local state in PaceTimer, but let's dispatch globally
-												window.dispatchEvent(
-													new CustomEvent('chefkix-pace-start'),
-												)
+												if (
+													timer.state.beatStartedAt &&
+													!timer.state.isPaused
+												) {
+													sendCommand({ type: 'PAUSE_TIMER' })
+												} else if (timer.state.isPaused) {
+													sendCommand({ type: 'RESUME_TIMER' })
+												} else {
+													sendCommand({ type: 'START_TIMER' })
+												}
 											}}
 											style={{
 												flex: 1,
-												background: '#238636',
+												background:
+													timer.state.beatStartedAt && !timer.state.isPaused
+														? '#d29922'
+														: '#238636',
 												color: '#fff',
 												border: 'none',
 												padding: '8px',
@@ -544,13 +576,15 @@ export default function DemoRemote() {
 												cursor: 'pointer',
 											}}
 										>
-											Start/Resume
+											{timer.state.beatStartedAt && !timer.state.isPaused
+												? 'Pause'
+												: timer.state.isPaused
+													? 'Resume'
+													: 'Start'}
 										</button>
 										<button
 											onClick={() => {
-												window.dispatchEvent(
-													new CustomEvent('chefkix-pace-reset'),
-												)
+												sendCommand({ type: 'RESET_TIMER' })
 											}}
 											style={{
 												background: '#21262d',
@@ -627,12 +661,14 @@ export default function DemoRemote() {
 										</div>
 									)}
 									<div style={{ color: '#8b949e', fontSize: 11 }}>
-										Advance only when the status is green. Panic controls remain live.
+										Advance only when the status is green. Panic controls remain
+										live.
 									</div>
 								</div>
 							) : (
 								<div style={{ color: '#8b949e', fontSize: 12 }}>
-									No command sent yet. Use Run Checks, then drive one beat at a time.
+									No command sent yet. Use Run Checks, then drive one beat at a
+									time.
 								</div>
 							)}
 						</section>
@@ -989,9 +1025,7 @@ export default function DemoRemote() {
 																border: '1px solid #30363d',
 																padding: '10px',
 																borderRadius: 4,
-																cursor: blocked
-																	? 'not-allowed'
-																	: 'pointer',
+																cursor: blocked ? 'not-allowed' : 'pointer',
 																textAlign: 'left',
 																fontSize: 12,
 																fontWeight: 600,
@@ -1145,7 +1179,9 @@ export default function DemoRemote() {
 										padding: '6px 12px',
 										borderRadius: 4,
 										cursor:
-											isRunningChecks || commandBlockReason ? 'not-allowed' : 'pointer',
+											isRunningChecks || commandBlockReason
+												? 'not-allowed'
+												: 'pointer',
 										opacity: commandBlockReason ? 0.55 : 1,
 									}}
 								>
