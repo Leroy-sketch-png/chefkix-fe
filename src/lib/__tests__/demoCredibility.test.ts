@@ -56,6 +56,25 @@ describe('demo credibility guardrails', () => {
 		)
 	})
 
+	it('keeps investor-path display type product-dense', () => {
+		const welcome = readWorkspaceFile('src/app/welcome/page.tsx')
+		const recipeDetail = readWorkspaceFile(
+			'src/app/(main)/recipes/[id]/page.tsx',
+		)
+		const recipeCard = readWorkspaceFile(
+			'src/components/recipe/RecipeCardEnhanced.tsx',
+		)
+		const incomingCall = readWorkspaceFile(
+			'src/components/chat/IncomingCallOverlay.tsx',
+		)
+
+		expect(welcome).not.toMatch(/text-(?:7|8|9)xl/)
+		expect(recipeDetail).not.toMatch(/(?:md|lg):text-(?:5|6)xl/)
+		expect(recipeCard).not.toContain('md:text-3xl')
+		expect(incomingCall).not.toContain('text-3xl')
+		expect(incomingCall).not.toContain('Ai đó')
+	})
+
 	it('renders truthful metric values before they enter the viewport', () => {
 		const numberTicker = readWorkspaceFile(
 			'src/components/ui/number-ticker.tsx',

@@ -76,7 +76,7 @@ const HeroSection = () => {
 							<span>{t('heroTagline')}</span>
 						</div>
 
-						<h1 className='mb-6 text-6xl md:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight text-text-primary'>
+						<h1 className='mb-6 text-4xl font-black leading-[1.1] tracking-tight text-text-primary sm:text-5xl md:text-6xl'>
 							{t('heroTitle1')}{' '}
 							<AnimatedGradientText
 								from='var(--color-brand)'
@@ -353,7 +353,7 @@ const FeaturesSection = () => {
 					transition={TRANSITION_SPRING}
 					className='mb-16 text-center'
 				>
-					<h2 className='mb-4 text-4xl font-bold text-text-primary md:text-5xl'>
+					<h2 className='mb-4 text-3xl font-bold text-text-primary md:text-4xl'>
 						{t('whyDifferentTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
@@ -423,7 +423,7 @@ const HowItWorksSection = () => {
 					transition={TRANSITION_SPRING}
 					className='mb-16 text-center'
 				>
-					<h2 className='mb-4 text-4xl font-bold text-text-primary md:text-5xl'>
+					<h2 className='mb-4 text-3xl font-bold text-text-primary md:text-4xl'>
 						{t('howItWorksTitle')}
 					</h2>
 					<p className='mx-auto max-w-2xl text-lg text-text-secondary'>
@@ -435,7 +435,7 @@ const HowItWorksSection = () => {
 					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-brand/10 to-xp/10 p-12'>
 						<div className='max-w-lg text-center'>
 							<ChefHat className='mx-auto mb-4 size-12 text-brand' />
-							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+							<h3 className='mb-3 text-2xl font-black text-text-primary'>
 								{t('featureCookingTitle')}
 							</h3>
 							<p className='text-lg text-text-secondary'>
@@ -446,7 +446,7 @@ const HowItWorksSection = () => {
 					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-xp/10 to-level/10 p-12'>
 						<div className='max-w-lg text-center'>
 							<Share2 className='mx-auto mb-4 size-12 text-xp' />
-							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+							<h3 className='mb-3 text-2xl font-black text-text-primary'>
 								{t('featureCreatorTitle')}
 							</h3>
 							<p className='text-lg text-text-secondary'>
@@ -457,7 +457,7 @@ const HowItWorksSection = () => {
 					<div className='flex h-[70vh] items-center justify-center rounded-3xl bg-gradient-to-br from-streak/10 to-brand/10 p-12'>
 						<div className='max-w-lg text-center'>
 							<Trophy className='mx-auto mb-4 size-12 text-streak' />
-							<h3 className='mb-3 text-3xl font-black text-text-primary'>
+							<h3 className='mb-3 text-2xl font-black text-text-primary'>
 								{t('featureXpTitle')}
 							</h3>
 							<p className='text-lg text-text-secondary'>
@@ -499,7 +499,7 @@ const CTASection = () => {
 					viewport={{ once: true }}
 					transition={TRANSITION_SPRING}
 				>
-					<h2 className='mb-6 text-4xl font-bold text-text-primary md:text-5xl'>
+					<h2 className='mb-6 text-3xl font-bold text-text-primary md:text-4xl'>
 						{t('readyToLevelUp')}
 					</h2>
 					<p className='mb-10 text-lg text-text-secondary'>

@@ -291,7 +291,7 @@ export function DashboardCommandDeck({
 										<p className='text-right text-2xs font-bold uppercase tracking-widest text-text-muted'>
 											{t('cmdProgressRemaining')}
 										</p>
-										<p className='text-right text-3xl font-black tracking-tight text-text-primary sm:text-[2.2rem]'>
+										<p className='text-right text-2xl font-black tracking-tight text-text-primary sm:text-3xl'>
 											<NumberTicker value={xpRemaining} locale='en-US' />
 										</p>
 									</div>

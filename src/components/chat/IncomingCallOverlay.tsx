@@ -3,13 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
 import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
-// Giả định bạn có import các Icon từ lucide-react hoặc tương tự
 import { Phone, Video, PhoneOff } from 'lucide-react'
 
 interface Props {
 	isReceivingCall: boolean
 	isCallActive: boolean
-	onAccept: (withVideo: boolean) => void // Thêm tham số
+	onAccept: (withVideo: boolean) => void
 	onReject: () => void
 }
 
@@ -37,45 +36,42 @@ export default function IncomingCallOverlay({
 							</div>
 						</div>
 
-						<h2 className='text-white text-3xl font-bold mb-2 tracking-wide'>
+						<h2 className='mb-2 text-2xl font-bold text-white'>
 							{t('incomingCall')}
 						</h2>
-						<p className='text-text-muted mb-10 text-lg'>
-							Ai đó đang gọi cho bạn...
+						<p className='mb-8 text-base text-text-muted'>
+							{t('incomingCallDetail')}
 						</p>
 
 						<div className='flex gap-4 sm:gap-6'>
-							{/* Nút Từ chối */}
 							<motion.button
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								onClick={onReject}
-								className='px-6 py-4 bg-error/90 hover:bg-error text-white rounded-full font-medium shadow-warm flex items-center gap-2 transition-colors'
+								className='flex items-center gap-2 rounded-full bg-error/90 px-5 py-3 font-medium text-white shadow-warm transition-colors hover:bg-error'
 							>
 								<PhoneOff className='w-5 h-5' />
-								Từ chối
+								{t('declineCall')}
 							</motion.button>
 
-							{/* Nút Bắt máy: Chỉ Âm Thanh */}
 							<motion.button
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								onClick={() => onAccept(false)}
-								className='px-6 py-4 bg-bg-elevated hover:bg-brand/20 text-white border border-brand/50 rounded-full font-medium flex items-center gap-2 transition-colors'
+								className='flex items-center gap-2 rounded-full border border-brand/50 bg-bg-elevated px-5 py-3 font-medium text-white transition-colors hover:bg-brand/20'
 							>
 								<Phone className='w-5 h-5 text-brand' />
-								Answer Audio
+								{t('answerAudio')}
 							</motion.button>
 
-							{/* Nút Bắt máy: Video */}
 							<motion.button
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								onClick={() => onAccept(true)}
-								className='px-6 py-4 bg-success/90 hover:bg-success text-white rounded-full font-medium shadow-warm flex items-center gap-2 transition-colors'
+								className='flex items-center gap-2 rounded-full bg-success/90 px-5 py-3 font-medium text-white shadow-warm transition-colors hover:bg-success'
 							>
 								<Video className='w-5 h-5' />
-								Answer Video
+								{t('answerVideo')}
 							</motion.button>
 						</div>
 					</motion.div>

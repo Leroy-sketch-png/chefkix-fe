@@ -782,7 +782,7 @@ const FeaturedCard = ({
 
 						{/* Content overlay */}
 						<div className='absolute inset-x-0 bottom-0 z-10 p-6 md:p-8'>
-							<h3 className='mb-3 text-2xl font-bold tracking-tight text-white drop-shadow-md md:text-3xl'>
+							<h3 className='mb-3 text-xl font-bold tracking-tight text-white drop-shadow-md md:text-2xl'>
 								{title}
 							</h3>
 							{description && (
