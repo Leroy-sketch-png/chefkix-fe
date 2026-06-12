@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
@@ -21,6 +22,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { logDevError } from '@/lib/dev-log'
 import type { FeedMode } from '@/components/shared/FeedTabBar'
 import { EmptyStateGamified } from '@/components/shared'
+import { useStoryStore } from '@/store/storyStore'
+import { StoryFeed } from '@/components/story/StoryFeed'
 
 const POSTS_PER_PAGE = 10
 
@@ -42,6 +45,20 @@ export default function FeedPage() {
 	const availableModes: FeedMode[] = user
 		? ['forYou', 'trending', 'following', 'latest']
 		: ['trending', 'latest']
+	const router = useRouter()
+
+	const fetchStoryFeed = useStoryStore(state => state.fetchStoryFeed)
+	const storyUsers = useStoryStore(state => state.storyUsers)
+	const [isStoryLoading, setIsStoryLoading] = useState(true)
+
+	useEffect(() => {
+		if (user) {
+			setIsStoryLoading(true)
+			fetchStoryFeed().finally(() => setIsStoryLoading(false))
+		} else {
+			setIsStoryLoading(false)
+		}
+	}, [user, fetchStoryFeed])
 
 	useEffect(() => {
 		if (user && !initializedAuthMode.current) {
@@ -237,6 +254,18 @@ export default function FeedPage() {
 				>
 					<div className='grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_20rem]'>
 						<div>
+							{user && (
+								<div className='mb-4 sm:mb-6'>
+									<StoryFeed
+										stories={storyUsers}
+										isLoading={isStoryLoading}
+										onStoryClick={userStory =>
+											router.push(`/story/view/${userStory.userId}`)
+										}
+									/>
+								</div>
+							)}
+
 							<FeedCommandDeck
 								feedMode={feedMode}
 								onFeedModeChange={setFeedMode}
