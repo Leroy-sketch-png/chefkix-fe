@@ -264,9 +264,17 @@ export function useVoiceMode(): UseVoiceModeReturn {
 						icon: entering ? '🙌' : '✋',
 					})
 					if (entering) {
-						await speak('Messy hands mode. Voice commands active.')
+						await speak('Messy hands mode. Voice commands active.', {
+							channel: 'user-request',
+							dedupeKey: 'messy-hands-entering',
+							interruption: 'interrupt',
+						})
 					} else {
-						await speak('Hands free. Touch mode restored.')
+						await speak('Hands free. Touch mode restored.', {
+							channel: 'user-request',
+							dedupeKey: 'messy-hands-leaving',
+							interruption: 'interrupt',
+						})
 					}
 					break
 				}
@@ -341,6 +349,8 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		[executeCommand, audio.isSpeaking],
 	)
 
+	const networkErrorCountRef = useRef(0)
+
 	const handleError = useCallback((error: string) => {
 		if (error === 'not-allowed') {
 			microphonePermissionDenied = true
@@ -348,6 +358,14 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			setLastEvent({ type: 'error', message: 'Microphone access denied' })
 			setIsListening(false)
 			setIsContinuous(false)
+		} else if (error === 'network') {
+			networkErrorCountRef.current++
+			if (networkErrorCountRef.current === 1) {
+				setLastEvent({
+					type: 'error',
+					message: 'Voice commands unavailable offline',
+				})
+			}
 		} else {
 			setLastEvent({ type: 'error', message: `Voice error: ${error}` })
 		}

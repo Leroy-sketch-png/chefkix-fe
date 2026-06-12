@@ -10,9 +10,7 @@ class MockUtterance {
 	volume = 1
 	lang = ''
 	onend: (() => void) | null = null
-	onerror:
-		| ((event: { error: string }) => void)
-		| null = null
+	onerror: ((event: { error: string }) => void) | null = null
 
 	constructor(text: string) {
 		this.text = text
@@ -82,6 +80,40 @@ describe('KitchenAudioCoordinator', () => {
 
 		expect(speak).toHaveBeenCalledTimes(1)
 		expect(cancel).not.toHaveBeenCalled()
+	})
+
+	it('suppresses a recently completed duplicate without cancelling speech', async () => {
+		const coordinator = getKitchenAudioCoordinator()
+		coordinator.chooseSpokenGuidance(true)
+
+		const first = coordinator.speak({
+			channel: 'step-guidance',
+			dedupeKey: 'step-repeat',
+			text: 'Stir the sauce',
+			interruption: 'replace-lower-priority',
+		})
+		spoken[0].onend?.()
+		await first
+
+		await coordinator.speak({
+			channel: 'step-guidance',
+			dedupeKey: 'step-repeat',
+			text: 'Stir the sauce',
+			interruption: 'replace-lower-priority',
+		})
+
+		expect(speak).toHaveBeenCalledTimes(1)
+		expect(cancel).not.toHaveBeenCalled()
+
+		jest.advanceTimersByTime(5000)
+		void coordinator.speak({
+			channel: 'step-guidance',
+			dedupeKey: 'step-repeat',
+			text: 'Stir the sauce',
+			interruption: 'replace-lower-priority',
+		})
+
+		expect(speak).toHaveBeenCalledTimes(2)
 	})
 
 	it('drains 100 queued utterances without repeatedly cancelling speech', async () => {

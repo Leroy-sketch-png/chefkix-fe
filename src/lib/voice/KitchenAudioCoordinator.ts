@@ -52,6 +52,9 @@ export const DEFAULT_KITCHEN_AUDIO_PREFERENCES: KitchenAudioPreferences = {
 	soundEffectsEnabled: true,
 }
 
+const DEDUPE_WINDOW_MS = 5000
+const MAX_DEDUPE_HISTORY = 200
+
 const CHANNEL_PRIORITIES: Record<KitchenAudioChannel, number> = {
 	'timer-critical': 400,
 	'user-request': 300,
@@ -60,7 +63,9 @@ const CHANNEL_PRIORITIES: Record<KitchenAudioChannel, number> = {
 }
 
 function canUseStorage(): boolean {
-	return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+	return (
+		typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
+	)
 }
 
 function readPersistedState(): {
@@ -90,7 +95,8 @@ function readPersistedState(): {
 			}
 		}
 
-		const legacyEnabled = window.localStorage.getItem(LEGACY_AUDIO_KEY) !== 'false'
+		const legacyEnabled =
+			window.localStorage.getItem(LEGACY_AUDIO_KEY) !== 'false'
 		return {
 			preferences: {
 				...DEFAULT_KITCHEN_AUDIO_PREFERENCES,
@@ -117,6 +123,7 @@ export class KitchenAudioCoordinator {
 	private microphoneOwner: 'voice' | 'clap' | null = null
 	private hydrated = false
 	private activeTimeout: ReturnType<typeof setTimeout> | null = null
+	private dedupeHistory = new Map<string, number>()
 	private snapshot: KitchenAudioSnapshot = {
 		preferences: DEFAULT_KITCHEN_AUDIO_PREFERENCES,
 		guidanceChoiceMade: false,
@@ -167,7 +174,9 @@ export class KitchenAudioCoordinator {
 		this.chooseSpokenGuidance(false)
 	}
 
-	speak(request: Omit<KitchenAudioRequest, 'priority'> & { priority?: number }): Promise<void> {
+	speak(
+		request: Omit<KitchenAudioRequest, 'priority'> & { priority?: number },
+	): Promise<void> {
 		this.hydrate()
 		const normalized: KitchenAudioRequest = {
 			...request,
@@ -183,6 +192,25 @@ export class KitchenAudioCoordinator {
 			this.queue.some(item => item.request.dedupeKey === normalized.dedupeKey)
 		) {
 			return Promise.resolve()
+		}
+
+		const now = Date.now()
+		const lastSpoken = this.dedupeHistory.get(normalized.dedupeKey)
+		if (lastSpoken && now - lastSpoken < DEDUPE_WINDOW_MS) {
+			return Promise.resolve()
+		}
+
+		for (const [key, spokenAt] of this.dedupeHistory) {
+			if (now - spokenAt >= DEDUPE_WINDOW_MS) {
+				this.dedupeHistory.delete(key)
+			}
+		}
+		this.dedupeHistory.delete(normalized.dedupeKey)
+		this.dedupeHistory.set(normalized.dedupeKey, now)
+		while (this.dedupeHistory.size > MAX_DEDUPE_HISTORY) {
+			const oldestKey = this.dedupeHistory.keys().next().value
+			if (typeof oldestKey !== 'string') break
+			this.dedupeHistory.delete(oldestKey)
 		}
 
 		return new Promise((resolve, reject) => {

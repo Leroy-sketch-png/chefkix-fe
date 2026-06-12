@@ -79,6 +79,9 @@ export class VoiceRecognition {
 	private _isListening = false
 	private intentionalStop = false
 
+	private consecutiveFailures = 0
+	private lastFailureTime = 0
+
 	constructor(options: VoiceRecognitionOptions) {
 		this.opts = {
 			language: options.language ?? 'en-US',
@@ -102,6 +105,7 @@ export class VoiceRecognition {
 			const result = e.results[e.resultIndex]
 			if (!result?.isFinal) return
 
+			this.consecutiveFailures = 0 // Reset on successful result
 			const transcript = result[0].transcript
 			const confidence = result[0].confidence
 			this.opts.onResult(transcript, confidence)
@@ -113,6 +117,10 @@ export class VoiceRecognition {
 			// 'no-speech' is expected in push-to-talk, don't surface as error
 			if (error === 'no-speech') return
 			if (error === 'aborted') return
+
+			this.consecutiveFailures++
+			this.lastFailureTime = Date.now()
+
 			this.opts.onError(error)
 		}
 
@@ -122,6 +130,20 @@ export class VoiceRecognition {
 
 			// Auto-restart in continuous mode unless intentionally stopped
 			if (this.opts.continuous && !this.intentionalStop) {
+				// Prevent infinite crash loops (e.g. repeated network errors)
+				if (this.consecutiveFailures >= 3) {
+					const timeSinceLastFailure = Date.now() - this.lastFailureTime
+					if (timeSinceLastFailure < 5000) {
+						// Too many failures too fast, give up.
+						this.intentionalStop = true
+						this.opts.onEnd()
+						return
+					} else {
+						// It's been a while, we can reset and try again
+						this.consecutiveFailures = 0
+					}
+				}
+
 				try {
 					rec.start()
 					this._isListening = true
