@@ -131,6 +131,10 @@ export function isPublicRoutePath(pathname: string): boolean {
 	return false
 }
 
+export function shouldRedirectExpiredSession(pathname: string): boolean {
+	return !isPublicRoutePath(pathname)
+}
+
 export function getGuestBrowseHref(
 	returnTo: string | null | undefined,
 	fallback: string = PATHS.EXPLORE,
