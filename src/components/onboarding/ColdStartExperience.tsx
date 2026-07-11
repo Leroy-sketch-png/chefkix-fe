@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, ReactNode } from 'react'
+import { useState, useEffect, useCallback, ReactNode, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, TrendingUp, Award, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -127,6 +127,7 @@ export const ColdStartExperience = ({
 	className,
 }: ColdStartExperienceProps) => {
 	const t = useTranslations('onboarding')
+	const rootRef = useRef<HTMLDivElement>(null)
 	const [phase, setPhase] = useState<ColdStartPhase>(() => {
 		if (typeof window === 'undefined') return 'personalized'
 		const state = getColdStartState()
@@ -197,12 +198,25 @@ export const ColdStartExperience = ({
 			}
 		}
 
-		// Listen for custom tracking events
+			// Listen for custom tracking events
 		window.addEventListener('chefkix:interaction', handleInteraction)
 		return () => {
 			window.removeEventListener('chefkix:interaction', handleInteraction)
 		}
 	}, [phase, recordInteraction])
+
+	// Proxy all clicks within the cold-start area as interactions
+	useEffect(() => {
+		const root = rootRef.current
+		if (!root || phase !== 'curated') return
+
+		const onClick = () => {
+			window.dispatchEvent(new CustomEvent('chefkix:interaction'))
+		}
+
+		root.addEventListener('click', onClick)
+		return () => root.removeEventListener('click', onClick)
+	}, [phase])
 
 	// Skip cold-start for returning users or if already past it
 	if (phase === 'personalized' && !showTransitionMessage) {
@@ -210,7 +224,7 @@ export const ColdStartExperience = ({
 	}
 
 	return (
-		<div className={cn('relative', className)}>
+		<div ref={rootRef} className={cn('relative', className)}>
 			{/* Transition overlay */}
 			<AnimatePresence>
 				{showTransitionMessage && (

@@ -150,7 +150,6 @@ export const VerifyOtpForm = () => {
 				if (profileResponse.success && profileResponse.data) {
 					setUser(profileResponse.data)
 					toast.success(t('toastWelcomeNew'))
-					setLoading(true)
 					router.push(postLoginPath)
 					return
 				}
