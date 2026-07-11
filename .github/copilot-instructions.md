@@ -1,5 +1,5 @@
 # ChefKix Frontend — AI Agent Instructions
-<!-- Cross-ref: workspace root .github/copilot-instructions.md (philosophy) + AGENTS.md (live audit trail) -->
+<!-- Cross-ref: workspace root .github/copilot-instructions.md (philosophy) + AGENTS.md (audit trail) + SCOPE.md (role contract + work queue) -->
 <!-- This file: FE-specific conventions only. Read root files for full context. -->
 
 # LIVE FIXES (read before touching any FE file)
