@@ -13,7 +13,7 @@ import {
 	VolumeX,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getStoriesByUserId, getStoryById } from '@/services/story'
+import { getStoriesByUserId, getStoryById, recordStoryView } from '@/services/story'
 import { sendStoryReaction, sendStoryReply } from '@/services/story'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
 import { Rnd } from 'react-rnd'
@@ -246,6 +246,12 @@ export function StoryViewer({
 			if (timerRef.current) clearTimeout(timerRef.current)
 		}
 	}, [currentStoryIndex, stories, isPaused, isLoading, goToNextStory])
+
+	useEffect(() => {
+		if (currentStory?.id) {
+			recordStoryView(currentStory.id).catch(() => {})
+		}
+	}, [currentStory?.id])
 
 	const handleInteractionStart = () => setIsPaused(true)
 	const handleInteractionEnd = () => setIsPaused(false)

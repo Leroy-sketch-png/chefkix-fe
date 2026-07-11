@@ -68,6 +68,7 @@ import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
+import { trackEvent } from '@/lib/eventTracker'
 
 // ── Types ───────────────────────────────────────────────────────────
 import { Recipe } from '@/lib/types/recipe'
@@ -1129,6 +1130,17 @@ export const RecipeCreateAiFlow = ({
 							xp: finalRecipe.xpReward || 0,
 							quality: qualityMsg,
 						}),
+					})
+
+					trackEvent('RECIPE_CREATED', currentDraftId, 'recipe', {
+						title: finalRecipe.title,
+						difficulty: finalRecipe.difficulty,
+						cuisine: finalRecipe.cuisine,
+						xpReward: finalRecipe.xpReward ?? 0,
+						qualityScore: publishData?.qualityScore ?? null,
+						qualityTier: publishData?.qualityTier ?? null,
+						ingredientsCount: finalRecipe.ingredients?.length ?? 0,
+						stepsCount: finalRecipe.steps?.length ?? 0,
 					})
 
 					// NOTE: Do NOT setIsPublishing(false) — leave button disabled until navigation

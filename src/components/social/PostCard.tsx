@@ -324,6 +324,7 @@ const PostCardContent = ({
 				const newIsLiked = response.data.isLiked ?? !wasLiked
 
 				trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
+				window.dispatchEvent(new CustomEvent('chefkix:interaction'))
 				setPost(prev => ({
 					...prev,
 					likes: newLikes,
@@ -550,6 +551,7 @@ const PostCardContent = ({
 	const handleNativeShare = async () => {
 		setShowShareMenu(false)
 		const postUrl = `${window.location.origin}/post/${post.id}`
+		trackEvent('POST_SHARED', post.id, 'post', { method: 'native' })
 		const shareData = {
 			title: t('nativeShareTitle', {
 				name: post.displayName || t('chefkixUser'),

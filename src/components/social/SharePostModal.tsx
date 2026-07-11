@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
+import { trackEvent } from '@/lib/eventTracker'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -177,6 +178,10 @@ export const SharePostModal = ({
 			)
 
 			if (successCount > 0) {
+				trackEvent('POST_SHARED', postId, 'post', {
+					method: 'chat',
+					recipientCount: successCount,
+				})
 				toast.success(
 					successCount === 1
 						? t('toastShareSuccess')

@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { CommentSkeleton } from '@/components/ui/skeleton'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getCommentsByPostId, createComment } from '@/services/comment'
+import { trackEvent } from '@/lib/eventTracker'
 import { moderateContent } from '@/services/ai'
 import { toast } from 'sonner'
 import {
@@ -199,6 +200,7 @@ export const CommentList = ({
 				setTaggedUserIds([])
 				mentionInputRef.current?.clear()
 				toast.success(t('commentPosted'))
+				trackEvent('POST_COMMENTED', postId, 'post', { commentId: response.data.id })
 				onCommentCreated?.()
 			} else {
 				diag.error('social', 'COMMENT_CREATE_FAILED', {
