@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslations } from '@/i18n/hooks'
@@ -61,6 +61,20 @@ interface PendingPostLink {
 }
 
 const PENDING_POST_LINK_KEY = 'pendingPostLink'
+const DRAFT_CONTENT_KEY = 'postDraftContent'
+const DRAFT_PHOTOS_KEY = 'postDraftPhotos'
+const DRAFT_TIMESTAMP_KEY = 'postDraftTs'
+const DRAFT_MAX_AGE_MS = 86_400_000 // 24 hours
+
+function clearDraftStorage() {
+	try {
+		localStorage.removeItem(DRAFT_CONTENT_KEY)
+		localStorage.removeItem(DRAFT_TIMESTAMP_KEY)
+		sessionStorage.removeItem(DRAFT_PHOTOS_KEY)
+	} catch {
+		/* quota or access error — non-critical */
+	}
+}
 
 function CreatePostContent() {
 	const router = useRouter()
@@ -68,7 +82,12 @@ function CreatePostContent() {
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
-	const { user } = useAuth()
+	const {
+		user,
+		isAuthenticated,
+		isLoading: isAuthLoading,
+		isHydrated,
+	} = useAuth()
 	const [session, setSession] = useState<SessionInfo | null>(null)
 	const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId)
 
@@ -77,6 +96,16 @@ function CreatePostContent() {
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [reviewRating, setReviewRating] = useState<number>(0)
+
+	const hasLoadedPendingPhotos = useRef(false)
+
+	// Auth guard — redirect guests to sign-in
+	useEffect(() => {
+		if (isHydrated && !isAuthenticated) {
+			const returnTo = encodeURIComponent('/post/new')
+			router.replace(`/auth/sign-in?returnTo=${returnTo}`)
+		}
+	}, [isHydrated, isAuthenticated, router])
 
 	const claimPendingXp = async (currentSessionId: string, postId: string) => {
 		let lastResponse: Awaited<ReturnType<typeof linkPostToSession>> | null =
@@ -140,6 +169,7 @@ function CreatePostContent() {
 
 			// Clear from sessionStorage
 			sessionStorage.removeItem('pendingPostPhotos')
+			hasLoadedPendingPhotos.current = true
 		} catch (error) {
 			logDevError('Failed to load pending photos:', error)
 			sessionStorage.removeItem('pendingPostPhotos')
@@ -204,6 +234,86 @@ function CreatePostContent() {
 			cancelled = true
 		}
 	}, [sessionId, t])
+
+	// ── Draft recovery on mount ──────────────────────────────────────
+	useEffect(() => {
+		try {
+			const ts = localStorage.getItem(DRAFT_TIMESTAMP_KEY)
+			if (!ts) return
+			if (Date.now() - Number(ts) > DRAFT_MAX_AGE_MS) {
+				clearDraftStorage()
+				return
+			}
+
+			const savedContent = localStorage.getItem(DRAFT_CONTENT_KEY)
+			if (savedContent) {
+				setContent(savedContent)
+			}
+
+			if (!hasLoadedPendingPhotos.current) {
+				const savedPhotos = sessionStorage.getItem(DRAFT_PHOTOS_KEY)
+				if (savedPhotos) {
+					const photoUrls = JSON.parse(savedPhotos) as string[]
+					if (Array.isArray(photoUrls) && photoUrls.length > 0) {
+						const files: File[] = []
+						const urls: string[] = []
+						photoUrls.forEach(url => {
+							try {
+								if (!url || !url.includes(',')) return
+								const byteString = atob(url.split(',')[1])
+								const mimeString = url
+									.split(',')[0]
+									.split(':')[1]
+									.split(';')[0]
+								const ab = new ArrayBuffer(byteString.length)
+								const ia = new Uint8Array(ab)
+								for (let i = 0; i < byteString.length; i++) {
+									ia[i] = byteString.charCodeAt(i)
+								}
+								const blob = new Blob([ab], { type: mimeString })
+								const file = new File([blob], `draft-${Date.now()}.jpg`, {
+									type: mimeString,
+								})
+								files.push(file)
+								urls.push(url)
+							} catch {
+								/* skip corrupted photo */
+							}
+						})
+						if (files.length > 0) {
+							setPhotoFiles(files)
+							setPreviewUrls(urls)
+						}
+					}
+				}
+			}
+		} catch {
+			/* storage access error — non-critical */
+		}
+	}, [])
+
+	// ── Debounced auto-save draft ────────────────────────────────────
+	useEffect(() => {
+		if (!content && photoFiles.length === 0) return
+
+		const timer = setTimeout(() => {
+			try {
+				localStorage.setItem(DRAFT_CONTENT_KEY, content)
+				localStorage.setItem(DRAFT_TIMESTAMP_KEY, String(Date.now()))
+
+				if (photoFiles.length > 0 && previewUrls.length > 0) {
+					sessionStorage.setItem(
+						DRAFT_PHOTOS_KEY,
+						JSON.stringify(previewUrls),
+					)
+				}
+			} catch {
+				/* quota or access error — content-only save still works */
+			}
+		}, 1500)
+
+		return () => clearTimeout(timer)
+	}, [content, photoFiles, previewUrls])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -275,6 +385,7 @@ function CreatePostContent() {
 			})
 
 			if (response.success && response.data) {
+				clearDraftStorage()
 				const createdPost = response.data
 				const postId = createdPost.id
 				trackEvent('POST_CREATED', postId, 'post', {
@@ -381,6 +492,10 @@ function CreatePostContent() {
 	const hasPendingSessionXp = session
 		? hasClaimablePostXp(session.pendingXp)
 		: false
+
+	// Guest guard — show skeleton while loading, hide on unauthenticated (redirect effect handles navigation)
+	if (!isHydrated || isAuthLoading) return <CreatePostSkeleton />
+	if (!isAuthenticated) return null
 
 	return (
 		<PageTransition>

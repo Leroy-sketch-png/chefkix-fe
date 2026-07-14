@@ -113,6 +113,51 @@ const INTEREST_TILES = [
 	},
 ] as const
 
+const DIETARY_TILES = [
+	{
+		id: 'vegetarian',
+		labelKey: 'ipDietVegetarian' as const,
+		emoji: '🥦',
+		gradient: 'from-success to-accent-teal',
+	},
+	{
+		id: 'gluten-free',
+		labelKey: 'ipDietGlutenFree' as const,
+		emoji: '🌾',
+		gradient: 'from-warning to-streak',
+	},
+	{
+		id: 'dairy-free',
+		labelKey: 'ipDietDairyFree' as const,
+		emoji: '🥛',
+		gradient: 'from-info to-accent-teal',
+	},
+	{
+		id: 'keto',
+		labelKey: 'ipDietKeto' as const,
+		emoji: '🥑',
+		gradient: 'from-streak to-warning',
+	},
+	{
+		id: 'paleo',
+		labelKey: 'ipDietPaleo' as const,
+		emoji: '🥩',
+		gradient: 'from-error to-warning',
+	},
+	{
+		id: 'halal',
+		labelKey: 'ipDietHalal' as const,
+		emoji: '🕌',
+		gradient: 'from-accent-teal to-brand',
+	},
+	{
+		id: 'kosher',
+		labelKey: 'ipDietKosher' as const,
+		emoji: '🥯',
+		gradient: 'from-brand to-streak',
+	},
+] as const
+
 // ============================================
 // COMPONENT
 // ============================================
@@ -413,6 +458,73 @@ export function InterestPicker({
 									</motion.button>
 								)
 							})}
+						</div>
+
+						{/* Dietary Restrictions Section */}
+						<div className='mt-6'>
+							<h3 className='mb-3 text-sm font-semibold text-text-secondary'>
+								{t('ipDietSection')}
+							</h3>
+							<div className='grid grid-cols-3 gap-3 sm:grid-cols-4'>
+								{DIETARY_TILES.map((tile, i) => {
+									const isSelected = selected.has(tile.id)
+									return (
+										<motion.button
+											type='button'
+											key={tile.id}
+											initial={{ opacity: 0, y: 10 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{ delay: 0.03 * i }}
+											onClick={() => toggleInterest(tile.id)}
+											className={cn(
+												'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+												isSelected
+													? 'border-brand shadow-card shadow-brand/20'
+													: 'border-transparent hover:border-border-medium',
+											)}
+										>
+											<div
+												className={cn(
+													'absolute inset-0 bg-gradient-to-br transition-all duration-300',
+													tile.gradient,
+													isSelected
+														? 'opacity-100'
+														: 'opacity-80 group-hover:opacity-90',
+												)}
+											/>
+											<div className='absolute inset-0 flex items-center justify-center'>
+												<span
+													className={cn(
+														'text-4xl transition-transform duration-200 sm:text-5xl',
+														isSelected
+															? 'scale-110'
+															: 'group-hover:scale-105',
+													)}
+													role='img'
+													aria-hidden='true'
+												>
+													{tile.emoji}
+												</span>
+											</div>
+											<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
+											{isSelected && (
+												<motion.div
+													initial={{ scale: 0 }}
+													animate={{ scale: 1 }}
+													className='absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-brand text-white shadow-warm'
+												>
+													<Check className='size-3.5' strokeWidth={3} />
+												</motion.div>
+											)}
+											<div className='absolute inset-x-0 bottom-0 p-2'>
+												<span className='text-xs font-semibold text-white drop-shadow-md sm:text-sm'>
+													{t(tile.labelKey)}
+												</span>
+											</div>
+										</motion.button>
+									)
+								})}
+							</div>
 						</div>
 					</div>
 
