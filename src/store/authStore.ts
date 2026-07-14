@@ -1,6 +1,6 @@
 import { User } from '@/lib/types'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 
 /**
@@ -20,7 +20,54 @@ const isValidUser = (user: unknown): user is User => {
 	return typeof u.userId === 'string' && u.userId.length > 0
 }
 
-interface AuthState {
+const isBrowser = () => typeof window !== 'undefined'
+
+export const createSafeAuthStorage = (): StateStorage => ({
+	getItem: (name: string) => {
+		if (!isBrowser()) return null
+
+		try {
+			const value = window.localStorage.getItem(name)
+			if (!value) return null
+
+			// Zustand parses the returned string later. Parse once here so corrupt
+			// auth JSON degrades to a guest session instead of trapping the app loader.
+			JSON.parse(value)
+			return value
+		} catch (error) {
+			logDevError('[authStore] Ignoring unreadable persisted auth state:', error)
+			try {
+				window.localStorage.removeItem(name)
+			} catch (removeError) {
+				logDevWarn(
+					'[authStore] Failed to remove unreadable persisted auth state:',
+					removeError,
+				)
+			}
+			return null
+		}
+	},
+	setItem: (name: string, value: string) => {
+		if (!isBrowser()) return
+
+		try {
+			window.localStorage.setItem(name, value)
+		} catch (error) {
+			logDevError('[authStore] Failed to persist auth state:', error)
+		}
+	},
+	removeItem: (name: string) => {
+		if (!isBrowser()) return
+
+		try {
+			window.localStorage.removeItem(name)
+		} catch (error) {
+			logDevWarn('[authStore] Failed to remove persisted auth state:', error)
+		}
+	},
+})
+
+export interface AuthState {
 	isAuthenticated: boolean
 	user: User | null
 	accessToken: string | null
@@ -31,6 +78,24 @@ interface AuthState {
 	logout: () => void
 	setLoading: (isLoading: boolean) => void
 	setHydrated: (isHydrated: boolean) => void
+}
+
+type HydrationTarget = Pick<AuthState, 'setHydrated' | 'setLoading'>
+
+export const completeAuthHydration = (
+	state: HydrationTarget | undefined,
+	fallback?: () => HydrationTarget,
+) => {
+	if (state) {
+		state.setHydrated(true)
+		return
+	}
+
+	setTimeout(() => {
+		const target = fallback ? fallback() : useAuthStore.getState()
+		target.setHydrated(true)
+		target.setLoading(false)
+	}, 0)
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -112,6 +177,7 @@ export const useAuthStore = create<AuthState>()(
 		}),
 		{
 			name: 'auth-storage', // The key to use for storing the data in localStorage
+			storage: createJSONStorage(createSafeAuthStorage),
 			// Only persist these specific fields - NOT isLoading or isHydrated
 			partialize: state => ({
 				isAuthenticated: state.isAuthenticated,
@@ -119,7 +185,11 @@ export const useAuthStore = create<AuthState>()(
 				accessToken: state.accessToken,
 			}),
 			onRehydrateStorage: () => {
-				return state => {
+				return (state, error) => {
+					if (error) {
+						logDevError('[authStore] Failed to rehydrate auth state:', error)
+					}
+
 					if (state) {
 						// Validate persisted user - clear if corrupted
 						if (state.user && !isValidUser(state.user)) {
@@ -139,11 +209,12 @@ export const useAuthStore = create<AuthState>()(
 						// NOTE: We do NOT set axios headers here. The request interceptor
 						// in axios.ts reads from this store for every request.
 						// This avoids circular dependency: authStore <-> axios
-
-						// Mark as hydrated - AuthProvider will handle loading state
-						state.setHydrated(true)
-						// DO NOT set isLoading here - AuthProvider controls this
 					}
+
+					// Mark as hydrated even when Zustand reports an error and omits state.
+					// AuthProvider owns normal loading completion; the fallback releases
+					// the loader only for failed hydration where AuthProvider would never run.
+					completeAuthHydration(state)
 				}
 			},
 		},
