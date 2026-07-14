@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import useSound from 'use-sound'
-import { API_ENDPOINTS } from '@/constants/api'
-import app from '@/configs/app'
 import { useAuthStore } from '@/store/authStore'
 import { logDevError } from '@/lib/dev-log'
+import {
+	buildVideoSignalingProtocols,
+	buildVideoSignalingUrl,
+} from '@/lib/video-signaling-auth'
 
 type SignalData = RTCSessionDescriptionInit | RTCIceCandidate
 
@@ -354,11 +356,10 @@ export function useWebRTC({
 			return
 		}
 
-		const wsUrl = new URL(
-			`${app.API_BASE_URL.replace(/^http/, 'ws')}${API_ENDPOINTS.CHAT.VIDEO_SIGNALING_WS}`,
+		const socket = new WebSocket(
+			buildVideoSignalingUrl(),
+			buildVideoSignalingProtocols(accessToken),
 		)
-		wsUrl.searchParams.set('access_token', accessToken)
-		const socket = new WebSocket(wsUrl.toString())
 		wsRef.current = socket
 
 		socket.onopen = () => {
