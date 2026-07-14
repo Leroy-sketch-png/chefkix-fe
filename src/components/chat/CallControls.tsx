@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from 'lucide-react'
 import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 
@@ -59,12 +60,14 @@ export default function CallControls({
 	onMakeCall,
 	onEndCall,
 }: Props) {
+	const t = useTranslations('messages')
+
 	return (
 		<div className='flex w-full items-center justify-center gap-5 pt-4'>
 			<CircleBtn
 				active={isMicOn}
 				onClick={onToggleAudio}
-				label={isMicOn ? 'Mute microphone' : 'Unmute microphone'}
+				label={isMicOn ? t('muteMic') : t('unmuteMic')}
 				icon={
 					isMicOn ? (
 						<Mic size={22} strokeWidth={1.8} />
@@ -76,7 +79,7 @@ export default function CallControls({
 			<CircleBtn
 				active={isCameraOn}
 				onClick={onToggleVideo}
-				label={isCameraOn ? 'Turn camera off' : 'Turn camera on'}
+				label={isCameraOn ? t('turnOffCamera') : t('turnOnCamera')}
 				icon={
 					isCameraOn ? (
 						<Video size={22} strokeWidth={1.8} />
@@ -94,15 +97,16 @@ export default function CallControls({
 					whileTap={BUTTON_TAP}
 					onClick={onMakeCall}
 					className='flex h-14 items-center gap-2 rounded-full bg-brand px-8 font-medium text-white shadow-warm hover:opacity-90'
+					aria-label={t('callOtherPerson')}
 				>
 					<Phone size={22} strokeWidth={1.8} />
-					<span>Start call</span>
+					<span>{t('callOtherPerson')}</span>
 				</motion.button>
 			) : (
 				<CircleBtn
 					isDanger
 					onClick={onEndCall}
-					label='End call'
+					label={t('ariaEndVideoCall')}
 					icon={<PhoneOff size={24} strokeWidth={1.8} />}
 				/>
 			)}

@@ -2,16 +2,11 @@
 
 import React, { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import {
-	Headphones,
-	RefreshCw,
-	ShieldAlert,
-	ShieldCheck,
-	Wifi,
-} from 'lucide-react'
+import { Headphones, RefreshCw, Wifi } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useWebRTC } from '@/hooks/useWebRTC'
+import { getVideoCallStatus } from '@/lib/video-call-status'
 import CallControls from './CallControls'
 import IncomingCallOverlay from './IncomingCallOverlay'
 import MediaStage from './MediaStage'
@@ -29,6 +24,20 @@ export default function VideoCall({
 }: VideoCallProps) {
 	const t = useTranslations('messages')
 	const webRTC = useWebRTC({ conversationId, currentUserId, onClose })
+	const callStatus = getVideoCallStatus({
+		mediaState: webRTC.mediaState,
+		isJoined: webRTC.isJoined,
+		isCalling: webRTC.isCalling,
+		isCallActive: webRTC.isCallActive,
+		connectionState: webRTC.connectionState,
+		iceConnectionState: webRTC.iceConnectionState,
+		relayCandidateAvailable: webRTC.relayCandidateAvailable,
+	})
+	const statusToneClass = {
+		success: 'border-success/40 bg-success/10 text-success',
+		warning: 'border-warning/40 bg-warning/10 text-warning',
+		muted: 'border-border-medium bg-bg-elevated text-text-secondary',
+	}[callStatus.tone]
 
 	useEffect(() => {
 		void webRTC.startMedia(true)
@@ -53,36 +62,21 @@ export default function VideoCall({
 			<div className='flex w-full flex-wrap items-center justify-between gap-3'>
 				<div>
 					<p className='text-xs font-semibold uppercase text-text-muted'>
-						1:1 co-cook
+						{t('videoCallEyebrow')}
 					</p>
 					<h2 className='text-xl font-bold tracking-tight text-brand'>
 						{t('videoCallTitle')}
 					</h2>
 				</div>
-				<div className='flex flex-wrap items-center justify-end gap-2 text-xs'>
-					<span className='rounded border border-border-medium px-2 py-1 text-text-secondary'>
-						Media: {webRTC.mediaState}
-					</span>
-					<span className='rounded border border-border-medium px-2 py-1 text-text-secondary'>
-						Peer: {webRTC.connectionState}
-					</span>
-					<span className='rounded border border-border-medium px-2 py-1 text-text-secondary'>
-						ICE: {webRTC.iceConnectionState}
-					</span>
+				<div className='flex max-w-sm flex-col items-end gap-1 text-right'>
 					<span
-						className={`flex items-center gap-1 rounded border px-2 py-1 ${
-							webRTC.relayCandidateAvailable
-								? 'border-success/40 text-success'
-								: 'border-warning/40 text-warning'
-						}`}
+						className={`rounded border px-2.5 py-1 text-xs font-medium ${statusToneClass}`}
 					>
-						{webRTC.relayCandidateAvailable ? (
-							<ShieldCheck className='size-3.5' />
-						) : (
-							<ShieldAlert className='size-3.5' />
-						)}
-						{webRTC.relayCandidateAvailable ? 'TURN relay' : 'Relay pending'}
+						{t(callStatus.labelKey)}
 					</span>
+					<p className='text-xs text-text-muted'>
+						{t(callStatus.detailKey)}
+					</p>
 				</div>
 			</div>
 
@@ -96,8 +90,7 @@ export default function VideoCall({
 			<div className='flex w-full flex-wrap items-center justify-between gap-3 border-y border-border-subtle py-3'>
 				<p className='flex items-center gap-2 text-sm text-text-muted'>
 					<Wifi className='size-4' />
-					One bounded ICE restart runs automatically. Recovery remains under
-					presenter control.
+					{t('videoCallGuidance')}
 				</p>
 				<div className='flex flex-wrap gap-2'>
 					<Button
@@ -110,7 +103,7 @@ export default function VideoCall({
 						}
 					>
 						<Headphones />
-						Audio only
+						{t('audioOnly')}
 					</Button>
 					<Button
 						variant='outline'
@@ -121,7 +114,7 @@ export default function VideoCall({
 						}
 					>
 						<RefreshCw />
-						Reconnect
+						{t('reconnectCall')}
 					</Button>
 				</div>
 			</div>
