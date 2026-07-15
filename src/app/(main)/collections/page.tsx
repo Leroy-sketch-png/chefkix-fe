@@ -43,6 +43,7 @@ import {
 	createCollection,
 	deleteCollection,
 } from '@/services/collection'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { useTranslations } from 'next-intl'
 import { GridPattern } from '@/components/ui/grid-pattern'
 
@@ -333,6 +334,13 @@ export default function CollectionsPage() {
 									(() => {
 										const typeMeta = getCollectionTypeMeta(collection)
 										const TypeIcon = typeMeta.icon
+										const coverImageDelivery =
+											collection.coverImageUrl &&
+											getImageDeliveryProps(collection.coverImageUrl, {
+												width: 800,
+												height: 400,
+												crop: 'fill',
+											})
 										return (
 											<motion.div
 												key={collection.id}
@@ -351,14 +359,14 @@ export default function CollectionsPage() {
 												>
 													{/* Cover image or placeholder */}
 													<div className='relative h-32 bg-bg-elevated z-10'>
-														{collection.coverImageUrl ? (
+														{coverImageDelivery ? (
 															<NextImage
-																src={collection.coverImageUrl}
+																src={coverImageDelivery.src}
 																alt={collection.name}
 																fill
 																sizes='(max-width: 768px) 100vw, 50vw'
 																className='object-cover'
-																unoptimized
+																unoptimized={coverImageDelivery.unoptimized}
 															/>
 														) : (
 															<div className='flex size-full items-center justify-center bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10 dark:from-brand/20 dark:via-pink/10 dark:to-xp/15 relative overflow-hidden'>

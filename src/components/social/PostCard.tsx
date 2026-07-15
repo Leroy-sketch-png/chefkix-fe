@@ -19,6 +19,7 @@ import {
 } from '@/lib/eventTracker'
 import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import { safeRecipeImageSrc } from '@/lib/imageSafety'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -127,19 +128,16 @@ interface PostCardProps {
 }
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
-	QUICK:
-		'bg-warning/28 text-warning-deep border border-warning/35 shadow-card',
+	QUICK: 'bg-warning/28 text-warning-deep border border-warning/35 shadow-card',
 	POLL: 'bg-info/28 text-info border border-info/35 shadow-md',
-	RECENT_COOK:
-		'bg-brand/28 text-brand border border-brand/35 shadow-glow',
+	RECENT_COOK: 'bg-brand/28 text-brand border border-brand/35 shadow-glow',
 	GROUP:
 		'bg-accent-purple/28 text-accent-purple border border-accent-purple/35 shadow-md',
 	RECIPE_REVIEW:
 		'bg-warning/32 text-warning-deep border border-warning/40 shadow-md',
 	QUICK_TIP:
 		'bg-success/28 text-success-deep border border-success/35 shadow-md',
-	RECIPE_BATTLE:
-		'bg-error/28 text-error border border-error/35 shadow-md',
+	RECIPE_BATTLE: 'bg-error/28 text-error border border-error/35 shadow-md',
 }
 
 function PostCardErrorFallback({
@@ -466,6 +464,21 @@ const PostCardContent = ({
 	const handleDelete = async () => {
 		setShowDeleteConfirm(true)
 	}
+
+	const battleRecipeImageA =
+		post.battleRecipeImageA &&
+		getImageDeliveryProps(safeRecipeImageSrc(post.battleRecipeImageA), {
+			width: 128,
+			height: 128,
+			crop: 'fill',
+		})
+	const battleRecipeImageB =
+		post.battleRecipeImageB &&
+		getImageDeliveryProps(safeRecipeImageSrc(post.battleRecipeImageB), {
+			width: 128,
+			height: 128,
+			crop: 'fill',
+		})
 
 	const handleConfirmDelete = async () => {
 		if (isDeleting) return
@@ -987,17 +1000,17 @@ const PostCardContent = ({
 															href={`/recipes/${post.battleRecipeIdA}`}
 															className='group/recipe flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-bg-hover'
 														>
-															{post.battleRecipeImageA && (
+															{battleRecipeImageA && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={safeRecipeImageSrc(post.battleRecipeImageA)}
+																		src={battleRecipeImageA.src}
 																		alt={
 																			post.battleRecipeTitleA ??
 																			t('recipeAFallback')
 																		}
 																		fill
 																		sizes='64px'
-																		unoptimized
+																		unoptimized={battleRecipeImageA.unoptimized}
 																		onError={e => {
 																			;(
 																				e.target as HTMLImageElement
@@ -1065,17 +1078,17 @@ const PostCardContent = ({
 															href={`/recipes/${post.battleRecipeIdB}`}
 															className='group/recipe flex flex-col items-center gap-2 rounded-xl p-2 transition-colors hover:bg-bg-hover'
 														>
-															{post.battleRecipeImageB && (
+															{battleRecipeImageB && (
 																<div className='relative size-16 overflow-hidden rounded-xl'>
 																	<Image
-																		src={safeRecipeImageSrc(post.battleRecipeImageB)}
+																		src={battleRecipeImageB.src}
 																		alt={
 																			post.battleRecipeTitleB ??
 																			t('recipeBFallback')
 																		}
 																		fill
 																		sizes='64px'
-																		unoptimized
+																		unoptimized={battleRecipeImageB.unoptimized}
 																		onError={e => {
 																			;(
 																				e.target as HTMLImageElement
@@ -1187,34 +1200,44 @@ const PostCardContent = ({
 											{t('cookedWith')}{' '}
 										</span>
 										<div className='flex flex-wrap items-center gap-1'>
-											{post.coChefs.map((chef, i) => (
-												<span key={chef.userId}>
-													<Link
-														href={`/${chef.userId}`}
-														className='inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline'
-													>
-														{chef.avatarUrl && (
-															<Image
-																src={chef.avatarUrl}
-																alt={chef.displayName}
-																width={16}
-																height={16}
-																unoptimized
-																onError={e => {
-																	;(
-																		e.target as HTMLImageElement
-																	).style.display = 'none'
-																}}
-																className='size-4 rounded-full object-cover'
-															/>
+											{post.coChefs.map((chef, i) => {
+												const avatarDelivery =
+													chef.avatarUrl &&
+													getImageDeliveryProps(chef.avatarUrl, {
+														width: 64,
+														height: 64,
+														crop: 'fill',
+													})
+
+												return (
+													<span key={chef.userId}>
+														<Link
+															href={`/${chef.userId}`}
+															className='inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline'
+														>
+															{avatarDelivery && (
+																<Image
+																	src={avatarDelivery.src}
+																	alt={chef.displayName}
+																	width={16}
+																	height={16}
+																	unoptimized={avatarDelivery.unoptimized}
+																	onError={e => {
+																		;(
+																			e.target as HTMLImageElement
+																		).style.display = 'none'
+																	}}
+																	className='size-4 rounded-full object-cover'
+																/>
+															)}
+															@{chef.displayName}
+														</Link>
+														{i < (post.coChefs?.length ?? 0) - 1 && (
+															<span className='text-text-muted'>, </span>
 														)}
-														@{chef.displayName}
-													</Link>
-													{i < (post.coChefs?.length ?? 0) - 1 && (
-														<span className='text-text-muted'>, </span>
-													)}
-												</span>
-											))}
+													</span>
+												)
+											})}
 										</div>
 									</div>
 								)}

@@ -5,6 +5,7 @@ import Image, { ImageProps } from 'next/image'
 import { cn } from '@/lib/utils'
 import { ImageOff, ChefHat, User } from 'lucide-react'
 import { isKnownBrokenImageSrc } from '@/lib/imageSafety'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 
 /**
  * Fallback types for different content
@@ -131,12 +132,14 @@ export const ImageWithFallback = ({
 		)
 	}
 
-	// Check if URL is external (needs unoptimized)
-	const isExternalUrl = typeof src === 'string' && /^https?:\/\//.test(src)
+	const imageDelivery = getImageDeliveryProps(src, {
+		width: typeof width === 'number' ? width : undefined,
+		height: typeof height === 'number' ? height : undefined,
+	})
 
 	return (
 		<Image
-			src={src}
+			src={imageDelivery.src}
 			alt={alt}
 			width={width}
 			height={height}
@@ -144,7 +147,7 @@ export const ImageWithFallback = ({
 			className={cn(isLoading && 'animate-pulse bg-bg-elevated', className)}
 			onError={handleError}
 			onLoad={handleLoad}
-			unoptimized={isExternalUrl}
+			unoptimized={imageDelivery.unoptimized}
 			{...props}
 		/>
 	)

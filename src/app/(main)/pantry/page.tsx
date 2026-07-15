@@ -73,6 +73,7 @@ import { suggestCategory } from '@/lib/data/ingredients'
 import { createFromRecipe } from '@/services/shoppingList'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { relativeExpiry } from '@/lib/relative-time'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -706,10 +707,7 @@ export default function PantryPage() {
 																</SelectTrigger>
 																<SelectContent>
 																	{CATEGORIES.map(c => (
-																		<SelectItem
-																			key={c.key}
-																			value={c.key}
-																		>
+																		<SelectItem key={c.key} value={c.key}>
 																			{c.emoji} {t(c.labelKey)}
 																		</SelectItem>
 																	))}
@@ -977,72 +975,82 @@ export default function PantryPage() {
 										</p>
 									) : (
 										<div className='grid gap-3'>
-											{matchedRecipes.slice(0, 10).map(match => (
-												<motion.button
-													type='button'
-													key={match.recipeId}
-													whileHover={CARD_HOVER}
-													onClick={() =>
-														router.push(`/recipes/${match.recipeId}`)
-													}
-													className='flex items-center gap-4 rounded-xl border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
-												>
-													{match.coverImageUrl && (
-														<Image
-															src={match.coverImageUrl}
-															alt={match.recipeTitle}
-															width={56}
-															height={56}
-															unoptimized
-															className='size-14 rounded-xl object-cover'
-														/>
-													)}
-													<div className='flex-1'>
-														<p className='font-medium text-text-primary'>
-															{match.recipeTitle}
-														</p>
-														<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
-															<span>{match.difficulty}</span>
-															<span>
-																{match.totalTimeMinutes} {t('min')}
-															</span>
-														</div>
-														<div className='mt-1.5 flex items-center gap-2'>
-															<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
-																<div
-																	className='h-full rounded-full bg-brand transition-all'
-																	style={{
-																		width: `${match.matchPercentage * 100}%`,
-																	}}
-																/>
-															</div>
-															<span className='text-xs font-semibold text-brand'>
-																{Math.round(match.matchPercentage * 100)}%
-															</span>
-														</div>
-														{match.expiringIngredientsUsed.length > 0 && (
-															<p className='mt-1 text-xs text-warning'>
-																{t('usesExpiring')}{' '}
-																{match.expiringIngredientsUsed.join(', ')}
-															</p>
-														)}
-													</div>{' '}
-													<button
+											{matchedRecipes.slice(0, 10).map(match => {
+												const coverImageDelivery =
+													match.coverImageUrl &&
+													getImageDeliveryProps(match.coverImageUrl, {
+														width: 112,
+														height: 112,
+														crop: 'fill',
+													})
+
+												return (
+													<motion.button
 														type='button'
-														onClick={e =>
-															handleAddToShoppingList(match.recipeId, e)
+														key={match.recipeId}
+														whileHover={CARD_HOVER}
+														onClick={() =>
+															router.push(`/recipes/${match.recipeId}`)
 														}
-														aria-label={t('addToShoppingList')}
-														className='grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+														className='flex items-center gap-4 rounded-xl border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
 													>
-														{addingToListId === match.recipeId ? (
-															<Loader2 className='size-4 animate-spin text-text-muted' />
-														) : (
-															<ShoppingCart className='size-4 text-text-secondary' />
+														{coverImageDelivery && (
+															<Image
+																src={coverImageDelivery.src}
+																alt={match.recipeTitle}
+																width={56}
+																height={56}
+																unoptimized={coverImageDelivery.unoptimized}
+																className='size-14 rounded-xl object-cover'
+															/>
 														)}
-													</button>{' '}
-												</motion.button>
-											))}
+														<div className='flex-1'>
+															<p className='font-medium text-text-primary'>
+																{match.recipeTitle}
+															</p>
+															<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
+																<span>{match.difficulty}</span>
+																<span>
+																	{match.totalTimeMinutes} {t('min')}
+																</span>
+															</div>
+															<div className='mt-1.5 flex items-center gap-2'>
+																<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
+																	<div
+																		className='h-full rounded-full bg-brand transition-all'
+																		style={{
+																			width: `${match.matchPercentage * 100}%`,
+																		}}
+																	/>
+																</div>
+																<span className='text-xs font-semibold text-brand'>
+																	{Math.round(match.matchPercentage * 100)}%
+																</span>
+															</div>
+															{match.expiringIngredientsUsed.length > 0 && (
+																<p className='mt-1 text-xs text-warning'>
+																	{t('usesExpiring')}{' '}
+																	{match.expiringIngredientsUsed.join(', ')}
+																</p>
+															)}
+														</div>{' '}
+														<button
+															type='button'
+															onClick={e =>
+																handleAddToShoppingList(match.recipeId, e)
+															}
+															aria-label={t('addToShoppingList')}
+															className='grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+														>
+															{addingToListId === match.recipeId ? (
+																<Loader2 className='size-4 animate-spin text-text-muted' />
+															) : (
+																<ShoppingCart className='size-4 text-text-secondary' />
+															)}
+														</button>{' '}
+													</motion.button>
+												)
+											})}
 										</div>
 									)}
 								</motion.div>

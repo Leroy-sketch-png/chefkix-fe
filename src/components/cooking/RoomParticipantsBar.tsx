@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Users, Crown, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { RoomParticipant } from '@/lib/types/room'
 import { useTranslations } from 'next-intl'
@@ -98,6 +99,13 @@ function ParticipantAvatar({
 	const progress =
 		totalSteps > 0 ? (participant.currentStep / totalSteps) * 100 : 0
 	const size = compact ? 'size-7' : 'size-8'
+	const avatarDelivery =
+		participant.avatarUrl &&
+		getImageDeliveryProps(participant.avatarUrl, {
+			width: compact ? 56 : 72,
+			height: compact ? 56 : 72,
+			crop: 'fill',
+		})
 
 	return (
 		<motion.div
@@ -139,13 +147,13 @@ function ParticipantAvatar({
 			</svg>
 
 			{/* Avatar */}
-			{participant.avatarUrl ? (
+			{avatarDelivery ? (
 				<Image
-					src={participant.avatarUrl}
+					src={avatarDelivery.src}
 					alt={participant.displayName}
 					width={compact ? 28 : 36}
 					height={compact ? 28 : 36}
-					unoptimized
+					unoptimized={avatarDelivery.unoptimized}
 					className={cn(
 						size,
 						'rounded-full border-2 object-cover',

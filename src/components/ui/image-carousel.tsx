@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 
 interface ImageCarouselProps {
 	images: string[]
@@ -55,6 +56,10 @@ export function ImageCarousel({
 
 	const hasMultiple = normalizedImages.length > 1
 	const currentImageHasFailed = failedIndices.includes(currentIndex)
+	const currentImageDelivery = getImageDeliveryProps(
+		normalizedImages[currentIndex] || '',
+		{ width: 1200 },
+	)
 
 	useEffect(() => {
 		setCurrentIndex(prev =>
@@ -206,16 +211,14 @@ export function ImageCarousel({
 						</div>
 					) : (
 						<Image
-							src={normalizedImages[currentIndex]}
+							src={currentImageDelivery.src}
 							alt={`${alt} ${currentIndex + 1} of ${normalizedImages.length}`}
 							fill
 							className='object-cover'
 							sizes='(max-width: 768px) 100vw, 600px'
 							onError={() => handleImageError(currentIndex)}
 							onLoad={() => handleImageLoad(currentIndex)}
-							unoptimized={/^https?:\/\//.test(
-								normalizedImages[currentIndex] || '',
-							)}
+							unoptimized={currentImageDelivery.unoptimized}
 						/>
 					)}
 					{/* Shimmer overlay while current image is loading */}

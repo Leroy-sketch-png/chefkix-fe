@@ -39,6 +39,7 @@ import {
 	staggerItemVariants,
 } from '@/components/ui/stagger-animation'
 import { safeRecipeImageSrc } from '@/lib/imageSafety'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -247,7 +248,9 @@ function SearchResultImage({
 		safeRecipeImageSrc(src || fallbackSrc),
 	)
 	const [hasError, setHasError] = useState(false)
-	const isRemoteSource = /^https?:\/\//i.test(currentSrc || fallbackSrc)
+	const imageDelivery = getImageDeliveryProps(currentSrc || fallbackSrc || '', {
+		width: 800,
+	})
 
 	useEffect(() => {
 		setCurrentSrc(safeRecipeImageSrc(src || fallbackSrc))
@@ -257,8 +260,8 @@ function SearchResultImage({
 	return (
 		<Image
 			{...props}
-			src={currentSrc || fallbackSrc}
-			unoptimized={isRemoteSource}
+			src={imageDelivery.src}
+			unoptimized={imageDelivery.unoptimized}
 			onError={event => {
 				onError?.(event)
 				if (!hasError) {

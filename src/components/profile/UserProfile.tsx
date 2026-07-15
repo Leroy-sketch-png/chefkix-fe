@@ -56,6 +56,7 @@ import { MagicCard } from '@/components/ui/magic-card'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { useAuthGate } from '@/hooks/useAuthGate'
 import { logDevError } from '@/lib/dev-log'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { useTranslations } from 'next-intl'
 
 const CookingHistoryTab = dynamic(
@@ -1019,6 +1020,13 @@ export const UserProfile = ({
 												collection.collectionType === 'LEARNING_PATH'
 													? collectionsT('recipeCount', { count: itemCount })
 													: collectionsT('itemCount', { count: itemCount })
+											const coverImageDelivery =
+												collection.coverImageUrl &&
+												getImageDeliveryProps(collection.coverImageUrl, {
+													width: 800,
+													height: 400,
+													crop: 'fill',
+												})
 
 											return (
 												<Link
@@ -1031,14 +1039,14 @@ export const UserProfile = ({
 														className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
 													>
 														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10'>
-															{collection.coverImageUrl ? (
+															{coverImageDelivery ? (
 																<Image
-																	src={collection.coverImageUrl}
+																	src={coverImageDelivery.src}
 																	alt={collection.name}
 																	fill
 																	sizes='(max-width: 768px) 100vw, 50vw'
 																	className='object-cover transition-transform duration-300 group-hover:scale-105'
-																	unoptimized
+																	unoptimized={coverImageDelivery.unoptimized}
 																/>
 															) : (
 																<div className='grid size-full place-items-center'>

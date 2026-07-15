@@ -19,6 +19,7 @@ import {
 import RepliedStoryPreview from '../chat/RepliedStoryPreview'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -289,6 +290,13 @@ const ChatMessageContent = ({
 	const [showReactionPicker, setShowReactionPicker] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const t = useTranslations('messages')
+	const sharedPostImageDelivery =
+		message.sharedPostImage &&
+		getImageDeliveryProps(message.sharedPostImage, {
+			width: 160,
+			height: 160,
+			crop: 'fill',
+		})
 
 	const handleReact = (emoji: string) => {
 		onReact?.(message.id, emoji)
@@ -403,15 +411,15 @@ const ChatMessageContent = ({
 								>
 									<div className='flex items-start gap-3 p-3.5'>
 										{/* Thumbnail */}
-										{message.sharedPostImage && (
+										{sharedPostImageDelivery && (
 											<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
 												<Image
-													src={message.sharedPostImage}
+													src={sharedPostImageDelivery.src}
 													alt='Shared post'
 													fill
 													sizes='80px'
 													className='object-cover transition-transform group-hover/card:scale-110'
-													unoptimized
+													unoptimized={sharedPostImageDelivery.unoptimized}
 													onError={e => {
 														;(e.target as HTMLImageElement).style.display =
 															'none'

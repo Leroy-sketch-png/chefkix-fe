@@ -23,6 +23,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useUiStore } from '@/store/uiStore'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
 import type { RoomEvent } from '@/lib/types/room'
+import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { toast } from 'sonner'
 import {
 	PremiumSurface,
@@ -409,6 +410,13 @@ export default function CookingRoomPage() {
 								<div className='space-y-3'>
 									{participants.map(p => {
 										const pIsSpectator = p.role === 'SPECTATOR'
+										const avatarDelivery =
+											p.avatarUrl &&
+											getImageDeliveryProps(p.avatarUrl, {
+												width: 80,
+												height: 80,
+												crop: 'fill',
+											})
 										return (
 											<motion.div
 												key={p.userId}
@@ -421,13 +429,13 @@ export default function CookingRoomPage() {
 												}`}
 											>
 												<div className='relative'>
-													{p.avatarUrl ? (
+													{avatarDelivery ? (
 														<Image
-															src={p.avatarUrl}
+															src={avatarDelivery.src}
 															alt={p.displayName}
 															width={40}
 															height={40}
-															unoptimized
+															unoptimized={avatarDelivery.unoptimized}
 															className={`size-10 rounded-full object-cover ${pIsSpectator ? 'opacity-75' : ''}`}
 														/>
 													) : (
