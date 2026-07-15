@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { CookLauncherClient } from './CookLauncherClient'
 
 export const metadata: Metadata = {
-	title: 'Start Cooking',
+	title: 'Cook Now',
 	description:
-		'Resume your active cooking session or jump into explore to start a new one.',
+		'Resume an active cooking session or launch a guided cook from a ready recipe.',
 }
 
 export default function CookLauncherPage() {
