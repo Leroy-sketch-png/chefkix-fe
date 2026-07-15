@@ -42,8 +42,7 @@ export function getTurnServer(): RTCIceServer {
 			process.env.NEXT_PUBLIC_TURN_URL ||
 			'turn:localhost:3478?transport=udp',
 		username: process.env.NEXT_PUBLIC_TURN_USERNAME || 'chefkix',
-		credential:
-			process.env.NEXT_PUBLIC_TURN_CREDENTIAL || 'chefkix-turn-demo',
+		credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL,
 	}
 }
 
