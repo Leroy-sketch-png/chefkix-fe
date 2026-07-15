@@ -10,7 +10,7 @@ import {
 } from '@/lib/keycloak-sso'
 import { googleSignIn } from '@/services/auth'
 import { useAuth } from '@/hooks/useAuth'
-import { getMyProfile } from '@/services/profile'
+import { finalizeAuthSession } from '@/lib/auth-session'
 
 const GoogleCallbackContent = () => {
 	const router = useRouter()
@@ -81,11 +81,12 @@ const GoogleCallbackContent = () => {
 					return
 				}
 
-				login(response.data.accessToken)
-				const profileResponse = await getMyProfile()
+				const profileResponse = await finalizeAuthSession(
+					response.data.accessToken,
+					{ login, setUser },
+				)
 
 				if (profileResponse.success && profileResponse.data) {
-					setUser(profileResponse.data)
 					setLoading(true)
 					if (!cancelled) {
 						router.replace(session.returnTo || PATHS.DASHBOARD)

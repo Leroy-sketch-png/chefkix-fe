@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, Zap } from 'lucide-react'
 import { signIn } from '@/services/auth'
-import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
+import { finalizeAuthSession } from '@/lib/auth-session'
 
 const DEMO_ACCOUNTS = [
 	{
@@ -86,7 +86,7 @@ const DEMO_ACCOUNTS = [
 export function DevQuickLogin() {
 	const [expanded, setExpanded] = useState(false)
 	const [loadingUser, setLoadingUser] = useState<string | null>(null)
-	const { login, setUser, setLoading } = useAuth()
+	const { login, setUser } = useAuth()
 	const router = useRouter()
 
 	if (process.env.NODE_ENV !== 'development') return null
@@ -109,11 +109,11 @@ export function DevQuickLogin() {
 				return
 			}
 
-			login(response.data.accessToken)
-
-			const profileResponse = await getMyProfile()
+			const profileResponse = await finalizeAuthSession(response.data.accessToken, {
+				login,
+				setUser,
+			})
 			if (profileResponse.success && profileResponse.data) {
-				setUser(profileResponse.data)
 				toast.success(`Logged in as ${username}`)
 				router.push('/dashboard')
 			} else {

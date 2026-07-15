@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { AUTH_ROUTES, PATHS, isPublicRoutePath } from '@/constants'
-import { getMyProfile } from '@/services/profile'
+import { getMyProfileWithAccessToken } from '@/services/profile'
 import { AuthLoader } from '@/components/auth/AuthLoader'
 import { waitForVisibilityRefresh } from './TokenRefreshProvider'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
@@ -96,11 +96,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 				// while TokenRefreshProvider is already refreshing it
 				await waitForVisibilityRefresh()
 
-				// Repair stale auth flags when the token exists but the persisted auth state drifted.
-				if (!isAuthenticated) {
-					login(accessToken)
-				}
-
 				const tokenSubject = getTokenSubject(accessToken)
 				const hasUserMismatch = Boolean(
 					user && tokenSubject && user.userId !== tokenSubject,
@@ -114,14 +109,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 				// Token exists - fetch the profile if we have no user data or the persisted user belongs to another token.
 				if (!user || hasUserMismatch) {
-					const profileResponse = await getMyProfile()
+					const profileResponse =
+						await getMyProfileWithAccessToken(accessToken)
 					if (profileResponse.success && profileResponse.data) {
+						if (!isAuthenticated) {
+							login(accessToken)
+						}
 						setUser(profileResponse.data)
 					} else {
 						// Failed to fetch profile (token invalid/expired), logout
 						logDevError('[AuthProvider] Profile fetch failed, logging out')
 						logout()
 					}
+				} else if (!isAuthenticated) {
+					// Repair stale auth flags only after the persisted profile is known to match the token.
+					login(accessToken)
 				}
 			} catch (err) {
 				logDevError('[AuthProvider] Session validation failed:', err)

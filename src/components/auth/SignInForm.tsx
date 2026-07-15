@@ -23,7 +23,6 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
 import { signIn } from '@/services/auth'
-import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog'
@@ -32,6 +31,7 @@ import { toast } from 'sonner'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { useTranslations } from '@/i18n/hooks'
 import { startGoogleSignIn } from '@/lib/keycloak-sso'
+import { finalizeAuthSession } from '@/lib/auth-session'
 import { logDevError } from '@/lib/dev-log'
 
 function createFormSchema(t: (key: string) => string) {
@@ -76,7 +76,7 @@ function getReadableErrorMessage(
 }
 
 export function SignInForm() {
-	const { login, setUser, logout, setLoading } = useAuth()
+	const { login, setUser, logout } = useAuth()
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 	// Separate loading state for the button - form.isSubmitting doesn't track async properly
 	const [isSubmitting, setIsSubmitting] = useState(false)
@@ -147,12 +147,11 @@ export function SignInForm() {
 			return false
 		}
 
-		// Per the API spec, login returns a token. Set it, then fetch the user profile.
-		login(payload.accessToken)
-
-		const profileResponse = await getMyProfile()
+		const profileResponse = await finalizeAuthSession(payload.accessToken, {
+			login,
+			setUser,
+		})
 		if (profileResponse.success && profileResponse.data) {
-			setUser(profileResponse.data)
 			if (isNewSignup) {
 				toast.success(t('toastWelcomeNew'))
 				router.push(postLoginPath)

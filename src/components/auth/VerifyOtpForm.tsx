@@ -21,7 +21,6 @@ import {
 import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
-import { getMyProfile } from '@/services/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
@@ -30,6 +29,7 @@ import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Clock, AlertTriangle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LazyLottie } from '@/components/shared/LazyLottie'
+import { finalizeAuthSession } from '@/lib/auth-session'
 
 function createOtpSchema(t: (key: string) => string) {
 	return z.object({
@@ -56,7 +56,7 @@ export const VerifyOtpForm = () => {
 	const searchParams = useSearchParams()
 	const email = searchParams.get('email')
 	const returnTo = searchParams.get('returnTo')
-	const { login, setUser, setLoading } = useAuth()
+	const { login, setUser } = useAuth()
 
 	// Determine the redirect target after login
 	// Only allow relative paths to prevent open redirect attacks
@@ -144,11 +144,11 @@ export const VerifyOtpForm = () => {
 			// Auto-login: extract tokens and sign in immediately
 			const payload = response.data
 			if (payload?.accessToken) {
-				login(payload.accessToken)
-
-				const profileResponse = await getMyProfile()
+				const profileResponse = await finalizeAuthSession(payload.accessToken, {
+					login,
+					setUser,
+				})
 				if (profileResponse.success && profileResponse.data) {
-					setUser(profileResponse.data)
 					toast.success(t('toastWelcomeNew'))
 					router.push(postLoginPath)
 					return

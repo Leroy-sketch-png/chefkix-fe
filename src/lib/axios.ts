@@ -69,8 +69,11 @@ api.interceptors.request.use(
 	config => {
 		const state = useAuthStore.getState()
 		const accessToken = state.accessToken
+		const hasExplicitAuthorization =
+			config.headers.has?.('Authorization') ||
+			config.headers.get?.('Authorization') != null
 
-		if (accessToken) {
+		if (accessToken && !hasExplicitAuthorization) {
 			config.headers.set('Authorization', `Bearer ${accessToken}`)
 		}
 

@@ -1,7 +1,8 @@
 import { api } from '@/lib/axios'
 import { ApiResponse, Page, PaginationMeta, Profile } from '@/lib/types'
 import { API_ENDPOINTS } from '@/constants'
-import { AxiosError } from 'axios'
+import app from '@/configs/app'
+import axios, { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
 
@@ -94,43 +95,101 @@ export const getProfileByUserId = async (
 // Note: getProfileByUsername removed - backend only supports userId (UUID) lookups.
 // All profile fetches should use getProfileByUserId() instead.
 
+const normalizeMyProfileResponse = (
+	response: ApiResponse<Profile> | Profile,
+	statusCode = 200,
+): ApiResponse<Profile> => {
+	const wrappedResponse =
+		response &&
+		typeof response === 'object' &&
+		('success' in response ||
+			'statusCode' in response ||
+			'code' in response ||
+			'message' in response ||
+			'data' in response)
+
+	const data = wrappedResponse
+		? (response as ApiResponse<Profile>).data
+		: (response as Profile)
+
+	if (data) {
+		return {
+			success: true,
+			statusCode:
+				(wrappedResponse && (response as ApiResponse<Profile>).statusCode) ||
+				statusCode,
+			message:
+				(wrappedResponse && (response as ApiResponse<Profile>).message) ||
+				'Profile fetched successfully',
+			data,
+		}
+	}
+
+	return {
+		success: false,
+		statusCode: 404,
+		message: 'Profile not found in response',
+	}
+}
+
+const normalizeMyProfileError = (error: unknown): ApiResponse<Profile> => {
+	logDevError('response failed:', error)
+	const axiosError = error as AxiosError<ApiResponse<Profile>>
+	if (axiosError.response) {
+		return {
+			success: false,
+			statusCode:
+				axiosError.response.data?.statusCode || axiosError.response.status,
+			message: axiosError.response.data?.message || 'Failed to fetch profile',
+		}
+	}
+	return {
+		success: false,
+		message: getUserFriendlyMessage(error),
+		statusCode: 500,
+	}
+}
+
 export const getMyProfile = async (): Promise<ApiResponse<Profile>> => {
 	try {
 		// BE now returns ProfileResponse directly (no nested structure)
 		// This endpoint has NO dependency on social module - prevents cascading failures
 		const response = await api.get<ApiResponse<Profile>>(API_ENDPOINTS.AUTH.ME)
 
-		if (response.data?.data) {
-			return {
-				success: true,
-				statusCode: response.data.statusCode,
-				message: response.data.message,
-				data: response.data.data,
-			}
-		}
-
-		// Profile not found in response - return error
-		return {
-			success: false,
-			statusCode: 404,
-			message: 'Profile not found in response',
-		}
+		return normalizeMyProfileResponse(response.data, response.status)
 	} catch (error) {
-		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<Profile>>
-		if (axiosError.response) {
-			return {
-				success: false,
-				statusCode:
-					axiosError.response.data?.statusCode || axiosError.response.status,
-				message: axiosError.response.data?.message || 'Failed to fetch profile',
-			}
-		}
+		return normalizeMyProfileError(error)
+	}
+}
+
+export const getMyProfileWithAccessToken = async (
+	accessToken: string,
+): Promise<ApiResponse<Profile>> => {
+	const token = accessToken.trim()
+	if (!token) {
 		return {
 			success: false,
-			message: getUserFriendlyMessage(error),
-			statusCode: 500,
+			statusCode: 401,
+			message: 'Missing access token',
 		}
+	}
+
+	try {
+		const response = await axios.get<ApiResponse<Profile> | Profile>(
+			API_ENDPOINTS.AUTH.ME,
+			{
+				baseURL: app.API_BASE_URL,
+				timeout: app.AXIOS_TIMEOUT,
+				withCredentials: true,
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			},
+		)
+
+		return normalizeMyProfileResponse(response.data, response.status)
+	} catch (error) {
+		return normalizeMyProfileError(error)
 	}
 }
 

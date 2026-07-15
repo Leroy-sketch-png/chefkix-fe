@@ -169,4 +169,18 @@ describe('api refresh retry behavior', () => {
 		expect(seenConfigs[1].data).toBe(formData)
 		expect(readAuthHeader(seenConfigs[1])).toBe('Bearer new-token')
 	})
+
+	it('does not overwrite an explicit Authorization header', async () => {
+		const response = await api.get('/auth/me', {
+			headers: {
+				Authorization: 'Bearer explicit-token',
+			},
+			adapter: async config =>
+				successResponse(config as InternalAxiosRequestConfig, {
+					authHeader: readAuthHeader(config as InternalAxiosRequestConfig),
+				}),
+		})
+
+		expect(response.data.data.authHeader).toBe('Bearer explicit-token')
+	})
 })
