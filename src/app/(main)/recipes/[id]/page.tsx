@@ -108,7 +108,7 @@ import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { MagicCard } from '@/components/ui/magic-card'
-import { generateRecipeJsonLd } from '@/lib/seo'
+import { generateRecipeJsonLd, jsonLd } from '@/lib/seo'
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -804,7 +804,7 @@ function RecipeDetailContent() {
 		<PageTransition>
 			<script
 				type='application/ld+json'
-				dangerouslySetInnerHTML={{ __html: JSON.stringify(recipeJsonLd) }}
+				dangerouslySetInnerHTML={jsonLd(recipeJsonLd)}
 			/>
 			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>

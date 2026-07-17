@@ -96,9 +96,16 @@ export function recipeSeo({
 }
 
 // ─── JSON-LD Structured Data ────────────────────────────
+export function serializeJsonLd(data: Record<string, unknown>): string {
+	return JSON.stringify(data)
+		.replace(/</g, '\\u003c')
+		.replace(/\u2028/g, '\\u2028')
+		.replace(/\u2029/g, '\\u2029')
+}
+
 export function jsonLd(data: Record<string, unknown>) {
 	return {
-		__html: JSON.stringify({
+		__html: serializeJsonLd({
 			'@context': 'https://schema.org',
 			...data,
 		}),
