@@ -1,8 +1,9 @@
 /**
  * Push Notification Token Service
  *
- * Manages FCM token registration with the backend (DeviceController).
- * Bridges Firebase client SDK ↔ ChefKix backend push infrastructure.
+ * Manages remote push token registration with the backend DeviceController.
+ * The current frontend does not mint web-push tokens; this service remains for
+ * legacy token cleanup and future provider-neutral registration.
  */
 
 import { api } from '@/lib/axios'
@@ -50,17 +51,17 @@ function getDeviceName(): string {
 // ============================================
 
 /**
- * Register an FCM token with the backend.
+ * Register a remote push token with the backend.
  * Backend stores it in push_tokens collection, associated with the authenticated user.
  */
 export async function registerPushToken(
-	fcmToken: string
+	pushToken: string
 ): Promise<ApiResponse<string> | null> {
 	try {
 		const response = await api.post<ApiResponse<string>>(
 			API_ENDPOINTS.NOTIFICATIONS.REGISTER_PUSH_TOKEN,
 			{
-				fcmToken,
+				fcmToken: pushToken,
 				deviceId: getOrCreateDeviceId(),
 				platform: 'web',
 				deviceName: getDeviceName(),

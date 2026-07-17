@@ -2186,6 +2186,7 @@
 		"pushNotSupported": "Push notifications are not supported in this browser",
 		"pushBlocked": "Push notifications are blocked. Please enable them in your browser settings.",
 		"pushDefault": "Click to enable push notifications",
+		"pushUnavailable": "Remote push notifications are temporarily unavailable. Timer alerts still work on this device.",
 		"pushPermissionDenied": "Permission denied. Enable in browser settings.",
 		"timerAlerts": "Timer Alerts",
 		"timerAlertsDesc": "Get notified when cooking timers finish",

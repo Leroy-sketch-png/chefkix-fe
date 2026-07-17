@@ -90,14 +90,8 @@ import {
 import { playTimerChime } from '@/hooks/useTimerNotifications'
 import { setAudioEnabled } from '@/lib/audio'
 import { getKitchenAudioCoordinator } from '@/lib/voice'
-import {
-	requestNotificationPermission,
-	isNotificationSupported,
-	getNotificationPermission,
-	setTimerAlertsEnabled,
-} from '@/lib/pushNotifications'
-import { getFCMToken } from '@/lib/firebase'
-import { registerPushToken, unregisterPushToken } from '@/services/push'
+import { setTimerAlertsEnabled } from '@/lib/pushNotifications'
+import { unregisterPushToken } from '@/services/push'
 import {
 	UserSettings,
 	PrivacySettings,
@@ -1759,40 +1753,21 @@ export default function SettingsPage() {
 									<div>
 										<ToggleRow
 											label={t('enablePush')}
-											description={
-												!isNotificationSupported()
-													? t('pushNotSupported')
-													: getNotificationPermission() === 'denied'
-														? t('pushBlocked')
-														: t('pushDefault')
-											}
+											description={t('pushUnavailable')}
 											icon={Smartphone}
 											checked={settings.notifications.push.enabled}
-											disabled={
-												!isNotificationSupported() ||
-												getNotificationPermission() === 'denied'
-											}
+											disabled={!settings.notifications.push.enabled}
 											onCheckedChange={async checked => {
 												if (checked) {
-													const permission =
-														await requestNotificationPermission()
-													if (permission !== 'granted') {
-														toast.error(t('pushPermissionDenied'))
-														return
-													}
-													// Register FCM token with backend for real push delivery
-													const fcmToken = await getFCMToken()
-													if (fcmToken) {
-														await registerPushToken(fcmToken)
-													}
-												} else {
-													// Unregister FCM token when disabling push
-													await unregisterPushToken()
+													toast.error(t('pushUnavailable'))
+													return
 												}
+
+												await unregisterPushToken()
 												handleUpdateNotifications({
 													push: {
 														...settings.notifications.push,
-														enabled: checked,
+														enabled: false,
 													},
 												})
 											}}

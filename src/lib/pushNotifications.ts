@@ -2,7 +2,7 @@
  * Push Notifications Utility
  *
  * Handles browser Notification API for timer alerts when app is backgrounded.
- * Uses native Notification API (not FCM) since these are local timer events.
+ * Uses the native Notification API since these are local timer events.
  */
 
 const PUSH_TIMER_ALERTS_KEY = 'chefkix:push:timerAlerts'
