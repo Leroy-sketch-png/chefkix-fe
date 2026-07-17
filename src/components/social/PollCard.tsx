@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { Post } from '@/lib/types'
 import { votePoll } from '@/services/post'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { BarChart3 } from 'lucide-react'
@@ -39,7 +39,7 @@ export const PollCard = ({
 	currentUserId,
 }: PollCardProps) => {
 	const t = useTranslations('social')
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isVoting, setIsVoting] = useState(false)
 

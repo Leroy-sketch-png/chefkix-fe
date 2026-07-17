@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { UserPlus, UserCheck, MessageCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 
 interface UserHoverCardProps {
 	userId: string
@@ -40,7 +40,7 @@ export const UserHoverCard = ({
 	currentUserId,
 }: UserHoverCardProps) => {
 	const router = useRouter()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('social')
 	const [profile, setProfile] = useState<Profile | null>(null)
 	const [isLoading, setIsLoading] = useState(false)

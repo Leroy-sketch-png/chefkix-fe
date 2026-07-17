@@ -20,7 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
 import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { diag } from '@/lib/diagnostics'
 
 interface CommentListProps {
@@ -86,7 +86,7 @@ export const CommentList = ({
 	const [taggedUserIds, setTaggedUserIds] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const mentionInputRef = useRef<MentionInputRef>(null)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 
 	const fetchComments = useCallback(async () => {
 		setLoading(true)

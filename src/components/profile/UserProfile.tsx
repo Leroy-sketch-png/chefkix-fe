@@ -54,7 +54,7 @@ import { EmptyStateGamified } from '@/components/shared'
 import { useAuth } from '@/hooks/useAuth'
 import { MagicCard } from '@/components/ui/magic-card'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { logDevError } from '@/lib/dev-log'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { useTranslations } from 'next-intl'
@@ -383,7 +383,7 @@ export const UserProfile = ({
 	const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
 	const { user: currentUserProfile } = useAuth()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const router = useRouter()
 	const effectiveCurrentUserId = currentUserId ?? currentUserProfile?.userId
 	const isOwnProfile = profile.userId === effectiveCurrentUserId

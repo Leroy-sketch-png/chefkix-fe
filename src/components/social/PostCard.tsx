@@ -67,7 +67,7 @@ import {
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { useTranslations } from 'next-intl'
 import { SharePostModal } from '@/components/social/SharePostModal'
 import { logDevError } from '@/lib/dev-log'
@@ -229,7 +229,7 @@ const PostCardContent = ({
 	const isOwner = currentUserId === post.userId
 	const hasPhotos = !!(post.photoUrls?.length || post.photoUrl)
 	const isDesktop = useMediaQuery('(min-width: 768px)')
-	const { requireAuth, guardAction } = useAuthGate()
+	const { requireAuth, guardAction } = useAuthActionGuard()
 	const t = useTranslations('post')
 
 	// Dwell tracking — fire POST_DWELLED when card is visible for 2+ seconds

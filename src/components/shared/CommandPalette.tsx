@@ -31,7 +31,7 @@ import { api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants'
 import { PATHS } from '@/constants/paths'
 import { useAuthStore } from '@/store/authStore'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
@@ -376,7 +376,7 @@ export function CommandPalette() {
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const isAuthenticated = useAuthStore(s => s.isAuthenticated)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 
 	const allNavItems = useNavigationItems()
 	const allActionItems = useActionItems()

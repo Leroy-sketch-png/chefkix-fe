@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Profile, getProfileDisplayName } from '@/lib/types/profile'
 import { toggleFollow } from '@/services/social'
 import { useAuth } from '@/hooks/useAuth'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import {
 	CARD_HOVER,
 	BUTTON_HOVER,
@@ -35,7 +35,7 @@ export function FollowUserCard({
 }: FollowUserCardProps) {
 	const router = useRouter()
 	const { user } = useAuth()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('profile')
 	const [isFollowing, setIsFollowing] = useState(profile.isFollowing ?? false)
 	const [isLoading, setIsLoading] = useState(false)

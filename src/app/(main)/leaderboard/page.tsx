@@ -11,7 +11,7 @@ import {
 } from '@/components/leaderboard'
 import type { LeaderboardEntry } from '@/components/leaderboard/LeaderboardItem'
 import { useAuth } from '@/hooks/useAuth'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { useRouter } from 'next/navigation'
 import {
 	getLeaderboard,
@@ -61,7 +61,7 @@ const getLeaderboardTimeframeLabel = (
 
 export default function LeaderboardRoute() {
 	const { user } = useAuth()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('leaderboard')
 	const router = useRouter()
 	const [type, setType] = useState<LeaderboardType>('global')

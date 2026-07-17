@@ -66,7 +66,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { SearchCommandDeck } from '@/components/search/SearchCommandDeck'
 
@@ -275,7 +275,7 @@ function SearchResultImage({
 
 const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('search')
 
 	const handleSave = async (e: React.MouseEvent) => {
@@ -390,7 +390,7 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	const [following, setFollowing] = useState(person.isFollowing)
 	const followLockRef = useRef(false)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('search')
 
 	const handleFollow = async () => {

@@ -59,7 +59,7 @@ import { toast } from 'sonner'
 import { useUiStore } from '@/store/uiStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuth } from '@/hooks/useAuth'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -151,7 +151,7 @@ function RecipeDetailContent() {
 		session: activeSession,
 	} = useCookingStore()
 	const { user } = useAuth()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const autoStartAttempted = useRef(false)
 
 	// Determine cooking button state - only count COMPLETE & ACTIVE sessions

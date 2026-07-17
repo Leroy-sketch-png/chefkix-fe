@@ -29,7 +29,7 @@ import {
 } from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { trackEvent } from '@/lib/eventTracker'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { RecipeCardEnhanced } from '@/components/recipe'
@@ -448,7 +448,7 @@ export default function ExplorePage() {
 function ExploreContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 	const { user } = useAuth()
 	const initialQuery = searchParams.get('q') || ''
 	const modeParam = searchParams.get('mode')

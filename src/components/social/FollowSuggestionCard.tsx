@@ -18,7 +18,7 @@ import {
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
 import { triggerLikeConfetti } from '@/lib/confetti'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import Link from 'next/link'
 
 interface FollowSuggestionCardProps {
@@ -48,7 +48,7 @@ export const FollowSuggestionCard = ({
 	const [isFollowing, setIsFollowing] = useState(false)
 	const [isDismissing, setIsDismissing] = useState(false)
 	const displayName = getProfileDisplayName(profile)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 
 	const handleFollowBack = async () => {
 		if (!requireAuth(t('followThisChefAuth'), 'follow')) return

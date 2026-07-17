@@ -35,7 +35,7 @@ import {
 	toggleLikeReply,
 } from '@/services/comment'
 import { moderateContent } from '@/services/ai'
-import { useAuthGate } from '@/hooks/useAuthGate'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import {
@@ -130,7 +130,7 @@ const ReplyItem = ({
 	const [likes, setLikes] = useState(reply.likes)
 	const [isLiked, setIsLiked] = useState(reply.isLiked ?? false)
 	const [isLikeLoading, setIsLikeLoading] = useState(false)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 
 	const handleLike = async () => {
 		if (!requireAuth(t('likeThisReplyAuth'))) return
@@ -255,7 +255,7 @@ export const Comment = ({
 	const [replies, setReplies] = useState<Reply[]>([])
 	const [replyCount, setReplyCount] = useState(comment.replyCount)
 	const mentionInputRef = useRef<MentionInputRef>(null)
-	const { requireAuth } = useAuthGate()
+	const { requireAuth } = useAuthActionGuard()
 
 	const isOwnComment = currentUserId === comment.userId
 

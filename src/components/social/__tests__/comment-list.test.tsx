@@ -53,8 +53,8 @@ jest.mock('@/components/shared/MentionInput', () => ({
 	}),
 }))
 
-jest.mock('@/hooks/useAuthGate', () => ({
-	useAuthGate: () => ({ requireAuth: () => true }),
+jest.mock('@/hooks/useAuthActionGuard', () => ({
+	useAuthActionGuard: () => ({ requireAuth: () => true }),
 }))
 
 jest.mock('@/services/comment', () => ({
