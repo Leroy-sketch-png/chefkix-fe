@@ -168,8 +168,21 @@ export default function PantryPage() {
 
 	const fetchItems = useCallback(async () => {
 		try {
-			const data = await getPantryItems(filterCategory ?? undefined)
-			setItems(data)
+			const response = await getPantryItems(filterCategory ?? undefined)
+			if (!response.success || !response.data) {
+				setError(true)
+				toast.error(response.message || t('failedToLoadItems'), {
+					action: {
+						label: t('retry'),
+						onClick: () => {
+							void fetchItems()
+						},
+					},
+				})
+				return
+			}
+			setItems(response.data)
+			setError(false)
 		} catch {
 			setError(true)
 			toast.error(t('failedToLoadItems'), {
@@ -188,8 +201,15 @@ export default function PantryPage() {
 	useEffect(() => {
 		let cancelled = false
 		getPantryItems(filterCategory ?? undefined)
-			.then(data => {
-				if (!cancelled) setItems(data)
+			.then(response => {
+				if (cancelled) return
+				if (!response.success || !response.data) {
+					setError(true)
+					toast.error(response.message || t('failedToLoadItems'))
+					return
+				}
+				setItems(response.data)
+				setError(false)
 			})
 			.catch(() => {
 				if (cancelled) return

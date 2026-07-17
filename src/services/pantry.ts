@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import { ApiResponse } from '@/lib/types/common'
+import { ApiResponse, Page } from '@/lib/types/common'
 import {
 	PantryItem,
 	PantryItemRequest,
@@ -11,28 +11,58 @@ import { logDevError } from '@/lib/dev-log'
 
 // ── CRUD ──────────────────────────────────────────────
 
+type PantryItemsPayload = PantryItem[] | Page<PantryItem>
+
+function extractPantryItems(data: PantryItemsPayload | undefined): PantryItem[] {
+	if (!data) return []
+	if (Array.isArray(data)) return data
+	return Array.isArray(data.content) ? data.content : []
+}
+
+function failureResponse<T>(message: string): ApiResponse<T> {
+	return {
+		success: false,
+		statusCode: 500,
+		message,
+	}
+}
+
+function requireSuccess<T>(response: ApiResponse<T>, context: string): T {
+	if (!response.success) {
+		throw new Error(response.message || `${context} failed`)
+	}
+	if (response.data === undefined || response.data === null) {
+		throw new Error(`No data returned from ${context}`)
+	}
+	return response.data
+}
+
 export async function getPantryItems(
 	category?: string,
 	sort?: string,
-): Promise<PantryItem[]> {
+): Promise<ApiResponse<PantryItem[]>> {
 	try {
 		const params: Record<string, string> = {}
 		if (category) params.category = category
 		if (sort) params.sort = sort
-		const res = await api.get<ApiResponse<PantryItem[]>>(
+		const res = await api.get<ApiResponse<PantryItemsPayload>>(
 			API_ENDPOINTS.PANTRY.BASE,
 			{ params },
 		)
-		const raw = res.data.data
-		if (!raw) return []
-		if (Array.isArray(raw)) return raw
-		// Handle Spring Data Page<PantryItem> wrapper
-		const page = raw as unknown as { content?: PantryItem[] }
-		if (page.content && Array.isArray(page.content)) return page.content
-		return []
+		if (!res.data.success) {
+			logDevError('[Pantry] getPantryItems returned failure:', res.data)
+			return {
+				...res.data,
+				data: undefined,
+			}
+		}
+		return {
+			...res.data,
+			data: extractPantryItems(res.data.data),
+		}
 	} catch (err) {
 		logDevError('[Pantry] getPantryItems failed:', err)
-		return []
+		return failureResponse('Failed to load pantry items')
 	}
 }
 
@@ -44,8 +74,7 @@ export async function addPantryItem(
 			API_ENDPOINTS.PANTRY.BASE,
 			item,
 		)
-		if (!res.data.data) throw new Error('No data returned from add pantry item')
-		return res.data.data
+		return requireSuccess(res.data, 'add pantry item')
 	} catch (err) {
 		logDevError('[Pantry] addPantryItem failed:', err)
 		throw err
@@ -61,7 +90,7 @@ export async function bulkAddPantryItems(
 			API_ENDPOINTS.PANTRY.BULK_ADD,
 			body,
 		)
-		return res.data.data ?? []
+		return requireSuccess(res.data, 'bulk add pantry items')
 	} catch (err) {
 		logDevError('[Pantry] bulkAddPantryItems failed:', err)
 		throw err
@@ -77,9 +106,7 @@ export async function updatePantryItem(
 			API_ENDPOINTS.PANTRY.UPDATE(id),
 			item,
 		)
-		if (!res.data.data)
-			throw new Error('No data returned from update pantry item')
-		return res.data.data
+		return requireSuccess(res.data, 'update pantry item')
 	} catch (err) {
 		logDevError('[Pantry] updatePantryItem failed:', err)
 		throw err
@@ -88,7 +115,10 @@ export async function updatePantryItem(
 
 export async function deletePantryItem(id: string): Promise<void> {
 	try {
-		await api.delete(API_ENDPOINTS.PANTRY.DELETE(id))
+		const res = await api.delete<ApiResponse<void>>(API_ENDPOINTS.PANTRY.DELETE(id))
+		if (res.data && !res.data.success) {
+			throw new Error(res.data.message || 'delete pantry item failed')
+		}
 	} catch (err) {
 		logDevError('[Pantry] deletePantryItem failed:', err)
 		throw err
@@ -100,10 +130,10 @@ export async function clearExpiredItems(): Promise<number> {
 		const res = await api.delete<ApiResponse<{ removed: number }>>(
 			API_ENDPOINTS.PANTRY.CLEAR_EXPIRED,
 		)
-		return res.data.data?.removed ?? 0
+		return requireSuccess(res.data, 'clear expired pantry items').removed
 	} catch (err) {
 		logDevError('[Pantry] clearExpiredItems failed:', err)
-		return 0
+		throw err
 	}
 }
 
@@ -118,9 +148,9 @@ export async function getMatchingRecipes(
 			API_ENDPOINTS.PANTRY.MATCH_RECIPES,
 			{ params: { minMatch, prioritizeExpiring } },
 		)
-		return res.data.data ?? []
+		return requireSuccess(res.data, 'get matching pantry recipes')
 	} catch (err) {
 		logDevError('[Pantry] getMatchingRecipes failed:', err)
-		return []
+		throw err
 	}
 }
