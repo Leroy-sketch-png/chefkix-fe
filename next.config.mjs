@@ -7,6 +7,15 @@ const isDemoBuild = process.env.NEXT_PUBLIC_CHEFKIX_DEMO_PROFILE === '1'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	devIndicators: false,
+	async redirects() {
+		return [
+			{
+				source: '/',
+				destination: '/welcome',
+				statusCode: 301,
+			},
+		]
+	},
 	typescript: {
 		ignoreBuildErrors: process.env.CHEFKIX_SKIP_BUILD_TYPECHECK === '1',
 	},
