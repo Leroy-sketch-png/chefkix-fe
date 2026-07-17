@@ -34,6 +34,7 @@ import {
 import { triggerSuccessConfetti } from '@/lib/confetti'
 import { cn } from '@/lib/utils'
 import { MentionInput } from '@/components/shared/MentionInput'
+import { logDevError } from '@/lib/dev-log'
 
 interface QuickPostFABProps {
 	onPostCreated?: (post: Post) => void
@@ -193,9 +194,13 @@ export const QuickPostFAB = ({
 						title: h.document.title,
 					}))
 					setBattleSearchResults(recipes)
+				} else {
+					logDevError('[QuickPostFAB] battle recipe search failed:', res)
+					setBattleSearchResults([])
 				}
-			} catch {
-				// ignored: autocomplete search non-critical
+			} catch (error) {
+				logDevError('[QuickPostFAB] battle recipe search failed:', error)
+				setBattleSearchResults([])
 			} finally {
 				setBattleSearching(false)
 			}

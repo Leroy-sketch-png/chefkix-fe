@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
 import { autocompleteSearch } from '@/services/search'
+import { logDevError } from '@/lib/dev-log'
 import {
 	AsyncCombobox,
 	type AsyncComboboxOption,
@@ -63,6 +64,11 @@ export const UserDiscoveryClient = ({
 			if (!trimmedQuery) return []
 
 			const response = await autocompleteSearch(trimmedQuery, 'users', 6)
+			if (!response.success || !response.data) {
+				logDevError('[UserDiscoveryClient] autocompleteSearch failed:', response)
+				return []
+			}
+
 			const hits = response.data?.users?.hits ?? []
 			const seenUserIds = new Set<string>()
 

@@ -32,6 +32,7 @@ import { API_ENDPOINTS } from '@/constants'
 import { PATHS } from '@/constants/paths'
 import { useAuthStore } from '@/store/authStore'
 import { useAuthGate } from '@/hooks/useAuthGate'
+import { logDevError } from '@/lib/dev-log'
 
 // ============================================
 // TYPES
@@ -263,8 +264,13 @@ function useSearchResults(
 					signal: controller.signal,
 				})
 
+				if (!recipeRes.data?.success) {
+					logDevError('[CommandPalette] recipe search failed:', recipeRes.data)
+				}
 				const recipes =
-					recipeRes.data?.data?.content ?? recipeRes.data?.data ?? []
+					recipeRes.data?.success
+						? recipeRes.data?.data?.content ?? recipeRes.data?.data ?? []
+						: []
 				const recipeResults: SearchResult[] = (
 					Array.isArray(recipes) ? recipes : []
 				)
@@ -286,7 +292,12 @@ function useSearchResults(
 					signal: controller.signal,
 				})
 
-				const users = userRes.data?.data?.content ?? userRes.data?.data ?? []
+				if (!userRes.data?.success) {
+					logDevError('[CommandPalette] user search failed:', userRes.data)
+				}
+				const users = userRes.data?.success
+					? userRes.data?.data?.content ?? userRes.data?.data ?? []
+					: []
 				const userResults: SearchResult[] = (Array.isArray(users) ? users : [])
 					.slice(0, 5)
 					.map(
@@ -307,8 +318,11 @@ function useSearchResults(
 				if (!controller.signal.aborted) {
 					setResults([...recipeResults, ...userResults])
 				}
-			} catch {
-				// ignored: search abort or network error
+			} catch (error) {
+				if (!controller.signal.aborted) {
+					logDevError('[CommandPalette] search failed:', error)
+					setResults([])
+				}
 			} finally {
 				if (!controller.signal.aborted) {
 					setIsSearching(false)
