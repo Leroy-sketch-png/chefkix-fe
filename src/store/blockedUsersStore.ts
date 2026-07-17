@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { toast } from 'sonner'
 import { getBlockedUsers, blockUser, unblockUser } from '@/services/social'
+import { logDevError } from '@/lib/dev-log'
 
 interface BlockedUsersState {
 	blockedUserIds: Set<string>
@@ -45,9 +46,12 @@ export const useBlockedUsersStore = create<BlockedUsersState>()(
 							isLoaded: true,
 							lastFetched: Date.now(),
 						})
+					} else {
+						logDevError('[blockedUsersStore] fetchBlockedUsers returned failure:', response)
+						set({ isLoaded: true })
 					}
-				} catch {
-					// Silently fail - don't break the app
+				} catch (error) {
+					logDevError('[blockedUsersStore] fetchBlockedUsers failed:', error)
 					set({ isLoaded: true })
 				}
 			},
@@ -61,8 +65,11 @@ export const useBlockedUsersStore = create<BlockedUsersState>()(
 						}))
 						return true
 					}
+					logDevError('[blockedUsersStore] blockUser returned failure:', response)
+					toast.error(response.message || 'Failed to block user')
 					return false
-				} catch {
+				} catch (error) {
+					logDevError('[blockedUsersStore] blockUser failed:', error)
 					toast.error('Failed to block user')
 					return false
 				}
@@ -79,8 +86,11 @@ export const useBlockedUsersStore = create<BlockedUsersState>()(
 						})
 						return true
 					}
+					logDevError('[blockedUsersStore] unblockUser returned failure:', response)
+					toast.error(response.message || 'Failed to unblock user')
 					return false
-				} catch {
+				} catch (error) {
+					logDevError('[blockedUsersStore] unblockUser failed:', error)
 					toast.error('Failed to unblock user')
 					return false
 				}

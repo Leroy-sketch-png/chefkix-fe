@@ -916,7 +916,8 @@ export const useCookingStore = create<CookingState>()(
 					})
 
 					return room.roomCode
-				} catch {
+				} catch (error) {
+					logDevError('[cookingStore] createRoom failed:', error)
 					set({ error: ct('storeFailedCreateRoom'), isLoading: false })
 					return null
 				}
@@ -957,7 +958,8 @@ export const useCookingStore = create<CookingState>()(
 					})
 
 					return true
-				} catch {
+				} catch (error) {
+					logDevError('[cookingStore] joinRoom failed:', error)
 					set({ error: ct('storeFailedJoinRoom'), isLoading: false })
 					return false
 				}

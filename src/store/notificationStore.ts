@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { getUnreadCount } from '@/services/notification'
+import { logDevError } from '@/lib/dev-log'
 
 interface NotificationState {
 	unreadCount: number
@@ -42,9 +43,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 			const response = await getUnreadCount()
 			if (response.success && response.data !== undefined) {
 				set({ unreadCount: response.data, lastFetched: Date.now() })
+			} else {
+				logDevError('[notificationStore] fetchUnreadCount returned failure:', response)
 			}
-		} catch {
-			// ignored: non-critical notification badge
+		} catch (error) {
+			logDevError('[notificationStore] fetchUnreadCount failed:', error)
 		}
 	},
 
