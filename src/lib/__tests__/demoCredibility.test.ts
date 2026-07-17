@@ -57,7 +57,7 @@ describe('demo credibility guardrails', () => {
 	})
 
 	it('keeps investor-path display type product-dense', () => {
-		const welcome = readWorkspaceFile('src/app/welcome/page.tsx')
+		const welcome = readWorkspaceFile('src/app/welcome/WelcomeClient.tsx')
 		const recipeDetail = readWorkspaceFile(
 			'src/app/(main)/recipes/[id]/page.tsx',
 		)
