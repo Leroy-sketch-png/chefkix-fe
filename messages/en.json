@@ -5343,9 +5343,11 @@
 		"avgRating": "Avg Rating"
 	},
 	"story": {
-		"backgroundMediaLabel": "Photo / Video Background",
+		"backgroundMediaLabel": "Photo Background",
 		"changeBackgroundButton": "Change Background",
 		"selectBackgroundButton": "Choose Background",
+		"unsupportedImageError": "Choose a JPEG, PNG, WebP, or GIF image.",
+		"imageTooLargeError": "Choose an image smaller than 10 MB.",
 		"editBackgroundSection": "Edit Background",
 		"zoomLabel": "Zoom ({scale}x)",
 		"rotateLabel": "Rotate ({rotation}°)",

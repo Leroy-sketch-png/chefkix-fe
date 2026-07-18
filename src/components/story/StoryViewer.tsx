@@ -326,7 +326,7 @@ export function StoryViewer({
 				onTouchEnd={handleInteractionEnd}
 			>
 				<div className='relative w-full h-full md:max-w-md md:h-[80vh] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden mx-auto'>
-					{/* Lớp nền Ảnh/Video */}
+					{/* Story background image */}
 					{currentStory.mediaUrl && (
 						<div className='absolute inset-0 overflow-hidden bg-black flex items-center justify-center'>
 							<img

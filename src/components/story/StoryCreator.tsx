@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,6 +22,7 @@ import { useStoryStore } from '@/store/storyStore'
 import { createStory } from '@/services/story'
 import { api } from '@/lib/axios'
 import { useTranslations } from '@/i18n/hooks'
+import { STORY_IMAGE_ACCEPT, validateStoryImage } from '@/lib/story-media'
 
 interface StoryItem {
 	id: string
@@ -76,15 +77,48 @@ export function StoryCreator() {
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const stickerInputRef = useRef<HTMLInputElement>(null)
+	const objectUrlsRef = useRef(new Set<string>())
+
+	const createObjectUrl = (file: File) => {
+		const url = URL.createObjectURL(file)
+		objectUrlsRef.current.add(url)
+		return url
+	}
+
+	const releaseObjectUrl = (url?: string) => {
+		if (url && objectUrlsRef.current.delete(url)) {
+			URL.revokeObjectURL(url)
+		}
+	}
+
+	useEffect(() => {
+		const objectUrls = objectUrlsRef.current
+		return () => {
+			objectUrls.forEach(url => URL.revokeObjectURL(url))
+			objectUrls.clear()
+		}
+	}, [])
 
 	const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
-		if (file) {
-			setMediaFile(file)
-			setMediaPreview(URL.createObjectURL(file))
-			setImageScale(1) // Reset scale
-			setImageRotation(0) // Reset rotation
+		if (!file) return
+
+		const validationError = validateStoryImage(file)
+		if (validationError) {
+			e.target.value = ''
+			toast.error(
+				validationError === 'too-large'
+					? t('imageTooLargeError')
+					: t('unsupportedImageError'),
+			)
+			return
 		}
+
+		releaseObjectUrl(mediaPreview)
+		setMediaFile(file)
+		setMediaPreview(createObjectUrl(file))
+		setImageScale(1)
+		setImageRotation(0)
 	}
 
 	const handleImageStickerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +132,7 @@ export function StoryCreator() {
 				width: 150,
 				height: 150,
 				rotation: 0,
-				data: { imageUrl: URL.createObjectURL(file) },
+				data: { imageUrl: createObjectUrl(file) },
 				file: file,
 			}
 			setItems([...items, newItem])
@@ -143,8 +177,13 @@ export function StoryCreator() {
 		)
 	}
 
-	const removeItem = (id: string) =>
-		setItems(items.filter(item => item.id !== id))
+	const removeItem = (id: string) => {
+		const item = items.find(candidate => candidate.id === id)
+		if (item?.type === 'IMAGE_STICKER') {
+			releaseObjectUrl(item.data.imageUrl)
+		}
+		setItems(items.filter(candidate => candidate.id !== id))
+	}
 	const rotateItem = (id: string) =>
 		setItems(
 			items.map(item =>
@@ -248,7 +287,7 @@ export function StoryCreator() {
 						</h3>
 						<input
 							type='file'
-							accept='image/*,video/*'
+							accept={STORY_IMAGE_ACCEPT}
 							className='hidden'
 							ref={fileInputRef}
 							onChange={handleImageUpload}
@@ -383,7 +422,7 @@ export function StoryCreator() {
 			{/* CỘT PHẢI: Canvas Review */}
 			<div className='flex-1 flex items-center justify-center bg-bg p-8 relative'>
 				<div className='relative w-full max-w-sm aspect-[9/16] bg-black rounded-xl shadow-md overflow-hidden border border-border'>
-					{/* Lớp nền Ảnh/Video */}
+					{/* Story background image */}
 					{mediaPreview ? (
 						<img
 							src={mediaPreview}
