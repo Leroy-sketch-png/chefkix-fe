@@ -98,7 +98,7 @@ const guestNavItems: NavItem[] = [
 	{
 		href: PATHS.AUTH.SIGN_UP,
 		icon: UserPlus,
-		labelKey: 'getStarted',
+		labelKey: 'join',
 		isGetStarted: true,
 	},
 ]
@@ -264,7 +264,11 @@ export const MobileBottomNav = () => {
 										className='w-full justify-center gap-1 px-2.5'
 										shineDuration={1.2}
 									>
-										<Link href={href} className='flex w-full items-center justify-center gap-1'>
+										<Link
+											href={href}
+											aria-label={t('signUp')}
+											className='flex w-full items-center justify-center gap-1'
+										>
 											<Icon className='size-3.5' />
 											<span className='truncate text-2xs font-semibold leading-none'>
 												{label}

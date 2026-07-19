@@ -186,6 +186,8 @@
 		"moreGroupCooking": "Cooking",
 		"moreGroupAccount": "Account",
 		"signIn": "Sign In",
+		"signUp": "Sign up",
+		"join": "Join",
 		"getStarted": "Get Started"
 	},
 	"auth": {

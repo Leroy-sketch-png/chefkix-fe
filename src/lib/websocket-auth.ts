@@ -18,16 +18,25 @@ export function getReadableWebSocketError(message?: string | null): string {
 		return 'Connection error'
 	}
 
-	const normalized = message.toLowerCase()
-	if (
-		normalized.includes('expired') ||
-		normalized.includes('unauth') ||
-		normalized.includes('authentication')
-	) {
+	if (isWebSocketAuthenticationError(message)) {
 		return SESSION_EXPIRED_MESSAGE
 	}
 
 	return message
+}
+
+export function isWebSocketAuthenticationError(
+	message?: string | null,
+): boolean {
+	if (!message) return false
+
+	const normalized = message.toLowerCase()
+	return (
+		normalized.includes('expired') ||
+		normalized.includes('unauth') ||
+		normalized.includes('authentication') ||
+		normalized.includes('forbidden')
+	)
 }
 
 export async function getFreshWebSocketAccessToken(): Promise<string | null> {
