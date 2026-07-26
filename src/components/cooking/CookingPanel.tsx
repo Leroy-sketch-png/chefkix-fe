@@ -15,6 +15,7 @@ import { KitchenAudioControl } from './KitchenAudioControl'
 import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useWakeLock } from '@/hooks/useWakeLock'
+import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 import { useStepPhotos } from '@/hooks/useStepPhotos'
 import { useClapDetection } from '@/hooks/useClapDetection'
 import { useVoiceMode } from '@/lib/voice'
@@ -54,10 +55,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-
-// ============================================
-// MINI TIMER DISPLAY
-// ============================================
 
 const MiniTimer = ({
 	seconds,
@@ -99,10 +96,6 @@ const MiniTimer = ({
 		</button>
 	)
 }
-
-// ============================================
-// STEP PROGRESS DOTS (COMPACT)
-// ============================================
 
 const CompactStepDots = ({
 	totalSteps,
@@ -201,9 +194,13 @@ export const CookingPanel = () => {
 		cookingMode !== 'hidden' &&
 		!isPreviewMode
 	useBeforeUnloadWarning(hasActiveSession, t('cpBeforeUnloadWarning'))
+	const { preferences: runtimePreferences, isReady: preferencesReady } =
+		useRuntimePreferences()
 
 	// Keep screen awake during cooking (Wave 2: Kitchen Protocol)
-	useWakeLock(hasActiveSession)
+	useWakeLock(
+		preferencesReady && runtimePreferences.keepScreenOn && hasActiveSession,
+	)
 
 	// Voice mode for hands-free cooking (Wave 2: Kitchen Protocol)
 	const voice = useVoiceMode()

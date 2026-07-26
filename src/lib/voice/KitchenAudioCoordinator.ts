@@ -62,6 +62,10 @@ const CHANNEL_PRIORITIES: Record<KitchenAudioChannel, number> = {
 	'timer-milestone': 100,
 }
 
+function isSpokenGuidanceChannel(channel: KitchenAudioChannel): boolean {
+	return channel === 'step-guidance' || channel === 'user-request'
+}
+
 function canUseStorage(): boolean {
 	return (
 		typeof window !== 'undefined' && typeof window.localStorage !== 'undefined'
@@ -157,11 +161,8 @@ export class KitchenAudioCoordinator {
 		this.persist()
 		this.emit()
 
-		if (
-			update.spokenGuidanceEnabled === false &&
-			this.active?.request.channel !== 'timer-critical'
-		) {
-			this.cancelActive()
+		if (update.spokenGuidanceEnabled === false) {
+			this.cancelSpokenGuidance()
 		}
 	}
 
@@ -240,16 +241,6 @@ export class KitchenAudioCoordinator {
 
 	stopSpokenGuidance(): void {
 		this.setPreferences({ spokenGuidanceEnabled: false })
-		this.queue = this.queue.filter(item => {
-			if (
-				item.request.channel === 'step-guidance' ||
-				item.request.channel === 'user-request'
-			) {
-				item.resolve()
-				return false
-			}
-			return true
-		})
 	}
 
 	cancelAll(): void {
@@ -330,6 +321,21 @@ export class KitchenAudioCoordinator {
 		}
 		active.resolve()
 		this.emit()
+	}
+
+	private cancelSpokenGuidance(): void {
+		this.queue = this.queue.filter(item => {
+			if (!isSpokenGuidanceChannel(item.request.channel)) return true
+			item.resolve()
+			return false
+		})
+
+		if (!this.active || !isSpokenGuidanceChannel(this.active.request.channel)) {
+			return
+		}
+
+		this.cancelActive()
+		this.startNext()
 	}
 
 	private finishActive(

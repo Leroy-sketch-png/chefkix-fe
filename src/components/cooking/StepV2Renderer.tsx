@@ -19,6 +19,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, TRANSITION_SMOOTH } from '@/lib/motion'
 import type { Step, Ingredient } from '@/lib/types/recipe'
+import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 
 /**
  * StepV2Renderer — Goal-oriented step display with 3 rendering modes
@@ -418,6 +419,7 @@ const KitchenModeRenderer = ({
 	timerComponent?: React.ReactNode
 }) => {
 	const t = useTranslations('cooking')
+	const { preferences, isReady: preferencesReady } = useRuntimePreferences()
 	return (
 		<div className='space-y-6'>
 			{/* Video (auto-plays, useful at distance for visual reference) */}
@@ -426,7 +428,7 @@ const KitchenModeRenderer = ({
 					<video
 						src={step.videoUrl}
 						poster={step.videoThumbnailUrl || undefined}
-						autoPlay
+						autoPlay={preferencesReady && preferences.autoPlayVideos}
 						loop
 						muted
 						playsInline

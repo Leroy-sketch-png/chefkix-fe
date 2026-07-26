@@ -178,4 +178,60 @@ describe('KitchenAudioCoordinator', () => {
 		expect(preferences.timerVoiceEnabled).toBe(true)
 		expect(preferences.timerChimesEnabled).toBe(true)
 	})
+
+	it('does not cancel active timer speech when guidance is muted', async () => {
+		const coordinator = getKitchenAudioCoordinator()
+		coordinator.chooseSpokenGuidance(true)
+
+		const timer = coordinator.speak({
+			channel: 'timer-milestone',
+			dedupeKey: 'timer-rice-halfway',
+			text: 'Rice has five minutes remaining',
+			interruption: 'queue',
+		})
+
+		coordinator.stopSpokenGuidance()
+
+		expect(cancel).not.toHaveBeenCalled()
+		expect(coordinator.getSnapshot().activeChannel).toBe('timer-milestone')
+
+		spoken[0].onend?.()
+		await expect(timer).resolves.toBeUndefined()
+	})
+
+	it('drops queued narration and resumes the surviving timer after mute', async () => {
+		const coordinator = getKitchenAudioCoordinator()
+		coordinator.chooseSpokenGuidance(true)
+
+		const activeGuidance = coordinator.speak({
+			channel: 'step-guidance',
+			dedupeKey: 'step-active',
+			text: 'Fold the batter',
+			interruption: 'queue',
+		})
+		const queuedGuidance = coordinator.speak({
+			channel: 'user-request',
+			dedupeKey: 'step-repeat-request',
+			text: 'Fold the batter gently',
+			interruption: 'queue',
+		})
+		const queuedTimer = coordinator.speak({
+			channel: 'timer-milestone',
+			dedupeKey: 'timer-oven-five',
+			text: 'Oven timer has five minutes remaining',
+			interruption: 'queue',
+		})
+
+		coordinator.stopSpokenGuidance()
+
+		expect(cancel).toHaveBeenCalledTimes(1)
+		expect(spoken).toHaveLength(2)
+		expect(spoken[1].text).toBe('Oven timer has five minutes remaining')
+		expect(coordinator.getSnapshot().activeChannel).toBe('timer-milestone')
+
+		spoken[1].onend?.()
+		await expect(activeGuidance).resolves.toBeUndefined()
+		await expect(queuedGuidance).resolves.toBeUndefined()
+		await expect(queuedTimer).resolves.toBeUndefined()
+	})
 })

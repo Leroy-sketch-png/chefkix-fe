@@ -12,6 +12,7 @@ import { NetworkStatusProvider } from '@/components/providers/NetworkStatusProvi
 import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvider'
 import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
 import { ReducedMotionProvider } from '@/components/providers/ReducedMotionProvider'
+import { RuntimePreferencesProvider } from '@/components/providers/RuntimePreferencesProvider'
 import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
@@ -147,12 +148,14 @@ export default async function RootLayout({
 								<CelebrationProvider>
 									<LiveAnnouncerProvider>
 										<ReducedMotionProvider>
-											<FirstVisitHintsProvider>
-												{children}
-												<NetworkStatusProvider />
-												<GlobalUIEnhancements />
-												<DemoCockpitRuntime />
-											</FirstVisitHintsProvider>
+											<RuntimePreferencesProvider>
+												<FirstVisitHintsProvider>
+													{children}
+													<NetworkStatusProvider />
+													<GlobalUIEnhancements />
+													<DemoCockpitRuntime />
+												</FirstVisitHintsProvider>
+											</RuntimePreferencesProvider>
 										</ReducedMotionProvider>
 									</LiveAnnouncerProvider>
 								</CelebrationProvider>

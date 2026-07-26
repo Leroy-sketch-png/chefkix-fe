@@ -13,16 +13,14 @@ import { useTranslations } from 'next-intl'
 import { RoomParticipantsBar } from './RoomParticipantsBar'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
+import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { notifyTimerUrgent } from '@/lib/audio'
 import { diag } from '@/lib/diagnostics'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { useRoomSocket } from '@/hooks/useRoomSocket'
 import { toast } from 'sonner'
-import {
-	triggerProgressMilestoneConfetti,
-	shouldTriggerMilestone,
-} from '@/lib/confetti'
+import { shouldTriggerMilestone } from '@/lib/confetti'
 import {
 	Sparkles,
 	User,
@@ -58,8 +56,6 @@ import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { OfflineBanner } from './OfflineBanner'
 import { AiAssistPanel } from './AiAssistPanel'
 import { AnimatedNumber } from '@/components/ui/animated-number'
-import { CoolMode } from '@/components/ui/cool-mode'
-import { CurtainReveal } from '@/components/ui/curtain-reveal'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useWakeLock } from '@/hooks/useWakeLock'
@@ -78,10 +74,6 @@ import {
 	CELEBRATION_MODAL,
 	DURATION_S,
 } from '@/lib/motion'
-
-// ============================================
-// ANIMATION VARIANTS
-// ============================================
 
 const modalVariants = {
 	hidden: { opacity: 0, scale: 0.9, y: 50 },
@@ -118,10 +110,6 @@ const stepVariants = {
 		transition: { duration: DURATION_S.normal },
 	}),
 }
-
-// ============================================
-// SUB-COMPONENTS
-// ============================================
 
 // Step Progress Dots (Interactive)
 const StepDots = ({
@@ -221,11 +209,7 @@ const StepTimer = ({
 
 	// Play urgent sound exactly when crossing the 30-second threshold
 	useEffect(() => {
-		if (
-			isRunning &&
-			seconds === 30 &&
-			!hasPlayedUrgentRef.current
-		) {
+		if (isRunning && seconds === 30 && !hasPlayedUrgentRef.current) {
 			hasPlayedUrgentRef.current = true
 			notifyTimerUrgent()
 		}
@@ -323,7 +307,6 @@ const StepTimer = ({
 				>
 					{display}
 				</motion.span>
-
 			</div>
 		</motion.div>
 	)
@@ -345,10 +328,6 @@ const XpPreview = ({ xp, className }: { xp: number; className?: string }) => (
 		</span>
 	</motion.div>
 )
-
-// ============================================
-// KITCHEN PROTOCOL MODE INDICATOR
-// ============================================
 
 const MODE_CONFIG: Record<
 	KitchenInteractionMode,
@@ -495,10 +474,6 @@ const ActiveTimersBadge = ({
 	)
 }
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
 export const CookingPlayer = () => {
 	const pathname = usePathname()
 	const isRoomRoute = pathname === '/cook-together/room'
@@ -565,7 +540,6 @@ export const CookingPlayer = () => {
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [showAiAssist, setShowAiAssist] = useState(false)
-	const [isCurtainOpen, setIsCurtainOpen] = useState(true)
 	const [isNavigating, setIsNavigating] = useState(false)
 	const [kitchenMode, setKitchenMode] = useState(true) // Auto-enabled: 28px+ text, 64px+ targets
 	const [liveAnnouncement, setLiveAnnouncement] = useState('') // aria-live region text
@@ -627,9 +601,17 @@ export const CookingPlayer = () => {
 
 	// Offline detection for cooking continuity
 	const { isOffline } = useOnlineStatus()
+	const { preferences: runtimePreferences, isReady: preferencesReady } =
+		useRuntimePreferences()
 
 	// Keep screen awake during cooking (Wave 2: Kitchen Protocol)
-	useWakeLock(isOpen && !!session && session.status === 'in_progress')
+	useWakeLock(
+		preferencesReady &&
+			runtimePreferences.keepScreenOn &&
+			isOpen &&
+			!!session &&
+			session.status === 'in_progress',
+	)
 
 	// Auto-start continuous voice listening when cooking (Wave 2: Kitchen Protocol)
 	// Enables hands-free commands without pushing any button
@@ -654,22 +636,6 @@ export const CookingPlayer = () => {
 		voice.stopContinuous,
 		voice,
 	])
-
-	useEffect(() => {
-		if (!isOpen) {
-			setIsCurtainOpen(true)
-			return
-		}
-
-		if (prefersReducedMotion) {
-			setIsCurtainOpen(true)
-			return
-		}
-
-		setIsCurtainOpen(false)
-		const timer = setTimeout(() => setIsCurtainOpen(true), 120)
-		return () => clearTimeout(timer)
-	}, [isOpen, prefersReducedMotion])
 
 	// Derive current step data from session and recipe
 	const currentStepNumber = session?.currentStep ?? 1
@@ -791,10 +757,6 @@ export const CookingPlayer = () => {
 		totalSteps,
 		t,
 	])
-
-	// ============================================
-	// KITCHEN PROTOCOL: AUTO-TRANSITIONS (Task 8)
-	// ============================================
 
 	// TRANSITION 1: PREP → ACTIVE
 	// Auto-exits PREP after 30 seconds so the user is never stuck in overview mode.
@@ -979,10 +941,9 @@ export const CookingPlayer = () => {
 			// Complete current step first
 			await completeStep(currentStepNumber)
 
-			// Progress milestone dopamine: confetti burst on milestone steps
+			// Keep milestone feedback concise during the active cooking session.
 			const newCompletedCount = completedSteps.size + 1
 			if (shouldTriggerMilestone(newCompletedCount, totalSteps)) {
-				triggerProgressMilestoneConfetti(currentStepNumber, totalSteps)
 				const remaining = totalSteps - newCompletedCount
 				const message =
 					remaining === 1
@@ -1257,7 +1218,6 @@ export const CookingPlayer = () => {
 	}, [currentStepNumber, isInRoom, sendTimerCompleted])
 
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
-	const [xpBurstToken, setXpBurstToken] = useState<number | null>(null)
 
 	const handleComplete = useCallback(
 		async (rating?: number, notes?: string) => {
@@ -1337,13 +1297,6 @@ export const CookingPlayer = () => {
 					await new Promise(resolve => setTimeout(resolve, 1000))
 				}
 
-				// Trigger celebration with immediate rewards data
-				if (completionResult.baseXpAwarded > 0 && !prefersReducedMotion) {
-					setXpBurstToken(token => (token ?? 0) + 1)
-					// Let the one-shot burst visibly start before closing the player.
-					await new Promise(resolve => setTimeout(resolve, 220))
-				}
-
 				diag.modal('cooking', 'REWARDS_MODAL', true, 'session_completed')
 				showImmediateRewards({
 					sessionId: session?.sessionId ?? '',
@@ -1377,7 +1330,6 @@ export const CookingPlayer = () => {
 			isPreviewMode,
 			exitPreview,
 			totalSteps,
-			prefersReducedMotion,
 			t,
 		],
 	)
@@ -1503,21 +1455,7 @@ export const CookingPlayer = () => {
 						exit='exit'
 						className='fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4 backdrop-blur-md md:p-6'
 					>
-						<div className='pointer-events-none absolute inset-0 z-50 flex items-center justify-center'>
-							<CoolMode
-								triggerToken={xpBurstToken}
-								options={{ particle: '⚡', particleCount: 18, speedUp: 22 }}
-							>
-								<span className='block size-2' aria-hidden='true' />
-							</CoolMode>
-						</div>
-
-						<CurtainReveal
-							isOpen={isCurtainOpen}
-							direction='horizontal'
-							curtainColor='bg-brand'
-							className='h-full w-full max-h-modal max-w-modal-2xl rounded-2xl'
-						>
+						<div className='h-full w-full max-h-modal max-w-modal-2xl overflow-hidden rounded-2xl'>
 							<motion.div
 								variants={prefersReducedMotion ? undefined : modalVariants}
 								initial='hidden'
@@ -2114,7 +2052,7 @@ export const CookingPlayer = () => {
 									</motion.button>
 								</div>
 							</motion.div>
-						</CurtainReveal>
+						</div>
 					</motion.div>
 				)}
 			</AnimatePresence>

@@ -105,7 +105,7 @@ import {
 	MeasurementUnits,
 } from '@/lib/types/settings'
 import { isTrackingOptedOut, setTrackingOptOut } from '@/lib/eventTracker'
-import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
+import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 import { useTranslations } from '@/i18n/hooks'
 
 // ============================================
@@ -392,6 +392,7 @@ const ButtonGroup = <T extends string>({
 	options,
 	value,
 	onChange,
+	disabledLabel,
 }: {
 	options: {
 		value: T
@@ -402,6 +403,7 @@ const ButtonGroup = <T extends string>({
 	}[]
 	value: T
 	onChange: (value: T) => void
+	disabledLabel: string
 }) => (
 	<div className='flex gap-2 flex-wrap'>
 		{options.map(option => {
@@ -413,6 +415,7 @@ const ButtonGroup = <T extends string>({
 					whileHover={option.disabled ? undefined : BUTTON_HOVER}
 					whileTap={option.disabled ? undefined : BUTTON_TAP}
 					onClick={() => !option.disabled && onChange(option.value)}
+					disabled={option.disabled}
 					className={cn(
 						'flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 						option.disabled
@@ -426,7 +429,7 @@ const ButtonGroup = <T extends string>({
 					{option.emoji && <span>{option.emoji}</span>}
 					{option.label}
 					{option.disabled && (
-						<span className='text-xs opacity-70'>(Soon)</span>
+						<span className='text-xs opacity-70'>{disabledLabel}</span>
 					)}
 				</motion.button>
 			)
@@ -442,7 +445,8 @@ export default function SettingsPage() {
 	const { user, setUser, logout } = useAuth()
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { setMotionPreference } = useReducedMotionPreference()
+	const { applyPreferences: applyRuntimePreferences } =
+		useRuntimePreferences()
 	const t = useTranslations('settings')
 
 	const dietaryOptions = DIETARY_KEYS.map(d => ({
@@ -574,6 +578,7 @@ export default function SettingsPage() {
 						},
 					}
 					setSettings(normalizedSettings)
+					applyRuntimePreferences(normalizedSettings.app)
 					// Sync push timerAlerts preference to localStorage for use outside settings page
 					setTimerAlertsEnabled(
 						response.data.notifications?.push?.timerAlerts ?? true,
@@ -601,7 +606,7 @@ export default function SettingsPage() {
 		return () => {
 			cancelled = true
 		}
-	}, [user, t])
+	}, [applyRuntimePreferences, user, t])
 
 	// Fetch verification status when verification tab is opened
 	useEffect(() => {
@@ -850,6 +855,7 @@ export default function SettingsPage() {
 			const previousSettings = settings
 			const newApp = { ...settings.app, ...updates }
 			setSettings({ ...settings, app: newApp })
+			applyRuntimePreferences(newApp)
 
 			try {
 				const response = await updateAppPreferences(updates)
@@ -857,15 +863,17 @@ export default function SettingsPage() {
 					toast.success(t('toastAppPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
+					applyRuntimePreferences(previousSettings.app)
 					toast.error(t('toastAppPrefsFailed'))
 				}
 			} catch (error) {
 				logDevError('Failed to update app preferences:', error)
 				setSettings(previousSettings)
+				applyRuntimePreferences(previousSettings.app)
 				toast.error(t('toastAppPrefsFailed'))
 			}
 		},
-		[settings, t],
+		[applyRuntimePreferences, settings, t],
 	)
 
 	const toggleArrayItem = (arr: string[], item: string): string[] =>
@@ -1365,7 +1373,7 @@ export default function SettingsPage() {
 														setConfirmPassword('')
 													}}
 												>
-													Cancel
+													{t('cancel')}
 												</Button>
 											</div>
 										</div>
@@ -1492,6 +1500,7 @@ export default function SettingsPage() {
 												{t('whoCanSeeProfile')}
 											</Label>
 											<ButtonGroup
+												disabledLabel={t('soon')}
 												options={VISIBILITY_OPTIONS.map(o => ({
 													...o,
 													label: t(o.labelKey),
@@ -1513,6 +1522,7 @@ export default function SettingsPage() {
 												{t('whoCanMessage')}
 											</Label>
 											<ButtonGroup
+												disabledLabel={t('soon')}
 												options={MESSAGE_OPTIONS.map(o => ({
 													...o,
 													label: t(o.labelKey),
@@ -1805,6 +1815,7 @@ export default function SettingsPage() {
 									description={t('skillLevelDesc')}
 								>
 									<ButtonGroup
+										disabledLabel={t('soon')}
 										options={SKILL_LEVELS.map(o => ({
 											...o,
 											label: t(o.labelKey),
@@ -1938,7 +1949,7 @@ export default function SettingsPage() {
 													className='w-24'
 												/>
 												<span className='text-sm text-text-secondary'>
-													servings
+													{t('servingsLabel')}
 												</span>
 											</div>
 										</div>
@@ -1976,6 +1987,7 @@ export default function SettingsPage() {
 												{t('measurementUnits')}
 											</Label>
 											<ButtonGroup
+												disabledLabel={t('soon')}
 												options={[
 													{
 														value: 'metric' as MeasurementUnits,
@@ -2072,8 +2084,6 @@ export default function SettingsPage() {
 											<div className='space-y-4'>
 												<p className='text-sm leading-relaxed text-text-secondary'>
 													{t('verificationInfo')}
-													creator. Share recipes, build your following, and
-													apply when you&apos;re ready.
 												</p>
 												<div>
 													<Label className='mb-1.5 block text-sm font-medium'>
@@ -2113,7 +2123,7 @@ export default function SettingsPage() {
 																toast.success(t('applicationSubmitted'))
 															} else {
 																toast.error(
-																	res.message || 'Failed to submit application',
+																	res.message || t('verificationFailed'),
 																)
 															}
 														} catch {
@@ -2192,9 +2202,7 @@ export default function SettingsPage() {
 											label={t('spokenGuidance')}
 											description={t('spokenGuidanceDesc')}
 											icon={Volume2}
-											checked={
-												settings.app.kitchenAudio.spokenGuidanceEnabled
-											}
+											checked={settings.app.kitchenAudio.spokenGuidanceEnabled}
 											onCheckedChange={checked => {
 												const kitchenAudio = {
 													...settings.app.kitchenAudio,
@@ -2272,9 +2280,7 @@ export default function SettingsPage() {
 												variant='outline'
 												size='sm'
 												onClick={() => {
-													if (
-														!settings?.app.kitchenAudio.timerChimesEnabled
-													) {
+													if (!settings?.app.kitchenAudio.timerChimesEnabled) {
 														toast.info(t('soundDisabledHint'))
 														return
 													}
@@ -2292,10 +2298,9 @@ export default function SettingsPage() {
 											description={t('reducedMotionDesc')}
 											icon={Eye}
 											checked={settings.app.reducedMotion}
-											onCheckedChange={checked => {
-												setMotionPreference(checked ? 'reduced' : 'auto')
+											onCheckedChange={checked =>
 												handleUpdateApp({ reducedMotion: checked })
-											}}
+											}
 										/>
 										<ToggleRow
 											label={t('autoPlayVideos')}
