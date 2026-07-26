@@ -2,6 +2,12 @@ export const PATHS = {
 	HOME: '/',
 	DASHBOARD: '/dashboard',
 	EXPLORE: '/explore',
+	EXPLORE_SEARCH: (query: string) => {
+		const normalizedQuery = query.trim()
+		return normalizedQuery
+			? `/explore?q=${encodeURIComponent(normalizedQuery)}`
+			: '/explore'
+	},
 	SEARCH: '/search',
 	FEED: '/feed',
 	DISCOVER: '/community',

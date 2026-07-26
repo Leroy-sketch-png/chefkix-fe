@@ -24,9 +24,9 @@ export interface SignInDto {
 export interface SignUpDto {
 	username: string
 	email: string
-	password: string
 	firstName: string
 	lastName: string
+	termsAccepted?: boolean
 }
 
 /**
@@ -49,6 +49,7 @@ export interface LoginSuccessResponse {
 export interface VerifyOtpDto {
 	email: string
 	otp: string
+	password: string
 }
 
 export interface SendOtpDto {

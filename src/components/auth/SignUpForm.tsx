@@ -20,14 +20,14 @@ import {
 	FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { PasswordInput } from '@/components/ui/password-input'
 import { signUp, checkUsernameAvailability } from '@/services/auth'
 import { PATHS } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
 import { staggerContainer, staggerItem } from '@/lib/motion'
-import { CheckCircle2, XCircle, Loader2, Info, AlertCircle } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { startGoogleSignIn } from '@/lib/keycloak-sso'
 
@@ -43,8 +43,8 @@ function createSignUpSchema(t: (key: string) => string) {
 			message: t('validationUsernameMin'),
 		}),
 		email: z.string().email({ message: t('validationEmailInvalid') }),
-		password: z.string().min(8, {
-			message: t('validationNewPasswordMin'),
+		acceptTerms: z.boolean().refine(val => val === true, {
+			message: t('acceptTermsRequired'),
 		}),
 	})
 }
@@ -63,26 +63,6 @@ export function SignUpForm() {
 	>('idle')
 	const usernameCheckTimeout = useRef<NodeJS.Timeout | null>(null)
 
-	// Password strength
-	const getPasswordStrength = (
-		pw: string,
-	): { score: number; label: string; color: string } => {
-		if (!pw) return { score: 0, label: '', color: '' }
-		let score = 0
-		if (pw.length >= 8) score++
-		if (pw.length >= 12) score++
-		if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++
-		if (/\d/.test(pw)) score++
-		if (/[^A-Za-z0-9]/.test(pw)) score++
-		if (score <= 1)
-			return { score: 1, label: t('passwordWeak'), color: 'bg-error' }
-		if (score <= 2)
-			return { score: 2, label: t('passwordFair'), color: 'bg-warning' }
-		if (score <= 3)
-			return { score: 3, label: t('passwordGood'), color: 'bg-brand' }
-		return { score: 4, label: t('passwordStrong'), color: 'bg-success' }
-	}
-
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -90,14 +70,12 @@ export function SignUpForm() {
 			lastName: '',
 			username: '',
 			email: '',
-			password: '',
+			acceptTerms: false,
 		},
 	})
 
 	// Watch username for live availability check
 	const usernameValue = form.watch('username')
-	const passwordValue = form.watch('password')
-	const passwordStrength = getPasswordStrength(passwordValue)
 
 	// Debounced username availability check
 	useEffect(() => {
@@ -147,7 +125,13 @@ export function SignUpForm() {
 		setIsSubmitting(true)
 
 		try {
-			const response = await signUp(values)
+			const response = await signUp({
+				username: values.username,
+				email: values.email,
+				firstName: values.firstName,
+				lastName: values.lastName,
+				termsAccepted: values.acceptTerms,
+			})
 
 			if (response.success) {
 				toast.success(t('accountCreatedCheckEmail'))
@@ -339,62 +323,43 @@ export function SignUpForm() {
 							)}
 						/>
 					</motion.div>
-					<motion.div variants={staggerItem}>
+					<motion.div variants={staggerItem} className='pt-2'>
 						<FormField
 							control={form.control}
-							name='password'
+							name='acceptTerms'
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel className='text-sm font-medium text-text-primary'>
-										{t('password')}
-									</FormLabel>
-									<FormControl>
-										<PasswordInput
-											placeholder={t('createSecurePassword')}
-											autoComplete='new-password'
-											{...field}
-											className='h-11 rounded-xl border-border-medium bg-bg-elevated text-text-primary transition-all focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20'
-										/>
-									</FormControl>
-									{/* Password strength meter */}
-									{passwordValue && (
-										<div className='space-y-1.5'>
-											<div className='flex gap-1'>
-												{[1, 2, 3, 4].map(i => (
-													<div
-														key={i}
-														className={cn(
-															'h-1 flex-1 rounded-full transition-all duration-300',
-															i <= passwordStrength.score
-																? passwordStrength.color
-																: 'bg-border-subtle',
-														)}
-													/>
-												))}
-											</div>
-											<p
-												className={cn(
-													'text-xs font-medium',
-													passwordStrength.score <= 1
-														? 'text-error'
-														: passwordStrength.score <= 2
-															? 'text-warning'
-															: passwordStrength.score <= 3
-																? 'text-brand'
-																: 'text-success',
-												)}
+									<div className='flex items-start gap-3'>
+										<FormControl>
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+											/>
+										</FormControl>
+										<button
+											type='button'
+											onClick={() => field.onChange(!field.value)}
+											className='cursor-pointer text-left text-sm leading-5 text-text-secondary'
+										>
+											<span>{t('acceptTerms')} </span>
+											<Link
+												href='/terms'
+												className='font-medium text-brand underline underline-offset-2 hover:no-underline'
+												onClick={e => e.stopPropagation()}
 											>
-												{passwordStrength.label}
-											</p>
-										</div>
-									)}
-									{!passwordValue && (
-										<div className='flex items-center gap-1.5 text-xs text-text-muted'>
-											<Info className='size-3' />
-											<span>{t('passwordHint')}</span>
-										</div>
-									)}
-									<FormMessage />
+												{t('termsOfService')}
+											</Link>
+											<span> and </span>
+											<Link
+												href='/privacy'
+												className='font-medium text-brand underline underline-offset-2 hover:no-underline'
+												onClick={e => e.stopPropagation()}
+											>
+												{t('privacyPolicy')}
+											</Link>
+										</button>
+									</div>
+									<FormMessage className='text-xs' />
 								</FormItem>
 							)}
 						/>
@@ -407,7 +372,7 @@ export function SignUpForm() {
 							loadingText={t('creatingAccount')}
 							disabled={usernameStatus === 'taken'}
 						>
-							{t('getStarted')}
+							{t('continueToVerification')}
 						</AnimatedButton>
 					</motion.div>
 					<motion.div variants={staggerItem} className='my-5'>

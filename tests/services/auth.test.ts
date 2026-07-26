@@ -101,7 +101,6 @@ describe('signUp', () => {
 			lastName: 'User',
 			username: 'newUser',
 			email: 'newuser@example.com',
-			password: 'newPassword123',
 		}
 		const mockApiResponse = {
 			data: {
@@ -133,7 +132,6 @@ describe('signUp', () => {
 			lastName: 'User',
 			username: 'existingUser',
 			email: 'test@example.com',
-			password: 'anyPassword',
 		}
 		const mockErrorResponse = {
 			response: {
@@ -246,7 +244,11 @@ describe('verifyOtp', () => {
 
 	it('should successfully verify a valid OTP', async () => {
 		// Arrange
-		const verificationData = { email: 'test@example.com', otp: '123456' }
+		const verificationData = {
+			email: 'test@example.com',
+			otp: '123456',
+			password: 'newPassword123',
+		}
 		const mockApiResponse = {
 			data: {
 				success: true,
@@ -271,7 +273,11 @@ describe('verifyOtp', () => {
 
 	it('should return an error for an invalid OTP', async () => {
 		// Arrange
-		const invalidVerificationData = { email: 'test@example.com', otp: '654321' }
+		const invalidVerificationData = {
+			email: 'test@example.com',
+			otp: '654321',
+			password: 'newPassword123',
+		}
 		const mockErrorResponse = {
 			response: {
 				data: {

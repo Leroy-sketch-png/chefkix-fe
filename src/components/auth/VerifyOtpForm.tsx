@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { AnimatedButton } from '@/components/ui/animated-button'
+import { PasswordInput } from '@/components/ui/password-input'
 import {
 	Form,
 	FormControl,
@@ -32,9 +33,18 @@ import { LazyLottie } from '@/components/shared/LazyLottie'
 import { finalizeAuthSession } from '@/lib/auth-session'
 
 function createOtpSchema(t: (key: string) => string) {
-	return z.object({
-		otp: z.string().length(6, { message: t('validationOtpExact') }),
-	})
+	return z
+		.object({
+			otp: z.string().length(6, { message: t('validationOtpExact') }),
+			password: z
+				.string()
+				.min(8, { message: t('validationNewPasswordMin') }),
+			confirmPassword: z.string(),
+		})
+		.refine(values => values.password === values.confirmPassword, {
+			message: t('passwordsDoNotMatch'),
+			path: ['confirmPassword'],
+		})
 }
 
 // OTP expires after 10 minutes (from spec)
@@ -76,7 +86,7 @@ export const VerifyOtpForm = () => {
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		defaultValues: { otp: '' },
+		defaultValues: { otp: '', password: '', confirmPassword: '' },
 	})
 
 	// Start/restart the countdown timer
@@ -129,7 +139,11 @@ export const VerifyOtpForm = () => {
 			return
 		}
 
-		const response = await verifyOtp({ email, otp: values.otp })
+		const response = await verifyOtp({
+			email,
+			otp: values.otp,
+			password: values.password,
+		})
 
 		if (response.success) {
 			// Stop the timer
@@ -277,6 +291,49 @@ export const VerifyOtpForm = () => {
 							</FormItem>
 						)}
 					/>
+					<div className='space-y-1'>
+						<p className='text-sm font-semibold text-text-primary'>
+							{t('secureAccountTitle')}
+						</p>
+						<p className='text-xs leading-normal text-text-secondary'>
+							{t('secureAccountDescription')}
+						</p>
+					</div>
+					<FormField
+						control={form.control}
+						name='password'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>{t('password')}</FormLabel>
+								<FormControl>
+									<PasswordInput
+										placeholder={t('createSecurePassword')}
+										autoComplete='new-password'
+										{...field}
+									/>
+								</FormControl>
+								<FormDescription>{t('passwordHint')}</FormDescription>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name='confirmPassword'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>{t('confirmPassword')}</FormLabel>
+								<FormControl>
+									<PasswordInput
+										placeholder={t('confirmPasswordPlaceholder')}
+										autoComplete='new-password'
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 					{error && (
 						<p className='text-sm font-medium text-destructive'>{error}</p>
 					)}
@@ -304,7 +361,7 @@ export const VerifyOtpForm = () => {
 						disabled={isExpired}
 						shine={!isExpired}
 					>
-						{isExpired ? t('codeExpiredBtn') : t('verifyEmailBtn')}
+						{isExpired ? t('codeExpiredBtn') : t('verifyAndCreateAccount')}
 					</AnimatedButton>
 				</form>
 			</Form>

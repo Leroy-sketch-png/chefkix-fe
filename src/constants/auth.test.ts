@@ -14,6 +14,22 @@ describe('auth route policy', () => {
 		expect(getGuestBrowseHref(PATHS.COOK)).toBe(PATHS.COOK)
 	})
 
+	it.each(['/post/new', '/post/new/from-session'])(
+		'keeps post authoring route %s protected',
+		pathname => {
+			expect(isPublicRoutePath(pathname)).toBe(false)
+			expect(shouldRedirectExpiredSession(pathname)).toBe(true)
+		},
+	)
+
+	it('keeps published post detail routes public', () => {
+		expect(isPublicRoutePath('/post/published-post-id')).toBe(true)
+	})
+
+	it('does not return guests to protected post authoring', () => {
+		expect(getGuestBrowseHref('/post/new')).toBe(PATHS.EXPLORE)
+	})
+
 	it.each(['/demo-cockpit', '/demo-remote', PATHS.EXPLORE])(
 		'keeps public route %s open after an expired session',
 		pathname => {
