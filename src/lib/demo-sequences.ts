@@ -1,5 +1,6 @@
 import { GhostDriver, getGhostDriver } from './ghost-driver'
 import { saveTemporalSnapshot } from './chronos-engine'
+import { PATHS } from '@/constants'
 
 async function tryCatch(
 	ghost: GhostDriver,
@@ -28,7 +29,7 @@ export async function runOmniDemo() {
 		// ============================================
 		await tryCatch(mainGhost, 'Hero Recipe', async () => {
 			saveTemporalSnapshot('Hero Recipe')
-			await mainGhost.click('a[href="/recipes/explore"], a[href="/recipes"]')
+			await mainGhost.click(`a[href="${PATHS.EXPLORE}"]`)
 			await mainGhost.wait(1500)
 
 			const firstRecipe =

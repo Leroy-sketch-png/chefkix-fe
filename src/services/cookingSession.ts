@@ -183,7 +183,6 @@ export const getCurrentSession = async (requestOptions?: {
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<CookingSession | null>>
 		if (axiosError.response) {
 			if (axiosError.response.status === 404) {
@@ -196,8 +195,10 @@ export const getCurrentSession = async (requestOptions?: {
 				}
 			}
 
+			logDevError('response failed:', error)
 			return axiosError.response.data
 		}
+		logDevError('response failed:', error)
 		return {
 			success: false,
 			message: 'Failed to get current session',

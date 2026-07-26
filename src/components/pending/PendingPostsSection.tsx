@@ -154,7 +154,7 @@ const SinglePendingPost = ({
 				{onDismiss && (
 					<motion.button
 						type='button'
-						className='p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='p-2 rounded-full bg-bg-elevated/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={onDismiss}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
@@ -274,7 +274,7 @@ const MultiplePendingPosts = ({
 				</div>
 				<motion.button
 					type='button'
-					className='flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-bg-hover rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='flex items-center gap-2 px-3 py-2 bg-bg-elevated/50 hover:bg-bg-hover rounded-xl text-sm font-semibold focus-visible:ring-2 focus-visible:ring-brand/50'
 					onClick={onViewAll}
 					whileHover={BUTTON_SUBTLE_HOVER}
 					whileTap={BUTTON_SUBTLE_TAP}
@@ -295,7 +295,7 @@ const MultiplePendingPosts = ({
 							key={session.id}
 							className={cn(
 								'flex items-center gap-3 p-3 rounded-xl mb-1',
-								'hover:bg-muted/50 transition-colors',
+								'hover:bg-bg-elevated/50 transition-colors',
 								session.status === 'urgent' &&
 									hasSessionClaimableXp &&
 									'bg-error/5 border border-error/20',
@@ -579,7 +579,7 @@ export const PendingExpandedModal = ({
 								</span>
 								<motion.button
 									type='button'
-									className='ml-auto p-2 rounded-full bg-muted/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='ml-auto p-2 rounded-full bg-bg-elevated/50 hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 									onClick={onClose}
 									whileHover={ICON_BUTTON_HOVER}
 									whileTap={ICON_BUTTON_TAP}
@@ -609,7 +609,7 @@ export const PendingExpandedModal = ({
 									<motion.div
 										key={session.id}
 										className={cn(
-											'bg-muted/30 rounded-2xl overflow-hidden',
+											'bg-bg-elevated/30 rounded-2xl overflow-hidden',
 											session.status === 'urgent' && 'border border-error/30',
 											session.status === 'warning' &&
 												'border border-warning/30',
@@ -726,7 +726,7 @@ export const PendingExpandedModal = ({
 							</motion.div>
 
 							{/* Footer */}
-							<div className='p-5 border-t border-border bg-muted/30'>
+							<div className='p-5 border-t border-border bg-bg-elevated/30'>
 								<p className='text-sm text-text-secondary text-center mb-4'>
 									{hasClaimableXp ? t('pdTipFooter') : t('pdTipFooterNoXp')}
 								</p>

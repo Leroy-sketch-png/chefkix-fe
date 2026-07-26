@@ -376,9 +376,7 @@ export const RightSidebar = () => {
 						<ExpandableDailyChallengeBanner
 							challenge={dailyChallenge}
 							onFindRecipe={() =>
-								router.push(
-									`/explore?search=${encodeURIComponent(dailyChallenge.title)}`,
-								)
+								router.push(PATHS.EXPLORE_SEARCH(dailyChallenge.title))
 							}
 						/>
 					)}

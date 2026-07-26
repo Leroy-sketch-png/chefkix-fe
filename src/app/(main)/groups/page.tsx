@@ -13,16 +13,16 @@ import { PageTransition } from '@/components/layout/PageTransition'
  * Allows users to discover and create groups
  */
 export default function GroupsExplorePage() {
-	const { user, isAuthenticated } = useAuth()
+	const { user, isAuthenticated, isHydrated, isLoading } = useAuth()
 	const router = useRouter()
 
 	useEffect(() => {
-		if (!isAuthenticated) {
-			router.push(PATHS.AUTH.SIGN_IN)
+		if (isHydrated && !isLoading && !isAuthenticated) {
+			router.replace(PATHS.AUTH.SIGN_IN)
 		}
-	}, [isAuthenticated, router])
+	}, [isAuthenticated, isHydrated, isLoading, router])
 
-	if (!isAuthenticated) {
+	if (!isHydrated || isLoading || !isAuthenticated) {
 		return null
 	}
 

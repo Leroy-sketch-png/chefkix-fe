@@ -19,9 +19,7 @@ import {
 } from '@/lib/motion'
 import { LeaderboardItem, type LeaderboardEntry } from './LeaderboardItem'
 
-// ============================================================================
 // TYPES
-// ============================================================================
 
 export type LeagueTier = 'bronze' | 'silver' | 'gold' | 'diamond' | 'legendary'
 
@@ -44,9 +42,7 @@ export interface LeagueLeaderboardProps {
 	className?: string
 }
 
-// ============================================================================
 // LEAGUE CONFIG
-// ============================================================================
 
 const leagueConfig: Record<
 	LeagueTier,
@@ -84,9 +80,7 @@ const leagueConfig: Record<
 	},
 }
 
-// ============================================================================
 // LEAGUE HEADER
-// ============================================================================
 
 function LeagueHeader({
 	leagueInfo,
@@ -142,9 +136,7 @@ function LeagueHeader({
 	)
 }
 
-// ============================================================================
 // ZONE INDICATOR
-// ============================================================================
 
 function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 	const t = useTranslations('leaderboard')
@@ -182,9 +174,7 @@ function ZoneIndicator({ leagueInfo }: { leagueInfo: LeagueInfo }) {
 	)
 }
 
-// ============================================================================
 // ZONE SECTION
-// ============================================================================
 
 function ZoneSection({
 	type,
@@ -259,9 +249,7 @@ function ZoneSection({
 	)
 }
 
-// ============================================================================
 // DEMOTION WARNING
-// ============================================================================
 
 function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 	const t = useTranslations('leaderboard')
@@ -277,9 +265,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 	)
 }
 
-// ============================================================================
 // LEAGUE LEADERBOARD COMPONENT
-// ============================================================================
 
 export function LeagueLeaderboard({
 	entries,

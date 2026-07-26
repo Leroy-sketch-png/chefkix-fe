@@ -55,6 +55,7 @@ export function CommunityPageView({
 }: CommunityPageViewProps) {
 	const { user, isAuthenticated } = useAuth()
 	const t = useTranslations('community')
+	const tc = useTranslations('common')
 	const router = useRouter()
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [activeTab, setActiveTab] = useState<CommunityTab>(() =>
@@ -283,8 +284,8 @@ export function CommunityPageView({
 									{pulsePosts.length > 0 && (
 										<section className='space-y-3'>
 											<SurfaceSectionHeader
-												eyebrow='Live Food Pulse'
-												chipText={`${pulsePosts.length} trending`}
+												eyebrow={tc('eyebrows.liveFoodPulse')}
+												chipText={tc('eyebrows.nTrending', { n: pulsePosts.length })}
 											/>
 											<div className='space-y-4'>
 												{pulsePosts.map(post => (

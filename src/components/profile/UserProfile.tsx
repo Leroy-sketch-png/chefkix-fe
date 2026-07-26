@@ -52,7 +52,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyStateGamified } from '@/components/shared'
 import { useAuth } from '@/hooks/useAuth'
-import { MagicCard } from '@/components/ui/magic-card'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { logDevError } from '@/lib/dev-log'
@@ -125,10 +124,6 @@ const ProfileCommandRail = dynamic(
 		),
 	{ ssr: false, loading: () => null },
 )
-
-// ============================================
-// ADAPTER: Profile → ProfileUser
-// ============================================
 
 interface ProfileUser {
 	id: string
@@ -221,13 +216,6 @@ function getCollectionItemCount(collection: Collection): number {
 	return Math.max(collection.itemCount, derivedCount)
 }
 
-// ============================================
-// HELPER: Calculate XP decay multiplier based on time since completion
-// Business rules:
-// - Days 0-7: 100% of pendingXp
-// - Days 8-14: 50% of pendingXp
-// - Days 15+: 0% (expired, but shown in expired section)
-// ============================================
 function calculateDecayMultiplier(completedAt: string | undefined): number {
 	if (!completedAt) return 1.0
 
@@ -241,10 +229,6 @@ function calculateDecayMultiplier(completedAt: string | undefined): number {
 	if (daysSinceCompletion <= 14) return 0.5
 	return 0.0
 }
-
-// ============================================
-// HELPER: Transform session history to pending sessions
-// ============================================
 
 function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 	// Calculate status based on deadline
@@ -333,10 +317,6 @@ function transformToPendingSession(item: SessionHistoryItem): PendingSession {
 		postId: isPosted ? (item.postId ?? undefined) : undefined,
 	}
 }
-
-// ============================================
-// COMPONENT
-// ============================================
 
 export const UserProfile = ({
 	profile: initialProfile,
@@ -675,10 +655,6 @@ export const UserProfile = ({
 		setIsFollowLoading(false)
 	}
 
-	// ============================================
-	// ACTION HANDLERS FOR GAMIFIED HEADER
-	// ============================================
-
 	const handleEditProfile = () => {
 		router.push('/settings')
 	}
@@ -912,9 +888,8 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 										{userRecipes.map(recipe => (
-											<MagicCard
+											<div
 												key={recipe.id}
-												mode='gradient'
 												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md shadow-card transition-all hover:shadow-warm duration-300'
 											>
 												<div
@@ -958,7 +933,7 @@ export const UserProfile = ({
 														{t('cookNow')}
 													</Button>
 												</div>
-											</MagicCard>
+											</div>
 										))}
 									</div>
 								)}
@@ -1034,8 +1009,7 @@ export const UserProfile = ({
 													href={`/collections/${collection.id}`}
 													className='block h-full'
 												>
-													<MagicCard
-														mode='gradient'
+													<div
 														className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
 													>
 														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10'>
@@ -1087,7 +1061,7 @@ export const UserProfile = ({
 																</span>
 															</div>
 														</div>
-													</MagicCard>
+													</div>
 												</Link>
 											)
 										})}
@@ -1242,9 +1216,8 @@ export const UserProfile = ({
 												) : (
 													<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 														{savedRecipes.map(recipe => (
-															<MagicCard
+															<div
 																key={recipe.id}
-																mode='gradient'
 																className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
 																onClick={() =>
 																	router.push(`/recipes/${recipe.id}`)
@@ -1277,7 +1250,7 @@ export const UserProfile = ({
 																		</span>
 																	</div>
 																</div>
-															</MagicCard>
+															</div>
 														))}
 													</div>
 												)}
@@ -1366,9 +1339,8 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 										{likedRecipes.map(recipe => (
-											<MagicCard
+											<div
 												key={recipe.id}
-												mode='gradient'
 												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
 												onClick={() => router.push(`/recipes/${recipe.id}`)}
 											>
@@ -1399,7 +1371,7 @@ export const UserProfile = ({
 														</span>
 													</div>
 												</div>
-											</MagicCard>
+											</div>
 										))}
 									</div>
 								)}
@@ -1440,31 +1412,8 @@ export const UserProfile = ({
 									) : (
 										<div className='grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'>
 											{profileUser.badges.map((badge, index) => (
-												<MagicCard
+												<div
 													key={badge.id || `badge-${index}`}
-													mode='orb'
-													glowFrom={
-														badge.rarity === 'LEGENDARY'
-															? '#d97706'
-															: badge.rarity === 'EPIC'
-																? '#a855f7'
-																: badge.rarity === 'RARE'
-																	? '#3b82f6'
-																	: badge.rarity === 'UNCOMMON'
-																		? '#22c55e'
-																		: '#a855f7'
-													}
-													glowTo={
-														badge.rarity === 'LEGENDARY'
-															? '#f59e0b'
-															: badge.rarity === 'EPIC'
-																? '#c084fc'
-																: badge.rarity === 'RARE'
-																	? '#60a5fa'
-																	: badge.rarity === 'UNCOMMON'
-																		? '#4ade80'
-																		: '#ff5a36'
-													}
 													className='flex flex-col items-center gap-2 rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-3 transition-all hover:shadow-card hover:scale-105 duration-300'
 												>
 													<span className='text-3xl'>{badge.icon}</span>
@@ -1486,7 +1435,7 @@ export const UserProfile = ({
 													>
 														{badge.rarity}
 													</span>
-												</MagicCard>
+												</div>
 											))}
 										</div>
 									)}

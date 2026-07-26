@@ -186,43 +186,6 @@ export async function regenerateShareToken(
 
 // ── Commerce (W5.5+W5.8: Grocery Affiliate) ────────────────────
 
-export interface GroceryProviderInfo {
-	id: string
-	displayName: string
-}
-
-export interface CheckoutResult {
-	orderId: string
-	checkoutUrl: string | null
-	provider: string
-	itemCount: number
-	estimatedTotal: number
-	status: string
-}
-
-export async function getGroceryProviders(): Promise<GroceryProviderInfo[]> {
-	const res = await api.get<ApiResponse<GroceryProviderInfo[]>>(
-		`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/grocery-providers`,
-	)
-	return res.data.data ?? []
-}
-
-export async function checkoutShoppingList(
-	listId: string,
-	provider: string = 'affiliate',
-): Promise<CheckoutResult> {
-	try {
-		const res = await api.post<ApiResponse<CheckoutResult>>(
-			`${API_ENDPOINTS.SHOPPING_LISTS.BASE}/${listId}/checkout?provider=${encodeURIComponent(provider)}`,
-		)
-		if (!res.data.data) throw new Error('No checkout data returned')
-		return res.data.data
-	} catch (err) {
-		logDevError('[ShoppingList] checkoutShoppingList failed:', err)
-		throw err
-	}
-}
-
 // ── Per-Ingredient Buy Links ─────────────────────────────────────
 
 export interface IngredientLinkRequest {

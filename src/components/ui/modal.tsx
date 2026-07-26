@@ -6,9 +6,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 
-// ============================================================================
 // Modal Overlay Component
-// ============================================================================
 
 interface ModalProps {
 	isOpen: boolean
@@ -88,9 +86,7 @@ export const Modal = ({
 	)
 }
 
-// ============================================================================
 // Modal Header Component
-// ============================================================================
 
 interface ModalHeaderProps {
 	title: string
@@ -133,9 +129,7 @@ export const ModalHeader = ({
 	)
 }
 
-// ============================================================================
 // Modal Body Component
-// ============================================================================
 
 interface ModalBodyProps {
 	children: React.ReactNode
@@ -161,9 +155,7 @@ export const ModalBody = ({
 	)
 }
 
-// ============================================================================
 // Modal Footer Component
-// ============================================================================
 
 interface ModalFooterProps {
 	children: React.ReactNode
@@ -183,9 +175,7 @@ export const ModalFooter = ({ children, className }: ModalFooterProps) => {
 	)
 }
 
-// ============================================================================
 // Confirmation Modal (Common Pattern)
-// ============================================================================
 
 interface ConfirmModalProps {
 	isOpen: boolean
@@ -242,9 +232,7 @@ export const ConfirmModal = ({
 	)
 }
 
-// ============================================================================
 // Alert Modal (Info/Success/Error)
-// ============================================================================
 
 interface AlertModalProps {
 	isOpen: boolean

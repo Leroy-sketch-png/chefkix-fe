@@ -259,7 +259,9 @@ function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
 			<span>
 				{t('resetsIn')}{' '}
 				<strong className='text-text-primary'>
-					{resetInfo.days}d {resetInfo.hours}h {resetInfo.minutes}m
+					{t('resetTimeDays', { days: resetInfo.days })}{' '}
+					{t('resetTimeHours', { hours: resetInfo.hours })}{' '}
+					{t('resetTimeMinutes', { minutes: resetInfo.minutes })}
 				</strong>
 			</span>
 		</div>
@@ -460,7 +462,7 @@ export function LeaderboardPage({
 					</p>
 					{type === 'friends' && (
 						<p className='text-xs text-text-muted max-w-xs mb-4'>
-							Invite friends and compete in real-time. XP resets every Sunday.
+							{t('emptyFriendsSubtext')}
 						</p>
 					)}
 					<Link

@@ -60,6 +60,7 @@ function ShoppingListItemRowContent({
 	onRemove,
 	removeAriaLabel,
 }: ShoppingListItemRowProps) {
+	const t = useTranslations('shoppingLists')
 	return (
 		<motion.li layout className='group flex items-center gap-3 px-4 py-3'>
 			<button
@@ -102,7 +103,7 @@ function ShoppingListItemRowContent({
 					</div>
 				)}
 				{item.addedManually && (
-					<span className='ml-1 text-2xs text-text-muted'>(custom)</span>
+					<span className='ml-1 text-2xs text-text-muted'>{t('customLabel')}</span>
 				)}
 			</div>
 			<button

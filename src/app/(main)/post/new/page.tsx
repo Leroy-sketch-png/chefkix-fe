@@ -79,6 +79,7 @@ function clearDraftStorage() {
 function CreatePostContent() {
 	const router = useRouter()
 	const t = useTranslations('post')
+	const tc = useTranslations('common')
 	const searchParams = useSearchParams()
 	const sessionId = searchParams.get('session')
 
@@ -502,8 +503,8 @@ function CreatePostContent() {
 			<PageContainer maxWidth='md'>
 				<div className='py-6'>
 					<PremiumSurface
-						eyebrow='Post Composer'
-						chipText={session ? 'Session Linked' : 'Quick Post'}
+						eyebrow={tc('eyebrows.postComposer')}
+						chipText={session ? tc('eyebrows.sessionLinked') : tc('eyebrows.quickPost')}
 						className='mb-6 p-3 md:p-4'
 						tone='brand'
 					>
@@ -538,7 +539,7 @@ function CreatePostContent() {
 					{isLoadingSession && (
 						<PremiumSurface
 							className='mb-6 p-6 md:p-8'
-							eyebrow='Session Context'
+							eyebrow={tc('eyebrows.sessionContext')}
 						>
 							<div className='flex items-center justify-center'>
 								<Loader2 className='size-6 animate-spin text-brand' />
@@ -551,9 +552,11 @@ function CreatePostContent() {
 
 					{session && !isLoadingSession && (
 						<PremiumSurface
-							eyebrow='Cook Session'
+							eyebrow={tc('eyebrows.cookSession')}
 							chipText={
-								hasPendingSessionXp ? 'XP Claim Available' : 'No Bonus XP'
+								hasPendingSessionXp
+									? t('xpClaimAvailable')
+									: t('noBonusXp')
 							}
 							tone='success'
 							className='mb-6 p-0'
@@ -632,8 +635,8 @@ function CreatePostContent() {
 					{/* Recipe Review — Rate this recipe (optional, only when linking a session) */}
 					{session && !isLoadingSession && (
 						<PremiumSurface
-							eyebrow='Recipe Review'
-							chipText={reviewRating > 0 ? `${reviewRating}/5` : 'Optional'}
+							eyebrow={tc('eyebrows.recipeReview')}
+							chipText={reviewRating > 0 ? `${reviewRating}/5` : tc('eyebrows.optional')}
 							tone='streak'
 							className='mb-6 p-0'
 						>
@@ -642,7 +645,7 @@ function CreatePostContent() {
 								initial='hidden'
 								animate='visible'
 								transition={{ delay: 0.05 }}
-								className='overflow-hidden rounded-2xl border border-warning/30/20 bg-gradient-to-br from-warning/5 to-transparent'
+								className='overflow-hidden rounded-2xl border border-warning/30 bg-gradient-to-br from-warning/5 to-transparent'
 							>
 								<div className='flex items-center gap-3 px-4 pt-4 pb-2'>
 									<Star className='size-5 text-warning' />
@@ -687,7 +690,7 @@ function CreatePostContent() {
 
 					{/* Post Form */}
 					<PremiumSurface
-						eyebrow='Publish Draft'
+						eyebrow={tc('eyebrows.publishDraft')}
 						chipText={`${content.length}/2000`}
 						className='p-0'
 					>
@@ -703,7 +706,7 @@ function CreatePostContent() {
 								<Avatar className='size-12 ring-2 ring-brand/10'>
 									<AvatarImage
 										src={user?.avatarUrl}
-										alt={user?.displayName || 'You'}
+										alt={user?.displayName || tc('user')}
 									/>
 									<AvatarFallback>
 										{user?.displayName
@@ -716,7 +719,7 @@ function CreatePostContent() {
 								</Avatar>
 								<div>
 									<div className='font-semibold text-text-primary'>
-										{user?.displayName || user?.username || 'You'}
+										{user?.displayName || user?.username || tc('user')}
 									</div>
 									<div className='text-sm text-text-secondary'>
 										{session

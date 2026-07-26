@@ -349,6 +349,7 @@ const slideVariants = {
 export default function YearInCookingPage() {
 	const router = useRouter()
 	const t = useTranslations('profile')
+	const tc = useTranslations('common')
 	const { user: profile } = useAuth()
 	const [[page, direction], setPage] = useState([0, 0])
 	const [isGenerating, setIsGenerating] = useState(false)
@@ -505,8 +506,8 @@ export default function YearInCookingPage() {
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
 					<PremiumSurface
-						eyebrow='Year In Cooking'
-						chipText='No recap yet'
+						eyebrow={tc('eyebrows.yearInCooking')}
+						chipText={tc('eyebrows.noRecapYet')}
 						className='mb-8 p-3 md:p-4'
 						tone='streak'
 					>
@@ -542,7 +543,7 @@ export default function YearInCookingPage() {
 		<PageTransition>
 			<PageContainer maxWidth='sm'>
 				<PremiumSurface
-					eyebrow='Year In Cooking'
+					eyebrow={tc('eyebrows.yearInCooking')}
 					chipText={`${page + 1}/${cards.length}`}
 					tone='streak'
 					className='mb-6 p-3 md:p-4'
@@ -569,12 +570,12 @@ export default function YearInCookingPage() {
 				</PremiumSurface>
 
 				<PremiumSurface
-					eyebrow='Recap Carousel'
+					eyebrow={tc('eyebrows.recapCarousel')}
 					chipText='Arrow keys supported'
 					className='mb-6 p-3 md:p-4'
 				>
 					<SurfaceSectionHeader
-						eyebrow='Story Cards'
+						eyebrow={tc('eyebrows.storyCards')}
 						chipText='Swipe through highlights'
 						className='mb-3'
 					/>
@@ -601,7 +602,7 @@ export default function YearInCookingPage() {
 				</PremiumSurface>
 
 				<PremiumSurface
-					eyebrow='Export'
+					eyebrow={tc('eyebrows.export')}
 					chipText='Share-ready'
 					className='p-3 md:p-4'
 				>

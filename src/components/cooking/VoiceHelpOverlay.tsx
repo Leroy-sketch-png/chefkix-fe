@@ -24,6 +24,20 @@ export function VoiceHelpOverlay({
 	const t = useTranslations('cooking')
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(show)
 
+	const commandLabels: Record<string, string> = {
+		MUTE_GUIDANCE: t('cmdMuteGuidance'),
+		RESUME_GUIDANCE: t('cmdResumeGuidance'),
+		NEXT_STEP: t('cmdNextStep'),
+		PREV_STEP: t('cmdPrevStep'),
+		START_TIMER: t('cmdStartTimer'),
+		STOP_TIMER: t('cmdStopTimer'),
+		READ_STEP: t('cmdReadStep'),
+		TIME_LEFT: t('cmdTimeLeft'),
+		COMPLETE_STEP: t('cmdCompleteStep'),
+		SHOW_HELP: t('cmdShowHelp'),
+		TOGGLE_MESSY_HANDS: t('cmdToggleMessyHands'),
+	}
+
 	useEffect(() => {
 		if (!show) return
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +91,7 @@ export function VoiceHelpOverlay({
 										<span className='mt-0.5 text-lg'>{cmd.icon}</span>
 										<div>
 											<p className='text-sm font-semibold text-text-primary'>
-												{cmd.label}
+												{commandLabels[cmd.action]}
 											</p>
 											<p className='text-xs text-text-muted'>
 												{t('voiceSay', {

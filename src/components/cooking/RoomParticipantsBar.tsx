@@ -79,9 +79,7 @@ export function RoomParticipantsBar({
 	)
 }
 
-// ============================================
 // PARTICIPANT AVATAR
-// ============================================
 
 function ParticipantAvatar({
 	participant,

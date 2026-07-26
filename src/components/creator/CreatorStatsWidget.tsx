@@ -186,10 +186,10 @@ export function CreatorXPNotification({
 			{/* Content */}
 			<div className='flex-1 flex flex-col'>
 				<span className='text-sm font-semibold text-text-primary'>
-					{cookersCount} people cooked your recipes today!
+					{t('statsCooksToday', { n: cookersCount })}
 				</span>
 				<span className='text-sm font-bold text-success'>
-					+{totalXpEarned} XP earned as creator
+					{t('statsXpToday', { n: totalXpEarned })}
 				</span>
 			</div>
 
@@ -202,7 +202,7 @@ export function CreatorXPNotification({
 					onClick={onView}
 					className='py-2 px-3.5 bg-xp rounded-xl text-sm font-semibold text-white focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					View
+					{t('statsView')}
 				</motion.button>
 			)}
 		</motion.div>

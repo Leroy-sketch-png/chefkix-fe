@@ -17,10 +17,6 @@ import {
 } from '@/lib/motion'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 
-// ============================================
-// TYPES
-// ============================================
-
 type ChallengeType = 'daily' | 'weekly' | 'community' | 'seasonal'
 type ChallengeStatus = 'active' | 'completed' | 'expired' | 'upcoming'
 
@@ -42,10 +38,6 @@ interface ChallengeCardProps {
 	onJoin?: () => void
 	onView?: () => void
 }
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 const typeConfig: Record<
 	ChallengeType,
@@ -72,10 +64,6 @@ const typeConfig: Record<
 		labelKey: 'seasonalEvent',
 	},
 }
-
-// ============================================
-// CHALLENGE CARD COMPONENT
-// ============================================
 
 export const ChallengeCard = ({
 	type,
@@ -237,10 +225,6 @@ export const ChallengeCard = ({
 	)
 }
 
-// ============================================
-// CHALLENGE CARD SKELETON
-// ============================================
-
 export const ChallengeCardSkeleton = () => (
 	<div className='animate-pulse rounded-2xl bg-bg-elevated p-6'>
 		<div className='mb-4 flex items-start justify-between'>
@@ -257,10 +241,6 @@ export const ChallengeCardSkeleton = () => (
 		<div className='mt-4 h-10 rounded-full bg-border-subtle' />
 	</div>
 )
-
-// ============================================
-// CHALLENGE CARD GRID
-// ============================================
 
 interface ChallengeCardGridProps {
 	challenges: ChallengeCardProps[]

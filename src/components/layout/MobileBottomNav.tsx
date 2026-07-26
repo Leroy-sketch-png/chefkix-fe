@@ -32,7 +32,6 @@ import {
 } from '@/lib/motion'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
 import { Portal } from '@/components/ui/portal'
-import { ShinyButton } from '@/components/ui/shiny-button'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
 import { useScrollDirection } from '@/hooks/useScrollDirection'
@@ -197,14 +196,14 @@ export const MobileBottomNav = () => {
 		<>
 			<nav
 				className={cn(
-					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-white/30 bg-white/65 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-white/55 transition-transform duration-300 dark:border-white/15 dark:bg-bg-card/70 dark:supports-[backdrop-filter]:bg-bg-card/65 md:hidden',
+					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 transition-transform duration-300 md:hidden',
 					isHidden && 'translate-y-full',
 				)}
 				aria-label={t('ariaMobileNavigation')}
 			>
 				<div
 					aria-hidden
-					className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/30'
+					className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border-subtle/60 to-transparent'
 				/>
 				{activeNavItems.map(item => {
 					const Icon = item.icon
@@ -215,7 +214,7 @@ export const MobileBottomNav = () => {
 					const active = isActive(item.href)
 					const label = t(item.labelKey)
 
-					// Special handling for the Create button (center elevated button with ShinyButton)
+					// Special handling for the elevated Create button.
 					if (item.isCreate) {
 						return (
 							<div
@@ -228,15 +227,13 @@ export const MobileBottomNav = () => {
 									transition={TRANSITION_SPRING}
 									className='relative'
 								>
-									<ShinyButton
-										asChild
-										className='h-11 w-11 rounded-xl p-0'
-										shineDuration={1.2}
+									<Link
+										href={href}
+										aria-label={label}
+										className='flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
-										<Link href={href} aria-label={label}>
-											<Icon className='size-5' />
-										</Link>
-									</ShinyButton>
+										<Icon className='size-5' />
+									</Link>
 								</motion.div>
 								<span className='text-2xs font-semibold leading-tight text-text-secondary'>
 									{label}
@@ -245,7 +242,7 @@ export const MobileBottomNav = () => {
 						)
 					}
 
-					// Special handling for the Get Started CTA (guest conversion button with ShinyButton)
+					// Special handling for the guest conversion CTA.
 					if (item.isGetStarted) {
 						return (
 							<div
@@ -258,23 +255,16 @@ export const MobileBottomNav = () => {
 									transition={TRANSITION_SPRING}
 									className='w-full'
 								>
-									<ShinyButton
-										asChild
-										size='sm'
-										className='w-full justify-center gap-1 px-2.5'
-										shineDuration={1.2}
+									<Link
+										href={href}
+										aria-label={t('signUp')}
+										className='flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-brand px-2.5 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
-										<Link
-											href={href}
-											aria-label={t('signUp')}
-											className='flex w-full items-center justify-center gap-1'
-										>
-											<Icon className='size-3.5' />
-											<span className='truncate text-2xs font-semibold leading-none'>
-												{label}
-											</span>
-										</Link>
-									</ShinyButton>
+										<Icon className='size-3.5' />
+										<span className='truncate text-2xs font-semibold leading-none'>
+											{label}
+										</span>
+									</Link>
 								</motion.div>
 							</div>
 						)
@@ -489,7 +479,7 @@ export const MobileTabBar = ({
 	return (
 		<div
 			className={cn(
-				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto hkx-x-rail border-b border-white/20 bg-white/70 p-2 backdrop-blur-2xl dark:border-white/10 dark:bg-bg-card/70 md:hidden',
+				'sticky top-mobile-header z-sticky flex flex-nowrap gap-2 overflow-x-auto hkx-x-rail border-b border-border-subtle/70 bg-bg-card/80 p-2 backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden',
 				className,
 			)}
 		>

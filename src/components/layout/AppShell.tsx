@@ -25,7 +25,7 @@ export function AppShell({
 	return (
 		<div
 			className={cn(
-				'flex h-screen w-full flex-col overflow-hidden bg-background',
+				'flex h-screen w-full flex-col overflow-hidden bg-bg',
 				className,
 			)}
 		>

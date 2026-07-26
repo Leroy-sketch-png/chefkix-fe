@@ -25,10 +25,6 @@ import {
 } from '@/lib/motion'
 import type { CookingSession, Timer } from '@/lib/types'
 
-// ============================================
-// TYPES
-// ============================================
-
 type SessionState = 'IN_PROGRESS' | 'PAUSED' | 'IDLE_WARNING'
 
 export interface SessionHeaderProps {
@@ -40,10 +36,6 @@ export interface SessionHeaderProps {
 	onAiAssist: () => void
 	className?: string
 }
-
-// ============================================
-// SUB-COMPONENTS
-// ============================================
 
 interface StepDotsProps {
 	totalSteps: number
@@ -114,10 +106,6 @@ const ActiveTimerBadge = ({ timer, isUrgent }: ActiveTimerBadgeProps) => {
 		</motion.div>
 	)
 }
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
 
 export const SessionHeader = ({
 	session,
@@ -362,10 +350,6 @@ export const SessionHeader = ({
 		</motion.header>
 	)
 }
-
-// ============================================
-// COMPACT VARIANT (for mobile/minimized view)
-// ============================================
 
 interface SessionHeaderCompactProps {
 	session: CookingSession

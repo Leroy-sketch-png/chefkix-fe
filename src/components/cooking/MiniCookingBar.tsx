@@ -19,12 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
-// ============================================
-// MINI COOKING BAR (Mobile/Tablet)
-// Like Spotify's mini player bar
-// Shows on screens < xl (1280px) when cooking
-// ============================================
-
 export const MiniCookingBar = () => {
 	const t = useTranslations('cooking')
 	const { cookingMode, setCookingMode, closeCookingPanel } = useUiStore()

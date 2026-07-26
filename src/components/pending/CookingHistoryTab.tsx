@@ -12,8 +12,11 @@ import {
 	RefreshCw,
 	Star,
 	Award,
+	Camera,
+	CircleCheck,
 	Filter,
 	Play,
+	TriangleAlert,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -146,7 +149,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 				<motion.div
 					key={stat.label}
 					className={cn(
-						'text-center p-3 rounded-xl transition-colors hover:bg-muted/50',
+						'text-center p-3 rounded-xl transition-colors hover:bg-bg-elevated/50',
 						stat.highlight && 'bg-brand/10 border border-brand/20',
 					)}
 					initial={{ opacity: 0, scale: 0.8 }}
@@ -156,7 +159,7 @@ const StatsBanner = ({ stats }: StatsBannerProps) => {
 					<span
 						className={cn(
 							'block text-2xl md:text-3xl font-bold tracking-tight',
-							stat.highlight ? 'text-brand' : 'text-foreground',
+							stat.highlight ? 'text-brand' : 'text-text-primary',
 						)}
 					>
 						{stat.value}
@@ -191,7 +194,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 	return (
 		<motion.div
 			className={cn(
-				'bg-muted/30 rounded-2xl overflow-hidden transition-shadow hover:shadow-warm',
+				'bg-bg-elevated/30 rounded-2xl overflow-hidden transition-shadow hover:shadow-warm',
 				isUrgent &&
 					'border border-error/30 bg-gradient-to-r from-error/5 to-transparent',
 				isWarning &&
@@ -226,7 +229,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				/>
 
 				<div className='flex-1 min-w-0'>
-					<span className='block text-base font-bold text-foreground'>
+					<span className='block text-base font-bold text-text-primary'>
 						{session.recipeName}
 					</span>
 					<span className='flex items-center gap-2 text-sm text-text-secondary'>
@@ -335,7 +338,7 @@ const CompletedItem = ({
 
 	return (
 		<motion.div
-			className='bg-muted/30 rounded-2xl overflow-hidden hover:shadow-warm transition-shadow'
+			className='bg-bg-elevated/30 rounded-2xl overflow-hidden hover:shadow-warm transition-shadow'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
@@ -362,7 +365,7 @@ const CompletedItem = ({
 				</div>
 
 				<div className='flex-1 min-w-0'>
-					<span className='flex items-center gap-2 text-base font-bold text-foreground'>
+					<span className='flex items-center gap-2 text-base font-bold text-text-primary'>
 						{session.recipeName}
 						{isMastered && (
 							<span className='rounded-md bg-accent-purple/10 px-2 py-0.5 text-xs font-semibold text-accent-purple'>
@@ -426,7 +429,7 @@ const CompletedItem = ({
 				{session.postId && onViewPost && (
 					<motion.button
 						type='button'
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-bg-elevated/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onViewPost(session.postId!)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -471,7 +474,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 
 	return (
 		<motion.div
-			className='bg-muted/30 rounded-2xl overflow-hidden'
+			className='bg-bg-elevated/30 rounded-2xl overflow-hidden'
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 0.6, y: 0 }}
 			transition={{ duration: DURATION_S.smooth, ease: 'easeOut' }}
@@ -535,7 +538,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 				{isAbandoned && onRetry ? (
 					<motion.button
 						type='button'
-						className='flex items-center gap-1.5 px-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+						className='flex items-center gap-1.5 px-4 py-2.5 bg-bg-elevated/50 border border-border rounded-xl text-sm font-semibold hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 						onClick={() => onRetry(session.id)}
 						whileHover={BUTTON_SUBTLE_HOVER}
 						whileTap={BUTTON_SUBTLE_TAP}
@@ -545,7 +548,7 @@ const ExpiredItem = ({ session, onRetry }: ExpiredItemProps) => {
 						{t('tryAgain')}
 					</motion.button>
 				) : (
-					<span className='text-xs text-text-secondary px-4 py-2.5 bg-muted/50 rounded-xl'>
+					<span className='text-xs text-text-secondary px-4 py-2.5 bg-bg-elevated/50 rounded-xl'>
 						{t('notPosted')}
 					</span>
 				)}
@@ -625,7 +628,7 @@ export const CookingHistoryTab = ({
 					{/* Section Header */}
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='flex items-center gap-2 text-lg font-bold'>
-							<span>📸</span>
+							<Camera aria-hidden='true' className='size-5 text-brand' />
 							{t('pendingPostsTitle')}
 						</h3>
 						<span className='text-base font-bold text-success bg-success/10 px-3 py-1.5 rounded-full'>
@@ -636,7 +639,7 @@ export const CookingHistoryTab = ({
 					{/* Urgent Alert */}
 					{urgentCount > 0 && (
 						<div className='flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-error/10 to-error/5 border border-error/20 rounded-xl mb-4 text-sm font-semibold text-error'>
-							<span>⚠ï¸</span>
+							<TriangleAlert aria-hidden='true' className='size-4 shrink-0' />
 							{t('urgentAlert', { count: urgentCount })}
 						</div>
 					)}
@@ -652,7 +655,7 @@ export const CookingHistoryTab = ({
 					{hiddenPendingCount > 0 && (
 						<button
 							type='button'
-							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-muted/50 hover:text-foreground transition-all'
+							className='flex items-center justify-center gap-2 w-full mt-4 py-3 border border-border rounded-xl text-sm font-semibold text-text-secondary hover:bg-bg-elevated/50 hover:text-text-primary transition-all'
 							onClick={() => setShowMorePending(true)}
 						>
 							{t('showMore', { count: hiddenPendingCount })}
@@ -672,7 +675,7 @@ export const CookingHistoryTab = ({
 				{/* Section Header */}
 				<div className='flex items-center justify-between mb-4'>
 					<h3 className='flex items-center gap-2 text-lg font-bold'>
-						<span>✅</span>
+						<CircleCheck aria-hidden='true' className='size-5 text-success' />
 						{t('cookingHistory')}
 					</h3>
 					<div className='flex gap-2'>

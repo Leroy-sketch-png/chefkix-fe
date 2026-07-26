@@ -304,7 +304,7 @@ export const NotificationsPopup = () => {
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border-subtle/60 bg-gradient-to-r from-bg-card to-bg-elevated/50 p-4'>
 					<div className='flex items-center gap-2'>
-						<h3 className='text-lg font-bold text-foreground'>{t('title')}</h3>
+						<h3 className='text-lg font-bold text-text-primary'>{t('title')}</h3>
 						{unreadCount > 0 && (
 							<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
@@ -404,7 +404,7 @@ export const NotificationsPopup = () => {
 					{/* Gamified Notifications (XP, levels, streaks) */}
 					{gamifiedNotifications.length > 0 && (
 						<>
-							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
+							<div className='border-b border-border bg-bg-elevated/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
 								Activity
 							</div>
 							{gamifiedNotifications.map(notif => {
@@ -478,7 +478,7 @@ export const NotificationsPopup = () => {
 					{/* Social Notifications */}
 					{socialNotifications.length > 0 && (
 						<>
-							<div className='border-b border-border bg-muted/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
+							<div className='border-b border-border bg-bg-elevated/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
 								Social
 							</div>
 							{socialNotifications.map(notif => {
@@ -539,7 +539,7 @@ export const NotificationsPopup = () => {
 										key={notif.id}
 										onClick={handleClick}
 										className={cn(
-											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-muted/50',
+											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-bg-hover/50',
 											!notif.read && 'bg-brand/5',
 										)}
 									>
@@ -565,7 +565,7 @@ export const NotificationsPopup = () => {
 										</UserHoverCard>
 										{/* Content */}
 										<div className='min-w-0 flex-1'>
-											<p className='text-sm leading-relaxed text-foreground'>
+											<p className='text-sm leading-relaxed text-text-primary'>
 												<UserHoverCard
 													userId={notif.userId}
 													currentUserId={user?.userId}

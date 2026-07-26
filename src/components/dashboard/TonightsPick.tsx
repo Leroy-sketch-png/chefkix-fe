@@ -20,7 +20,6 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 
 interface TonightsPickProps {
@@ -41,7 +40,7 @@ interface TonightsPickProps {
  * if the personalization endpoint is unavailable.
  */
 
-const TONIGHTS_PICK_TIMEOUT_MS = 8000
+const TONIGHTS_PICK_TIMEOUT_MS = 5000
 
 const normalizeRecommendationText = (value?: string | null) =>
 	(value ?? '')
@@ -97,28 +96,30 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			<div
 				data-testid='tonights-pick'
 				className={cn(
-					'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card sm:p-5',
+					'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0',
 					className,
 				)}
 			>
-				<div className='mb-4 flex items-center justify-between'>
-					<div className='inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-xs font-bold text-brand'>
-						<ChefHat className='size-3.5' />
-						{t('tpLabel')}
+				<div className='relative h-44 w-full'>
+					<Skeleton className='absolute inset-0 rounded-none' />
+					<div className='absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-2xs font-bold text-white'>
+						<ChefHat className='size-3' />
+						<span>{t('tpLabel')}</span>
 					</div>
-					<Skeleton className='h-6 w-20 rounded-full' />
+					<Skeleton className='absolute right-3 top-3 h-6 w-24 rounded-full' />
 				</div>
-
-				<div className='grid gap-4'>
-					<Skeleton className='h-40 w-full rounded-xl' />
-					<div className='space-y-2'>
-						<Skeleton className='h-5 w-3/4' />
-						<Skeleton className='h-4 w-11/12' />
+				<div className='space-y-3 p-4'>
+					<Skeleton className='h-5 w-28 rounded-lg' />
+					<Skeleton className='h-6 w-3/4 rounded-xl' />
+					<div className='flex flex-wrap gap-1.5'>
+						<Skeleton className='h-5 w-16 rounded-full' />
+						<Skeleton className='h-5 w-20 rounded-full' />
 					</div>
-					<div className='flex gap-2'>
-						<Skeleton className='h-6 w-16 rounded-full' />
-						<Skeleton className='h-6 w-20 rounded-full' />
-						<Skeleton className='h-6 w-14 rounded-full' />
+					<div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+						<Skeleton className='h-4 w-12 rounded' />
+						<Skeleton className='h-4 w-14 rounded' />
+						<Skeleton className='h-4 w-12 rounded' />
+						<Skeleton className='h-4 w-16 rounded' />
 					</div>
 				</div>
 			</div>
@@ -205,11 +206,8 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 			.slice(0, 2) ?? []
 
 	return (
-		<MagicCard
+		<div
 			data-testid='tonights-pick'
-			mode='orb'
-			glowFrom='var(--color-brand)'
-			glowTo='var(--color-xp)'
 			className={cn(
 				'relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0',
 				className,
@@ -310,6 +308,6 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 					</div>
 				</div>
 			</Link>
-		</MagicCard>
+		</div>
 	)
 }

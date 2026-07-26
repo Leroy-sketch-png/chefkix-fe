@@ -24,7 +24,6 @@ import {
 import Link from 'next/link'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
-import { TipJarButton } from '@/components/tip/TipJarButton'
 import { cn, formatNumber } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -38,12 +37,7 @@ import {
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 import { AnimatedNumber } from '@/components/ui/animated-number'
-import { SparklesEffect } from '@/components/ui/sparkles-effect'
 import type { Badge } from '@/lib/types/gamification'
-
-// ============================================
-// TYPES
-// ============================================
 
 type UserTitle = 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
 
@@ -128,10 +122,6 @@ type ProfileHeaderGamifiedProps =
 	| OtherUserProfileProps
 	| MiniHeaderProps
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
 const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
 	BEGINNER: { gradient: 'bg-text-muted', labelKey: 'titleBeginner' },
 	AMATEUR: { gradient: 'bg-info', labelKey: 'titleAmateur' },
@@ -141,10 +131,6 @@ const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
 		labelKey: 'titlePro',
 	},
 }
-
-// ============================================
-// SHARED COMPONENTS
-// ============================================
 
 // Level Ring with XP Progress
 const LevelRing = ({
@@ -204,9 +190,7 @@ const LevelRing = ({
 						size === 'default' ? 'text-lg' : 'text-base',
 					)}
 				>
-					<SparklesEffect color='var(--color-xp)' count={6}>
-						{level}
-					</SparklesEffect>
+					<span className='relative inline-block'>{level}</span>
 				</span>
 			</div>
 			<div className='flex flex-col'>
@@ -552,10 +536,6 @@ const ProfileTabs = ({
 	)
 }
 
-// ============================================
-// VARIANT: OWN PROFILE
-// ============================================
-
 const OwnProfileHeader = ({
 	user,
 	pendingPosts,
@@ -806,10 +786,6 @@ const OwnProfileHeader = ({
 	)
 }
 
-// ============================================
-// VARIANT: OTHER USER PROFILE
-// ============================================
-
 const OtherUserProfileHeader = ({
 	user,
 	isFollowing,
@@ -932,10 +908,10 @@ const OtherUserProfileHeader = ({
 						{isFollowing ? (
 							<>
 								<Check className='size-4' />
-								Following
+								{t('phFollowing')}
 							</>
 						) : (
-							'Follow'
+							t('phFollow')
 						)}
 					</motion.button>
 					{/* Mutual Follow Badge (Instagram model: mutual follow = friends) */}
@@ -956,11 +932,6 @@ const OtherUserProfileHeader = ({
 					>
 						<MessageCircle className='size-4' />
 					</motion.button>
-					<TipJarButton
-						creatorId={user.id}
-						creatorName={user.displayName || user.username}
-						variant='profile'
-					/>
 					{/* Block/Unblock Button */}
 					<motion.button
 						type='button'
@@ -1014,10 +985,6 @@ const OtherUserProfileHeader = ({
 		</PremiumSurface>
 	)
 }
-
-// ============================================
-// VARIANT: MINI HEADER
-// ============================================
 
 const MiniProfileHeader = ({
 	user,

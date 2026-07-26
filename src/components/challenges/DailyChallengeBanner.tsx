@@ -15,6 +15,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants'
 import { formatVerboseTimeRemaining } from '@/lib/challenge-time'
 import {
 	TRANSITION_SPRING,
@@ -181,13 +182,13 @@ const ActiveChallengeBanner = ({
 				</p>
 
 				{/* Meta Row */}
-				<div className='mb-4 flex gap-6'>
+				<div className='mb-4 flex flex-wrap gap-3'>
 					<div className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-bonus/20 to-xp/20 px-3.5 py-2 shadow-card shadow-bonus/20'>
 						<span>⚡</span>
 						<span className='tabular-nums text-base font-bold tracking-tight text-xp'>
 							+{challenge.bonusXp || 0} XP
 						</span>
-						<span className='text-xs text-bonus'>bonus</span>
+						<span className='text-xs text-bonus'>{t('bonus')}</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-text-muted'>
 						<Clock className='size-4' />
@@ -221,12 +222,16 @@ const ActiveChallengeBanner = ({
 									<span>{recipe.title}</span>
 								</Link>
 							))}
-							<Link
-								href='/recipes?challenge=today'
-								className='flex flex-shrink-0 items-center rounded-full border border-accent-purple/30 bg-accent-purple/10 px-3.5 py-2 text-sm font-medium text-accent-purple transition-colors hover:bg-accent-purple/20'
-							>
-								{t('plusMore', { count: challenge.matchingRecipes.length - 2 })}
-							</Link>
+							{challenge.matchingRecipes.length > 2 && (
+								<Link
+									href={PATHS.EXPLORE_SEARCH(challenge.title)}
+									className='flex flex-shrink-0 items-center rounded-full border border-accent-purple/30 bg-accent-purple/10 px-3.5 py-2 text-sm font-medium text-accent-purple transition-colors hover:bg-accent-purple/20'
+								>
+									{t('plusMore', {
+										count: challenge.matchingRecipes.length - 2,
+									})}
+								</Link>
+							)}
 						</div>
 					</div>
 				)}
@@ -465,7 +470,7 @@ const FeaturedChallengeBanner = ({
 						<span className='tabular-nums text-xl font-bold tracking-tight text-xp drop-shadow-glow'>
 							+{challenge.bonusXp || 0} XP
 						</span>
-						<span className='text-xs text-bonus'>bonus</span>
+						<span className='text-xs text-bonus'>{t('bonus')}</span>
 					</div>
 					<div className='flex items-center gap-1.5 text-sm text-white/70'>
 						<Calendar className='size-4' />

@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { NumberTicker } from '@/components/ui/number-ticker'
-import { MagicCard } from '@/components/ui/magic-card'
 import {
 	getTodaysChallenge,
 	getWeeklyChallenge,
@@ -186,8 +185,7 @@ export function ActiveChallengesWidget({
 	}
 
 	return (
-		<MagicCard
-			mode='gradient'
+		<div
 			className={cn(
 				'overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0',
 				className,
@@ -279,6 +277,6 @@ export function ActiveChallengesWidget({
 					)}
 				</div>
 			</div>
-		</MagicCard>
+		</div>
 	)
 }

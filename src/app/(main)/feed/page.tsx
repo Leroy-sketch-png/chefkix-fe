@@ -4,10 +4,15 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
+import {
+	ChevronsUp,
+	Flame,
+	Loader2,
+	MessageSquare,
+	Sparkles,
+} from 'lucide-react'
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { BlurFade } from '@/components/ui/blur-fade'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { ErrorState } from '@/components/ui/error-state'
@@ -16,9 +21,9 @@ import { FeedContextRail } from '@/components/social/FeedContextRail'
 import { PostCard } from '@/components/social/PostCard'
 import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { Button } from '@/components/ui/button'
-import { MagicCard } from '@/components/ui/magic-card'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import type { FeedMode } from '@/components/shared/FeedTabBar'
 import { EmptyStateGamified } from '@/components/shared'
@@ -30,6 +35,7 @@ const POSTS_PER_PAGE = 10
 export default function FeedPage() {
 	const { user } = useAuth()
 	const t = useTranslations('feed')
+	const tc = useTranslations('common')
 	const [feedMode, setFeedMode] = useState<FeedMode>(() =>
 		user ? 'forYou' : 'trending',
 	)
@@ -41,7 +47,9 @@ export default function FeedPage() {
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
 	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
+	const [showBackToTop, setShowBackToTop] = useState(false)
 	const initializedAuthMode = useRef(false)
+	const sentinelRef = useRef<HTMLDivElement>(null)
 	const availableModes: FeedMode[] = user
 		? ['forYou', 'trending', 'following', 'latest']
 		: ['trending', 'latest']
@@ -208,11 +216,50 @@ export default function FeedPage() {
 			}
 		} catch (err) {
 			logDevError('Failed to load more public feed posts:', err)
-			setHasMore(false)
+			toast.error(t('loadMoreError'))
+			setHasMore(true)
 		} finally {
 			setIsLoadingMore(false)
 		}
 	}
+
+	// Infinite scroll via IntersectionObserver
+	const loadMoreRef = useRef(handleLoadMore)
+	loadMoreRef.current = handleLoadMore
+
+	useEffect(() => {
+		const sentinel = sentinelRef.current
+		if (!sentinel || !hasMore || isLoadingMore || isLoading) return
+
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+					loadMoreRef.current()
+				}
+			},
+			{ rootMargin: '400px' },
+		)
+
+		observer.observe(sentinel)
+		return () => observer.disconnect()
+	}, [hasMore, isLoadingMore, isLoading])
+
+	// Back-to-top visibility (rAF throttled)
+	useEffect(() => {
+		let ticking = false
+		const handleScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					setShowBackToTop(window.scrollY > 600)
+					ticking = false
+				})
+				ticking = true
+			}
+		}
+
+		window.addEventListener('scroll', handleScroll, { passive: true })
+		return () => window.removeEventListener('scroll', handleScroll)
+	}, [])
 
 	if (error && posts.length === 0) {
 		return (
@@ -239,7 +286,7 @@ export default function FeedPage() {
 						exit={{ opacity: 0 }}
 						className='fixed left-1/2 top-20 z-toast -translate-x-1/2'
 					>
-						<div className='flex items-center gap-2 rounded-full bg-bg-card px-4 py-2 text-sm font-semibold text-brand-text shadow-warm'>
+						<div className='flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm'>
 							<Loader2 className='size-4 animate-spin' />
 							{t('loadingMore')}
 						</div>
@@ -248,11 +295,8 @@ export default function FeedPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				<div
-					data-testid='feed-page'
-					data-visual-ready={isLoading ? 'false' : 'true'}
-				>
-					<div className='grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_20rem]'>
+				<div data-testid='feed-page'>
+					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
 						<div>
 							{user && (
 								<div className='mb-4 sm:mb-6'>
@@ -266,14 +310,43 @@ export default function FeedPage() {
 								</div>
 							)}
 
+							{isColdStartFallback && (
+							<motion.div
+								initial={{ opacity: 0, y: -8 }}
+								animate={{ opacity: 1, y: 0 }}
+								className='mb-4 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm text-text-secondary'
+							>
+								<p>{t('coldStartBanner')}</p>
+							</motion.div>
+							)}
+
 							<FeedCommandDeck
 								feedMode={feedMode}
 								onFeedModeChange={setFeedMode}
 								availableModes={availableModes}
 								postCount={posts.length}
 								hasMore={hasMore}
+								isLoading={isLoading}
 								className='mb-4 sm:mb-6'
 							/>
+
+							{error && posts.length > 0 && (
+								<div
+									role='alert'
+									className='mb-4 flex items-center gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-3'
+								>
+									<span className='text-sm text-error'>{t('unavailableDesc')}</span>
+									<Button
+										type='button'
+										variant='outline'
+										size='sm'
+										onClick={() => setRetryKey(k => k + 1)}
+										className='ml-auto shrink-0'
+									>
+										{tc('retry')}
+									</Button>
+								</div>
+							)}
 
 							{isLoading ? (
 								<div className='space-y-4'>
@@ -319,11 +392,7 @@ export default function FeedPage() {
 										]}
 									/>
 								) : (
-									<BlurFade delay={0.1} duration={0.4}>
-										<MagicCard
-											mode='orb'
-											glowFrom='var(--color-brand)'
-											glowTo='var(--color-xp)'
+										<div
 											className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
 										>
 											<div className='relative z-10 w-full'>
@@ -377,8 +446,7 @@ export default function FeedPage() {
 													</div>
 												</div>
 											</div>
-										</MagicCard>
-									</BlurFade>
+										</div>
 								)
 							) : (
 								<>
@@ -398,20 +466,32 @@ export default function FeedPage() {
 									</div>
 
 									{hasMore && (
-										<div className='mt-6 flex justify-center'>
-											<Button
-												type='button'
-												variant='outline'
-												onClick={handleLoadMore}
-												disabled={isLoadingMore}
-												className='rounded-full'
-											>
-												{isLoadingMore ? (
-													<Loader2 className='size-4 animate-spin' />
-												) : null}
-												{t('loadMore')}
-											</Button>
-										</div>
+										<>
+											<div ref={sentinelRef} className='h-4' />
+											{isLoadingMore && (
+												<div className='mt-4 flex justify-center'>
+													<div className='flex items-center gap-2 text-sm text-text-muted'>
+														<Loader2 className='size-4 animate-spin' />
+														{t('loadingMore')}
+													</div>
+												</div>
+											)}
+										</>
+									)}
+
+									{!hasMore && posts.length > 0 && (
+										<motion.div
+											initial={{ opacity: 0 }}
+											animate={{ opacity: 1 }}
+											className='mt-8 flex flex-col items-center gap-2 text-center'
+										>
+											<div className='flex size-10 items-center justify-center rounded-full bg-bg-elevated'>
+												<Sparkles className='size-4 text-text-muted' />
+											</div>
+											<p className='text-sm font-medium text-text-muted'>
+												{t('endOfFeed')}
+											</p>
+										</motion.div>
 									)}
 								</>
 							)}
@@ -419,6 +499,20 @@ export default function FeedPage() {
 							{/* Bottom breathing room for MobileBottomNav */}
 							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 						</div>
+
+						{showBackToTop && (
+							<motion.button
+								initial={{ opacity: 0, scale: 0.8 }}
+								animate={{ opacity: 1, scale: 1 }}
+								onClick={() =>
+									window.scrollTo({ top: 0, behavior: 'smooth' })
+								}
+								className='fixed bottom-24 right-6 z-50 flex size-10 items-center justify-center rounded-full bg-bg-card shadow-warm ring-1 ring-border-subtle transition-all hover:bg-bg-elevated xl:right-10'
+								aria-label='Back to top'
+							>
+								<ChevronsUp className='size-5 text-text-secondary' />
+							</motion.button>
+						)}
 
 						<FeedContextRail
 							postCount={posts.length}

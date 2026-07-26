@@ -177,20 +177,10 @@ export const getMyGroups = async (
 	params.append('page', page.toString())
 	params.append('size', size.toString())
 
-	const response = await api.get<ApiResponse<PaginatedResponse<Group>>>(
-		`${API_ENDPOINTS.GROUPS.MY_GROUPS}?${params.toString()}`,
-	)
-	return (
-		response.data.data ?? {
-			content: [],
-			totalElements: 0,
-			totalPages: 0,
-			currentPage: 0,
-			pageSize: size,
-			hasNext: false,
-			hasPrevious: false,
-		}
-	)
+	const response = await api.get<
+		ApiResponse<NormalizablePaginatedResponse<Group>>
+	>(`${API_ENDPOINTS.GROUPS.MY_GROUPS}?${params.toString()}`)
+	return normalizePaginatedResponse(response.data.data, size)
 }
 
 /**

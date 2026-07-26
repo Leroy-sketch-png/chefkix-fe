@@ -21,35 +21,35 @@ import { MultiSelect } from '@/components/ui/multi-select'
 // ============================================================================
 
 export const DIETARY_OPTIONS = [
-	{ label: 'Vegetarian', value: 'vegetarian' },
-	{ label: 'Vegan', value: 'vegan' },
-	{ label: 'Gluten-Free', value: 'gluten-free' },
-	{ label: 'Dairy-Free', value: 'dairy-free' },
-	{ label: 'Keto', value: 'keto' },
-	{ label: 'Paleo', value: 'paleo' },
-]
+	{ labelKey: 'fsDietVegetarian', value: 'vegetarian' },
+	{ labelKey: 'fsDietVegan', value: 'vegan' },
+	{ labelKey: 'fsDietGlutenFree', value: 'gluten-free' },
+	{ labelKey: 'fsDietDairyFree', value: 'dairy-free' },
+	{ labelKey: 'fsDietKeto', value: 'keto' },
+	{ labelKey: 'fsDietPaleo', value: 'paleo' },
+] as const
 
 export const CUISINE_OPTIONS = [
-	{ label: 'Italian', value: 'italian' },
-	{ label: 'Mexican', value: 'mexican' },
-	{ label: 'American', value: 'american' },
-	{ label: 'French', value: 'french' },
-	{ label: 'Mediterranean', value: 'mediterranean' },
-	{ label: 'Indian', value: 'indian' },
-	{ label: 'Asian', value: 'asian' },
-	{ label: 'Vietnamese', value: 'vietnamese' },
-	{ label: 'Thai', value: 'thai' },
-	{ label: 'Chinese', value: 'chinese' },
-	{ label: 'Japanese', value: 'japanese' },
-	{ label: 'Korean', value: 'korean' },
-]
+	{ labelKey: 'fsCuisineItalian', value: 'italian' },
+	{ labelKey: 'fsCuisineMexican', value: 'mexican' },
+	{ labelKey: 'fsCuisineAmerican', value: 'american' },
+	{ labelKey: 'fsCuisineFrench', value: 'french' },
+	{ labelKey: 'fsCuisineMediterranean', value: 'mediterranean' },
+	{ labelKey: 'fsCuisineIndian', value: 'indian' },
+	{ labelKey: 'fsCuisineAsian', value: 'asian' },
+	{ labelKey: 'fsCuisineVietnamese', value: 'vietnamese' },
+	{ labelKey: 'fsCuisineThai', value: 'thai' },
+	{ labelKey: 'fsCuisineChinese', value: 'chinese' },
+	{ labelKey: 'fsCuisineJapanese', value: 'japanese' },
+	{ labelKey: 'fsCuisineKorean', value: 'korean' },
+] as const
 
 export const DIFFICULTY_OPTIONS = [
-	{ label: 'Easy', value: 'easy' },
-	{ label: 'Medium', value: 'medium' },
-	{ label: 'Hard', value: 'hard' },
-	{ label: 'Expert', value: 'expert' },
-]
+	{ labelKey: 'fsDiffEasy', value: 'easy' },
+	{ labelKey: 'fsDiffMedium', value: 'medium' },
+	{ labelKey: 'fsDiffHard', value: 'hard' },
+	{ labelKey: 'fsDiffExpert', value: 'expert' },
+] as const
 
 // ============================================================================
 // Types
@@ -201,7 +201,7 @@ export const ActiveFilters = ({
 	return (
 		<div className={cn('flex flex-wrap items-center gap-2 py-3', className)}>
 			<span className='text-xs font-semibold leading-normal text-text-secondary'>
-				Active filters:
+				{t('fsActiveFilters')}
 			</span>
 
 			{filters.map(filter => (
@@ -227,7 +227,7 @@ export const ActiveFilters = ({
 					onClick={onClearAll}
 					className='h-11 rounded-xl px-3 text-xs font-semibold leading-normal text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary'
 				>
-					Clear all
+					{t('fsClearAll')}
 				</button>
 			)}
 		</div>
@@ -479,7 +479,7 @@ export const CuisinePill = ({
 				'rounded-full border px-4 py-2 text-xs font-semibold transition-all',
 				active
 					? 'border-brand bg-brand text-white'
-					: 'border-border bg-muted/20 text-text-primary hover:border-brand hover:bg-brand/5',
+					: 'border-border bg-bg-elevated/20 text-text-primary hover:border-brand hover:bg-brand/5',
 			)}
 		>
 			{label}

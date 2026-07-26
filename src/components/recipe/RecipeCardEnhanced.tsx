@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { MagicCard } from '@/components/ui/magic-card'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -201,18 +200,20 @@ const DifficultyIndicator = ({
 	difficulty: Difficulty
 	showLabel?: boolean
 }) => {
+	const t = useTranslations('recipe')
 	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
 		<div className='absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm ring-1 ring-white/10'>
 			<span className={cn('size-1.5 rounded-full', config.bgColor)} />
-			{showLabel && <span>{difficulty || 'Beginner'}</span>}
+			{showLabel && <span>{difficulty ? t(`diff${difficulty}`) : t('diffBeginner')}</span>}
 		</div>
 	)
 }
 
 // Difficulty ribbon (for grid card)
 const DifficultyRibbon = ({ difficulty }: { difficulty: Difficulty }) => {
+	const t = useTranslations('recipe')
 	const config = difficultyConfig[difficulty] ?? difficultyConfig.Beginner
 
 	return (
@@ -222,7 +223,7 @@ const DifficultyRibbon = ({ difficulty }: { difficulty: Difficulty }) => {
 				config.bgColor,
 			)}
 		>
-			{difficulty || 'Beginner'}
+			{difficulty ? t(`diff${difficulty}`) : t('diffBeginner')}
 		</div>
 	)
 }
@@ -406,10 +407,7 @@ const FeedCard = ({
 			transition={TRANSITION_SPRING}
 			className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-success)'
+			<div
 				className='h-full w-full'
 			>
 				<Link
@@ -504,7 +502,7 @@ const FeedCard = ({
 					<Play className='size-4' />
 					{t('cookNow')}
 				</motion.button>
-			</MagicCard>
+			</div>
 		</motion.article>
 	)
 }
@@ -538,10 +536,7 @@ const GridCard = ({
 			transition={TRANSITION_SPRING}
 			className='group/recipe overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-success)'
+			<div
 				className='h-full w-full'
 			>
 				<Link
@@ -697,7 +692,7 @@ const GridCard = ({
 						</motion.div>
 					</motion.button>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.article>
 	)
 }
@@ -729,10 +724,7 @@ const FeaturedCard = ({
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl shadow-warm'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='h-full w-full'
 			>
 				<Link
@@ -775,7 +767,9 @@ const FeaturedCard = ({
 								)}
 							>
 								{t('difficultyChallenge', {
-									difficulty: difficulty || 'Beginner',
+									difficulty: difficulty
+										? t(`diff${difficulty}`)
+										: t('diffBeginner'),
 								})}
 							</div>
 						</div>
@@ -893,7 +887,7 @@ const FeaturedCard = ({
 						</div>
 					</div>
 				</Link>
-			</MagicCard>
+			</div>
 		</motion.article>
 	)
 }
@@ -917,10 +911,7 @@ const CookedCard = ({
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl border border-xp/25 bg-bg-card shadow-card transition-all duration-300 hover:border-xp/45 hover:shadow-warm'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-xp)'
-				glowTo='var(--color-brand)'
+			<div
 				className='h-full w-full'
 			>
 				<Link
@@ -1025,7 +1016,7 @@ const CookedCard = ({
 						<History className='size-4' />
 					</motion.button>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.article>
 	)
 }
@@ -1082,7 +1073,7 @@ const MiniCard = ({
 								difficulty === 'Expert' && 'bg-xp/10 text-xp',
 							)}
 						>
-							{difficulty || 'Beginner'}
+							{difficulty ? t(`diff${difficulty}`) : t('diffBeginner')}
 						</span>
 					</div>
 				</div>

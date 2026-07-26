@@ -622,8 +622,11 @@ function RecentCooksSection({
 							/>
 							<div className='flex-1 flex flex-col'>
 								<span className='text-sm text-text-primary'>
-									<strong className='font-bold'>{cook.userName}</strong> cooked
-									your <strong className='font-bold'>{cook.recipeTitle}</strong>
+									{t.rich('cookedYour', {
+										userName: cook.userName,
+										recipeTitle: cook.recipeTitle,
+										strong: chunks => <strong className='font-bold'>{chunks}</strong>,
+									})}
 								</span>
 								<span className='text-xs text-text-secondary'>
 									{cook.timeAgo}

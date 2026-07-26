@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useState, useEffect, useTransition } from 'react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { CreatorDashboard, StepHeatmap, TipHistory } from '@/components/creator'
+import { CreatorDashboard, StepHeatmap } from '@/components/creator'
 import { useRouter } from 'next/navigation'
 import {
 	getCreatorStats,
@@ -450,15 +450,6 @@ export default function CreatorRoute() {
 									chipText={t('noRecipeSelectedChip')}
 								/>
 							)}
-						</PremiumSurface>
-
-						<PremiumSurface
-							eyebrow={t('tipIntelligenceEyebrow')}
-							chipText={t('tipIntelligenceChip')}
-							tone='streak'
-							className='p-3 md:p-4'
-						>
-							<TipHistory className='mt-0' />
 						</PremiumSurface>
 					</div>
 				</div>

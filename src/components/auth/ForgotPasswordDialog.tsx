@@ -195,7 +195,7 @@ export const ForgotPasswordDialog = ({
 											<Input
 												placeholder={t('forgotEmailPlaceholder')}
 												{...field}
-												className='text-foreground'
+												className='text-text-primary'
 											/>
 										</FormControl>
 										<FormDescription>{t('forgotEmailHelp')}</FormDescription>
@@ -274,7 +274,7 @@ export const ForgotPasswordDialog = ({
 												<PasswordInput
 													placeholder={t('forgotPasswordPlaceholder')}
 													{...field}
-													className='text-foreground'
+													className='text-text-primary'
 												/>
 											</FormControl>
 											<FormMessage />
@@ -291,7 +291,7 @@ export const ForgotPasswordDialog = ({
 												<PasswordInput
 													placeholder={t('forgotConfirmPlaceholder')}
 													{...field}
-													className='text-foreground'
+													className='text-text-primary'
 												/>
 											</FormControl>
 											<FormMessage />

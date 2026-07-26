@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Compass, History, Sparkles, Swords, Trophy } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { MagicCard } from '@/components/ui/magic-card'
 
 interface ChallengesContextRailProps {
 	counts: {
@@ -35,10 +34,7 @@ export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
 			className='hidden xl:flex xl:flex-col xl:gap-4 xl:self-start xl:sticky xl:top-24'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-xp)'
-				glowTo='var(--color-brand)'
+			<div
 				className='rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden p-0'
 			>
 				<div className='p-4 relative z-10 w-full'>
@@ -64,12 +60,9 @@ export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
 						<InfoRow label={t('seasonal')} value={counts.seasonal.toString()} />
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden p-0'
 			>
 				<div className='p-4 relative z-10 w-full'>
@@ -114,7 +107,7 @@ export function ChallengesContextRail({ counts }: ChallengesContextRailProps) {
 						</Link>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.aside>
 	)
 }

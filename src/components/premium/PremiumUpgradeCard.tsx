@@ -34,7 +34,6 @@ import {
 } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { BorderBeam } from '@/components/ui/border-beam'
 import type { SubscriptionResponse } from '@/lib/types/subscription'
 import {
@@ -142,6 +141,18 @@ const FEATURES: FeatureConfig[] = [
 	},
 ]
 
+function requireSubscriptionData(
+	response: Awaited<ReturnType<typeof getMySubscription>>,
+): SubscriptionResponse {
+	if (!response.success || !response.data) {
+		throw new Error(
+			response.message || 'Subscription response was unsuccessful',
+		)
+	}
+
+	return response.data
+}
+
 // ============================================
 // COMPONENT
 // ============================================
@@ -157,12 +168,11 @@ export default function PremiumUpgradeCard() {
 	const t = useTranslations('premium')
 
 	const fetchSubscription = useCallback(async () => {
+		setIsLoading(true)
 		try {
 			setError(null)
 			const response = await getMySubscription()
-			if (response.success && response.data) {
-				setSubscription(response.data)
-			}
+			setSubscription(requireSubscriptionData(response))
 		} catch (err) {
 			logDevError('Load subscription error:', err)
 			setError(t('errorLoad'))
@@ -178,9 +188,7 @@ export default function PremiumUpgradeCard() {
 				setError(null)
 				const response = await getMySubscription()
 				if (cancelled) return
-				if (response.success && response.data) {
-					setSubscription(response.data)
-				}
+				setSubscription(requireSubscriptionData(response))
 			} catch (err) {
 				logDevError('Load subscription error:', err)
 				if (!cancelled) setError(t('errorLoad'))
@@ -198,10 +206,8 @@ export default function PremiumUpgradeCard() {
 		setIsActioning(true)
 		try {
 			const response = await startTrial()
-			if (response.success && response.data) {
-				setSubscription(response.data)
-				toast.success(t('toastTrialStarted'))
-			}
+			setSubscription(requireSubscriptionData(response))
+			toast.success(t('toastTrialStarted'))
 		} catch (err) {
 			logDevError('Start trial error:', err)
 			toast.error(t('toastTrialFailed'))
@@ -214,11 +220,9 @@ export default function PremiumUpgradeCard() {
 		setIsActioning(true)
 		try {
 			const response = await cancelSubscription()
-			if (response.success && response.data) {
-				setSubscription(response.data)
-				cancelConfirm.close()
-				toast.success(t('toastCancelled'))
-			}
+			setSubscription(requireSubscriptionData(response))
+			cancelConfirm.close()
+			toast.success(t('toastCancelled'))
 		} catch (err) {
 			logDevError('Cancel subscription error:', err)
 			toast.error(t('toastCancelFailed'))
@@ -285,7 +289,7 @@ export default function PremiumUpgradeCard() {
 								<div className='flex items-center gap-2'>
 									<Crown className='size-6 text-level' />
 									<h3 className='text-lg font-bold text-text-primary'>
-										<AnimatedGradientText>{t('title')}</AnimatedGradientText>
+										{t('title')}
 									</h3>
 								</div>
 								<p className='mt-1 text-sm text-text-secondary'>

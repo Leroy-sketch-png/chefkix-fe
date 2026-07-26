@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants'
 import type { SettingsTabId } from '@/components/settings/SettingsCommandDeck'
 
 interface SettingsContextRailProps {
@@ -128,7 +129,7 @@ export function SettingsContextRail({
 						<ArrowRight className='size-3.5 text-text-muted transition-transform group-hover:translate-x-0.5' />
 					</Link>
 					<Link
-						href='/cooking'
+						href={PATHS.COOK}
 						className='group inline-flex items-center justify-between gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
 					>
 						<span className='inline-flex items-center gap-2'>

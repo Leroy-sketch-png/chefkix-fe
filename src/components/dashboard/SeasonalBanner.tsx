@@ -10,7 +10,6 @@ import { Progress } from '@/components/ui/progress'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import { getSeasonalChallenges, SeasonalChallenge } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
-import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 
 // ============================================
@@ -119,12 +118,9 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 					transition={TRANSITION_SPRING}
 					className={className}
 				>
-					<MagicCard
-						mode='orb'
-						glowFrom={challenge.accentColor || 'var(--color-brand)'}
-						glowTo='var(--color-success)'
-						className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0'
-					>
+				<div
+					className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0'
+				>
 						{/* Dismiss button */}
 						<button
 							type='button'
@@ -205,7 +201,7 @@ export function SeasonalBanner({ className }: SeasonalBannerProps) {
 								</div>
 							</div>
 						</div>
-					</MagicCard>
+					</div>
 				</motion.div>
 			)}
 		</AnimatePresence>

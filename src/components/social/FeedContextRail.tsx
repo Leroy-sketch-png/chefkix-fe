@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Compass, MessageSquare, Sparkles, Users } from 'lucide-react'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
-import { MagicCard } from '@/components/ui/magic-card'
 import type { FeedMode } from '@/components/shared/FeedTabBar'
 
 interface FeedContextRailProps {
@@ -46,15 +45,10 @@ export function FeedContextRail({
 			initial={{ opacity: 0, x: 10 }}
 			animate={{ opacity: 1, x: 0 }}
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-			className='hidden 2xl:flex 2xl:flex-col 2xl:gap-4 2xl:self-start 2xl:sticky 2xl:top-24'
+			className='hidden xl:flex xl:flex-col xl:gap-4 xl:self-start xl:sticky xl:top-24'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
-				className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
-			>
-				<div className='relative z-10 w-full'>
+			<div className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'>
+				<div className='w-full'>
 					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
 						{t('pulseEyebrow')}
 					</p>
@@ -70,15 +64,10 @@ export function FeedContextRail({
 						<MetricRow label={t('pulseAudience')} value={audienceLabel} />
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
-				className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
-			>
-				<div className='relative z-10 w-full'>
+			<div className='overflow-hidden rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-4 shadow-card'>
+				<div className='w-full'>
 					<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
 						{t('quickMovesEyebrow')}
 					</p>
@@ -113,7 +102,7 @@ export function FeedContextRail({
 						</Link>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 
 			{showFriendsOnline && <FriendsOnlineWidget />}
 		</motion.aside>

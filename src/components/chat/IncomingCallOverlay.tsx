@@ -58,7 +58,7 @@ export default function IncomingCallOverlay({
 								whileHover={BUTTON_HOVER}
 								whileTap={BUTTON_TAP}
 								onClick={() => onAccept(false)}
-								className='flex items-center gap-2 rounded-full border border-brand/50 bg-bg-elevated px-5 py-3 font-medium text-white transition-colors hover:bg-brand/20'
+								className='flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-5 py-3 font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25'
 							>
 								<Phone className='w-5 h-5 text-brand' />
 								{t('answerAudio')}

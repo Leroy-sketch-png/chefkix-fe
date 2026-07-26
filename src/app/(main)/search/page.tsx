@@ -64,15 +64,10 @@ import { trackEvent, trackSearch } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { SearchCommandDeck } from '@/components/search/SearchCommandDeck'
-
-// ============================================
-// TYPES
-// ============================================
 
 type SearchTab = 'recipes' | 'people' | 'posts'
 
@@ -113,10 +108,6 @@ interface PostResult {
 	recipeId?: string
 }
 
-// ============================================
-// RECENT SEARCHES (shared utility)
-// ============================================
-
 import {
 	getRecentSearches,
 	addRecentSearch,
@@ -155,85 +146,6 @@ function mapTrendingTerms(terms: string[]): Array<{
 			TRENDING_TERM_ICON_CLASSES[index % TRENDING_TERM_ICON_CLASSES.length],
 	}))
 }
-
-// Extended vocabulary for "Did you mean?" fuzzy matching
-const SEARCH_VOCABULARY = [
-	...SEARCH_SUGGESTIONS,
-	'Pizza',
-	'Burger',
-	'Sushi',
-	'Tacos',
-	'Curry',
-	'Rice',
-	'Noodles',
-	'Grilling',
-	'Vegetarian',
-	'Gluten-free',
-	'Low-carb',
-	'Keto',
-	'Smoothie',
-	'Sandwich',
-	'Seafood',
-	'Beef',
-	'Pork',
-	'Lamb',
-	'Chocolate',
-	'Cake',
-	'Cookies',
-	'Bread',
-	'Pancakes',
-	'Waffles',
-	'Italian',
-	'Mexican',
-	'Asian',
-	'Indian',
-	'Mediterranean',
-	'Thai',
-	'French',
-	'Japanese',
-	'Korean',
-	'Chinese',
-	'American',
-	'Middle Eastern',
-]
-
-/** Simple Levenshtein distance for "Did you mean?" */
-function levenshtein(a: string, b: string): number {
-	const al = a.length,
-		bl = b.length
-	const dp: number[][] = Array.from({ length: al + 1 }, (_, i) =>
-		Array.from({ length: bl + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
-	)
-	for (let i = 1; i <= al; i++)
-		for (let j = 1; j <= bl; j++)
-			dp[i][j] =
-				a[i - 1] === b[j - 1]
-					? dp[i - 1][j - 1]
-					: 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
-	return dp[al][bl]
-}
-
-/** Find closest matching term from vocabulary (max distance 3) */
-function findSuggestion(query: string): string | null {
-	const q = query.toLowerCase().trim()
-	if (q.length < 2) return null
-	let best: string | null = null
-	let bestDist = Infinity
-	for (const term of SEARCH_VOCABULARY) {
-		const t = term.toLowerCase()
-		if (t === q) return null // exact match — no suggestion needed
-		const dist = levenshtein(q, t)
-		if (dist < bestDist && dist <= 3 && dist < q.length * 0.6) {
-			bestDist = dist
-			best = term
-		}
-	}
-	return best
-}
-
-// ============================================
-// COMPONENTS
-// ============================================
 
 function SearchResultImage({
 	src,
@@ -288,7 +200,6 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 			const res = await toggleSaveRecipe(recipe.id)
 			if (res.success && res.data) {
 				setSaved(res.data.isSaved)
-				if (res.data.isSaved) triggerSaveConfetti()
 				toast.success(res.data.isSaved ? t('recipeSaved') : t('recipeUnsaved'))
 			} else {
 				setSaved(prev)
@@ -509,10 +420,6 @@ const PostResultCard = ({ post }: { post: PostResult }) => {
 	)
 }
 
-// ============================================
-// HELPERS
-// ============================================
-
 const transformRecipeDoc = (doc: RecipeSearchDoc): RecipeResult => ({
 	id: doc.id,
 	title: doc.title,
@@ -549,10 +456,6 @@ const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
 	likeCount: doc.likeCount || 0,
 })
 
-// ============================================
-// PAGE
-// ============================================
-
 function SearchContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
@@ -578,12 +481,6 @@ function SearchContent() {
 		posts: [],
 	})
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-	// "Did you mean?" suggestion for empty results
-	const suggestion = useMemo(
-		() => (query ? findSuggestion(query) : null),
-		[query],
-	)
 
 	// Clean up debounce timer on unmount
 	useEffect(() => {
@@ -654,6 +551,8 @@ function SearchContent() {
 
 		const fetchResults = async () => {
 			setIsLoading(true)
+			setError(false)
+			setResults({ recipes: [], people: [], posts: [] })
 			addRecentSearch(query)
 			setRecentSearches(getRecentSearches())
 			try {
@@ -674,8 +573,7 @@ function SearchContent() {
 					const totalCount = recipes.length + people.length + posts.length
 					trackSearch(query, totalCount)
 				} else {
-					setResults({ recipes: [], people: [], posts: [] })
-					trackSearch(query, 0)
+					throw new Error(res.message || 'Search failed')
 				}
 			} catch (err) {
 				if (cancelled) return
@@ -719,7 +617,7 @@ function SearchContent() {
 	if (error && query) {
 		return (
 			<PageTransition>
-				<div data-testid='search-page' data-visual-ready='true'>
+				<div data-testid='search-page'>
 					<PageContainer maxWidth='lg'>
 						<ErrorState
 							title={t('searchFailed')}
@@ -757,10 +655,7 @@ function SearchContent() {
 
 		return (
 			<PageTransition>
-				<div
-					data-testid='search-page'
-					data-visual-ready={isLoading ? 'false' : 'true'}
-				>
+				<div data-testid='search-page'>
 					<PageContainer maxWidth='2xl'>
 						<div
 							className={cn(
@@ -842,10 +737,7 @@ function SearchContent() {
 
 	return (
 		<PageTransition>
-			<div
-				data-testid='search-page'
-				data-visual-ready={isLoading ? 'false' : 'true'}
-			>
+			<div data-testid='search-page'>
 				{/* Global navigation loading indicator */}
 				<AnimatePresence>
 					{isNavigating && (
@@ -868,13 +760,17 @@ function SearchContent() {
 					)}
 				</AnimatePresence>
 
-				<PageContainer maxWidth='lg'>
+				<PageContainer maxWidth='2xl'>
 					<SearchCommandDeck<SearchTab>
 						mode='results'
 						eyebrow={t('resultsWorkspaceEyebrow')}
 						chipLabel={t('results', { count: totalResults })}
 						backLabel={t('goBack')}
-						onBack={() => router.back()}
+						onBack={() => {
+	setSearchInput('')
+	isInternalNav.current = true
+	router.replace('/search')
+}}
 						heading={t('resultsHeading', { query })}
 						summary={t('resultsFound', { count: totalResults })}
 						searchValue={searchInput}
@@ -979,33 +875,6 @@ function SearchContent() {
 												</StaggerContainer>
 											) : (
 												<>
-													{suggestion && (
-														<motion.p
-															initial={{ opacity: 0 }}
-															animate={{ opacity: 1 }}
-															className='mb-4 text-center text-sm text-text-secondary'
-														>
-															{t('didYouMean')}{' '}
-															<motion.button
-																type='button'
-																onClick={() => {
-																	isInternalNav.current = true
-																	setSearchInput(suggestion)
-																	startNavigationTransition(() => {
-																		router.push(
-																			`/search?q=${encodeURIComponent(suggestion)}`,
-																		)
-																	})
-																}}
-																disabled={isNavigating}
-																whileTap={BUTTON_TAP}
-																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-															>
-																{suggestion}
-															</motion.button>
-															?
-														</motion.p>
-													)}
 													<EmptyStateGamified
 														variant='search'
 														title={t('noRecipes')}
@@ -1041,33 +910,6 @@ function SearchContent() {
 												</StaggerContainer>
 											) : (
 												<>
-													{suggestion && (
-														<motion.p
-															initial={{ opacity: 0 }}
-															animate={{ opacity: 1 }}
-															className='mb-4 text-center text-sm text-text-secondary'
-														>
-															{t('didYouMean')}{' '}
-															<motion.button
-																type='button'
-																onClick={() => {
-																	isInternalNav.current = true
-																	setSearchInput(suggestion)
-																	startNavigationTransition(() => {
-																		router.push(
-																			`/search?q=${encodeURIComponent(suggestion)}`,
-																		)
-																	})
-																}}
-																disabled={isNavigating}
-																whileTap={BUTTON_TAP}
-																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-															>
-																{suggestion}
-															</motion.button>
-															?
-														</motion.p>
-													)}
 													<EmptyStateGamified
 														variant='search'
 														title={t('noPeople')}
@@ -1100,33 +942,6 @@ function SearchContent() {
 												</StaggerContainer>
 											) : (
 												<>
-													{suggestion && (
-														<motion.p
-															initial={{ opacity: 0 }}
-															animate={{ opacity: 1 }}
-															className='mb-4 text-center text-sm text-text-secondary'
-														>
-															{t('didYouMean')}{' '}
-															<motion.button
-																type='button'
-																onClick={() => {
-																	isInternalNav.current = true
-																	setSearchInput(suggestion)
-																	startNavigationTransition(() => {
-																		router.push(
-																			`/search?q=${encodeURIComponent(suggestion)}`,
-																		)
-																	})
-																}}
-																disabled={isNavigating}
-																whileTap={BUTTON_TAP}
-																className='font-semibold text-brand underline underline-offset-2 hover:text-brand/80 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
-															>
-																{suggestion}
-															</motion.button>
-															?
-														</motion.p>
-													)}
 													<EmptyStateGamified
 														variant='search'
 														title={t('noPosts')}

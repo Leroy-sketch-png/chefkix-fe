@@ -29,13 +29,7 @@ export async function unifiedSearch(
 		if ((axiosError.response?.status ?? 0) >= 500) {
 			logDevError('[search] unifiedSearch failed', axiosError)
 		}
-		return (
-			axiosError.response?.data ?? {
-				success: false,
-				statusCode: 500,
-				message: 'Search failed',
-			}
-		)
+		throw axiosError
 	}
 }
 

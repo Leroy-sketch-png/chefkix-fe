@@ -20,13 +20,13 @@ export function Timeline({ items, className }: TimelineProps) {
 	const dotColor = (variant: TimelineItem['variant'] = 'default') => {
 		switch (variant) {
 			case 'success':
-				return 'bg-green-500'
+				return 'bg-success'
 			case 'warning':
-				return 'bg-yellow-500'
+				return 'bg-warning'
 			case 'destructive':
-				return 'bg-red-500'
+				return 'bg-error'
 			case 'info':
-				return 'bg-blue-500'
+				return 'bg-info'
 			default:
 				return 'bg-brand'
 		}

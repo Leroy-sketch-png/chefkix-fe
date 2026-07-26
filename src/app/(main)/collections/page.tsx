@@ -30,7 +30,6 @@ import {
 import { ErrorState } from '@/components/ui/error-state'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { Portal } from '@/components/ui/portal'
-import { MagicCard } from '@/components/ui/magic-card'
 import {
 	TRANSITION_SPRING,
 	CARD_HOVER,
@@ -303,10 +302,7 @@ export default function CollectionsPage() {
 
 					{/* Collections Grid */}
 					{collections.length === 0 ? (
-						<MagicCard
-							mode='orb'
-							glowFrom='var(--color-brand)'
-							glowTo='var(--color-xp)'
+						<div
 							className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md overflow-hidden shadow-card p-1'
 						>
 							<div className='relative z-10 w-full'>
@@ -322,7 +318,7 @@ export default function CollectionsPage() {
 									}}
 								/>
 							</div>
-						</MagicCard>
+						</div>
 					) : (
 						<PremiumSurface
 							eyebrow={t('libraryEyebrow')}
@@ -351,12 +347,9 @@ export default function CollectionsPage() {
 													router.push(`/collections/${collection.id}`)
 												}
 											>
-												<MagicCard
-													mode='orb'
-													glowFrom='var(--color-brand)'
-													glowTo='var(--color-pink)'
-													className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'
-												>
+											<div
+												className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'
+											>
 													{/* Cover image or placeholder */}
 													<div className='relative h-32 bg-bg-elevated z-10'>
 														{coverImageDelivery ? (
@@ -437,7 +430,7 @@ export default function CollectionsPage() {
 															</button>
 														</div>
 													</div>
-												</MagicCard>
+												</div>
 											</motion.div>
 										)
 									})(),
@@ -476,13 +469,10 @@ export default function CollectionsPage() {
 								aria-modal='true'
 								aria-labelledby='create-collection-title'
 							>
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo='var(--color-pink)'
-									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
-								>
-									<div className='relative z-10 w-full'>
+							<div
+								className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
+							>
+								<div className='relative z-10 w-full'>
 										<h2
 											className='mb-4 text-lg font-bold text-text-primary'
 											id='create-collection-title'
@@ -550,7 +540,7 @@ export default function CollectionsPage() {
 											</button>
 										</div>
 									</div>
-								</MagicCard>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>
@@ -579,20 +569,17 @@ export default function CollectionsPage() {
 								className='w-full max-w-4xl rounded-2xl overflow-hidden shadow-warm p-0'
 								onClick={e => e.stopPropagation()}
 							>
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo='var(--color-xp)'
-									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
-								>
-									<div className='relative z-10 w-full'>
+							<div
+								className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
+							>
+								<div className='relative z-10 w-full'>
 										<CollectionBuilder
 											onSave={handleCreateLearningPath}
 											onCancel={() => setShowLearningPathModal(false)}
 											isSaving={isCreatingLearningPath}
 										/>
 									</div>
-								</MagicCard>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>
@@ -625,13 +612,10 @@ export default function CollectionsPage() {
 								aria-labelledby='delete-collection-title'
 								aria-describedby='delete-collection-desc'
 							>
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo='var(--color-error)'
-									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
-								>
-									<div className='relative z-10 w-full'>
+							<div
+								className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
+							>
+								<div className='relative z-10 w-full'>
 										<h3
 											className='mb-2 text-lg font-bold text-text-primary'
 											id='delete-collection-title'
@@ -662,7 +646,7 @@ export default function CollectionsPage() {
 											</button>
 										</div>
 									</div>
-								</MagicCard>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>

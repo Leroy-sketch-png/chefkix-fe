@@ -3,7 +3,16 @@
 import { useState, useEffect, Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Share2, ChefHat, Lock } from 'lucide-react'
+import {
+	Award,
+	Camera,
+	ChefHat,
+	Lock,
+	Share2,
+	Target,
+	Zap,
+	type LucideIcon,
+} from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
@@ -24,7 +33,8 @@ import {
 
 interface UnlockItem {
 	id: string
-	emoji: string
+	icon: LucideIcon
+	iconClassName: string
 	name: string
 	description: string
 	glowColor: string
@@ -58,28 +68,32 @@ const buildUnlocks = (
 ): UnlockItem[] => [
 	{
 		id: 'badge',
-		emoji: '🎖ï¸',
+		icon: Award,
+		iconClassName: 'text-warning',
 		name: t('firstDishBadge'),
 		description: t('yourFirstOfMany'),
 		glowColor: 'rgba(255, 215, 0, 0.3)',
 	},
 	{
 		id: 'xp',
-		emoji: '⚡',
+		icon: Zap,
+		iconClassName: 'text-xp',
 		name: t('plusXp', { amount: Math.round(immediateXp) }),
 		description: t('earnedImmediately'),
 		glowColor: 'rgba(0, 212, 255, 0.3)',
 	},
 	{
 		id: 'share-bonus',
-		emoji: '📸',
+		icon: Camera,
+		iconClassName: 'text-success',
 		name: t('xpWaiting', { amount: Math.round(pendingXp) }),
 		description: t('postToClaimDays', { days: postDeadlineDays }),
 		glowColor: 'rgba(52, 211, 153, 0.3)',
 	},
 	{
 		id: 'challenges',
-		emoji: '🎯',
+		icon: Target,
+		iconClassName: 'text-accent-purple',
 		name: t('dailyChallenges'),
 		description: t('bonusXpRotates'),
 		glowColor: 'rgba(168, 85, 247, 0.3)',
@@ -168,39 +182,49 @@ const BurstRings = () => (
 	</>
 )
 
-// Unlock item card
-const UnlockCard = ({ item, index }: { item: UnlockItem; index: number }) => (
-	<motion.div
-		initial={{ opacity: 0, scale: 0.8 }}
-		animate={{ opacity: 1, scale: 1 }}
-		transition={{
-			...TRANSITION_BOUNCY,
-			delay: 0.4 + index * 0.1,
-		}}
-		className='flex items-center gap-3 rounded-2xl border border-border bg-bg-elevated p-3.5'
-	>
-		{/* Icon with glow */}
-		<div className='relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-bg-card'>
-			<span className='relative z-10 text-2xl'>{item.emoji}</span>
-			<motion.div
-				animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
-				transition={{ duration: 2, repeat: Infinity }}
-				className='absolute inset-0 rounded-xl'
-				style={{ backgroundColor: item.glowColor }}
-			/>
-		</div>
+const UnlockCard = ({ item, index }: { item: UnlockItem; index: number }) => {
+	const Icon = item.icon
 
-		{/* Info */}
-		<div className='min-w-0 flex-1'>
-			<span
-				className={cn('block text-sm font-bold', item.id === 'xp' && 'text-xp')}
-			>
-				{item.name}
-			</span>
-			<span className='block text-xs text-text-muted'>{item.description}</span>
-		</div>
-	</motion.div>
-)
+	return (
+		<motion.div
+			initial={{ opacity: 0, scale: 0.8 }}
+			animate={{ opacity: 1, scale: 1 }}
+			transition={{
+				...TRANSITION_BOUNCY,
+				delay: 0.4 + index * 0.1,
+			}}
+			className='flex items-center gap-3 rounded-2xl border border-border bg-bg-elevated p-3.5'
+		>
+			<div className='relative flex size-11 shrink-0 items-center justify-center rounded-xl bg-bg-card'>
+				<Icon
+					aria-hidden='true'
+					className={cn('relative z-10 size-6', item.iconClassName)}
+				/>
+				<motion.div
+					aria-hidden='true'
+					animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
+					transition={{ duration: 2, repeat: Infinity }}
+					className='absolute inset-0 rounded-xl'
+					style={{ backgroundColor: item.glowColor }}
+				/>
+			</div>
+
+			<div className='min-w-0 flex-1'>
+				<span
+					className={cn(
+						'block text-sm font-bold',
+						item.id === 'xp' && 'text-xp',
+					)}
+				>
+					{item.name}
+				</span>
+				<span className='block text-xs text-text-muted'>
+					{item.description}
+				</span>
+			</div>
+		</motion.div>
+	)
+}
 
 // Journey node
 const JourneyNodeComponent = ({ node }: { node: JourneyNode }) => (

@@ -17,7 +17,7 @@ import {
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
 } from '@/lib/motion'
-import { triggerLikeConfetti } from '@/lib/confetti'
+import { triggerMutualFollowConfetti } from '@/lib/confetti'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import Link from 'next/link'
 
@@ -59,7 +59,7 @@ export const FollowSuggestionCard = ({
 
 			if (response.success) {
 				toast.success(t('nowFollowing', { name: displayName }))
-				triggerLikeConfetti() // Celebrate new mutual connection!
+				triggerMutualFollowConfetti()
 				onFollowBack?.(profile.userId)
 			} else {
 				toast.error(t('failedFollowUser'))

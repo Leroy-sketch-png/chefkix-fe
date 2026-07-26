@@ -87,8 +87,8 @@ export const ConversationItem = ({
 				'relative flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-border transition-colors',
 				isActive
 					? 'bg-brand/10 border-l-[3px] border-l-brand'
-					: 'hover:bg-muted/50',
-				unreadCount > 0 && !isActive && 'bg-muted/30',
+					: 'hover:bg-bg-hover/50',
+				unreadCount > 0 && !isActive && 'bg-bg-elevated/30',
 			)}
 			onClick={onClick}
 			whileHover={{ x: isActive ? 0 : 2 }}
@@ -119,7 +119,7 @@ export const ConversationItem = ({
 					<span
 						className={cn(
 							'text-sm font-semibold truncate',
-							unreadCount > 0 ? 'text-foreground' : 'text-foreground',
+							'text-text-primary',
 						)}
 					>
 						{participantName}
@@ -133,7 +133,7 @@ export const ConversationItem = ({
 						className={cn(
 							'text-sm truncate',
 							unreadCount > 0
-								? 'text-foreground font-medium'
+								? 'text-text-primary font-medium'
 								: 'text-text-secondary',
 							isTyping && 'text-brand italic',
 						)}
@@ -196,7 +196,7 @@ export const ConversationList = ({
 			{conversations.length === 0 && (
 				<div className='flex flex-col items-center justify-center py-12 px-4 text-center'>
 					<span className='text-4xl mb-3'>💬</span>
-					<p className='text-foreground font-semibold'>{t('noConversationsYet')}</p>
+					<p className='text-text-primary font-semibold'>{t('noConversationsYet')}</p>
 					<p className='text-sm text-text-secondary mt-1'>
 						{t('startConversationFriend')}
 					</p>

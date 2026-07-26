@@ -2,8 +2,8 @@
 
 import { useTranslations } from 'next-intl'
 
-import { useState, useEffect, useCallback } from 'react'
-import { exploreGroups } from '@/services/group'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { exploreGroups, getMyGroups } from '@/services/group'
 import { Group, GroupExploreQuery, PrivacyType } from '@/lib/types/group'
 import { GroupCard } from './GroupCard'
 import { Button } from '@/components/ui/button'
@@ -27,11 +27,11 @@ import {
 import { CreateGroupModal } from './CreateGroupModal'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { ErrorState } from '@/components/ui/error-state'
-import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
 
 interface GroupsExploreGridProps {
 	currentUserId?: string
+	source?: 'explore' | 'mine'
 }
 
 /**
@@ -40,12 +40,14 @@ interface GroupsExploreGridProps {
  */
 export const GroupsExploreGrid = ({
 	currentUserId,
+	source = 'explore',
 }: GroupsExploreGridProps) => {
 	const [groups, setGroups] = useState<Group[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [hasMore, setHasMore] = useState(true)
 	const [page, setPage] = useState(0)
+	const requestIdRef = useRef(0)
 
 	// Filters
 	const [searchTerm, setSearchTerm] = useState('')
@@ -56,12 +58,12 @@ export const GroupsExploreGrid = ({
 
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false)
-	const user = useAuthStore(state => state.user)
 	const t = useTranslations('groups')
 
 	// Load groups
 	const loadGroups = useCallback(
 		async (pageNum: number = 0, append: boolean = false) => {
+			const requestId = ++requestIdRef.current
 			setIsLoading(true)
 			setError(false)
 			try {
@@ -71,31 +73,33 @@ export const GroupsExploreGrid = ({
 					sortBy,
 				}
 
-				const response = await exploreGroups(query, pageNum, 12)
+				const response =
+					source === 'mine'
+						? await getMyGroups(undefined, pageNum, 12)
+						: await exploreGroups(query, pageNum, 12)
+
+				if (requestId !== requestIdRef.current) return
 
 				setGroups(prev =>
 					append ? [...prev, ...response.content] : response.content,
 				)
 				setPage(pageNum)
-				setHasMore(pageNum < response.totalPages - 1)
-			} catch (error) {
+				setHasMore(response.hasNext)
+			} catch {
+				if (requestId !== requestIdRef.current) return
 				setError(true)
 				toast.error(t('geLoadFailed'))
 			} finally {
-				setIsLoading(false)
+				if (requestId === requestIdRef.current) setIsLoading(false)
 			}
 		},
-		[searchTerm, privacyFilter, sortBy, t],
+		[searchTerm, privacyFilter, sortBy, source, t],
 	)
 
 	// Initial load and filter changes
 	useEffect(() => {
-		let cancelled = false
-		if (!cancelled) loadGroups(0, false)
-		return () => {
-			cancelled = true
-		}
-	}, [searchTerm, privacyFilter, sortBy, loadGroups, t])
+		void loadGroups(0, false)
+	}, [loadGroups])
 
 	const handleLoadMore = () => {
 		loadGroups(page + 1, true)
@@ -124,11 +128,13 @@ export const GroupsExploreGrid = ({
 				<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div>
 						<h1 className='text-4xl font-bold text-text-primary'>
-							{t('geTitle')}
+							{source === 'mine' ? t('msMyGroups') : t('geTitle')}
 						</h1>
-						<p className='text-text-secondary mt-2 text-lg'>
-							{t('geDescription')}
-						</p>
+						{source === 'explore' && (
+							<p className='text-text-secondary mt-2 text-lg'>
+								{t('geDescription')}
+							</p>
+						)}
 					</div>
 
 					{currentUserId && (
@@ -148,56 +154,60 @@ export const GroupsExploreGrid = ({
 			</div>
 
 			{/* Search and Filters */}
-			<div className='flex flex-col gap-4'>
-				{/* Search Bar - Facebook Style */}
-				<div className='relative'>
-					<Search className='absolute left-4 top-1/2 transform -translate-y-1/2 size-5 text-text-secondary' />
-					<Input
-						placeholder={t('geSearchPlaceholder')}
-						value={searchTerm}
-						onChange={e => setSearchTerm(e.target.value)}
-						className='pl-12 py-3 text-base rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand transition-colors'
-						disabled={isLoading}
-					/>
-				</div>
+			{source === 'explore' && (
+				<div className='flex flex-col gap-4'>
+					{/* Search Bar - Facebook Style */}
+					<div className='relative'>
+						<Search className='absolute left-4 top-1/2 transform -translate-y-1/2 size-5 text-text-secondary' />
+						<Input
+							placeholder={t('geSearchPlaceholder')}
+							value={searchTerm}
+							onChange={e => setSearchTerm(e.target.value)}
+							className='pl-12 py-3 text-base rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand transition-colors'
+							disabled={isLoading}
+						/>
+					</div>
 
-				{/* Filters Row */}
-				<div className='flex flex-col sm:flex-row gap-3'>
-					{/* Privacy Filter */}
-					<Select
-						value={privacyFilter}
-						onValueChange={val => setPrivacyFilter(val as PrivacyType | 'ALL')}
-						disabled={isLoading}
-					>
-						<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value='ALL'>{t('geAllGroups')}</SelectItem>
-							<SelectItem value='PUBLIC'>{t('gePublicOnly')}</SelectItem>
-							<SelectItem value='PRIVATE'>{t('gePrivateOnly')}</SelectItem>
-						</SelectContent>
-					</Select>
+					{/* Filters Row */}
+					<div className='flex flex-col sm:flex-row gap-3'>
+						{/* Privacy Filter */}
+						<Select
+							value={privacyFilter}
+							onValueChange={val =>
+								setPrivacyFilter(val as PrivacyType | 'ALL')
+							}
+							disabled={isLoading}
+						>
+							<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='ALL'>{t('geAllGroups')}</SelectItem>
+								<SelectItem value='PUBLIC'>{t('gePublicOnly')}</SelectItem>
+								<SelectItem value='PRIVATE'>{t('gePrivateOnly')}</SelectItem>
+							</SelectContent>
+						</Select>
 
-					{/* Sort */}
-					<Select
-						value={sortBy}
-						onValueChange={val =>
-							setSortBy(val as 'LATEST' | 'MEMBERS' | 'TRENDING')
-						}
-						disabled={isLoading}
-					>
-						<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value='LATEST'>{t('geLatestGroups')}</SelectItem>
-							<SelectItem value='MEMBERS'>{t('geMostMembers')}</SelectItem>
-							<SelectItem value='TRENDING'>{t('geTrending')}</SelectItem>
-						</SelectContent>
-					</Select>
+						{/* Sort */}
+						<Select
+							value={sortBy}
+							onValueChange={val =>
+								setSortBy(val as 'LATEST' | 'MEMBERS' | 'TRENDING')
+							}
+							disabled={isLoading}
+						>
+							<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value='LATEST'>{t('geLatestGroups')}</SelectItem>
+								<SelectItem value='MEMBERS'>{t('geMostMembers')}</SelectItem>
+								<SelectItem value='TRENDING'>{t('geTrending')}</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 				</div>
-			</div>
+			)}
 
 			{/* Groups Grid */}
 			{isLoading && groups.length === 0 ? (
@@ -281,7 +291,7 @@ export const GroupsExploreGrid = ({
 									group={group}
 									variant='default'
 									currentUserId={currentUserId}
-									isJoinable={!group.isJoined}
+									isJoinable={source === 'explore' && !group.isJoined}
 									onJoinSuccess={updatedGroup => {
 										setGroups(prev =>
 											prev.map(g =>

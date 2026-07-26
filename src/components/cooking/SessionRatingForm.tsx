@@ -15,10 +15,6 @@ import {
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 
-// ============================================
-// TYPES
-// ============================================
-
 interface SessionRatingFormProps {
 	xpEarned: number
 	recipeTitle: string
@@ -26,10 +22,6 @@ interface SessionRatingFormProps {
 	onSkip?: () => void
 	isSubmitting?: boolean
 }
-
-// ============================================
-// STAR RATING COMPONENT
-// ============================================
 
 interface StarRatingProps {
 	rating: number
@@ -128,10 +120,6 @@ function StarRating({
 	)
 }
 
-// ============================================
-// RATING LABELS
-// ============================================
-
 const RATING_LABEL_KEYS: Record<number, string> = {
 	1: 'ratingStruggled',
 	2: 'ratingOkay',
@@ -139,10 +127,6 @@ const RATING_LABEL_KEYS: Record<number, string> = {
 	4: 'ratingGreat',
 	5: 'ratingNailed',
 }
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
 
 export function SessionRatingForm({
 	xpEarned,

@@ -319,7 +319,7 @@ export const PostDeadlineCard = ({
 						type='button'
 						onClick={onDismiss}
 						aria-label={t('dismiss')}
-						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-muted/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
+						className='flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-bg-elevated/50 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
 					>
 						<X className='size-4' />
 					</button>
@@ -362,7 +362,7 @@ export const PostDeadlineStack = ({
 			<button
 				type='button'
 				onClick={() => setIsExpanded(!isExpanded)}
-				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-muted/30'
+				className='flex w-full items-center gap-2.5 border-b border-border px-4 py-3.5 hover:bg-bg-hover/30'
 			>
 				<span className='text-lg'>📸</span>
 				<span className='flex-1 text-left text-sm font-semibold'>
@@ -396,7 +396,7 @@ export const PostDeadlineStack = ({
 								return (
 									<div
 										key={post.id}
-										className='flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/30'
+										className='flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-bg-hover/30'
 									>
 										{post.recipeImageUrl ? (
 											<Image

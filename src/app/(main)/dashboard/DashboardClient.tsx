@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AlertCircle, ArrowRight, ChefHat, Clock, RefreshCw } from 'lucide-react'
+import {
+	AlertCircle,
+	ArrowRight,
+	ChefHat,
+	Clock,
+	RefreshCw,
+} from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
-import { BlurFade } from '@/components/ui/blur-fade'
 import { Button } from '@/components/ui/button'
 import { MeshGradient } from '@/components/ui/mesh-gradient'
 import { ResumeCookingBanner } from '@/components/cooking'
@@ -19,7 +24,7 @@ import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from '@/i18n/hooks'
 
 const RECENT_ACTIVITY_LIMIT = 5
-const RECENT_ACTIVITY_TIMEOUT_MS = 8000
+const RECENT_ACTIVITY_TIMEOUT_MS = 5000
 
 type RecentActivityState = {
 	posts: Post[]
@@ -36,10 +41,7 @@ const getActivityTitle = (post: Post, fallbackTitle: string) =>
 const getActivityImage = (post: Post) =>
 	post.photoUrls?.[0] || post.photoUrl || '/placeholder-recipe.svg'
 
-const getActivityMeta = (
-	post: Post,
-	t: ReturnType<typeof useTranslations>,
-) => {
+const getActivityMeta = (post: Post, t: ReturnType<typeof useTranslations>) => {
 	const createdAt = new Date(post.createdAt)
 	if (Number.isNaN(createdAt.getTime())) return ''
 
@@ -48,7 +50,8 @@ const getActivityMeta = (
 		Math.floor((Date.now() - createdAt.getTime()) / 60000),
 	)
 	if (minutesAgo < 1) return t('recentActivityJustNow')
-	if (minutesAgo < 60) return t('recentActivityMinutesAgo', { count: minutesAgo })
+	if (minutesAgo < 60)
+		return t('recentActivityMinutesAgo', { count: minutesAgo })
 
 	const hoursAgo = Math.floor(minutesAgo / 60)
 	if (hoursAgo < 24) return t('recentActivityHoursAgo', { count: hoursAgo })
@@ -166,7 +169,12 @@ function RecentActivityList() {
 							</p>
 						</div>
 					</div>
-					<Button type='button' variant='outline' size='sm' onClick={loadActivity}>
+					<Button
+						type='button'
+						variant='outline'
+						size='sm'
+						onClick={loadActivity}
+					>
 						<RefreshCw className='size-4' />
 						{t('tpRetry')}
 					</Button>
@@ -243,24 +251,23 @@ export default function DashboardPage() {
 				<PageContainer maxWidth='lg'>
 					<div
 						data-testid='dashboard-page'
-						data-visual-ready='true'
 						className={cn(
 							'space-y-5 pb-[calc(var(--h-mobile-nav)+var(--space-24))]',
 							'md:space-y-6 md:pb-8',
 						)}
 					>
-						<BlurFade delay={0.06}>
+						<div>
 							<ResumeCookingBanner className='mb-0' />
-						</BlurFade>
+						</div>
 
 						<div className='grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.92fr)]'>
-							<BlurFade delay={0.09}>
+							<div>
 								<TonightsPick className='mb-0 h-full' />
-							</BlurFade>
+							</div>
 
-							<BlurFade delay={0.12}>
+							<div>
 								<RecentActivityList />
-							</BlurFade>
+							</div>
 						</div>
 					</div>
 				</PageContainer>

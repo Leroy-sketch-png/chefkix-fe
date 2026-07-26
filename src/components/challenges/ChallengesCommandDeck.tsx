@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Clock, Leaf, Sparkles, Trophy, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 
 interface ChallengesCommandDeckProps {
@@ -75,10 +74,7 @@ export function ChallengesCommandDeck({
 				className,
 			)}
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-4 md:p-5'
 			>
 				<div className='relative z-10 w-full'>
@@ -130,7 +126,7 @@ export function ChallengesCommandDeck({
 						/>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.section>
 	)
 }

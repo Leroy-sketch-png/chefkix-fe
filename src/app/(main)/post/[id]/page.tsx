@@ -111,7 +111,7 @@ export default function PostDetailPage() {
 				<ErrorState
 					title={t('postNotFound')}
 					message={
-						error || 'This post may have been deleted or is not available.'
+						error || t('postDeleted')
 					}
 					showHomeButton
 					onRetry={fetchPost}

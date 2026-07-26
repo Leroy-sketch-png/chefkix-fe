@@ -24,7 +24,7 @@ interface ResumeCookingBannerProps {
 	className?: string
 }
 
-const RESUME_BANNER_TIMEOUT_MS = 8000
+const RESUME_BANNER_TIMEOUT_MS = 5000
 
 /**
  * ResumeCookingBanner - Shows when user has an interrupted/paused cooking session

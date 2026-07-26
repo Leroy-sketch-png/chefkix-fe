@@ -77,6 +77,18 @@ export const RecipeFiltersSheet = ({
 	const [filters, setFilters] = useState<RecipeFilters>(
 		initialFilters ?? createDefaultFilters(),
 	)
+	const dietaryOptions = DIETARY_OPTIONS.map(option => ({
+		label: t(option.labelKey),
+		value: option.value,
+	}))
+	const cuisineOptions = CUISINE_OPTIONS.map(option => ({
+		label: t(option.labelKey),
+		value: option.value,
+	}))
+	const difficultyOptions = DIFFICULTY_OPTIONS.map(option => ({
+		label: t(option.labelKey),
+		value: option.value,
+	}))
 
 	useEffect(() => {
 		setFilters(initialFilters ?? createDefaultFilters())
@@ -190,7 +202,7 @@ export const RecipeFiltersSheet = ({
 							{t('rfDietary')}
 						</label>
 						<MultiSelect
-							options={DIETARY_OPTIONS}
+							options={dietaryOptions}
 							value={filters.dietary}
 							onChange={dietary => setFilters(prev => ({ ...prev, dietary }))}
 						/>
@@ -202,7 +214,7 @@ export const RecipeFiltersSheet = ({
 							{t('rfCuisine')}
 						</label>
 						<MultiSelect
-							options={CUISINE_OPTIONS}
+							options={cuisineOptions}
 							value={filters.cuisine}
 							onChange={cuisine => setFilters(prev => ({ ...prev, cuisine }))}
 						/>
@@ -214,7 +226,7 @@ export const RecipeFiltersSheet = ({
 							{t('rfDifficulty')}
 						</label>
 						<MultiSelect
-							options={DIFFICULTY_OPTIONS}
+							options={difficultyOptions}
 							value={filters.difficulty}
 							onChange={difficulty =>
 								setFilters(prev => ({ ...prev, difficulty }))

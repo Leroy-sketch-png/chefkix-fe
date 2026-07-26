@@ -30,9 +30,7 @@ import messages from '../../messages/en.json'
 /** Static lookup for axios error translations (non-component context) */
 const t = (key: keyof typeof messages.common) => messages.common[key]
 
-// ============================================================================
 // AXIOS INSTANCES
-// ============================================================================
 
 export const api = axios.create({
 	baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080',
@@ -61,9 +59,7 @@ export const aiApi = axios.create({
 	timeout: 60_000, // AI calls can take longer (Gemini processing)
 })
 
-// ============================================================================
 // REQUEST INTERCEPTOR
-// ============================================================================
 
 api.interceptors.request.use(
 	config => {
@@ -82,9 +78,7 @@ api.interceptors.request.use(
 	error => Promise.reject(error),
 )
 
-// ============================================================================
 // RESPONSE INTERCEPTOR
-// ============================================================================
 
 api.interceptors.response.use(
 	// SUCCESS: Normalize response format

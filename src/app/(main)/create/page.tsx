@@ -58,6 +58,7 @@ function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const t = useTranslations('create')
+	const tc = useTranslations('common')
 	const urlDraftId = searchParams.get('draftId')
 	const [mode, setMode] = useState<'list' | 'create'>(
 		urlDraftId ? 'create' : 'list',
@@ -222,8 +223,8 @@ function CreateRecipeContent() {
 
 									<SurfaceSectionHeader
 										className='mb-4 hidden sm:flex'
-										eyebrow='Creation Studio'
-										chipText='Draft-ready'
+										eyebrow={tc('eyebrows.creationStudio')}
+										chipText={tc('eyebrows.draftReady')}
 									/>
 
 									{/* Local Draft Recovery Card */}

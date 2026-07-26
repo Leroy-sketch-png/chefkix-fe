@@ -20,9 +20,11 @@ const ALLOWED_AI_PATHS = new Set([
 	'remix_recipe',
 	'ml/calibrate-difficulty',
 	'ml/content-guard',
+	'ml/taste-dna',
 	'ner/extract',
 	'quality/score',
 	'generate_meal_plan',
+	'copilot/query',
 ])
 
 const ENV_FILE_CANDIDATES = [

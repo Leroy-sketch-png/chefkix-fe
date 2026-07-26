@@ -1,6 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 
 type Option = {
@@ -27,6 +28,7 @@ export function MultiSelect({
 	showOtherOption = false,
 	className = '',
 }: MultiSelectProps) {
+	const t = useTranslations('common')
 	const toggleOption = (val: string) => {
 		if (val === 'other') {
 			if (value.includes('other')) {
@@ -47,7 +49,7 @@ export function MultiSelect({
 	}
 
 	const allOptions = showOtherOption
-		? [...options, { label: 'Other', value: 'other' }]
+		? [...options, { label: t('other'), value: 'other' }]
 		: options
 
 	return (

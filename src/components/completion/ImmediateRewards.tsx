@@ -416,20 +416,20 @@ export const ImmediateRewards = ({
 										<div className='space-y-1'>
 											{[
 												xpBreakdown.base > 0 && {
-													label: xpBreakdown.baseReason || 'Base',
+													label: xpBreakdown.baseReason || t('xpBase'),
 													value: xpBreakdown.base,
 												},
 												xpBreakdown.steps > 0 && {
-													label: xpBreakdown.stepsReason || 'Steps',
+													label: xpBreakdown.stepsReason || t('xpSteps'),
 													value: xpBreakdown.steps,
 												},
 												xpBreakdown.time > 0 && {
-													label: xpBreakdown.timeReason || 'Time',
+													label: xpBreakdown.timeReason || t('xpTime'),
 													value: xpBreakdown.time,
 												},
 												xpBreakdown.techniques != null &&
 													xpBreakdown.techniques > 0 && {
-														label: xpBreakdown.techniquesReason || 'Techniques',
+														label: xpBreakdown.techniquesReason || t('xpTechniques'),
 														value: xpBreakdown.techniques,
 													},
 											]

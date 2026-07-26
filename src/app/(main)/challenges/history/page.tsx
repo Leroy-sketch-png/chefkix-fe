@@ -53,6 +53,7 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
 	const t = useTranslations('challenges')
+	const tc = useTranslations('common')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
@@ -137,8 +138,8 @@ export default function ChallengeHistoryPageRoute() {
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<PremiumSurface
-					eyebrow='Challenge Timeline'
-					chipText={`${days.length} logged days`}
+					eyebrow={tc('eyebrows.challengeTimeline')}
+					chipText={tc('eyebrows.nLoggedDays', { n: days.length })}
 					tone='streak'
 					className='p-3 md:p-4'
 				>

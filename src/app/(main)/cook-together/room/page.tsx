@@ -40,6 +40,7 @@ interface ActivityItem {
 export default function CookingRoomPage() {
 	const router = useRouter()
 	const t = useTranslations('cooking')
+	const tc = useTranslations('common')
 	const [copied, setCopied] = useState(false)
 	const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([])
 	const [isUpgrading, setIsUpgrading] = useState(false)
@@ -306,7 +307,7 @@ export default function CookingRoomPage() {
 				</AnimatePresence>
 
 				<PremiumSurface
-					eyebrow='Room Session'
+					eyebrow={tc('eyebrows.roomSession')}
 					chipText={roomCode}
 					tone='streak'
 					className='mb-8 p-3 md:p-4'
@@ -367,7 +368,7 @@ export default function CookingRoomPage() {
 				<div className='grid gap-6 lg:grid-cols-3'>
 					{/* Room Card — Main column */}
 					<PremiumSurface
-						eyebrow='Cook Controls'
+						eyebrow={tc('eyebrows.cookControls')}
 						chipText={isSpectator ? 'Watching' : 'Cooking'}
 						className='p-0 lg:col-span-2'
 					>
@@ -561,7 +562,7 @@ export default function CookingRoomPage() {
 
 					{/* Live Activity Feed — Side panel */}
 					<PremiumSurface
-						eyebrow='Activity Feed'
+						eyebrow={tc('eyebrows.activityFeed')}
 						chipText={isConnected ? 'Live' : 'Reconnecting'}
 						className='p-0 lg:col-span-1 lg:sticky lg:top-24 lg:self-start'
 						tone='blue'
@@ -573,7 +574,7 @@ export default function CookingRoomPage() {
 							className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'
 						>
 							<SurfaceSectionHeader
-								eyebrow='Room Events'
+								eyebrow={tc('eyebrows.roomEvents')}
 								chipText={`${activityFeed.length} events`}
 								className='mb-3'
 							/>

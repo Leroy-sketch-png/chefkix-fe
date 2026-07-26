@@ -117,7 +117,7 @@ const SettingsNavItem = ({ item, isActive, onClick }: SettingsNavItemProps) => {
 				'flex items-center gap-3 w-full p-3 rounded-xl text-left focus-visible:ring-2 focus-visible:ring-brand/50',
 				isActive
 					? 'bg-brand/10 text-brand'
-					: 'text-text-secondary hover:bg-muted/50 hover:text-foreground',
+					: 'text-text-secondary hover:bg-bg-hover/50 hover:text-text-primary',
 			)}
 			onClick={onClick}
 			whileHover={{ x: isActive ? 0 : 4 }}
@@ -215,7 +215,7 @@ export const SettingsNavCompact = ({
 						'text-sm font-medium',
 						activeSection === item.id
 							? 'bg-brand text-white'
-							: 'bg-muted/50 text-text-secondary hover:bg-bg-hover hover:text-foreground',
+							: 'bg-bg-elevated/50 text-text-secondary hover:bg-bg-hover hover:text-text-primary',
 					)}
 					onClick={() => onSectionChange(item.id)}
 					whileHover={BUTTON_SUBTLE_HOVER}
@@ -247,7 +247,7 @@ export const SettingsSectionHeader = ({
 
 	return (
 		<div className='mb-6'>
-			<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
+			<h2 className='text-2xl font-bold text-text-primary flex items-center gap-3'>
 				{item.icon}
 				{t(item.labelKey)}
 			</h2>

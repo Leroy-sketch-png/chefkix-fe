@@ -23,7 +23,6 @@ import {
 	BUTTON_TAP,
 	DURATION_S,
 } from '@/lib/motion'
-import { MagicCard } from '@/components/ui/magic-card'
 import { NumberTicker } from '@/components/ui/number-ticker'
 
 // ============================================
@@ -185,7 +184,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 			xpClass: 'text-brand',
 		},
 		future: {
-			badgeBg: 'bg-muted/30',
+			badgeBg: 'bg-bg-elevated/30',
 			indicator: null,
 			indicatorBg: '',
 			xpClass: 'text-text-secondary',
@@ -281,10 +280,7 @@ export const ChallengeHistorySection = ({
 				className,
 			)}
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
 			>
 				<div className='relative z-10 w-full'>
@@ -377,7 +373,7 @@ export const ChallengeHistorySection = ({
 						</div>
 					)}
 				</div>
-			</MagicCard>
+			</div>
 		</div>
 	)
 }
@@ -516,10 +512,7 @@ export const ChallengeHistoryPage = ({
 
 			{/* Lifetime Stats */}
 			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<MagicCard
-					mode='orb'
-					glowFrom='var(--color-brand)'
-					glowTo='var(--color-xp)'
+				<div
 					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
 				>
 					<div className='relative z-10 w-full'>
@@ -587,15 +580,12 @@ export const ChallengeHistoryPage = ({
 							</div>
 						</div>
 					</div>
-				</MagicCard>
+				</div>
 			</div>
 
 			{/* Month View */}
 			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<MagicCard
-					mode='orb'
-					glowFrom='var(--color-streak)'
-					glowTo='var(--color-brand)'
+				<div
 					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
 				>
 					<div className='relative z-10 w-full'>
@@ -644,15 +634,12 @@ export const ChallengeHistoryPage = ({
 							))}
 						</div>
 					</div>
-				</MagicCard>
+				</div>
 			</div>
 
 			{/* Recent History List */}
 			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<MagicCard
-					mode='orb'
-					glowFrom='var(--color-brand)'
-					glowTo='var(--color-success)'
+				<div
 					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
 				>
 					<div className='relative z-10 w-full'>
@@ -683,7 +670,7 @@ export const ChallengeHistoryPage = ({
 							</motion.button>
 						)}
 					</div>
-				</MagicCard>
+				</div>
 			</div>
 		</div>
 	)

@@ -105,28 +105,28 @@ import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { OverlayLoader } from '@/components/ui/overlay-loader'
 import { StepIndicator } from '@/components/ui/step-indicator'
 
-const CUISINE_OPTIONS: ComboboxOption[] = [
-	'Italian',
-	'Asian',
-	'Mexican',
-	'American',
-	'French',
-	'Indian',
-	'Mediterranean',
-	'Vietnamese',
-	'Thai',
-	'Chinese',
-	'Japanese',
-	'Korean',
-	'Middle Eastern',
-	'African',
-	'Caribbean',
-	'Brazilian',
-	'Greek',
-	'Spanish',
-	'Fusion',
-	'Other',
-].map(c => ({ value: c, label: c }))
+const CUISINE_OPTION_SPECS = [
+	{ value: 'Italian', labelKey: 'fsCuisineItalian' },
+	{ value: 'Asian', labelKey: 'fsCuisineAsian' },
+	{ value: 'Mexican', labelKey: 'fsCuisineMexican' },
+	{ value: 'American', labelKey: 'fsCuisineAmerican' },
+	{ value: 'French', labelKey: 'fsCuisineFrench' },
+	{ value: 'Indian', labelKey: 'fsCuisineIndian' },
+	{ value: 'Mediterranean', labelKey: 'fsCuisineMediterranean' },
+	{ value: 'Vietnamese', labelKey: 'fsCuisineVietnamese' },
+	{ value: 'Thai', labelKey: 'fsCuisineThai' },
+	{ value: 'Chinese', labelKey: 'fsCuisineChinese' },
+	{ value: 'Japanese', labelKey: 'fsCuisineJapanese' },
+	{ value: 'Korean', labelKey: 'fsCuisineKorean' },
+	{ value: 'Middle Eastern', labelKey: 'fsCuisineMiddleEastern' },
+	{ value: 'African', labelKey: 'fsCuisineAfrican' },
+	{ value: 'Caribbean', labelKey: 'fsCuisineCaribbean' },
+	{ value: 'Brazilian', labelKey: 'fsCuisineBrazilian' },
+	{ value: 'Greek', labelKey: 'fsCuisineGreek' },
+	{ value: 'Spanish', labelKey: 'fsCuisineSpanish' },
+	{ value: 'Fusion', labelKey: 'fsCuisineFusion' },
+	{ value: 'Other', labelKey: 'fsCuisineOther' },
+] as const
 
 const isLocalPreviewUrl = (url?: string) =>
 	typeof url === 'string' && url.startsWith('blob:')
@@ -235,6 +235,13 @@ export const RecipeCreateAiFlow = ({
 	initialManualDraft,
 }: RecipeCreateAiFlowProps) => {
 	const t = useTranslations('recipe')
+	const tShared = useTranslations('shared')
+	const cuisineOptions: ComboboxOption[] = CUISINE_OPTION_SPECS.map(
+		option => ({
+			value: option.value,
+			label: tShared(option.labelKey),
+		}),
+	)
 	// If resuming a manual draft from localStorage, start in manual mode
 	const [method, setMethod] = useState<CreateMethod>(
 		initialManualDraft ? 'manual' : 'ai',
@@ -1427,7 +1434,7 @@ export const RecipeCreateAiFlow = ({
 											'flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											rawText.trim()
 												? 'bg-brand text-white shadow-warm hover:bg-brand/90 hover:shadow-glow'
-												: 'cursor-not-allowed bg-muted/50 text-text-muted',
+												: 'cursor-not-allowed bg-bg-elevated/50 text-text-muted',
 										)}
 									>
 										<Sparkles className='size-5' />
@@ -1750,7 +1757,7 @@ export const RecipeCreateAiFlow = ({
 										onSelect={opt =>
 											setRecipe({ ...recipe, cuisine: opt.value })
 										}
-										options={CUISINE_OPTIONS}
+										options={cuisineOptions}
 										placeholder={t('aiFlowCuisine')}
 										className='w-24 border-none bg-transparent text-xs font-semibold text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/50 rounded'
 									/>

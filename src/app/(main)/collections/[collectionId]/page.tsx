@@ -16,7 +16,6 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
-import { MagicCard } from '@/components/ui/magic-card'
 import { PostCard } from '@/components/social/PostCard'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import {
@@ -279,23 +278,20 @@ export default function CollectionDetailPage({
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-					<MagicCard
-						mode='orb'
-						glowFrom='var(--color-brand)'
-						glowTo='var(--color-pink)'
-						className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
-					>
-						<div className='relative z-10 w-full p-2.5 md:p-3.5 flex items-center justify-between'>
-							<button
-								type='button'
-								onClick={() => router.back()}
-								className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
-							>
-								<ArrowLeft className='size-4' />
-								{t('detailBack')}
-							</button>
-						</div>
-					</MagicCard>
+				<div
+					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
+				>
+					<div className='relative z-10 w-full p-2.5 md:p-3.5 flex items-center justify-between'>
+						<button
+							type='button'
+							onClick={() => router.back()}
+							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
+						>
+							<ArrowLeft className='size-4' />
+							{t('detailBack')}
+						</button>
+					</div>
+				</div>
 
 					{/* Learning Path View - completely different layout */}
 					{isLearningPath ? (
@@ -307,10 +303,7 @@ export default function CollectionDetailPage({
 						/>
 					) : (
 						<>
-							<MagicCard
-								mode='orb'
-								glowFrom='var(--color-brand)'
-								glowTo='var(--color-pink)'
+							<div
 								className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-4 md:p-5'
 							>
 								<div className='relative z-10 w-full flex items-start justify-between'>
@@ -362,14 +355,11 @@ export default function CollectionDetailPage({
 										</div>
 									)}
 								</div>
-							</MagicCard>
+							</div>
 
 							{/* Collection contents */}
 							{!hasRecipeContent && !hasPostContent ? (
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo='var(--color-pink)'
+								<div
 									className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md overflow-hidden shadow-card p-1'
 								>
 									<div className='relative z-10 w-full'>
@@ -394,7 +384,7 @@ export default function CollectionDetailPage({
 											}}
 										/>
 									</div>
-								</MagicCard>
+								</div>
 							) : (
 								<>
 									{hasRecipeContent && (
@@ -448,10 +438,7 @@ export default function CollectionDetailPage({
 											<div className='space-y-4'>
 												{posts.map(post => (
 													<div key={post.id} className='relative group'>
-														<MagicCard
-															mode='orb'
-															glowFrom='var(--color-brand)'
-															glowTo='var(--color-success)'
+														<div
 															className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-1 shadow-card transition-all group-hover:shadow-warm'
 														>
 															<div className='relative z-10 w-full'>
@@ -460,7 +447,7 @@ export default function CollectionDetailPage({
 																	currentUserId={currentUser?.userId}
 																/>
 															</div>
-														</MagicCard>
+														</div>
 														{isOwner && (
 															<button
 																type='button'
@@ -511,12 +498,7 @@ export default function CollectionDetailPage({
 								}`}
 								onClick={e => e.stopPropagation()}
 							>
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo={
-										isLearningPath ? 'var(--color-xp)' : 'var(--color-pink)'
-									}
+								<div
 									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
 								>
 									<div className='relative z-10 w-full'>
@@ -597,7 +579,7 @@ export default function CollectionDetailPage({
 											</>
 										)}
 									</div>
-								</MagicCard>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>
@@ -626,10 +608,7 @@ export default function CollectionDetailPage({
 								className='w-full max-w-sm rounded-2xl overflow-hidden shadow-warm p-0'
 								onClick={e => e.stopPropagation()}
 							>
-								<MagicCard
-									mode='orb'
-									glowFrom='var(--color-brand)'
-									glowTo='var(--color-error)'
+								<div
 									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
 								>
 									<div className='relative z-10 w-full'>
@@ -657,7 +636,7 @@ export default function CollectionDetailPage({
 											</button>
 										</div>
 									</div>
-								</MagicCard>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>

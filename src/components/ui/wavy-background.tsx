@@ -76,7 +76,7 @@ export function WavyBackground({
 	return (
 		<div
 			className={cn(
-				'relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-background',
+				'relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-bg',
 				className,
 			)}
 		>

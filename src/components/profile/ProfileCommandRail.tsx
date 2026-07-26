@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { MagicCard } from '@/components/ui/magic-card'
 import { motion } from 'framer-motion'
 import {
 	Activity,
@@ -78,8 +77,7 @@ export function ProfileCommandRail({
 				className,
 			)}
 		>
-			<MagicCard
-				mode='gradient'
+			<div
 				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
 			>
 				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
@@ -95,10 +93,9 @@ export function ProfileCommandRail({
 					<StatChip label={t('railStatStreak')} value={`${streakCount}d`} />
 					<StatChip label={t('followersLabel')} value={followers.toString()} />
 				</div>
-			</MagicCard>
+			</div>
 
-			<MagicCard
-				mode='gradient'
+			<div
 				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
 			>
 				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
@@ -133,10 +130,9 @@ export function ProfileCommandRail({
 						)
 					})}
 				</div>
-			</MagicCard>
+			</div>
 
-			<MagicCard
-				mode='gradient'
+			<div
 				className='rounded-2xl border-none bg-bg-card/75 backdrop-blur-md p-4 shadow-card'
 			>
 				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
@@ -156,10 +152,9 @@ export function ProfileCommandRail({
 						<span>{t('railPendingLoops', { count: pendingPosts })}</span>
 					</div>
 				</div>
-			</MagicCard>
+			</div>
 
-			<MagicCard
-				mode='gradient'
+			<div
 				className='rounded-2xl border-none bg-gradient-to-br from-brand/8 via-bg-card/75 to-xp/8 p-4 shadow-card backdrop-blur-md'
 			>
 				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
@@ -194,7 +189,7 @@ export function ProfileCommandRail({
 						</Link>
 					</Button>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.aside>
 	)
 }

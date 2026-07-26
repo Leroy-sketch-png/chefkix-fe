@@ -23,6 +23,7 @@ import {
 	type DemoPitchShortcut,
 } from './demo-config'
 import { usePaceTimer } from './PaceTimer'
+import { PATHS } from '@/constants'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -2000,7 +2001,7 @@ function CheatEngine() {
 									try {
 										const driver = getGhostDriver('main')
 										driver.start()
-										await driver.click('a[href="/recipes/explore"]')
+										await driver.click(`a[href="${PATHS.EXPLORE}"]`)
 										await driver.wait(1000)
 										const firstRecipe = 'main a[href*="/recipes/"]'
 										await driver.hover(firstRecipe, true)

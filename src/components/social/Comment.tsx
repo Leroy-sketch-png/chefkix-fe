@@ -55,10 +55,6 @@ interface CommentProps {
 	onDelete?: (commentId: string) => void
 }
 
-// ============================================
-// HELPER: Render @mentions as styled links
-// ============================================
-
 const renderContentWithMentions = (
 	content: string,
 	taggedUsers?: { userId: string; displayName: string }[],
@@ -114,10 +110,6 @@ const renderContentWithMentions = (
 
 	return parts.length > 0 ? parts : content
 }
-
-// ============================================
-// REPLY COMPONENT (NESTED)
-// ============================================
 
 const ReplyItem = ({
 	reply,
@@ -227,10 +219,6 @@ const ReplyItem = ({
 		</div>
 	)
 }
-
-// ============================================
-// MAIN COMMENT COMPONENT
-// ============================================
 
 export const Comment = ({
 	comment,

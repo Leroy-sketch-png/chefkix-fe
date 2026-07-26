@@ -21,7 +21,7 @@ export function OfflineBanner({ isOffline, className }: OfflineBannerProps) {
 		<div
 			className={cn(
 				'fixed bottom-0 left-0 right-0 z-notification',
-				'bg-amber-500 text-amber-50 dark:bg-amber-600',
+				'bg-warning text-white',
 				'flex items-center justify-center gap-3 px-4 py-3',
 				'animate-in slide-in-from-bottom duration-300',
 				className,
@@ -33,7 +33,7 @@ export function OfflineBanner({ isOffline, className }: OfflineBannerProps) {
 			<button
 				type='button'
 				onClick={() => window.location.reload()}
-				className='inline-flex items-center gap-1.5 rounded-full bg-amber-600 px-3 py-1 text-sm font-medium transition hover:bg-amber-700'
+				className='inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-sm font-medium transition hover:bg-white/25'
 				aria-label={t('offlineRetryConnection')}
 			>
 				<RefreshCw className='size-3.5' />

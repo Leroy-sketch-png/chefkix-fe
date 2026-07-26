@@ -15,6 +15,7 @@ import { PremiumSurface } from '@/components/layout/PremiumSurface'
 
 function CookCardContent() {
 	const t = useTranslations('cooking')
+	const tc = useTranslations('common')
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const sessionId = searchParams.get('session')
@@ -37,8 +38,8 @@ function CookCardContent() {
 		<PageTransition>
 			<PageContainer>
 				<PremiumSurface
-					eyebrow='Cook Card'
-					chipText='Share-ready'
+					eyebrow={tc('eyebrows.cookCard')}
+					chipText={tc('eyebrows.shareReady')}
 					tone='xp'
 					className='mb-6 p-3 md:p-4'
 				>
@@ -67,8 +68,8 @@ function CookCardContent() {
 				</PremiumSurface>
 
 				<PremiumSurface
-					eyebrow='Card Preview'
-					chipText='Live'
+					eyebrow={tc('eyebrows.cardPreview')}
+					chipText={tc('eyebrows.live')}
 					className='mx-auto max-w-2xl p-3 md:p-4'
 				>
 					<div className='mx-auto max-w-md'>

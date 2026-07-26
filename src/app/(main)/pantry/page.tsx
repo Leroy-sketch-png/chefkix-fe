@@ -32,8 +32,6 @@ import {
 import { PantryCommandDeck } from '@/components/pantry/PantryCommandDeck'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
-import { MagicCard } from '@/components/ui/magic-card'
-import { GlowCard } from '@/components/ui/glow-card'
 import {
 	Select,
 	SelectContent,
@@ -526,12 +524,7 @@ export default function PantryPage() {
 								className='space-y-3'
 							>
 								{expiredCount > 0 && (
-									<GlowCard
-										color='var(--color-destructive)'
-										radius={180}
-										intensity={0.28}
-										className='rounded-xl overflow-hidden shadow-card'
-									>
+									<div className='rounded-xl overflow-hidden shadow-card'>
 										<div className='flex items-center justify-between gap-3 px-4 py-3 bg-destructive/8 border-none'>
 											<div className='flex items-center gap-2.5'>
 												<AlertTriangle className='size-4 flex-shrink-0 text-destructive animate-pulse' />
@@ -549,15 +542,10 @@ export default function PantryPage() {
 												{t('clearExpiredTitle')}
 											</motion.button>
 										</div>
-									</GlowCard>
+									</div>
 								)}
 								{expiringCount > 0 && (
-									<GlowCard
-										color='var(--color-warning)'
-										radius={180}
-										intensity={0.22}
-										className='rounded-xl overflow-hidden shadow-card'
-									>
+									<div className='rounded-xl overflow-hidden shadow-card'>
 										<div className='flex items-center justify-between gap-3 px-4 py-3 bg-warning/8 border-none'>
 											<div className='flex items-center gap-2.5'>
 												<AlertTriangle className='size-4 flex-shrink-0 text-warning' />
@@ -575,17 +563,14 @@ export default function PantryPage() {
 												{t('findRecipesToUse')}
 											</motion.button>
 										</div>
-									</GlowCard>
+									</div>
 								)}
 							</motion.div>
 						)}
 
 						{/* ── Quick Add Bar ─────────────────── */}
 						<motion.div className='overflow-visible rounded-3xl'>
-							<MagicCard
-								mode='orb'
-								glowFrom='var(--color-success)'
-								glowTo='var(--color-brand)'
+							<div
 								className='overflow-visible rounded-3xl shadow-card'
 							>
 								<PremiumSurface
@@ -772,7 +757,7 @@ export default function PantryPage() {
 										</AnimatePresence>
 									</div>
 								</PremiumSurface>
-							</MagicCard>
+							</div>
 						</motion.div>
 
 						{/* ── Items by Category ─────────────── */}

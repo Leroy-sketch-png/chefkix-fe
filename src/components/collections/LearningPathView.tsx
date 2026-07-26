@@ -21,7 +21,6 @@ import {
 	Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { MagicCard } from '@/components/ui/magic-card'
 import { useTranslations } from '@/i18n/hooks'
 import {
 	TRANSITION_SPRING,
@@ -173,10 +172,7 @@ export function LearningPathView({
 	return (
 		<div className='space-y-6'>
 			{/* Header with stats */}
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-6'
 			>
 				<div className='relative z-10 w-full'>
@@ -355,7 +351,7 @@ export function LearningPathView({
 						</motion.button>
 					)}
 				</div>
-			</MagicCard>
+			</div>
 
 			{/* Difficulty Progression Stages */}
 			{collection.difficultyProgression &&
@@ -454,10 +450,7 @@ function StageCard({
 			transition={TRANSITION_SPRING}
 			className='group relative'
 		>
-			<MagicCard
-				mode='orb'
-				glowFrom='var(--color-brand)'
-				glowTo='var(--color-xp)'
+			<div
 				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'
 			>
 				<div className='relative z-10 w-full'>
@@ -535,7 +528,7 @@ function StageCard({
 						)}
 					</AnimatePresence>
 				</div>
-			</MagicCard>
+			</div>
 		</motion.div>
 	)
 }

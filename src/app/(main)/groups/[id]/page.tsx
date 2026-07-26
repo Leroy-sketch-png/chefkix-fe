@@ -45,6 +45,7 @@ export default function GroupDetailPage() {
 	const params = useParams()
 	const groupId = params?.id as string
 	const t = useTranslations('groups')
+	const tc = useTranslations('common')
 
 	// Get current user from auth hook
 	const { user, isAuthenticated } = useAuth()
@@ -200,7 +201,7 @@ export default function GroupDetailPage() {
 		<PageTransition>
 			<PageContainer maxWidth='xl' className='py-8 pb-48'>
 				<PremiumSurface
-					eyebrow='Group Space'
+					eyebrow={tc('eyebrows.groupSpace')}
 					chipText={group.name}
 					className='mb-8 p-3 md:p-4'
 					tone='success'
@@ -221,12 +222,12 @@ export default function GroupDetailPage() {
 				</PremiumSurface>
 
 				<PremiumSurface
-					eyebrow='Group Workspace'
+					eyebrow={tc('eyebrows.groupWorkspace')}
 					chipText={activeTab}
 					className='mb-20 p-3 md:p-4'
 				>
 					<SurfaceSectionHeader
-						eyebrow='About, Members, Posts'
+						eyebrow={tc('eyebrows.aboutMembersPosts')}
 						chipText='Collaborative board'
 						className='mb-3'
 					/>

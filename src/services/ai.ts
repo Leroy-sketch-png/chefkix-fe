@@ -12,9 +12,7 @@ import {
 	handleDirectAiError,
 } from './directAiClient'
 
-// ============================================
 // TYPES
-// ============================================
 
 // Process Recipe - Parse raw text into structured recipe
 export interface ProcessRecipeRequest {
@@ -266,9 +264,7 @@ export interface ModerateResponse {
 	ai_used: boolean
 }
 
-// ============================================
 // API FUNCTIONS
-// ============================================
 
 /**
  * Process raw recipe text into structured format

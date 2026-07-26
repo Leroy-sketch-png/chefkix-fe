@@ -39,10 +39,9 @@ import {
 	SeasonalChallenge,
 } from '@/services/challenge'
 import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
-import { BlurFade } from '@/components/ui/blur-fade'
 import { formatEventTimeRemaining } from '@/lib/challenge-time'
 import { logDevError } from '@/lib/dev-log'
-import { MagicCard } from '@/components/ui/magic-card'
+import { PATHS } from '@/constants'
 
 // ============================================
 // PAGE
@@ -254,9 +253,7 @@ export default function ChallengesPage() {
 										challenge={dailyChallenge}
 										onFindRecipe={() =>
 											startNavigationTransition(() => {
-												router.push(
-													`/explore?q=${encodeURIComponent(dailyChallenge.title)}`,
-												)
+												router.push(PATHS.EXPLORE_SEARCH(dailyChallenge.title))
 											})
 										}
 									/>
@@ -264,7 +261,7 @@ export default function ChallengesPage() {
 
 								{/* Weekly Challenge Section */}
 								{weeklyChallenge && (
-									<BlurFade delay={0.1}>
+									<div>
 										<section className='mb-8'>
 											<SurfaceSectionHeader
 												className='mb-4'
@@ -277,12 +274,7 @@ export default function ChallengesPage() {
 												transition={{ delay: 0.1, ...TRANSITION_SPRING }}
 												className='overflow-hidden rounded-2xl'
 											>
-												<MagicCard
-													mode='orb'
-													glowFrom='var(--color-xp)'
-													glowTo='var(--color-brand)'
-													className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden'
-												>
+												<div className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden'>
 													<div className='mb-3 flex items-center justify-between z-10 relative'>
 														<div className='flex items-center gap-3'>
 															<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-indigo shadow-card shadow-accent-purple/25'>
@@ -361,7 +353,9 @@ export default function ChallengesPage() {
 																onClick={() =>
 																	startNavigationTransition(() => {
 																		router.push(
-																			`/explore?q=${encodeURIComponent(weeklyChallenge.title)}`,
+																			PATHS.EXPLORE_SEARCH(
+																				weeklyChallenge.title,
+																			),
 																		)
 																	})
 																}
@@ -372,15 +366,15 @@ export default function ChallengesPage() {
 																<ChevronRight className='size-4' />
 															</button>
 														)}
-												</MagicCard>
+												</div>
 											</motion.div>
 										</section>
-									</BlurFade>
+									</div>
 								)}
 
 								{/* Community Challenges Section */}
 								{communityChallenges.length > 0 && (
-									<BlurFade delay={0.15}>
+									<div>
 										<section className='mb-8'>
 											<SurfaceSectionHeader
 												className='mb-4'
@@ -401,12 +395,7 @@ export default function ChallengesPage() {
 														}}
 														className='overflow-hidden rounded-2xl'
 													>
-														<MagicCard
-															mode='orb'
-															glowFrom='var(--color-brand)'
-															glowTo='var(--color-success)'
-															className='group rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden'
-														>
+														<div className='group rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden'>
 															<div className='mb-3 flex items-center justify-between z-10 relative'>
 																<div className='flex items-center gap-3'>
 																	<div className='flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-combo to-brand text-xl shadow-card shadow-combo/25'>
@@ -476,7 +465,7 @@ export default function ChallengesPage() {
 																		onClick={() =>
 																			startNavigationTransition(() => {
 																				router.push(
-																					`/explore?q=${encodeURIComponent(ch.title)}`,
+																					PATHS.EXPLORE_SEARCH(ch.title),
 																				)
 																			})
 																		}
@@ -488,17 +477,17 @@ export default function ChallengesPage() {
 																	</button>
 																)}
 															</div>
-														</MagicCard>
+														</div>
 													</motion.div>
 												))}
 											</div>
 										</section>
-									</BlurFade>
+									</div>
 								)}
 
 								{/* Seasonal Challenges Section */}
 								{seasonalChallenges.length > 0 && (
-									<BlurFade delay={0.2}>
+									<div>
 										<section className='mb-8'>
 											<SurfaceSectionHeader
 												className='mb-4'
@@ -519,12 +508,7 @@ export default function ChallengesPage() {
 														}}
 														className='overflow-hidden rounded-2xl'
 													>
-														<MagicCard
-															mode='orb'
-															glowFrom={ev.accentColor || 'var(--color-brand)'}
-															glowTo='var(--color-success)'
-															className='group rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden'
-														>
+														<div className='group rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden'>
 															{/* Hero header — accent color or image */}
 															{ev.heroImageUrl ? (
 																<div
@@ -639,23 +623,18 @@ export default function ChallengesPage() {
 																	</div>
 																)}
 															</div>
-														</MagicCard>
+														</div>
 													</motion.div>
 												))}
 											</div>
 										</section>
-									</BlurFade>
+									</div>
 								)}
 
 								{/* Past Challenges link */}
 								<section>
 									<Link href='/challenges/history'>
-										<MagicCard
-											mode='orb'
-											glowFrom='var(--color-brand)'
-											glowTo='var(--color-xp)'
-											className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden transition-all duration-300 hover:shadow-warm'
-										>
+										<div className='group flex items-center justify-between rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-5 shadow-card overflow-hidden transition-all duration-300 hover:shadow-warm'>
 											<div className='flex items-center gap-3 z-10 relative'>
 												<div className='flex size-11 items-center justify-center rounded-xl bg-bg-elevated transition-colors group-hover:bg-brand/10'>
 													<History className='size-5 text-text-secondary transition-colors group-hover:text-brand' />
@@ -670,7 +649,7 @@ export default function ChallengesPage() {
 												</div>
 											</div>
 											<ChevronRight className='size-5 text-text-muted transition-colors group-hover:text-brand z-10 relative' />
-										</MagicCard>
+										</div>
 									</Link>
 								</section>
 							</>

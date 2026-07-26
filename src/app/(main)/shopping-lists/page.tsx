@@ -47,7 +47,6 @@ import {
 	removeShoppingItem,
 	deleteShoppingList,
 	regenerateShareToken,
-	checkoutShoppingList,
 } from '@/services/shoppingList'
 import { getCurrentMealPlan } from '@/services/mealplan'
 import { autocompleteSearch } from '@/services/search'
@@ -66,7 +65,6 @@ import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
-import { MagicCard } from '@/components/ui/magic-card'
 
 // ── Source badge colors ──────────────────────────────────────────────
 
@@ -115,11 +113,10 @@ export default function ShoppingListsPage() {
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
-	const [isCheckingOut, setIsCheckingOut] = useState(false)
-
 	// Onboarding hints
 	useOnboardingOrchestrator({ delay: 1000, condition: !isLoading })
 	const t = useTranslations('shoppingLists')
+	const tc = useTranslations('common')
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 
@@ -487,64 +484,6 @@ export default function ShoppingListsPage() {
 								</button>
 							</div>
 
-							{/* Grocery checkout CTA */}
-							{uncheckedItems.length > 0 && (
-								<motion.div
-									initial={{ opacity: 0, y: -8 }}
-									animate={{ opacity: 1, y: 0 }}
-								>
-									<MagicCard
-										mode='orb'
-										glowFrom='var(--color-brand)'
-										glowTo='var(--color-warning)'
-										className='flex items-center gap-3 rounded-xl border border-brand/20 bg-bg-card/75 backdrop-blur-md px-4 py-3 shadow-warm overflow-hidden'
-									>
-										<ShoppingCart className='size-5 flex-shrink-0 text-brand z-10' />
-										<div className='flex-1 min-w-0 z-10'>
-											<p className='text-sm font-semibold text-text-primary'>
-												{t('shopInstacart')}
-											</p>
-											<p className='text-xs text-text-muted'>
-												{t('remainingItems', { count: uncheckedItems.length })}
-											</p>
-										</div>
-										<button
-											type='button'
-											disabled={isCheckingOut}
-											onClick={async () => {
-												if (!selectedList) return
-												setIsCheckingOut(true)
-												try {
-													const result = await checkoutShoppingList(
-														selectedList.id,
-														'affiliate',
-													)
-													if (result?.checkoutUrl) {
-														window.open(
-															result.checkoutUrl,
-															'_blank',
-															'noopener,noreferrer',
-														)
-														toast.success(
-															t('checkoutStarted', { count: result.itemCount }),
-														)
-													} else {
-														toast.success(t('checkoutPrepared'))
-													}
-												} catch {
-													toast.error(t('checkoutFailed'))
-												} finally {
-													setIsCheckingOut(false)
-												}
-											}}
-											className='flex-shrink-0 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-warm transition-colors hover:bg-brand/90 disabled:opacity-60 z-10'
-										>
-											{isCheckingOut ? t('processing') : t('shopNow')}
-										</button>
-									</MagicCard>
-								</motion.div>
-							)}
-
 							{/* Progress bar */}
 							{selectedList.totalItems > 0 && (
 								<div className='overflow-hidden rounded-full bg-bg-elevated'>
@@ -665,15 +604,10 @@ export default function ShoppingListsPage() {
 									className='mb-3'
 								/>
 								{selectedList.items.length === 0 ? (
-									<MagicCard
-										mode='orb'
-										glowFrom='var(--color-brand)'
-										glowTo='var(--color-xp)'
-										className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-16 text-center shadow-card overflow-hidden'
-									>
+									<div className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-16 text-center shadow-card overflow-hidden'>
 										<Package className='mx-auto mb-3 size-12 text-text-muted/40 z-10' />
 										<p className='text-text-muted z-10'>{t('emptyList')}</p>
-									</MagicCard>
+									</div>
 								) : (
 									<div className='space-y-4'>
 										{Object.entries(groupedItems).map(([category, items]) => {
@@ -685,12 +619,7 @@ export default function ShoppingListsPage() {
 													layout
 													className='overflow-hidden rounded-xl'
 												>
-													<MagicCard
-														mode='orb'
-														glowFrom='var(--color-brand)'
-														glowTo='var(--color-success)'
-														className='rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden'
-													>
+													<div className='rounded-xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card overflow-hidden'>
 														<div className='flex items-center gap-2 border-b border-border-subtle px-4 py-3 z-10 relative'>
 															<span className='text-lg'>{config.icon}</span>
 															<span className='text-sm font-semibold text-text-primary'>
@@ -712,7 +641,7 @@ export default function ShoppingListsPage() {
 																/>
 															))}
 														</ul>
-													</MagicCard>
+													</div>
 												</motion.div>
 											)
 										})}
@@ -844,12 +773,7 @@ export default function ShoppingListsPage() {
 
 						{/* Empty state */}
 						{lists.length === 0 ? (
-							<MagicCard
-								mode='orb'
-								glowFrom='var(--color-brand)'
-								glowTo='var(--color-xp)'
-								className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-20 text-center shadow-card overflow-hidden'
-							>
+							<div className='rounded-xl border border-border-subtle bg-bg-card/50 backdrop-blur-md py-20 text-center shadow-card overflow-hidden'>
 								<ShoppingCart className='mx-auto mb-4 size-16 text-text-muted/30 z-10' />
 								<h2 className='mb-2 text-lg font-semibold text-text-primary z-10'>
 									{t('noListsYet')}
@@ -864,11 +788,11 @@ export default function ShoppingListsPage() {
 								>
 									{t('createFirst')}
 								</button>
-							</MagicCard>
+							</div>
 						) : (
 							<PremiumSurface
-								eyebrow='Active Lists'
-								chipText='Tap to open'
+								eyebrow={tc('eyebrows.activeLists')}
+								chipText={tc('eyebrows.tapToOpen')}
 								className='p-3 md:p-4'
 							>
 								<div className='grid gap-4 sm:grid-cols-2'>
@@ -890,24 +814,7 @@ export default function ShoppingListsPage() {
 												onClick={() => handleOpenList(list.id)}
 												className='cursor-pointer rounded-xl overflow-hidden'
 											>
-												<MagicCard
-													mode='orb'
-													glowFrom={
-														list.source === 'Meal Plan'
-															? 'var(--color-info)'
-															: list.source === 'Recipe'
-																? 'var(--color-brand)'
-																: 'var(--color-success)'
-													}
-													glowTo={
-														list.source === 'Meal Plan'
-															? 'var(--color-brand)'
-															: list.source === 'Recipe'
-																? 'var(--color-success)'
-																: 'var(--color-info)'
-													}
-													className='group relative bg-bg-card/75 backdrop-blur-md p-4 shadow-card border border-border-subtle transition-all hover:shadow-warm md:p-5 overflow-hidden'
-												>
+												<div className='group relative bg-bg-card/75 backdrop-blur-md p-4 shadow-card border border-border-subtle transition-all hover:shadow-warm md:p-5 overflow-hidden'>
 													{/* Source badge */}
 													<div className='mb-3 flex items-center justify-between z-10 relative'>
 														<span
@@ -960,7 +867,7 @@ export default function ShoppingListsPage() {
 															{t('complete')}
 														</div>
 													)}
-												</MagicCard>
+												</div>
 											</motion.div>
 										)
 									})}

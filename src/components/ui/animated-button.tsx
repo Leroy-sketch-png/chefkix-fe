@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { forwardRef } from 'react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -22,11 +23,11 @@ export const AnimatedButton = forwardRef<
 		ref,
 	) => {
 		const prefersReducedMotion = useReducedMotion()
+		const t = useTranslations('common')
 
 		return (
 			<Button ref={ref} disabled={disabled || isLoading} {...props} asChild>
 				<motion.button
-					// XÓA DÒNG type='button' Ở ĐÂY
 					whileHover={
 						disabled || isLoading || prefersReducedMotion
 							? undefined
@@ -43,7 +44,7 @@ export const AnimatedButton = forwardRef<
 					{isLoading ? (
 						<>
 							<Loader2 className='mr-2 size-4 animate-spin' />
-							{loadingText || 'Loading...'}
+							{loadingText || t('loading')}
 						</>
 					) : (
 						<>

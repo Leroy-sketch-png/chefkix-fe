@@ -9,12 +9,12 @@ const alertVariants = cva(
 			variant: {
 				default: 'bg-bg-card text-text-primary',
 				destructive:
-					'border-red-500/50 text-red-700 dark:text-red-400 [&>svg]:text-red-600',
+					'border-error/50 text-error [&>svg]:text-error',
 				success:
-					'border-green-500/50 text-green-700 dark:text-green-400 [&>svg]:text-green-600',
+					'border-success/50 text-success [&>svg]:text-success',
 				warning:
-					'border-yellow-500/50 text-yellow-700 dark:text-yellow-400 [&>svg]:text-yellow-600',
-				info: 'border-blue-500/50 text-blue-700 dark:text-blue-400 [&>svg]:text-blue-600',
+					'border-warning/50 text-warning [&>svg]:text-warning',
+				info: 'border-info/50 text-info [&>svg]:text-info',
 			},
 		},
 		defaultVariants: {

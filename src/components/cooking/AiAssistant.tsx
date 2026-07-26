@@ -30,10 +30,6 @@ import {
 } from './AiAssistantChatMessage'
 import { demoInjector } from '@/lib/demo-injector'
 
-// ============================================
-// WEB SPEECH API (not in all TS lib versions)
-// ============================================
-
 interface SpeechRecognitionInstance {
 	continuous: boolean
 	interimResults: boolean
@@ -50,10 +46,6 @@ interface SpeechRecognitionInstance {
 }
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
-
-// ============================================
-// TYPES
-// ============================================
 
 type MessageType = AiAssistantMessage['type']
 
@@ -72,10 +64,6 @@ interface AiAssistantProps {
 	onClose: () => void
 	isOpen: boolean
 }
-
-// ============================================
-// CONSTANTS
-// ============================================
 
 const QUICK_ACTIONS: QuickAction[] = [
 	{
@@ -103,9 +91,6 @@ const QUICK_ACTIONS: QuickAction[] = [
 		promptKey: 'qaWrongPrompt',
 	},
 ]
-// ============================================
-// SUB-COMPONENTS
-// ============================================
 
 // Typing indicator
 const TypingIndicator = () => (
@@ -134,10 +119,6 @@ const TypingIndicator = () => (
 		</div>
 	</motion.div>
 )
-
-// ============================================
-// FLOATING AI BUTTON
-// ============================================
 
 interface AiButtonProps {
 	onClick: () => void
@@ -168,10 +149,6 @@ export const AiButton = ({ onClick, hasUnreadSuggestion }: AiButtonProps) => {
 		</motion.button>
 	)
 }
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
 
 export const AiAssistant = ({
 	recipeId,
@@ -523,10 +500,6 @@ export const AiAssistant = ({
 		</AnimatePresence>
 	)
 }
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 function determineMessageType(text: string): MessageType {
 	const lower = text.toLowerCase()

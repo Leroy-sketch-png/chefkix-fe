@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { AlertCircle, Home, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -16,6 +17,7 @@ interface ErrorStateProps {
 	message?: string
 	showHomeButton?: boolean
 	onRetry?: () => void
+	actions?: ReactNode
 	/** Optional Lottie animation to show instead of AlertCircle icon */
 	lottieAnimation?: object
 	/** Size calculator for Lottie animation */
@@ -27,6 +29,7 @@ export const ErrorState = ({
 	message,
 	showHomeButton = true,
 	onRetry,
+	actions,
 	lottieAnimation,
 	lottieSize = (w, h) => Math.min(w * 0.3, h * 0.4, 300),
 }: ErrorStateProps) => {
@@ -78,6 +81,7 @@ export const ErrorState = ({
 							</Link>
 						</Button>
 					)}
+					{actions}
 				</div>
 			</div>
 		</div>

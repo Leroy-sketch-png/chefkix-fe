@@ -112,11 +112,12 @@ function LeaderboardSummary({
 		}
 		return (
 			<>
-				Competing with{' '}
-				<strong className='font-bold text-text-primary'>
-					{totalFriends} {totalFriends === 1 ? 'friend' : 'friends'}
-				</strong>{' '}
-				this week
+				{t(
+					totalFriends === 1
+						? 'competingWithFriendSingle'
+						: 'competingWithFriendPlural',
+					{ n: totalFriends },
+				)}
 			</>
 		)
 	}

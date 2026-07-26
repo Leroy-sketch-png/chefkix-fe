@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { memo, useState, useRef, useCallback, useEffect } from 'react'
 import { Post } from '@/lib/types'
 import {
 	toggleLike,
@@ -17,7 +17,6 @@ import {
 	startDwellTracking,
 	stopDwellTracking,
 } from '@/lib/eventTracker'
-import { triggerLikeConfetti, triggerSaveConfetti } from '@/lib/confetti'
 import { safeRecipeImageSrc } from '@/lib/imageSafety'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import Image from 'next/image'
@@ -218,7 +217,6 @@ const PostCardContent = ({
 	const [isVotingBattle, setIsVotingBattle] = useState(false)
 
 	// Refs
-	const likeButtonRef = useRef<HTMLButtonElement>(null)
 	const saveButtonRef = useRef<HTMLButtonElement>(null)
 	const menuButtonRef = useRef<HTMLButtonElement>(null)
 	const shareButtonRef = useRef<HTMLButtonElement>(null)
@@ -305,12 +303,6 @@ const PostCardContent = ({
 			likes: prev.isLiked ? prev.likes - 1 : prev.likes + 1,
 		}))
 
-		// Trigger confetti IMMEDIATELY on like (optimistic, not after API)
-		// Confetti celebrates user's action, not server's confirmation
-		if (!wasLiked) {
-			triggerLikeConfetti(likeButtonRef.current || undefined)
-		}
-
 		try {
 			const response = await toggleLike(post.id)
 
@@ -359,12 +351,6 @@ const PostCardContent = ({
 		const previousSaved = isSaved
 		setIsSaved(!isSaved)
 		setIsSaving(true)
-
-		// Trigger confetti IMMEDIATELY on save (optimistic, not after API)
-		// Confetti celebrates user's action, not server's confirmation
-		if (!previousSaved) {
-			triggerSaveConfetti(saveButtonRef.current || undefined)
-		}
 
 		try {
 			const response = await toggleSave(post.id)
@@ -948,7 +934,7 @@ const PostCardContent = ({
 					) : (
 						<>
 							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
-								<p className='whitespace-pre-wrap text-label leading-[1.65] tracking-widest text-text-primary'>
+								<p className='whitespace-pre-wrap text-label leading-[1.65] tracking-normal text-text-primary'>
 									{post.content}
 								</p>
 								{(post.tags ?? []).length > 0 && (
@@ -1349,8 +1335,8 @@ const PostCardContent = ({
 										aria-label={t('rateFireLabel')}
 										className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${isRatingPlate ? 'animate-pulse opacity-60' : ''} ${
 											post.userPlateRating === 'FIRE'
-												? 'bg-streak/100/15 text-streak ring-1 ring-orange-500/30'
-												: 'text-text-muted hover:bg-streak/100/10 hover:text-streak'
+												? 'bg-streak/15 text-streak ring-1 ring-streak/30'
+												: 'text-text-muted hover:bg-streak/10 hover:text-streak'
 										}`}
 									>
 										<span>🔥</span>
@@ -1389,7 +1375,6 @@ const PostCardContent = ({
 					<div className='flex items-stretch gap-0.5 border-t border-border-subtle/70 bg-bg-card/80 px-2 py-1.5'>
 						<motion.button
 							type='button'
-							ref={likeButtonRef}
 							onClick={handleLike}
 							disabled={isLiking}
 							whileTap={BUTTON_SUBTLE_TAP}
@@ -1614,12 +1599,14 @@ const PostCardContent = ({
 	)
 }
 
-export const PostCard = (props: PostCardProps) => (
-	<ErrorBoundary
-		fallbackRender={({ error, onReset }) => (
-			<PostCardErrorFallback error={error} onReset={onReset} />
-		)}
-	>
-		<PostCardContent {...props} />
-	</ErrorBoundary>
-)
+export const PostCard = memo(function PostCard(props: PostCardProps) {
+	return (
+		<ErrorBoundary
+			fallbackRender={({ error, onReset }) => (
+				<PostCardErrorFallback error={error} onReset={onReset} />
+			)}
+		>
+			<PostCardContent {...props} />
+		</ErrorBoundary>
+	)
+})

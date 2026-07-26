@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SlideTabs } from '@/components/ui/slide-tabs'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import {
 	Select,
 	SelectContent,
@@ -31,6 +30,8 @@ interface ExploreCommandDeckProps {
 		eyebrow: string
 		heading: string
 		modeChip: string
+		subtitle: string
+		commandInput: string
 		results: string
 		filters: string
 		activeFilters: string
@@ -82,17 +83,10 @@ export function ExploreCommandDeck({
 						{labels.eyebrow}
 					</p>
 					<h2 className='mt-1 text-base font-black leading-tight text-text-primary sm:text-[1.1rem]'>
-						<AnimatedGradientText
-							from='var(--color-brand)'
-							via='var(--color-streak)'
-							to='var(--color-xp)'
-							duration={7}
-						>
-							{labels.heading}
-						</AnimatedGradientText>
+						{labels.heading}
 					</h2>
 					<p className='mt-1 text-xs font-medium text-text-secondary'>
-						Find one dish worth cooking tonight.
+						{labels.subtitle}
 					</p>
 				</div>
 
@@ -106,14 +100,14 @@ export function ExploreCommandDeck({
 			<div className='mb-3 rounded-2xl border border-border-subtle/80 bg-bg-card/70 p-2 sm:mb-4 sm:p-2.5'>
 				<div className='pointer-events-none mb-2 inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-text-muted'>
 					<Search className='size-3' />
-					Command Input
+					{labels.commandInput}
 				</div>
 				{children}
 			</div>
 
 			{/* Controls row */}
 			<div className='flex flex-col gap-2.5 sm:gap-3'>
-				<div className='flex items-center gap-2'>
+				<div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
 					<div className='min-w-0 flex-1'>
 						<SlideTabs
 							tabs={[
@@ -153,7 +147,7 @@ export function ExploreCommandDeck({
 						/>
 					</div>
 
-					<div className='w-40 shrink-0 sm:w-44'>
+					<div className='w-full shrink-0 sm:w-44'>
 						<label htmlFor='explore-sort-select' className='sr-only'>
 							{labels.sort}
 						</label>

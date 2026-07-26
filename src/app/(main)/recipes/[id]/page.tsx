@@ -52,6 +52,7 @@ import {
 	Trash2,
 	ShoppingCart,
 	MoreHorizontal,
+	X,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -95,19 +96,15 @@ import {
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
-import { triggerSaveConfetti } from '@/lib/confetti'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { ImageLightbox } from '@/components/ui/image-lightbox'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { RevealOnScroll } from '@/components/ui/reveal-on-scroll'
-import { SparklesEffect } from '@/components/ui/sparkles-effect'
 import { LazySection } from '@/components/ui/lazy-section'
 import { calibrateDifficulty, CalibrationResult } from '@/services/ml'
-import { TipJarButton } from '@/components/tip/TipJarButton'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
-import { MagicCard } from '@/components/ui/magic-card'
 import { generateRecipeJsonLd, jsonLd } from '@/lib/seo'
 
 function RecipeDetailContent() {
@@ -153,6 +150,7 @@ function RecipeDetailContent() {
 	const { user } = useAuth()
 	const { requireAuth } = useAuthActionGuard()
 	const autoStartAttempted = useRef(false)
+	const recipeRequestSequence = useRef(0)
 
 	// Determine cooking button state - only count COMPLETE & ACTIVE sessions
 	// A partial session (from localStorage) has sessionId/recipeId but no status
@@ -206,17 +204,10 @@ function RecipeDetailContent() {
 						k => nextState[parseInt(k)],
 					).length
 					if (completedCount === totalStepsCount) {
-						toast.success(
-							t('toastAllStepsCompleted') ||
-								'All steps completed! Master chef status unlocked!',
-							{
-								description:
-									t('toastAllStepsCompletedDesc') ||
-									'You prepared this recipe beautifully!',
-								duration: 5000,
-							},
-						)
-						triggerSaveConfetti()
+						toast.success(t('toastAllStepsCompleted'), {
+							description: t('toastAllStepsCompletedDesc'),
+							duration: 5000,
+						})
 					}
 				}
 				return nextState
@@ -229,10 +220,12 @@ function RecipeDetailContent() {
 	const isOwner = user?.userId === recipe?.author?.userId
 
 	const fetchRecipe = useCallback(async () => {
+		const requestSequence = ++recipeRequestSequence.current
 		setIsLoading(true)
 		setError(null)
 		try {
 			const response = await getRecipeById(recipeId)
+			if (requestSequence !== recipeRequestSequence.current) return
 			if (response.success && response.data) {
 				setRecipe(response.data)
 				setIsLiked(response.data.isLiked ?? false)
@@ -244,41 +237,23 @@ function RecipeDetailContent() {
 				setError(t('errorRecipeNotFound'))
 			}
 		} catch (err) {
-			setError(t('errorFailedLoadRecipe'))
+			if (requestSequence === recipeRequestSequence.current) {
+				setError(t('errorFailedLoadRecipe'))
+			}
 		} finally {
-			setIsLoading(false)
+			if (requestSequence === recipeRequestSequence.current) {
+				setIsLoading(false)
+			}
 		}
 	}, [recipeId, t])
 
 	useEffect(() => {
 		if (!recipeId) return
-		let cancelled = false
-		setIsLoading(true)
-		setError(null)
-		getRecipeById(recipeId)
-			.then(response => {
-				if (cancelled) return
-				if (response.success && response.data) {
-					setRecipe(response.data)
-					setIsLiked(response.data.isLiked ?? false)
-					setIsSaved(response.data.isSaved ?? false)
-					setLikeCount(response.data.likeCount)
-					setSaveCount(response.data.saveCount)
-					trackEvent('RECIPE_VIEWED', recipeId, 'recipe')
-				} else {
-					setError(t('errorRecipeNotFound'))
-				}
-			})
-			.catch(() => {
-				if (!cancelled) setError(t('errorFailedLoadRecipe'))
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
+		void fetchRecipe()
 		return () => {
-			cancelled = true
+			recipeRequestSequence.current += 1
 		}
-	}, [recipeId, t])
+	}, [fetchRecipe, recipeId])
 
 	// AI difficulty calibration - fail-open, non-blocking
 	useEffect(() => {
@@ -451,7 +426,6 @@ function RecipeDetailContent() {
 					'recipe',
 				)
 				toast.success(serverSaved ? t('toastSaved') : t('toastUnsaved'))
-				if (serverSaved) triggerSaveConfetti()
 			}
 		} catch (error) {
 			setIsSaved(previousSaved)
@@ -809,14 +783,14 @@ function RecipeDetailContent() {
 			<ScrollProgress />
 			<PageContainer maxWidth='2xl'>
 				<PremiumSurface
-					eyebrow='Recipe Detail'
-					chipText='Cooking workspace'
+					eyebrow={t('eyebrow')}
+					chipText={t('chipText')}
 					className='mb-4 p-2 md:p-3'
 					tone='blue'
 				>
 					<Breadcrumbs
 						items={[
-							{ label: 'Explore', href: '/explore' },
+							{ label: t('explore'), href: '/explore' },
 							{ label: recipe.title },
 						]}
 					/>
@@ -828,12 +802,7 @@ function RecipeDetailContent() {
 					animate={{ opacity: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
 				>
-					<MagicCard
-						mode='orb'
-						glowFrom='var(--color-brand)'
-						glowTo='var(--color-success)'
-						className='relative mb-8 overflow-hidden rounded-2xl border-4 border-bg/80 bg-bg-card shadow-2xl'
-					>
+					<div className='relative mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-2xl'>
 						{/* Hero Image with overlay */}
 						<div className='group relative h-[28rem] w-full overflow-hidden md:h-[34rem]'>
 							<motion.div
@@ -858,7 +827,7 @@ function RecipeDetailContent() {
 								</ImageLightbox>
 							</motion.div>
 
-							{/* Deep Cinematic Gradient overlays */}
+							{/* Keep hero text legible over light and dark photography. */}
 							<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent' />
 							<div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent opacity-50' />
 
@@ -965,7 +934,7 @@ function RecipeDetailContent() {
 													src={
 														recipe.author.avatarUrl || '/placeholder-avatar.svg'
 													}
-													alt={recipe.author.username || 'Recipe author'}
+													alt={recipe.author.username || t('recipeAuthor')}
 													fill
 													sizes='48px'
 													className='object-cover'
@@ -975,7 +944,7 @@ function RecipeDetailContent() {
 												<p className='font-semibold text-text-primary group-hover/author:text-brand'>
 													{recipe.author.displayName ||
 														recipe.author.username ||
-														'Unknown'}
+														t('unknownChef')}
 												</p>
 												<p className='text-sm text-text-muted'>
 													@{recipe.author.username}
@@ -1088,7 +1057,8 @@ function RecipeDetailContent() {
 													<TooltipTrigger asChild>
 														<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
 															<Sparkles className='size-3' />
-															AI: {calibration.predictedDifficulty}
+															{t('aiLabel')}
+															{calibration.predictedDifficulty}
 														</span>
 													</TooltipTrigger>
 													<TooltipContent className='max-w-xs p-3'>
@@ -1203,7 +1173,7 @@ function RecipeDetailContent() {
 								transition={{ delay: 0.5 }}
 								className='space-y-3'
 							>
-								{/* Tier 1: Primary CTA - full width, unmissable */}
+								{/* Primary cooking action */}
 								<motion.button
 									type='button'
 									onClick={handleStartCooking}
@@ -1223,7 +1193,7 @@ function RecipeDetailContent() {
 										isCurrentlyCooked
 											? 'bg-success text-white shadow-success/30 hover:shadow-success/40'
 											: hasOtherSession
-												? 'cursor-not-allowed bg-muted text-text-muted shadow-none'
+												? 'cursor-not-allowed bg-bg-elevated text-text-muted shadow-none'
 												: 'bg-brand text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow',
 									)}
 								>
@@ -1396,17 +1366,6 @@ function RecipeDetailContent() {
 											))}
 										</DropdownMenuContent>
 									</DropdownMenu>
-									{!isOwner && recipe?.author?.userId && (
-										<TipJarButton
-											creatorId={recipe.author.userId}
-											creatorName={
-												recipe.author.displayName ||
-												recipe.author.username ||
-												'this creator'
-											}
-											recipeId={recipe.id}
-										/>
-									)}
 									{/* Owner Controls - collapsed into dropdown */}
 									{isOwner && (
 										<DropdownMenu>
@@ -1483,7 +1442,7 @@ function RecipeDetailContent() {
 								</motion.div>
 							)}
 						</div>
-					</MagicCard>
+					</div>
 				</motion.div>
 
 				{/* Social Proof - community activity */}
@@ -1553,7 +1512,7 @@ function RecipeDetailContent() {
 							</div>
 							<div className='mt-4 flex items-center justify-between rounded-xl bg-gradient-xp p-4'>
 								<span className='font-semibold text-white'>{t('xpTotal')}</span>
-								<SparklesEffect color='white' count={8}>
+								<span className='relative inline-block'>
 									<span className='text-2xl font-black tabular-nums text-white'>
 										+
 										<AnimatedNumber
@@ -1570,7 +1529,7 @@ function RecipeDetailContent() {
 											duration={0.8}
 										/>
 									</span>
-								</SparklesEffect>
+								</span>
 							</div>
 						</div>
 					</motion.div>
@@ -1715,7 +1674,7 @@ function RecipeDetailContent() {
 									</motion.li>
 								))}
 							</ul>
-							</div>
+						</div>
 					</motion.div>
 
 					{/* Steps */}
@@ -1744,10 +1703,11 @@ function RecipeDetailContent() {
 												'bg-bg-card/45 border-success/20 shadow-none scale-[0.98]',
 										)}
 									>
-										{/* Frosted checked layer indicator */}
+										{/* Completed-step indicator */}
 										{completedSteps[index] && (
 											<div className='absolute top-2 right-2 flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success z-10'>
-												<Check className='size-3 stroke-[3] inline' /> Done
+												<Check className='size-3 stroke-[3] inline' />{' '}
+												{t('done')}
 											</div>
 										)}
 
@@ -1806,7 +1766,9 @@ function RecipeDetailContent() {
 											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 												<Image
 													src={step.imageUrl}
-													alt={step.title || `Step ${step.stepNumber}`}
+													alt={
+														step.title || t('altStep', { n: step.stepNumber })
+													}
 													fill
 													sizes='(max-width: 768px) 100vw, 50vw'
 													className='object-cover transition-transform duration-500 group-hover:scale-105'
@@ -1883,7 +1845,7 @@ function RecipeDetailContent() {
 									className='grid size-8 place-items-center rounded-lg text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
 									aria-label={t('remixClose')}
 								>
-									x
+									<X className='size-4' />
 								</button>
 							</div>
 

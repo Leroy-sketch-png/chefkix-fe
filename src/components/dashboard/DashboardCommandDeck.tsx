@@ -13,13 +13,13 @@ import {
 	TrendingUp,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { AnimatedGradientText } from '@/components/ui/animated-gradient-text'
 import { NumberTicker } from '@/components/ui/number-ticker'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import type { Statistics } from '@/lib/types/profile'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { PATHS } from '@/constants'
 
 interface DashboardCommandDeckProps {
 	stats?: Statistics
@@ -29,10 +29,10 @@ interface DashboardCommandDeckProps {
 }
 
 const CHEF_TITLE_LABELS: Record<Statistics['title'], string> = {
-	BEGINNER: 'Beginner',
-	AMATEUR: 'Amateur Chef',
-	SEMIPRO: 'Semi-Pro Chef',
-	PRO: 'Pro Chef',
+	BEGINNER: 'titleBeginner',
+	AMATEUR: 'titleAmateur',
+	SEMIPRO: 'titleSemiPro',
+	PRO: 'titlePro',
 }
 
 type SignalTone = 'brand' | 'xp' | 'streak' | 'muted' | 'error'
@@ -179,7 +179,9 @@ export function DashboardCommandDeck({
 	const xp = stats?.currentXP ?? 0
 	const xpGoal = Math.max(stats?.currentXPGoal ?? 100, 100)
 	const streak = stats?.streakCount ?? 0
-	const chefTitle = stats?.title ? CHEF_TITLE_LABELS[stats.title] : 'Chef'
+	const chefTitle = stats?.title
+		? t(CHEF_TITLE_LABELS[stats.title])
+		: t('titleDefault')
 	const xpPct = Math.round((xp / xpGoal) * 100)
 	const xpRemaining = Math.max(xpGoal - xp, 0)
 
@@ -249,14 +251,7 @@ export function DashboardCommandDeck({
 
 						<div className='space-y-3'>
 							<h2 className='text-[1.75rem] font-black leading-[1.02] tracking-tight text-text-primary sm:text-[2.1rem]'>
-								<AnimatedGradientText
-									from='var(--color-brand)'
-									via='var(--color-streak)'
-									to='var(--color-xp)'
-									duration={7}
-								>
-									{t('cmdTitle')}
-								</AnimatedGradientText>
+								{t('cmdTitle')}
 							</h2>
 							<p className='max-w-2xl text-sm font-medium leading-6 text-text-secondary'>
 								{leadCopy}
@@ -317,7 +312,7 @@ export function DashboardCommandDeck({
 
 					<div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-1'>
 						<ActionCard
-							href='/explore?difficulty=Beginner'
+							href={PATHS.COOK}
 							title={t('cmdBtnQuickCook')}
 							description={t('cmdPrimaryCardDesc')}
 							icon={ChefHat}

@@ -104,7 +104,7 @@ const FilterChip = ({
 			'rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
 			isActive
 				? 'border-brand bg-brand text-white'
-				: 'border-border bg-bg text-text-secondary hover:bg-muted/30 hover:text-text-primary',
+				: 'border-border bg-bg text-text-secondary hover:bg-bg-hover/30 hover:text-text-primary',
 		)}
 	>
 		{label}
@@ -336,7 +336,7 @@ export const ChallengeRecipeGrid = ({
 							<span className='text-xl font-bold tracking-tight text-success'>
 								+{challenge.bonusXp} XP
 							</span>
-							<span className='text-xs text-text-secondary'>bonus</span>
+							<span className='text-xs text-text-secondary'>{t('bonus')}</span>
 						</div>
 						<div className='flex items-center justify-end gap-1.5 text-xs text-text-secondary'>
 							<Clock className='size-3.5' />
@@ -412,11 +412,11 @@ export const ChallengeRecipeGrid = ({
 					<div className='flex flex-wrap items-center justify-center gap-2 text-sm'>
 						<span className='text-text-secondary'>{t('topPickXp')}</span>
 						<span className='tabular-nums font-semibold text-text-primary'>
-							{topPick.baseXp} XP base
+							{t('xpBase', { n: topPick.baseXp })}
 						</span>
 						<span className='text-text-secondary'>+</span>
 						<span className='tabular-nums font-semibold text-success'>
-							{topPick.bonusXp} XP bonus
+							{t('xpBonus', { n: topPick.bonusXp })}
 						</span>
 						<span className='text-text-secondary'>=</span>
 						<span className='tabular-nums rounded-full bg-brand/10 px-3 py-1 text-lg font-bold tracking-tight text-brand'>

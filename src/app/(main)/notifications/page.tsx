@@ -467,7 +467,7 @@ export default function NotificationsPage() {
 	if (error) {
 		return (
 			<PageTransition>
-				<div data-testid='notifications-page' data-visual-ready='true'>
+				<div data-testid='notifications-page'>
 					<PageContainer maxWidth='lg'>
 						<ErrorState
 							title={t('failedToLoad')}
@@ -506,7 +506,6 @@ export default function NotificationsPage() {
 			<PageContainer maxWidth='2xl'>
 				<div
 					data-testid='notifications-page'
-					data-visual-ready={isLoading ? 'false' : 'true'}
 				>
 					<div className='grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-6'>
 						<div className='space-y-3 sm:space-y-4'>

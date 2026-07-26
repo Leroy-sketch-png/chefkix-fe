@@ -24,7 +24,6 @@ import { AnimatedNumber } from '@/components/ui/animated-number'
 import { getActivitySummary } from '@/services/heartbeat'
 import type { NotificationSummaryResponse } from '@/lib/types/heartbeat'
 import { logDevError } from '@/lib/dev-log'
-import { MagicCard } from '@/components/ui/magic-card'
 
 // ============================================
 // TYPES
@@ -189,10 +188,9 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 					transition={TRANSITION_SPRING}
 					className={className}
 				>
-					<MagicCard
-						mode='gradient'
-						className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0'
-					>
+				<div
+					className='relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0'
+				>
 						{/* Dismiss button */}
 						<button
 							type='button'
@@ -235,7 +233,7 @@ export const SinceLastVisitCard = ({ className }: SinceLastVisitCardProps) => {
 								))}
 							</div>
 						</div>
-					</MagicCard>
+					</div>
 				</motion.div>
 			)}
 		</AnimatePresence>

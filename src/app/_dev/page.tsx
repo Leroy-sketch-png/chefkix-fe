@@ -25,7 +25,6 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/store/authStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
-import { MagicCard } from '@/components/ui/magic-card'
 import { cn } from '@/lib/utils'
 import {
 	Terminal,
@@ -406,9 +405,8 @@ export default function DevDashboard() {
 	const [activeShortcut, setActiveShortcut] = useState<string | null>(null)
 	const [lastCheck, setLastCheck] = useState<Date | null>(null)
 	const [cheatPanelCollapsed, setCheatPanelCollapsed] = useState(false)
-	const [orchestratorScenario, setOrchestratorScenario] = useState(
-		'demo-cockpit-deep',
-	)
+	const [orchestratorScenario, setOrchestratorScenario] =
+		useState('demo-cockpit-deep')
 	const [orchestratorHeadless, setOrchestratorHeadless] = useState(true)
 	const [orchestratorStrict, setOrchestratorStrict] = useState(true)
 	const [orchestratorSelectorPreflight, setOrchestratorSelectorPreflight] =
@@ -419,9 +417,8 @@ export default function DevDashboard() {
 		useState(false)
 	const [orchestratorContinueOnError, setOrchestratorContinueOnError] =
 		useState(false)
-	const [orchestratorCheckpointMode, setOrchestratorCheckpointMode] = useState(
-		'off',
-	)
+	const [orchestratorCheckpointMode, setOrchestratorCheckpointMode] =
+		useState('off')
 	const [orchestratorHostFailover, setOrchestratorHostFailover] =
 		useState(false)
 	const [orchestratorScenarioTimeoutMs, setOrchestratorScenarioTimeoutMs] =
@@ -532,7 +529,9 @@ export default function DevDashboard() {
 				setOrchestratorSelectorPreflight(parsed.orchestratorSelectorPreflight)
 			}
 			if (typeof parsed.orchestratorStrictSceneFallback === 'boolean') {
-				setOrchestratorStrictSceneFallback(parsed.orchestratorStrictSceneFallback)
+				setOrchestratorStrictSceneFallback(
+					parsed.orchestratorStrictSceneFallback,
+				)
 			}
 			if (typeof parsed.orchestratorCaptureScreenshots === 'boolean') {
 				setOrchestratorCaptureScreenshots(parsed.orchestratorCaptureScreenshots)
@@ -758,9 +757,7 @@ export default function DevDashboard() {
 				}
 				window.open(resolved.path, '_blank', 'noopener,noreferrer')
 			} catch (err) {
-				toast.error(
-					err instanceof Error ? err.message : 'Demo shortcut failed',
-				)
+				toast.error(err instanceof Error ? err.message : 'Demo shortcut failed')
 				console.error(
 					'Demo shortcut failed:',
 					err instanceof Error ? err.message : 'Unknown error',
@@ -921,11 +918,7 @@ export default function DevDashboard() {
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
-			if (
-				event.ctrlKey &&
-				event.shiftKey &&
-				event.key.toLowerCase() === 'm'
-			) {
+			if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'm') {
 				event.preventDefault()
 				setCheatPanelCollapsed(previous => !previous)
 			}
@@ -1098,7 +1091,9 @@ export default function DevDashboard() {
 			}
 
 			if (!response.ok || !payload.success || !payload.data?.tasks) {
-				throw new Error(payload.message || 'Failed to fetch orchestrator task list')
+				throw new Error(
+					payload.message || 'Failed to fetch orchestrator task list',
+				)
 			}
 
 			setOrchestratorTaskList(payload.data.tasks)
@@ -1162,7 +1157,9 @@ export default function DevDashboard() {
 				toast.success('Orchestrator task stopped')
 			} catch (error) {
 				const message =
-					error instanceof Error ? error.message : 'Failed to stop orchestrator task'
+					error instanceof Error
+						? error.message
+						: 'Failed to stop orchestrator task'
 				toast.error(message)
 			}
 		},
@@ -1183,56 +1180,67 @@ export default function DevDashboard() {
 			}
 
 			if (!response.ok || !payload.success) {
-				throw new Error(payload.message || 'Failed to stop all orchestrator tasks')
+				throw new Error(
+					payload.message || 'Failed to stop all orchestrator tasks',
+				)
 			}
 
 			const stoppedCount = payload.data?.stoppedTaskIds?.length ?? 0
 			await refreshOrchestratorTaskList()
 			if (orchestratorTask?.status === 'running') {
-				await refreshOrchestratorTask(orchestratorTask.taskId).catch(() => undefined)
+				await refreshOrchestratorTask(orchestratorTask.taskId).catch(
+					() => undefined,
+				)
 			}
 			toast.success(`Stop-all completed (${stoppedCount} task(s) stopped)`)
 		} catch (error) {
 			const message =
-				error instanceof Error ? error.message : 'Failed to stop all orchestrator tasks'
+				error instanceof Error
+					? error.message
+					: 'Failed to stop all orchestrator tasks'
 			toast.error(message)
 		} finally {
 			setIsStoppingAllTasks(false)
 		}
 	}, [orchestratorTask, refreshOrchestratorTask, refreshOrchestratorTaskList])
 
-	const cleanupOrchestratorTasks = useCallback(async (keepLatest = 8) => {
-		setIsCleaningTaskHistory(true)
-		try {
-			const response = await fetch('/api/dev/orchestrator/cleanup', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ keepLatest }),
-			})
+	const cleanupOrchestratorTasks = useCallback(
+		async (keepLatest = 8) => {
+			setIsCleaningTaskHistory(true)
+			try {
+				const response = await fetch('/api/dev/orchestrator/cleanup', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ keepLatest }),
+				})
 
-			const payload = (await response.json()) as {
-				success?: boolean
-				message?: string
-				data?: { removedTaskIds?: string[] }
+				const payload = (await response.json()) as {
+					success?: boolean
+					message?: string
+					data?: { removedTaskIds?: string[] }
+				}
+
+				if (!response.ok || !payload.success) {
+					throw new Error(
+						payload.message || 'Failed to cleanup orchestrator history',
+					)
+				}
+
+				const removedCount = payload.data?.removedTaskIds?.length ?? 0
+				await refreshOrchestratorTaskList()
+				toast.success(`Cleanup completed (${removedCount} task(s) removed)`)
+			} catch (error) {
+				const message =
+					error instanceof Error
+						? error.message
+						: 'Failed to cleanup orchestrator history'
+				toast.error(message)
+			} finally {
+				setIsCleaningTaskHistory(false)
 			}
-
-			if (!response.ok || !payload.success) {
-				throw new Error(payload.message || 'Failed to cleanup orchestrator history')
-			}
-
-			const removedCount = payload.data?.removedTaskIds?.length ?? 0
-			await refreshOrchestratorTaskList()
-			toast.success(`Cleanup completed (${removedCount} task(s) removed)`)
-		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Failed to cleanup orchestrator history'
-			toast.error(message)
-		} finally {
-			setIsCleaningTaskHistory(false)
-		}
-	}, [refreshOrchestratorTaskList])
+		},
+		[refreshOrchestratorTaskList],
+	)
 
 	const launchOrchestratorRun = useCallback(
 		async (mode: 'single-strict' | 'certify-strict') => {
@@ -1248,8 +1256,11 @@ export default function DevDashboard() {
 					!orchestratorStrict ? 'Strict mode disabled' : null,
 					orchestratorContinueOnError ? 'Continue-on-error enabled' : null,
 					!orchestratorSelectorPreflight ? 'Selector preflight disabled' : null,
-					orchestratorStrictSceneFallback ? 'Strict scene fallback enabled' : null,
-					orchestratorPreflight && !orchestratorPreflight.launchCapacityAvailable
+					orchestratorStrictSceneFallback
+						? 'Strict scene fallback enabled'
+						: null,
+					orchestratorPreflight &&
+					!orchestratorPreflight.launchCapacityAvailable
 						? `Capacity full (${orchestratorPreflight.runningTaskCount}/${orchestratorPreflight.maxConcurrentRunningTasks})`
 						: null,
 				].filter((item): item is string => item !== null)
@@ -1307,7 +1318,9 @@ export default function DevDashboard() {
 				)
 			} catch (error) {
 				const message =
-					error instanceof Error ? error.message : 'Failed to launch orchestrator'
+					error instanceof Error
+						? error.message
+						: 'Failed to launch orchestrator'
 				toast.error(message)
 			} finally {
 				setIsLaunchingOrchestrator(false)
@@ -1409,7 +1422,7 @@ export default function DevDashboard() {
 				? 'text-error border-error/30 bg-error/10'
 				: orchestratorTask?.status === 'stopped'
 					? 'text-warning border-warning/30 bg-warning/10'
-				: 'text-warning border-warning/30 bg-warning/10'
+					: 'text-warning border-warning/30 bg-warning/10'
 
 	return (
 		<div className='min-h-screen bg-bg text-text-primary font-sans relative overflow-hidden py-8 px-4 sm:px-6 lg:px-8'>
@@ -1469,18 +1482,14 @@ export default function DevDashboard() {
 				{/* Top Row: Service Health + Persona Sign-In */}
 				<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 					{/* Infrastructure Status */}
-					<PremiumSurface
-						tone='brand'
-						eyebrow='Infrastructure Status'
-					>
+					<PremiumSurface tone='brand' eyebrow='Infrastructure Status'>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
 							{services.map(svc => {
 								const isUp = svc.status === 'up'
 								const isDown = svc.status === 'down'
 								return (
-									<MagicCard
+									<div
 										key={svc.name}
-										mode='gradient'
 										className={cn(
 											'relative overflow-hidden rounded-xl border p-3 flex items-center justify-between transition-colors',
 											isUp
@@ -1524,22 +1533,18 @@ export default function DevDashboard() {
 												{svc.latency}ms
 											</span>
 										)}
-									</MagicCard>
+									</div>
 								)
 							})}
 						</div>
 					</PremiumSurface>
 
 					{/* Test Accounts Cockpit */}
-					<PremiumSurface
-						tone='xp'
-						eyebrow='Test Personas & Quick Sign-In'
-					>
+					<PremiumSurface tone='xp' eyebrow='Test Personas & Quick Sign-In'>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4'>
 							{DEMO_ACCOUNTS.map(account => (
-								<MagicCard
+								<div
 									key={account.username}
-									mode='gradient'
 									className='relative overflow-hidden rounded-xl border border-border-subtle/80 bg-bg-card/40 p-3.5 flex flex-col justify-between'
 								>
 									<div className='mb-3'>
@@ -1602,7 +1607,7 @@ export default function DevDashboard() {
 											</motion.button>
 										</div>
 									</div>
-								</MagicCard>
+								</div>
 							))}
 						</div>
 
@@ -2032,9 +2037,8 @@ export default function DevDashboard() {
 							const isPass = result.status === 'pass'
 							const isFail = result.status === 'fail'
 							return (
-								<MagicCard
+								<div
 									key={result.name}
-									mode='gradient'
 									className={cn(
 										'relative overflow-hidden rounded-xl border p-3 flex items-center justify-between gap-3 text-xs',
 										isPass
@@ -2078,7 +2082,7 @@ export default function DevDashboard() {
 											</span>
 										)}
 									</div>
-								</MagicCard>
+								</div>
 							)
 						})}
 					</div>
@@ -2122,10 +2126,7 @@ export default function DevDashboard() {
 				</PremiumSurface>
 
 				{/* Row 3: OTP Dev Mode Banner */}
-				<PremiumSurface
-					tone='blue'
-					eyebrow='Bypassed Dev Email & OTP Channel'
-				>
+				<PremiumSurface tone='blue' eyebrow='Bypassed Dev Email & OTP Channel'>
 					<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4'>
 						<div className='space-y-4'>
 							<p className='text-xs text-text-secondary leading-relaxed'>
@@ -2233,10 +2234,7 @@ export default function DevDashboard() {
 					</PremiumSurface>
 
 					{/* Infrastructure Control Panel */}
-					<PremiumSurface
-						tone='depth'
-						eyebrow='Dev Commands Reference'
-					>
+					<PremiumSurface tone='depth' eyebrow='Dev Commands Reference'>
 						<div className='grid grid-cols-1 gap-2 mt-4'>
 							{[
 								{
@@ -2306,10 +2304,7 @@ export default function DevDashboard() {
 
 				{/* Breathtaking cURL Command Playground */}
 				{token && (
-					<PremiumSurface
-						tone='xp'
-						eyebrow='cURL Request Generator'
-					>
+					<PremiumSurface tone='xp' eyebrow='cURL Request Generator'>
 						<div
 							onClick={() =>
 								copy(
@@ -2389,7 +2384,8 @@ export default function DevDashboard() {
 								</div>
 								{hardBlockActive && (
 									<div className='rounded-lg border border-error/30 bg-error/10 px-2 py-1.5 text-2xs text-error'>
-										Launch blocked: {beatBlockedByAuth ? 'auth required' : 'readiness blocked'}
+										Launch blocked:{' '}
+										{beatBlockedByAuth ? 'auth required' : 'readiness blocked'}
 									</div>
 								)}
 
@@ -2465,7 +2461,11 @@ export default function DevDashboard() {
 												type='button'
 												key={`teleport-${route.path}`}
 												onClick={() => {
-													window.open(route.path, '_blank', 'noopener,noreferrer')
+													window.open(
+														route.path,
+														'_blank',
+														'noopener,noreferrer',
+													)
 												}}
 												className='rounded-xl border border-border-subtle bg-bg-card px-2 py-2 text-2xs font-semibold text-text-secondary hover:text-text-primary'
 											>
@@ -2481,7 +2481,9 @@ export default function DevDashboard() {
 									</span>
 									<select
 										value={selectedCheatBeatId}
-										onChange={event => setSelectedCheatBeatId(event.target.value)}
+										onChange={event =>
+											setSelectedCheatBeatId(event.target.value)
+										}
 										className='w-full rounded-xl border border-border-subtle bg-bg-card px-2.5 py-2 text-2xs font-semibold text-text-primary'
 									>
 										{DEMO_PITCH_BEATS.map(beat => (
@@ -2529,7 +2531,11 @@ export default function DevDashboard() {
 										<button
 											type='button'
 											onClick={() => {
-												window.open('/demo-cockpit', '_blank', 'noopener,noreferrer')
+												window.open(
+													'/demo-cockpit',
+													'_blank',
+													'noopener,noreferrer',
+												)
 											}}
 											className='rounded-xl border border-border-subtle bg-bg-elevated px-2.5 py-2 text-2xs font-bold text-text-primary'
 										>
@@ -2581,7 +2587,9 @@ export default function DevDashboard() {
 									<div className='grid grid-cols-2 gap-1.5'>
 										<button
 											type='button'
-											onClick={() => void launchOrchestratorRun('single-strict')}
+											onClick={() =>
+												void launchOrchestratorRun('single-strict')
+											}
 											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
 											className='rounded-lg border border-brand/30 bg-brand/10 px-1.5 py-1 text-2xs font-bold text-brand disabled:opacity-50'
 										>
@@ -2589,7 +2597,9 @@ export default function DevDashboard() {
 										</button>
 										<button
 											type='button'
-											onClick={() => void launchOrchestratorRun('certify-strict')}
+											onClick={() =>
+												void launchOrchestratorRun('certify-strict')
+											}
 											disabled={isLaunchingOrchestrator || isStoppingAllTasks}
 											className='rounded-lg border border-xp/30 bg-xp/10 px-1.5 py-1 text-2xs font-bold text-xp disabled:opacity-50'
 										>
@@ -2600,7 +2610,9 @@ export default function DevDashboard() {
 										<button
 											type='button'
 											onClick={() => void stopAllOrchestratorTasks()}
-											disabled={isStoppingAllTasks || runningOrchestratorTaskCount === 0}
+											disabled={
+												isStoppingAllTasks || runningOrchestratorTaskCount === 0
+											}
 											className='inline-flex items-center justify-center gap-1 rounded-lg border border-error/30 bg-error/10 px-1.5 py-1 text-2xs font-bold text-error disabled:opacity-50'
 										>
 											<StopCircle className='size-3' />
@@ -2629,7 +2641,8 @@ export default function DevDashboard() {
 										<div
 											className={cn(
 												'rounded-lg border px-2 py-1.5 text-2xs',
-												orchestratorPreflight.backendHealthOk && orchestratorPreflight.authProbeOk
+												orchestratorPreflight.backendHealthOk &&
+													orchestratorPreflight.authProbeOk
 													? 'border-success/30 bg-success/10 text-success'
 													: 'border-error/30 bg-error/10 text-error',
 											)}
@@ -2641,13 +2654,16 @@ export default function DevDashboard() {
 											</div>
 											<div>
 												status codes:{' '}
-												{orchestratorPreflight.backendHealthStatusCode ?? 'n/a'}/
-												{orchestratorPreflight.authProbeStatusCode ?? 'n/a'}
+												{orchestratorPreflight.backendHealthStatusCode ?? 'n/a'}
+												/{orchestratorPreflight.authProbeStatusCode ?? 'n/a'}
 											</div>
 											<div>
-												capacity:{' '}
-												{orchestratorPreflight.runningTaskCount}/
-												{orchestratorPreflight.maxConcurrentRunningTasks} ({orchestratorPreflight.launchCapacityAvailable ? 'available' : 'full'})
+												capacity: {orchestratorPreflight.runningTaskCount}/
+												{orchestratorPreflight.maxConcurrentRunningTasks} (
+												{orchestratorPreflight.launchCapacityAvailable
+													? 'available'
+													: 'full'}
+												)
 											</div>
 											{orchestratorPreflight.errorMessage && (
 												<div>{orchestratorPreflight.errorMessage}</div>
@@ -2657,7 +2673,10 @@ export default function DevDashboard() {
 									{cheatHardBlockMode && orchestrationRiskFlags.length > 0 && (
 										<div className='inline-flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-2xs text-warning'>
 											<ShieldAlert className='mt-0.5 size-3 shrink-0' />
-											<span>Hard block prevents orchestrator launch until risks are removed.</span>
+											<span>
+												Hard block prevents orchestrator launch until risks are
+												removed.
+											</span>
 										</div>
 									)}
 									{orchestratorTask && (
@@ -2679,50 +2698,61 @@ export default function DevDashboard() {
 												</div>
 											)}
 											<div className='mt-1 text-2xs opacity-80'>
-												watchdog:{' '}
-												{orchestratorTask.watchdogRisk} · runtime:{' '}
-												{orchestratorTask.runtimeAgeSec}s/{orchestratorTask.maxRuntimeSec}s · idle:{' '}
+												watchdog: {orchestratorTask.watchdogRisk} · runtime:{' '}
+												{orchestratorTask.runtimeAgeSec}s/
+												{orchestratorTask.maxRuntimeSec}s · idle:{' '}
 												{orchestratorTask.lastOutputAgeSec}s
 											</div>
 											{orchestratorProgress && (
 												<div className='mt-1 text-2xs opacity-80'>
 													<div>
 														strict:{' '}
-														{orchestratorProgress.strictAssertionFailures ?? 'n/a'} ·
-														render:{' '}
-														{orchestratorProgress.renderAnomalies ?? 'n/a'} · 5xx:{' '}
-														{orchestratorProgress.http5xxResponses ?? 'n/a'} · page:{' '}
-														{orchestratorProgress.pageErrors ?? 'n/a'}
+														{orchestratorProgress.strictAssertionFailures ??
+															'n/a'}{' '}
+														· render:{' '}
+														{orchestratorProgress.renderAnomalies ?? 'n/a'} ·
+														5xx:{' '}
+														{orchestratorProgress.http5xxResponses ?? 'n/a'} ·
+														page: {orchestratorProgress.pageErrors ?? 'n/a'}
 													</div>
 													<div>
 														beats e/a/p:{' '}
 														{orchestratorProgress.beatsWithEvidence ?? 'n/a'}/
 														{orchestratorProgress.beatsWithValueArc ?? 'n/a'}/
-														{orchestratorProgress.beatsWithPhaseCoverage ?? 'n/a'} of{' '}
-														{orchestratorProgress.expectedBeats ?? 'n/a'}
+														{orchestratorProgress.beatsWithPhaseCoverage ??
+															'n/a'}{' '}
+														of {orchestratorProgress.expectedBeats ?? 'n/a'}
 													</div>
 													<div>
 														rates e/a/p:{' '}
 														{orchestratorProgress.beatEvidenceRate ?? 'n/a'}%/
 														{orchestratorProgress.beatValueArcRate ?? 'n/a'}%/
-														{orchestratorProgress.beatPhaseCoverageRate ?? 'n/a'}%
+														{orchestratorProgress.beatPhaseCoverageRate ??
+															'n/a'}
+														%
 													</div>
 													<div>
 														fallback total/scene/route:{' '}
 														{orchestratorProgress.beatFallbacks ?? 'n/a'}/
 														{orchestratorProgress.beatSceneFallbacks ?? 'n/a'}/
-														{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} · reqFail:{' '}
-														{orchestratorProgress.requestFailures ?? 'n/a'} · console:{' '}
+														{orchestratorProgress.beatRouteFallbacks ?? 'n/a'} ·
+														reqFail:{' '}
+														{orchestratorProgress.requestFailures ?? 'n/a'} ·
+														console:{' '}
 														{orchestratorProgress.consoleErrors ?? 'n/a'}
 													</div>
 													<div>
-														preflight:{orchestratorProgress.preflightCoreStatus ?? 'n/a'} · warnings:{' '}
-														{orchestratorProgress.warningCount ?? 'n/a'} · errors:{' '}
-														{orchestratorProgress.errorCount ?? 'n/a'}
+														preflight:
+														{orchestratorProgress.preflightCoreStatus ?? 'n/a'}{' '}
+														· warnings:{' '}
+														{orchestratorProgress.warningCount ?? 'n/a'} ·
+														errors: {orchestratorProgress.errorCount ?? 'n/a'}
 													</div>
 													{orchestratorProgress.criticalFindings.length > 0 && (
 														<div className='mt-1 rounded border border-error/35 bg-error/15 px-1.5 py-1 text-2xs text-error'>
-															{orchestratorProgress.criticalFindings.slice(0, 3).join(' | ')}
+															{orchestratorProgress.criticalFindings
+																.slice(0, 3)
+																.join(' | ')}
 														</div>
 													)}
 												</div>
@@ -2745,7 +2775,9 @@ export default function DevDashboard() {
 												Task Timeline
 											</span>
 											<div className='flex items-center gap-1.5'>
-												<span className='text-2xs text-text-muted'>run:{runningOrchestratorTaskCount}</span>
+												<span className='text-2xs text-text-muted'>
+													run:{runningOrchestratorTaskCount}
+												</span>
 												<button
 													type='button'
 													onClick={() => void refreshOrchestratorTaskList()}
@@ -2758,7 +2790,9 @@ export default function DevDashboard() {
 										</div>
 										<div className='mt-1.5 max-h-28 space-y-1 overflow-auto'>
 											{orchestratorTaskList.length === 0 ? (
-												<div className='text-2xs text-text-muted'>No tasks yet</div>
+												<div className='text-2xs text-text-muted'>
+													No tasks yet
+												</div>
 											) : (
 												orchestratorTaskList.slice(0, 8).map(task => (
 													<div
@@ -2803,7 +2837,9 @@ export default function DevDashboard() {
 															{task.status === 'running' && (
 																<button
 																	type='button'
-																	onClick={() => void stopOrchestratorTask(task.taskId)}
+																	onClick={() =>
+																		void stopOrchestratorTask(task.taskId)
+																	}
 																	className='rounded border border-error/30 bg-error/10 px-1 py-0.5 text-2xs font-bold text-error'
 																>
 																	Stop
@@ -2829,14 +2865,21 @@ export default function DevDashboard() {
 									</div>
 									<select
 										value={orchestratorScenario}
-										onChange={event => setOrchestratorScenario(event.target.value)}
+										onChange={event =>
+											setOrchestratorScenario(event.target.value)
+										}
 										className='w-full rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-2xs font-semibold text-text-primary'
 									>
-										{['demo-cockpit-deep', 'quick-post', 'route-sweep'].map(item => (
-											<option key={`orchestrator-scenario-${item}`} value={item}>
-												{item}
-											</option>
-										))}
+										{['demo-cockpit-deep', 'quick-post', 'route-sweep'].map(
+											item => (
+												<option
+													key={`orchestrator-scenario-${item}`}
+													value={item}
+												>
+													{item}
+												</option>
+											),
+										)}
 									</select>
 									<div className='grid grid-cols-2 gap-1.5 text-2xs'>
 										{[
@@ -2871,7 +2914,8 @@ export default function DevDashboard() {
 											{
 												label: 'Host Failover',
 												value: orchestratorHostFailover,
-												toggle: () => setOrchestratorHostFailover(prev => !prev),
+												toggle: () =>
+													setOrchestratorHostFailover(prev => !prev),
 											},
 										].map(toggle => (
 											<button
@@ -2911,7 +2955,10 @@ export default function DevDashboard() {
 											value={orchestratorScenarioTimeoutMs}
 											onChange={event =>
 												setOrchestratorScenarioTimeoutMs(
-													Math.max(120000, Number(event.target.value) || 120000),
+													Math.max(
+														120000,
+														Number(event.target.value) || 120000,
+													),
 												)
 											}
 											className='rounded-lg border border-border-subtle bg-bg-card px-2 py-1.5 text-2xs font-semibold text-text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
@@ -2971,7 +3018,9 @@ export default function DevDashboard() {
 									</button>
 									<button
 										type='button'
-										onClick={() => copy(orchestratorCommand, 'cheat-run-command')}
+										onClick={() =>
+											copy(orchestratorCommand, 'cheat-run-command')
+										}
 										className='w-full rounded-xl border border-success/30 bg-success/10 px-2.5 py-2 text-2xs font-bold text-success'
 									>
 										{copied === 'cheat-run-command'

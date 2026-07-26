@@ -72,6 +72,7 @@ function FollowersContent() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const t = useTranslations('followers')
+	const tc = useTranslations('common')
 	const initialTab = (searchParams.get('tab') as Tab) || 'followers'
 	const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 	const [data, setData] = useState<Record<Tab, Profile[]>>({
@@ -233,8 +234,8 @@ function FollowersContent() {
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<PremiumSurface
-					eyebrow='Social Graph'
-					chipText={`${data.followers.length + data.following.length} total links`}
+					eyebrow={tc('eyebrows.socialGraph')}
+					chipText={tc('eyebrows.totalLinks', { n: data.followers.length + data.following.length })}
 					tone='xp'
 					className='mb-6 p-3 md:p-4'
 				>
@@ -262,7 +263,7 @@ function FollowersContent() {
 				</PremiumSurface>
 
 				<PremiumSurface
-					eyebrow='Network Lanes'
+					eyebrow={tc('eyebrows.networkLanes')}
 					chipText={t(
 						TABS.find(tab => tab.key === activeTab)?.labelKey || 'tabFollowers',
 					)}
@@ -300,13 +301,13 @@ function FollowersContent() {
 
 				{/* Content */}
 				<PremiumSurface
-					eyebrow='People Results'
-					chipText={isLoading ? 'Loading' : `${currentList.length} profiles`}
+					eyebrow={tc('eyebrows.peopleResults')}
+					chipText={isLoading ? tc('eyebrows.loading') : tc('eyebrows.nProfiles', { n: currentList.length })}
 					className='p-3 md:p-4'
 				>
 					<SurfaceSectionHeader
-						eyebrow='Relationship Actions'
-						chipText='Follow, unfollow, connect'
+						eyebrow={tc('eyebrows.relationshipActions')}
+						chipText={tc('eyebrows.followUnfollowConnect')}
 						className='mb-3'
 					/>
 					<AnimatePresence mode='wait'>

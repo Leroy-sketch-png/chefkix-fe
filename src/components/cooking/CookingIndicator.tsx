@@ -7,11 +7,6 @@ import { ChefHat, Timer, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 
-// ============================================
-// TOPBAR COOKING INDICATOR
-// Shows when a cooking session is active
-// ============================================
-
 export const CookingIndicator = () => {
 	const { cookingMode, setCookingMode, openCookingPanel } = useUiStore()
 	const { session, recipe, localTimers, isPreviewMode } = useCookingStore()

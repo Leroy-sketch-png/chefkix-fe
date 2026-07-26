@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { MagicCard } from '@/components/ui/magic-card'
 import {
 	Select,
 	SelectContent,
@@ -219,10 +218,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 				</motion.div>
 			)}
 
-			<MagicCard
-				mode='orb'
-				glowFrom={glow.from}
-				glowTo={glow.to}
+			<div
 				className='h-full w-full'
 			>
 				<div
@@ -317,7 +313,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 						</div>
 					)}
 				</div>
-			</MagicCard>
+			</div>
 		</motion.div>
 	)
 }
@@ -457,10 +453,7 @@ export default function BadgeCatalogPage() {
 									<ArrowLeft className='size-5' />
 								</motion.button>
 								<div className='flex-1 rounded-2xl overflow-hidden shadow-card'>
-									<MagicCard
-										mode='orb'
-										glowFrom='var(--color-brand)'
-										glowTo='var(--color-xp)'
+									<div
 										className='h-full w-full'
 									>
 										<div className='flex items-center gap-3 p-4 bg-bg-card'>
@@ -480,7 +473,7 @@ export default function BadgeCatalogPage() {
 												</p>
 											</div>
 										</div>
-									</MagicCard>
+									</div>
 								</div>
 							</div>
 

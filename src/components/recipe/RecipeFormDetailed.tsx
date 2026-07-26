@@ -266,7 +266,7 @@ const ImageUpload = ({
 				</div>
 			) : (
 				<label className='flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-3 border-dashed border-border bg-bg p-10 transition-colors hover:border-brand hover:bg-brand/5'>
-					<div className='flex size-12 items-center justify-center rounded-xl bg-muted/30'>
+					<div className='flex size-12 items-center justify-center rounded-xl bg-bg-elevated/30'>
 						<Upload className='size-6 text-text-secondary' />
 					</div>
 					<div className='text-center'>

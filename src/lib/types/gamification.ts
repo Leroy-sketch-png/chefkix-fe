@@ -9,9 +9,7 @@
  * - Creator 4% royalty when others cook their recipes
  */
 
-// ============================================
 // USER PROGRESSION
-// ============================================
 
 export type UserTitle = 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
 
@@ -42,9 +40,7 @@ export interface LevelInfo {
 	unlocks?: string[] // features/badges unlocked at this level
 }
 
-// ============================================
 // XP REWARDS
-// ============================================
 
 export interface XPReward {
 	amount: number
@@ -53,17 +49,13 @@ export interface XPReward {
 	multiplier?: number
 }
 
-// ============================================
 // DIFFICULTY
-// ============================================
 
 // Difficulty levels - matches BE Difficulty enum @JsonValue serialization
 // BE sends PascalCase: "Beginner", "Intermediate", "Advanced", "Expert"
 export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
 
-// ============================================
 // BADGES
-// ============================================
 
 export type BadgeRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
 
@@ -90,9 +82,7 @@ export interface Badge {
 	progress?: number // 0-100 for progress-based badges
 }
 
-// ============================================
 // COOKING SESSIONS
-// ============================================
 
 // Per spec 08-cooking-sessions.txt
 export type CookingSessionStatus =
@@ -201,9 +191,7 @@ export interface PendingPost {
 	postedAt?: string
 }
 
-// ============================================
 // XP TRANSACTIONS
-// ============================================
 
 export type XPSource =
 	| 'COOK_INSTANT' // 30% on completion
@@ -226,9 +214,7 @@ export interface XPTransaction {
 	createdAt: string
 }
 
-// ============================================
 // CHALLENGES
-// ============================================
 
 export type ChallengeType = 'DAILY' | 'WEEKLY' | 'SPECIAL'
 
@@ -267,9 +253,7 @@ export interface ChallengeStreak {
 	}
 }
 
-// ============================================
 // LEADERBOARD
-// ============================================
 
 // BE uses lowercase strings for leaderboard type/timeframe
 // IMPORTANT: BE uses "all_time" (underscore) — see LeaderboardResponse.java
@@ -303,9 +287,7 @@ export interface LeaderboardData {
 	resetAt?: string // when leaderboard resets
 }
 
-// ============================================
 // CREATOR STATS
-// ============================================
 
 /**
  * Creator stats - per vision_and_spec/03-social.txt
@@ -339,9 +321,7 @@ export interface CreatorStats {
 	}>
 }
 
-// ============================================
 // NOTIFICATIONS (GAMIFICATION)
-// ============================================
 
 export type GamificationNotificationType =
 	| 'XP_AWARDED'
@@ -379,9 +359,7 @@ export interface GamificationNotification {
 	createdAt: string
 }
 
-// ============================================
 // MASTERY SYSTEM
-// ============================================
 
 export type MasteryLevel =
 	| 'NOVICE' // 1 cook

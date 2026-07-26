@@ -20,6 +20,7 @@ import { useAuthStore } from '@/store/authStore'
 import { usePaceTimer } from './PaceTimer'
 import { getGhostDriver } from '@/lib/ghost-driver'
 import { DemoQROverlay } from './DemoQROverlay'
+import { PATHS } from '@/constants'
 
 export interface DemoRemoteCommand {
 	type:
@@ -382,7 +383,7 @@ export function PhantomConductor() {
 					// Fallback to simple clicks based on beat (omni-demo logic adapted)
 					if (command.beatIndex === 1) {
 						// Hero Recipe
-						await driver.click('a[href="/recipes/explore"]')
+						await driver.click(`a[href="${PATHS.EXPLORE}"]`)
 						await driver.wait(1000)
 						await driver.hover('main a[href*="/recipes/"]', true)
 						await driver.click('main a[href*="/recipes/"]')

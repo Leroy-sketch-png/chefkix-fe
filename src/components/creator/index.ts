@@ -12,8 +12,6 @@ export type {
 
 export { StepHeatmap } from './StepHeatmap'
 
-export { TipHistory } from './TipHistory'
-
 export { CreatorStatsWidget, CreatorXPNotification } from './CreatorStatsWidget'
 export type {
 	CreatorStatsWidgetProps,

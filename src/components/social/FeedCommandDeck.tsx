@@ -19,6 +19,7 @@ interface FeedCommandDeckProps {
 	availableModes: FeedMode[]
 	postCount: number
 	hasMore: boolean
+	isLoading?: boolean
 	className?: string
 }
 
@@ -28,6 +29,7 @@ export function FeedCommandDeck({
 	availableModes,
 	postCount,
 	hasMore,
+	isLoading,
 	className,
 }: FeedCommandDeckProps) {
 	const t = useTranslations('feed')
@@ -79,14 +81,16 @@ export function FeedCommandDeck({
 					className='w-full'
 				/>
 
-				<div className='flex flex-wrap items-center gap-2 text-xs font-semibold text-text-muted'>
-					<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1 tabular-nums'>
-						{t('postsCount', { count: postCount })}
-					</span>
-					<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1'>
-						{hasMore ? t('loadMore') : t('liveFeed')}
-					</span>
-				</div>
+				{!isLoading && (
+					<div className='flex flex-wrap items-center gap-2 text-xs font-semibold text-text-muted'>
+						<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1 tabular-nums'>
+							{t('postsCount', { count: postCount })}
+						</span>
+						<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1'>
+							{hasMore ? t('loadMore') : t('liveFeed')}
+						</span>
+					</div>
+				)}
 			</div>
 		</CommandDeckBase>
 	)

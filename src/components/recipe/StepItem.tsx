@@ -404,7 +404,7 @@ export const StepItem = ({
 				<button
 					type='button'
 					aria-label={t('dragToReorder')}
-					className='flex size-8 cursor-grab items-center justify-center rounded-xl text-text-secondary/70 transition-colors hover:bg-muted/30 hover:text-text-secondary active:cursor-grabbing'
+					className='flex size-8 cursor-grab items-center justify-center rounded-xl text-text-secondary/70 transition-colors hover:bg-bg-hover/30 hover:text-text-secondary active:cursor-grabbing'
 				>
 					<GripVertical className='size-4' />
 				</button>

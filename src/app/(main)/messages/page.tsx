@@ -673,7 +673,7 @@ function MessagesContent() {
 									fill
 									sizes='40px'
 									className='rounded-full object-cover'
-									fallbackSrc='/placeholder-avatar.svg' // Tuỳ chọn, nếu không truyền sẽ lấy default trong component
+									fallbackSrc='/placeholder-avatar.svg' // Optional; defaults to component fallback
 								/>
 							</div>
 							<div className='min-w-0 flex-1'>

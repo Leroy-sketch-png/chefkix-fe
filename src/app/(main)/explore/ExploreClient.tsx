@@ -56,26 +56,17 @@ import {
 	StaggerContainer,
 	staggerItemVariants,
 } from '@/components/ui/stagger-animation'
-import { triggerSaveConfetti } from '@/lib/confetti'
 import { toast } from 'sonner'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
 import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
-import { GlowCard } from '@/components/ui/glow-card'
-import { SparklesEffect } from '@/components/ui/sparkles-effect'
-import { BlurFade } from '@/components/ui/blur-fade'
 import { useTranslations } from '@/i18n/hooks'
-import { TextLoop } from '@/components/ui/text-loop'
 import { PostCard } from '@/components/social/PostCard'
 import { getFeedPosts } from '@/services/post'
 import type { Post } from '@/lib/types/post'
 import { useAuth } from '@/hooks/useAuth'
-
-// ============================================
-// CONSTANTS
-// ============================================
 
 const RECIPES_PER_PAGE = 12
 const SEARCH_DEBOUNCE_MS = 300
@@ -97,10 +88,6 @@ const DIFFICULTY_API_TO_I18N_KEY: Record<string, string> = {
 	Expert: 'diffExpert',
 }
 
-// ============================================
-// TYPES
-// ============================================
-
 interface RecipeFilters {
 	dietary: string[]
 	cuisine: string[]
@@ -109,10 +96,6 @@ interface RecipeFilters {
 	rating: number | null
 	foolproofOnly: boolean
 }
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 /** Map a Typesense RecipeSearchDoc hit to a minimal Recipe shape for cards. */
 function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
@@ -160,10 +143,6 @@ function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
 	} as Recipe
 }
 
-// ============================================
-// HERO SECTION COMPONENT
-// ============================================
-
 interface HeroRecipeProps {
 	recipe: Recipe
 	onCook: (id: string) => void
@@ -176,12 +155,7 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 	const [isCookNavigating, startCookTransition] = useTransition()
 
 	return (
-		<GlowCard
-			color='var(--color-brand)'
-			radius={300}
-			intensity={0.25}
-			className='mb-6 rounded-2xl md:mb-8'
-		>
+		<div className='mb-6 rounded-2xl md:mb-8'>
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
@@ -215,11 +189,11 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					<div className='flex flex-col justify-center'>
 						<div className='mb-3 flex flex-wrap items-center gap-1.5'>
 							{/* XP Badge */}
-							<SparklesEffect color='var(--color-xp)' count={6}>
+							<span className='relative inline-block'>
 								<span className='inline-flex items-center gap-1 rounded-full bg-xp/15 px-2.5 py-1 text-xs font-bold text-xp'>
 									+{recipe.xpReward || 0} XP
 								</span>
-							</SparklesEffect>
+							</span>
 							{/* Difficulty */}
 							<span className='inline-flex items-center rounded-full bg-bg-elevated px-2.5 py-1 text-xs font-medium text-text-secondary'>
 								{t(
@@ -305,13 +279,9 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 					</div>
 				</div>
 			</motion.div>
-		</GlowCard>
+		</div>
 	)
 }
-
-// ============================================
-// FILTER CHIPS COMPONENT
-// ============================================
 
 interface FilterChipsProps {
 	filters: RecipeFilters
@@ -433,10 +403,6 @@ function FilterChips({
 	)
 }
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
 export default function ExplorePage() {
 	return (
 		<Suspense>
@@ -534,10 +500,6 @@ function ExploreContent() {
 		],
 		[t],
 	)
-
-	// ============================================
-	// EFFECTS
-	// ============================================
 
 	// Arrow key navigation helper
 	const handleArrowNavigation = useCallback(
@@ -677,10 +639,13 @@ function ExploreContent() {
 			try {
 				const res = await getTrendingSearches(8)
 				if (!cancelled && res.success && res.data && res.data.length > 0) {
-					setTrendingSearches(res.data)
+					const uniqueTerms = Array.from(
+						new Set(res.data.map(term => term.trim()).filter(Boolean)),
+					)
+					setTrendingSearches(uniqueTerms)
 				}
 			} catch {
-				// fallback stays as default
+				if (!cancelled) setTrendingSearches([])
 			}
 		}
 		fetchTrending()
@@ -874,6 +839,9 @@ function ExploreContent() {
 					RECIPES_PER_PAGE,
 					nextPage + 1, // Typesense pages are 1-based
 				)
+				if (!searchRes.success) {
+					throw new Error(searchRes.message || 'Search failed')
+				}
 				if (searchRes.success && searchRes.data?.recipes?.hits) {
 					const recipesResult = searchRes.data.recipes
 					const newRecipes = recipesResult.hits.map(h =>
@@ -992,10 +960,6 @@ function ExploreContent() {
 		return () => observer.disconnect()
 	}, [hasMore, isLoadingMore, isLoading, handleLoadMore])
 
-	// ============================================
-	// HANDLERS
-	// ============================================
-
 	const handleCook = (recipeId: string) => {
 		if (!requireAuth(t('authActionCook'))) return
 		router.push(`/recipes/${recipeId}?cook=true`)
@@ -1016,12 +980,6 @@ function ExploreContent() {
 			}
 			return newSet
 		})
-
-		// Trigger confetti optimistically on save (not unsave)
-		// No element ref available from callback, uses center-viewport
-		if (willBeSaved) {
-			triggerSaveConfetti()
-		}
 
 		try {
 			const response = await toggleSaveRecipe(recipeId)
@@ -1147,10 +1105,6 @@ function ExploreContent() {
 		searchInputRef.current?.focus()
 	}
 
-	// ============================================
-	// COMPUTED VALUES
-	// ============================================
-
 	const activeFiltersCount = useMemo(
 		() =>
 			filters.dietary.length +
@@ -1183,16 +1137,9 @@ function ExploreContent() {
 					: 'border border-border-medium bg-bg-card text-text-secondary hover:border-brand hover:text-brand',
 		].join(' ')
 
-	// ============================================
-	// RENDER
-	// ============================================
-
 	return (
 		<PageTransition>
-			<div
-				data-testid='explore-page'
-				data-visual-ready={isLoading ? 'false' : 'true'}
-			>
+			<div data-testid='explore-page'>
 				{/* Global navigation loading indicator */}
 				<AnimatePresence>
 					{isNavigating && (
@@ -1213,7 +1160,7 @@ function ExploreContent() {
 				<PageContainer maxWidth='2xl'>
 					<div className='grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_20rem]'>
 						<div>
-							<BlurFade delay={0} duration={0.4}>
+							<div>
 								<ExploreCommandDeck
 									activeFiltersCount={activeFiltersCount}
 									resultCount={totalCount}
@@ -1227,6 +1174,8 @@ function ExploreContent() {
 										eyebrow: t('commandEyebrow'),
 										heading: commandHeading,
 										modeChip: t('commandModeChip'),
+										subtitle: t('commandSubtitle'),
+										commandInput: t('commandInput'),
 										results: t('commandResults'),
 										filters: t('commandFilters'),
 										activeFilters: t('commandActiveFilters'),
@@ -1242,7 +1191,10 @@ function ExploreContent() {
 								>
 									<div className='space-y-2.5'>
 										<div className='flex items-center gap-2'>
-											<div ref={autocompleteRef} className='group relative flex-1'>
+											<div
+												ref={autocompleteRef}
+												className='group relative flex-1'
+											>
 												<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 												<Input
 													ref={searchInputRef}
@@ -1330,25 +1282,29 @@ function ExploreContent() {
 												/>
 											)}
 										</div>
-										{/* Trending Searches Loops */}
-										<div className='flex items-center gap-1.5 px-1 py-1 text-xs text-text-muted justify-start'>
-											<TrendingUp className='size-3.5 text-brand shrink-0' />
-											<span className='font-semibold'>{t('trending')}:</span>
-											<TextLoop
-												texts={[
-													'Italian Pasta',
-													'High Protein Wraps',
-													'Healthy Bowls',
-													'Keto Dinners',
-													'Foolproof Desserts',
-												]}
-												interval={3500}
-												textClassName='font-semibold text-brand cursor-pointer hover:underline'
-											/>
-										</div>
+										{trendingSearches.length > 0 && (
+											<div className='flex flex-wrap items-center gap-x-2 gap-y-1 px-1 py-1 text-xs text-text-muted'>
+												<TrendingUp className='size-3.5 shrink-0 text-brand' />
+												<span className='font-semibold'>{t('trending')}:</span>
+												{trendingSearches.slice(0, 5).map(term => (
+													<button
+														type='button'
+														key={term}
+														onClick={() => {
+															setSearchQuery(term)
+															setDebouncedSearch(term)
+															setShowAutocomplete(false)
+														}}
+														className='max-w-full truncate rounded-md px-1.5 py-1 font-semibold text-brand transition-colors hover:bg-brand/10 hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+													>
+														{term}
+													</button>
+												))}
+											</div>
+										)}
 									</div>
 								</ExploreCommandDeck>
-							</BlurFade>
+							</div>
 							{/* Filter Chips & Result Count */}
 							<AnimatePresence>
 								{(activeFiltersCount > 0 || debouncedSearch) && !isLoading && (
@@ -1368,7 +1324,7 @@ function ExploreContent() {
 									<div className='mb-3 flex items-center gap-2'>
 										<Flame className='size-4 text-brand' />
 										<span className='text-2xs font-semibold uppercase tracking-widest text-text-muted'>
-											Trending in the Community
+											{t('trendingCommunity')}
 										</span>
 									</div>
 									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
@@ -1464,13 +1420,7 @@ function ExploreContent() {
 										debouncedSearch
 											? trendingSearches.length > 0
 												? trendingSearches.slice(0, 5)
-												: [
-														'Pasta',
-														'Quick dinner',
-														'Chicken',
-														'Healthy breakfast',
-														'Dessert',
-													]
+												: undefined
 											: undefined
 									}
 									primaryAction={

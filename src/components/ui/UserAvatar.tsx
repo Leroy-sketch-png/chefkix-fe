@@ -41,7 +41,7 @@ export function UserAvatar({
 
 	const { isOnline } = useUserOnlineStatus(activeUserId, shouldFetchPresence)
 
-	const displayName = name || user?.name || 'User'
+	const displayName = name || user?.name || t('user')
 	const initials = displayName.substring(0, 2).toUpperCase()
 	const avatarSrc = src || user?.avatarUrl
 

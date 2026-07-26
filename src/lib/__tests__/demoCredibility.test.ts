@@ -4,7 +4,39 @@ import { join } from 'node:path'
 const readWorkspaceFile = (path: string) =>
 	readFileSync(join(process.cwd(), path), 'utf8')
 
+const findTicketProofRoutes = (path: string): string[] =>
+	readdirSync(path, { withFileTypes: true }).flatMap(entry => {
+		if (!entry.isDirectory()) return []
+
+		const entryPath = join(path, entry.name)
+		return [
+			...(/^(?:__)?q\d+-proof$/i.test(entry.name) ? [entryPath] : []),
+			...findTicketProofRoutes(entryPath),
+		]
+	})
+
 describe('demo credibility guardrails', () => {
+	it('keeps ticket-named proof scaffolding out of product routes', () => {
+		expect(findTicketProofRoutes(join(process.cwd(), 'src/app'))).toEqual([])
+	})
+
+	it('keeps Explore recipe labels and narrow challenge metadata presentable', () => {
+		const messages = JSON.parse(readWorkspaceFile('messages/en.json')) as {
+			recipe: Record<string, string>
+		}
+		const challengeBanner = readWorkspaceFile(
+			'src/components/challenges/DailyChallengeBanner.tsx',
+		)
+
+		expect(messages.recipe).toMatchObject({
+			diffBeginner: 'Beginner',
+			diffIntermediate: 'Intermediate',
+			diffAdvanced: 'Advanced',
+			diffExpert: 'Expert',
+		})
+		expect(challengeBanner).toContain("className='mb-4 flex flex-wrap gap-3'")
+	})
+
 	it('keeps unsupported proof claims out of user-facing copy', () => {
 		const userFacingCopy = [
 			'messages/en.json',
@@ -122,6 +154,44 @@ describe('demo credibility guardrails', () => {
 		expect(legacyWidget).not.toContain('isDemoCockpitSession')
 	})
 
+	it('keeps high-value actions on real canonical destinations', () => {
+		const navigationCluster = [
+			'src/components/challenges/DailyChallengeBanner.tsx',
+			'src/components/settings/SettingsContextRail.tsx',
+			'src/components/dashboard/DashboardCommandDeck.tsx',
+			'src/components/layout/RightSidebar.tsx',
+			'src/components/dev/PhantomConductor.tsx',
+			'src/components/dev/DemoWidget.tsx',
+			'src/lib/demo-sequences.ts',
+			'src/app/(main)/challenges/page.tsx',
+		]
+			.map(readWorkspaceFile)
+			.join('\n')
+
+		expect(navigationCluster).not.toContain('/recipes/explore')
+		expect(navigationCluster).not.toContain('/recipes?challenge=today')
+		expect(navigationCluster).not.toContain("href='/cooking'")
+		expect(navigationCluster).not.toContain('/explore?search=')
+		expect(navigationCluster).not.toContain('/explore?difficulty=Beginner')
+		expect(navigationCluster).toContain('PATHS.EXPLORE_SEARCH')
+		expect(navigationCluster).toContain('PATHS.COOK')
+		expect(navigationCluster).toContain('challenge.matchingRecipes.length > 2')
+	})
+
+	it('owns My Groups with a static route before the dynamic group detail route', () => {
+		const myGroupsPage = readWorkspaceFile('src/app/(main)/groups/my/page.tsx')
+		const groupsGrid = readWorkspaceFile(
+			'src/components/groups/GroupsExploreGrid.tsx',
+		)
+
+		expect(myGroupsPage).toContain("source='mine'")
+		expect(groupsGrid).toContain("source === 'mine'")
+		expect(groupsGrid).toContain('await getMyGroups(undefined, pageNum, 12)')
+		expect(myGroupsPage).toContain(
+			'isHydrated && !isLoading && !isAuthenticated',
+		)
+	})
+
 	it('defines every dashboard translation used by the page cluster', () => {
 		const messages = JSON.parse(readWorkspaceFile('messages/en.json')) as {
 			dashboard: Record<string, string>
@@ -139,7 +209,9 @@ describe('demo credibility guardrails', () => {
 		const usedKeys = new Set<string>()
 
 		for (const source of dashboardSources) {
-			for (const match of source.matchAll(/\b(?:t|td)(?:\.rich)?\('([^']+)'/g)) {
+			for (const match of source.matchAll(
+				/\b(?:t|td)(?:\.rich)?\('([^']+)'/g,
+			)) {
 				usedKeys.add(match[1])
 			}
 		}

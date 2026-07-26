@@ -321,17 +321,26 @@ const XPAwardedItem = ({
 	const t = useTranslations('notifications')
 	const hasPendingXp = pendingXp > 0
 	const body = hasPendingXp ? (
-		<>
-			You earned{' '}
-			<strong className='tabular-nums font-bold text-xp'>
-				+{xpAmount.toLocaleString()} XP
-			</strong>{' '}
-			for completing{' '}
-			<span className='font-semibold text-brand'>{recipeName}</span>
-		</>
+		t.rich('xpEarnedBody', {
+			xp: xpAmount.toLocaleString(),
+			recipe: recipeName,
+			strong: chunks => (
+				<strong className='tabular-nums font-bold text-xp'>
+					{chunks}
+				</strong>
+			),
+			brand: chunks => (
+				<span className='font-semibold text-brand'>{chunks}</span>
+			),
+		})
 	) : (
 		content ||
-		`You earned +${xpAmount.toLocaleString()} XP${source ? ` for ${source.toLowerCase().replace(/_/g, ' ')}` : ''}.`
+		t('xpEarnedBodyFallback', {
+			xp: xpAmount.toLocaleString(),
+			source: source
+				? source.toLowerCase().replace(/_/g, ' ')
+				: '',
+		})
 	)
 	return (
 		<NotifWrapper isRead={isRead}>
@@ -489,8 +498,12 @@ const BadgeUnlockedItem = ({
 					className='text-bonus'
 				/>
 				<p className='text-sm'>
-					You earned{' '}
-					<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
+					{t.rich('badgeEarnedBody', {
+						badge: badgeName,
+						strong: chunks => (
+							<strong className='font-bold'>{chunks}</strong>
+						),
+					})}
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
 					<MetaTag className={cn(rarity.bg, rarity.text)}>
@@ -540,8 +553,12 @@ const BadgeSurpriseItem = ({
 					className='text-rare'
 				/>
 				<p className='text-sm'>
-					You unlocked a hidden badge:{' '}
-					<strong className='font-bold'>&quot;{badgeName}&quot;</strong>
+					{t.rich('badgeSurpriseBody', {
+						badge: badgeName,
+						strong: chunks => (
+							<strong className='font-bold'>{chunks}</strong>
+						),
+					})}
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
 					<MetaTag className='bg-rare/15 text-rare'>

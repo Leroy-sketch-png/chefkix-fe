@@ -14,7 +14,6 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
-import { MagicCard } from '@/components/ui/magic-card'
 
 interface FriendsCookingNowProps {
 	className?: string
@@ -75,8 +74,7 @@ export function FriendsCookingNow({
 	const totalActive = rooms.length + soloFriends.length
 
 	return (
-		<MagicCard
-			mode='gradient'
+		<div
 			className={cn(
 				'overflow-hidden rounded-2xl border border-border-subtle/80 bg-bg-card/75 backdrop-blur-md shadow-card p-0',
 				className,
@@ -129,7 +127,7 @@ export function FriendsCookingNow({
 
 				{!isLoading && rooms.length > 0 && (
 					<div className='mb-2 space-y-2'>
-						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
+						<p className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 							{t('friendsCookingLiveRooms')}
 						</p>
 						<AnimatePresence mode='popLayout'>
@@ -206,7 +204,7 @@ export function FriendsCookingNow({
 
 				{!isLoading && soloFriends.length > 0 && (
 					<div className='space-y-2'>
-						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
+						<p className='text-2xs font-bold uppercase tracking-wide text-text-muted'>
 							{t('friendsCookingSoloSessions')}
 						</p>
 						<AnimatePresence mode='popLayout'>
@@ -270,7 +268,7 @@ export function FriendsCookingNow({
 					</div>
 				)}
 			</div>
-		</MagicCard>
+		</div>
 	)
 }
 

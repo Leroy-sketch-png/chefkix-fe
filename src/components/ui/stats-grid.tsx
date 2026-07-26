@@ -39,8 +39,8 @@ const trendIcons = {
 }
 
 const trendColors = {
-	up: 'text-green-500',
-	down: 'text-red-400',
+	up: 'text-success',
+	down: 'text-error',
 	flat: 'text-text-muted',
 }
 
