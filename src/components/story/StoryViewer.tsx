@@ -7,43 +7,47 @@ import {
 	X,
 	ChevronLeft,
 	ChevronRight,
+	ImageOff,
 	Pause,
 	Play,
-	Volume2,
-	VolumeX,
+	RefreshCw,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getStoriesByUserId, getStoryById, recordStoryView } from '@/services/story'
-import { sendStoryReaction, sendStoryReply } from '@/services/story'
+import {
+	getStoriesByUserId,
+	getStoryById,
+	recordStoryView,
+	sendStoryReaction,
+	sendStoryReply,
+} from '@/services/story'
+import { getProfileByUserId } from '@/services/profile'
 import { StoryResponse, StoryItemDto } from '@/lib/types/story'
-import { Rnd } from 'react-rnd'
+import { getProfileDisplayName, Profile } from '@/lib/types/profile'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslations } from '@/i18n/hooks'
 import { formatDistanceToNow } from 'date-fns'
 import StoryInteractionBar from '@/components/story/StoryInteractionBar'
 import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
-import FlyingReaction from './FlyingReaction' // Đảm bảo bạn đã import component này
+import FlyingReaction from './FlyingReaction'
+import { logDevError, logDevWarn } from '@/lib/dev-log'
+import { isAxiosError } from 'axios'
 
-// 1. Định nghĩa kiểu dữ liệu cho một sticker đang bay
 export interface FlyingReactionState {
 	id: number
 	icon: React.ReactNode
-	xOffset: number // Tọa độ trục X để icon bay lên đúng vị trí nút vừa bấm
+	xOffset: number
 }
 
-// 2. Map các Reaction Type với Icon tương ứng (Thêm fill để icon có màu đặc bên trong)
 const reactionIcons: Record<string, React.ReactNode> = {
-	LOVE: <Heart className='text-pink-400' fill='currentColor' />,
-	HAHA: <Smile className='text-yellow-300' fill='currentColor' />,
-	WOW: <Zap className='text-indigo-300' fill='currentColor' />,
-	SAD: <Frown className='text-blue-300' fill='currentColor' />,
-	ANGRY: <ThumbsDown className='text-red-400' fill='currentColor' />,
+	LOVE: <Heart className='text-error' fill='currentColor' />,
+	HAHA: <Smile className='text-warning' fill='currentColor' />,
+	WOW: <Zap className='text-xp' fill='currentColor' />,
+	SAD: <Frown className='text-info' fill='currentColor' />,
+	ANGRY: <ThumbsDown className='text-error' fill='currentColor' />,
 }
 
 interface StoryViewerProps {
 	userId: string
-	authorName?: string
-	authorAvatar?: string
 	startAtStoryId?: string | null
 	onClose: () => void
 	onNextUser?: () => void
@@ -56,8 +60,6 @@ const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
 	const itemData = item.data || {}
 
 	return (
-		// Chỉ dùng thẻ div và truyền className + style.
-		// XÓA HẾT disableResizing, disableDragging, position... đi
 		<div
 			className='absolute pointer-events-none flex items-center justify-center'
 			style={{
@@ -89,8 +91,6 @@ const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
 
 export function StoryViewer({
 	userId,
-	authorName,
-	authorAvatar,
 	startAtStoryId,
 	onClose,
 	onNextUser,
@@ -99,8 +99,17 @@ export function StoryViewer({
 	const [stories, setStories] = useState<StoryResponse[]>([])
 	const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
-	const [isPaused, setIsPaused] = useState(false)
-	const [isMuted, setIsMuted] = useState(true)
+	const [loadError, setLoadError] = useState<'unavailable' | 'failed' | null>(
+		null,
+	)
+	const [loadAttempt, setLoadAttempt] = useState(0)
+	const [mediaFailed, setMediaFailed] = useState(false)
+	const [isManuallyPaused, setIsManuallyPaused] = useState(false)
+	const [isHolding, setIsHolding] = useState(false)
+	const [isComposing, setIsComposing] = useState(false)
+	const [authorProfile, setAuthorProfile] = useState<Profile | null>(null)
+	const [isAuthorLoading, setIsAuthorLoading] = useState(true)
+	const [authorLookupFailed, setAuthorLookupFailed] = useState(false)
 	const [flyingReactions, setFlyingReactions] = useState<FlyingReactionState[]>(
 		[],
 	)
@@ -109,14 +118,48 @@ export function StoryViewer({
 	const t = useTranslations('story')
 
 	const currentStory = stories[currentStoryIndex]
+	const isMe = currentUser?.userId === userId
+	const isPaused = isManuallyPaused || isHolding || isComposing
 
-	// --- COPY ĐOẠN NÀY THAY THẾ 2 HÀM CŨ ---
+	useEffect(() => {
+		let cancelled = false
+
+		if (!userId || isMe) {
+			setAuthorProfile(null)
+			setAuthorLookupFailed(false)
+			setIsAuthorLoading(false)
+			return
+		}
+
+		setAuthorProfile(null)
+		setAuthorLookupFailed(false)
+		setIsAuthorLoading(true)
+
+		getProfileByUserId(userId)
+			.then(response => {
+				if (cancelled) return
+				if (response.success && response.data) {
+					setAuthorProfile(response.data)
+					return
+				}
+				setAuthorLookupFailed(true)
+			})
+			.catch(() => {
+				if (!cancelled) setAuthorLookupFailed(true)
+			})
+			.finally(() => {
+				if (!cancelled) setIsAuthorLoading(false)
+			})
+
+		return () => {
+			cancelled = true
+		}
+	}, [isMe, userId])
+
 	const goToNextStory = useCallback(() => {
-		// Kiểm tra điều kiện ở ngoài State Updater
 		if (currentStoryIndex < stories.length - 1) {
 			setCurrentStoryIndex(currentStoryIndex + 1)
 		} else {
-			// Nếu đã hết Story thì mới gọi đóng hoặc chuyển user
 			if (onNextUser) {
 				onNextUser()
 			} else {
@@ -126,11 +169,9 @@ export function StoryViewer({
 	}, [currentStoryIndex, stories.length, onNextUser, onClose])
 
 	const goToPreviousStory = useCallback(() => {
-		// Kiểm tra điều kiện ở ngoài State Updater
 		if (currentStoryIndex > 0) {
 			setCurrentStoryIndex(currentStoryIndex - 1)
 		} else {
-			// Đang ở Story đầu tiên thì lùi user hoặc đóng
 			if (onPrevUser) {
 				onPrevUser()
 			} else {
@@ -138,10 +179,8 @@ export function StoryViewer({
 			}
 		}
 	}, [currentStoryIndex, onPrevUser, onClose])
-	// ----------------------------------------
 
 	useEffect(() => {
-		// Nếu không có thông tin gì thì đóng luôn để tránh lỗi
 		if (!userId && !startAtStoryId) {
 			onClose()
 			return
@@ -149,43 +188,29 @@ export function StoryViewer({
 
 		const fetchStoriesData = async () => {
 			setIsLoading(true)
+			setLoadError(null)
+			setMediaFailed(false)
 			setStories([])
 			setCurrentStoryIndex(0)
 
 			try {
-				let isStoryFound = false // Cờ đánh dấu đã tìm thấy Story chưa
+				let isStoryFound = false
 
-				// =========================================================
-				// ƯU TIÊN 1: LẤY THEO USER ID (Để có mảng quẹt trái/phải)
-				// =========================================================
 				if (userId) {
 					const res = await getStoriesByUserId(userId)
-
-					// 🌟 THUẬT TOÁN SĂN TÌM MẢNG (Giữ nguyên logic "vibe coding" của bạn)
-					let storyArray = null
-					if (Array.isArray(res)) {
-						storyArray = res
-					} else if (res?.data && Array.isArray(res.data)) {
-						storyArray = res.data
-					} else if (res?.data?.data && Array.isArray(res.data.data)) {
-						storyArray = res.data.data
-					}
+					const storyArray = res.data.data ?? []
 
 					if (storyArray && storyArray.length > 0) {
 						if (startAtStoryId) {
-							// Săn tìm đúng cái bài đang được reply
 							const targetIndex = storyArray.findIndex(
-								(s: any) => s.id === startAtStoryId,
+								story => story.id === startAtStoryId,
 							)
 							if (targetIndex !== -1) {
 								setStories(storyArray)
 								setCurrentStoryIndex(targetIndex)
 								isStoryFound = true
 							}
-							// Nếu targetIndex === -1 tức là bài đó đã hết hạn, ta KHÔNG setStories
-							// mà để nó trôi xuống bước Fallback bên dưới.
 						} else {
-							// Xem từ Dashboard bình thường
 							setStories(storyArray)
 							setCurrentStoryIndex(0)
 							isStoryFound = true
@@ -193,14 +218,9 @@ export function StoryViewer({
 					}
 				}
 
-				// =========================================================
-				// ƯU TIÊN 2 (FALLBACK): TÌM THEO ID LẺ
-				// (Chạy khi User hết story active HOẶC bài đó đã quá 24h)
-				// =========================================================
 				if (!isStoryFound && startAtStoryId) {
-					const res = await getStoryById(startAtStoryId) // Gọi API lấy lẻ
+					const res = await getStoryById(startAtStoryId)
 
-					// Bóc vỏ tương tự cho Object đơn
 					let singleStory = null
 					if (res?.data?.data) {
 						singleStory = res.data.data
@@ -211,29 +231,31 @@ export function StoryViewer({
 					}
 
 					if (singleStory && singleStory.id) {
-						setStories([singleStory]) // Gói vào mảng 1 phần tử
+						setStories([singleStory])
 						setCurrentStoryIndex(0)
 						isStoryFound = true
 					}
 				}
 
-				// =========================================================
-				// CHỐT HẠ: KHÔNG TÌM THẤY GÌ
-				// =========================================================
 				if (!isStoryFound) {
-					console.warn('⚠️ Story đã bị xóa hoàn toàn hoặc API lỗi.')
-					onClose()
+					logDevWarn('Story is unavailable or expired.')
+					setLoadError('unavailable')
 				}
 			} catch (err) {
-				console.error('❌ Lỗi fetch chi tiết story:', err)
-				onClose()
+				if (isAxiosError(err) && err.response?.status === 404) {
+					logDevWarn('Story is unavailable or expired.')
+					setLoadError('unavailable')
+				} else {
+					logDevError('Failed to load Story details', err)
+					setLoadError('failed')
+				}
 			} finally {
 				setIsLoading(false)
 			}
 		}
 
 		fetchStoriesData()
-	}, [userId, startAtStoryId, onClose])
+	}, [userId, startAtStoryId, loadAttempt, onClose])
 
 	useEffect(() => {
 		if (timerRef.current) {
@@ -249,18 +271,19 @@ export function StoryViewer({
 
 	useEffect(() => {
 		if (currentStory?.id) {
-			recordStoryView(currentStory.id).catch(() => {})
+			recordStoryView(currentStory.id).catch(error =>
+				logDevError('Failed to record Story view', error),
+			)
 		}
 	}, [currentStory?.id])
 
-	const handleInteractionStart = () => setIsPaused(true)
-	const handleInteractionEnd = () => setIsPaused(false)
+	const handleInteractionStart = () => setIsHolding(true)
+	const handleInteractionEnd = () => setIsHolding(false)
 
 	const handleReact = async (
-		event: React.MouseEvent<HTMLButtonElement>, // Event lên trước
-		type: string, // Type ra sau
+		event: React.MouseEvent<HTMLButtonElement>,
+		type: string,
 	) => {
-		// Kiểm tra xem event có tồn tại không để tránh crash
 		if (!event || !event.currentTarget) return
 
 		const buttonRect = event.currentTarget.getBoundingClientRect()
@@ -280,7 +303,8 @@ export function StoryViewer({
 		try {
 			await sendStoryReaction(currentStory.id, type)
 		} catch (err) {
-			console.error('Failed to send story reaction', err)
+			logDevError('Failed to send Story reaction', err)
+			toast.error(t('reactionFailed'))
 		}
 	}
 
@@ -299,19 +323,72 @@ export function StoryViewer({
 		}
 	}
 
-	if (isLoading || stories.length === 0 || !currentStory) {
+	if (isLoading) {
 		return (
-			<div className='fixed inset-0 bg-black/90 z-modal flex items-center justify-center'>
-				<div className='animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand'></div>
+			<div
+				className='fixed inset-0 z-modal flex flex-col items-center justify-center gap-4 bg-black/90 text-white'
+				role='status'
+				aria-live='polite'
+			>
+				<div
+					className='size-12 animate-spin rounded-full border-2 border-white/25 border-t-brand'
+					aria-hidden='true'
+				/>
+				<p className='text-sm font-medium'>{t('loadingStory')}</p>
 			</div>
 		)
 	}
 
-	const isMe = currentUser?.userId === userId
+	if (loadError || stories.length === 0 || !currentStory) {
+		const unavailable = loadError === 'unavailable'
+		return (
+			<div className='fixed inset-0 z-modal flex items-center justify-center bg-black px-6 text-white'>
+				<div className='flex max-w-sm flex-col items-center text-center'>
+					<div className='mb-5 flex size-14 items-center justify-center rounded-full bg-white/10'>
+						<ImageOff className='size-6' aria-hidden='true' />
+					</div>
+					<h1 className='text-xl font-semibold'>
+						{unavailable ? t('storyUnavailable') : t('storyLoadFailed')}
+					</h1>
+					<p className='mt-2 text-sm leading-6 text-white/70'>
+						{unavailable
+							? t('storyUnavailableDescription')
+							: t('storyLoadFailedDescription')}
+					</p>
+					<div className='mt-6 flex items-center gap-3'>
+						{!unavailable && (
+							<button
+								type='button'
+								onClick={() => setLoadAttempt(attempt => attempt + 1)}
+								className='inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+							>
+								<RefreshCw className='size-4' aria-hidden='true' />
+								{t('retryButton')}
+							</button>
+						)}
+						<button
+							type='button'
+							onClick={onClose}
+							className='inline-flex h-11 items-center rounded-md border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+						>
+							{t('closeButton')}
+						</button>
+					</div>
+				</div>
+			</div>
+		)
+	}
+
 	const displayAuthorName = isMe
-		? currentUser.displayName || currentUser.username
-		: authorName || t('storyAuthor')
-	const displayAuthorAvatar = isMe ? currentUser.avatarUrl : authorAvatar
+		? currentUser?.displayName || currentUser?.username || t('storyAuthor')
+		: isAuthorLoading
+			? t('authorLoading')
+			: authorLookupFailed || !authorProfile
+				? t('authorUnavailable')
+				: getProfileDisplayName(authorProfile)
+	const displayAuthorAvatar = isMe
+		? currentUser?.avatarUrl
+		: authorProfile?.avatarUrl
 
 	return (
 		<AnimatePresence>
@@ -320,26 +397,30 @@ export function StoryViewer({
 				animate={{ opacity: 1, scale: 1 }}
 				exit={{ opacity: 0, scale: 0.95 }}
 				className='fixed inset-0 bg-black/90 z-modal flex items-center justify-center p-0 md:p-4'
-				onMouseDown={handleInteractionStart}
-				onMouseUp={handleInteractionEnd}
-				onTouchStart={handleInteractionStart}
-				onTouchEnd={handleInteractionEnd}
+				onPointerDown={handleInteractionStart}
+				onPointerUp={handleInteractionEnd}
+				onPointerCancel={handleInteractionEnd}
+				onPointerLeave={handleInteractionEnd}
 			>
 				<div className='relative w-full h-full md:max-w-md md:h-[80vh] bg-neutral-900 md:rounded-xl shadow-2xl overflow-hidden mx-auto'>
-					{/* Story background image */}
-					{currentStory.mediaUrl && (
+					{currentStory.mediaUrl && !mediaFailed ? (
 						<div className='absolute inset-0 overflow-hidden bg-black flex items-center justify-center'>
 							<img
 								src={currentStory.mediaUrl}
-								alt='Story media'
+								alt={t('storyMediaAlt')}
+								onError={() => setMediaFailed(true)}
 								className='w-full h-full object-cover pointer-events-none'
 								style={{
-									// Áp dụng thông số từ DB, mặc định scale 1 và rotate 0 nếu rỗng
 									transform: `scale(${currentStory.imageScale || 1}) rotate(${currentStory.imageRotation || 0}deg)`,
-									transformOrigin: 'center center', // Xoay từ tâm ảnh
-									transition: 'transform 0.3s ease', // Làm mượt lúc mới load
+									transformOrigin: 'center center',
+									transition: 'transform 0.3s ease',
 								}}
 							/>
+						</div>
+					) : (
+						<div className='absolute inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-900 px-8 text-center text-white'>
+							<ImageOff className='size-10 text-white/65' aria-hidden='true' />
+							<p className='text-sm font-medium'>{t('storyMediaUnavailable')}</p>
 						</div>
 					)}
 
@@ -350,7 +431,6 @@ export function StoryViewer({
 						<div className='w-[70%] h-full' />
 					</div>
 
-					{/* Header: Thanh Progress Bar */}
 					<div className='absolute top-0 left-0 right-0 p-4 z-10 pointer-events-none'>
 						<div className='flex gap-1 mb-3'>
 							{stories.map((_, index) => {
@@ -363,20 +443,13 @@ export function StoryViewer({
 										className='flex-1 bg-white/30 rounded-full h-1 overflow-hidden'
 									>
 										<div
-											// KEY ĐỘNG LÀ BẮT BUỘC: Ép React vẽ lại thanh mới khi chuyển Story
 											key={`progress-${index}-${isActive ? 'playing' : 'stopped'}`}
-											// Chỉ thêm class animation khi thanh này đang active
 											className={`bg-white h-full rounded-full ${isActive ? 'animate-story-progress' : ''}`}
 											style={{
-												// Nếu là story cũ -> full 100%. Nếu là story chưa tới -> 0%.
 												width: isPast ? '100%' : '0%',
-
-												// Thời gian chạy (vd: 5000ms)
 												animationDuration: isActive
 													? `${STORY_DURATION}ms`
 													: '0s',
-
-												// CHÌA KHÓA PAUSE: Khi isPaused = true, CSS sẽ "đóng băng" thanh chạy tại chỗ
 												animationPlayState: isPaused ? 'paused' : 'running',
 											}}
 										/>
@@ -404,24 +477,29 @@ export function StoryViewer({
 									</p>
 								</div>
 							</div>
-							<div className='flex items-center gap-2'>
+							<div className='pointer-events-auto flex items-center gap-1'>
 								<button
-									onClick={() => setIsPaused(!isPaused)}
-									className='text-white/80 hover:text-white'
-									title={isPaused ? t('playButton') : t('pauseButton')}
+									type='button'
+									onClick={() => setIsManuallyPaused(paused => !paused)}
+									className='inline-flex size-10 items-center justify-center rounded-full bg-black/35 text-white/80 hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+									aria-label={
+										isManuallyPaused ? t('playButton') : t('pauseButton')
+									}
+									title={
+										isManuallyPaused ? t('playButton') : t('pauseButton')
+									}
 								>
-									{isPaused ? <Play size={20} /> : <Pause size={20} />}
+									{isManuallyPaused ? (
+										<Play size={20} />
+									) : (
+										<Pause size={20} />
+									)}
 								</button>
 								<button
-									onClick={() => setIsMuted(!isMuted)}
-									className='text-white/80 hover:text-white'
-									title={isMuted ? t('unmuteButton') : t('muteButton')}
-								>
-									{isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-								</button>
-								<button
+									type='button'
 									onClick={onClose}
-									className='text-white/80 hover:text-white'
+									className='inline-flex size-10 items-center justify-center rounded-full bg-black/35 text-white/80 hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+									aria-label={t('closeButton')}
 									title={t('closeButton')}
 								>
 									<X size={24} />
@@ -431,7 +509,6 @@ export function StoryViewer({
 					</div>
 
 					<div className='absolute inset-0'>
-						{/* 🌟 ĐÃ SỬA: Sửa key={item.} thành key={index} để không còn lỗi syntax */}
 						{(currentStory.items || []).map((item, index) => (
 							<StoryItemContent key={index} item={item} />
 						))}
@@ -449,38 +526,37 @@ export function StoryViewer({
 						))}
 					</div>
 
-					{isMe ? (
-						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
-							{/* Own story controls placeholder (Sau này bạn có thể thêm nút "Xóa" hoặc "Người đã xem" ở đây) */}
-						</div>
-					) : (
+					{!isMe && (
 						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
 							<StoryInteractionBar
 								onReact={handleReact}
+								onComposingChange={setIsComposing}
 								onReply={async (content: string) => {
 									try {
-										// Đảm bảo truyền đúng tham số
 										await sendStoryReply(currentStory.id, content)
 										toast.success(t('replyPrompt'))
 									} catch (err) {
-										console.error('Failed to send story reply', err)
+										logDevError('Failed to send Story reply', err)
+										throw err
 									}
 								}}
 							/>
 						</div>
 					)}
-				</div>{' '}
-				{/* Đóng thẻ div chứa nội dung Story */}
-				{/* Các nút Next/Prev (Giữ nguyên của bạn) */}
+				</div>
 				<button
+					type='button'
 					onClick={goToPreviousStory}
-					className='absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/30 rounded-full p-2 hidden md:block'
+					className='absolute left-4 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white/80 hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white md:inline-flex'
+					aria-label={t('previousStory')}
 				>
 					<ChevronLeft size={32} />
 				</button>
 				<button
+					type='button'
 					onClick={goToNextStory}
-					className='absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/30 rounded-full p-2 hidden md:block'
+					className='absolute right-4 top-1/2 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/35 text-white/80 hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white md:inline-flex'
+					aria-label={t('nextStory')}
 				>
 					<ChevronRight size={32} />
 				</button>

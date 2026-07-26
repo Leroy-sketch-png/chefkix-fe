@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { UserStoryFeedResponse } from '@/lib/types/story'
 import { cn } from '@/lib/utils'
 
@@ -15,12 +16,13 @@ export const StoryAvatar = ({
 	isAddButton = false,
 	isCurrentUser = false,
 }: StoryAvatarProps) => {
+	const t = useTranslations('story')
 	const hasUnseen = user.hasUnseenStory
 	const label = isAddButton
-		? 'Add Story'
+		? t('addStory')
 		: isCurrentUser
-			? 'Your Story'
-			: user.displayName || 'User'
+			? t('yourStory')
+			: user.displayName || t('user')
 
 	return (
 		<div className='flex w-20 flex-col items-center gap-2'>
@@ -38,7 +40,7 @@ export const StoryAvatar = ({
 					<div className='h-full w-full rounded-full bg-white p-0.5'>
 						<img
 							src={user.avatarUrl || '/placeholder-avatar.svg'}
-							alt={user.displayName || 'Avatar'}
+							alt={user.displayName || t('avatarAlt')}
 							className='h-full w-full rounded-full object-cover'
 						/>
 					</div>

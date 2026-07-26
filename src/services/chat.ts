@@ -8,7 +8,7 @@ import { logDevError } from '@/lib/dev-log'
 // TYPES - Based on implemented_spec/09-chat.txt
 // ============================================
 
-export type MessageType = 'TEXT' | 'POST_SHARE'
+export type MessageType = 'TEXT' | 'POST_SHARE' | 'STORY_REPLY'
 
 export interface ChatParticipant {
 	userId: string
@@ -60,6 +60,7 @@ export interface ChatMessage {
 	// POST_SHARE fields
 	type?: MessageType
 	relatedId?: string // postId for POST_SHARE (as your backend uses)
+	storyOwnerId?: string
 	sharedPostImage?: string // legacy snapshot
 	sharedPostTitle?: string // legacy snapshot
 
@@ -372,6 +373,7 @@ export const mapChatMessageToMessage = (
 	isOwn: boolean
 	type?: MessageType
 	relatedId?: string
+	storyOwnerId?: string
 	sharedPostImage?: string
 	sharedPostTitle?: string
 	sharedPost?: SharedPostSnapshot
@@ -421,6 +423,7 @@ export const mapChatMessageToMessage = (
 		isOwn: backendMsg.me,
 		type: backendMsg.type || 'TEXT',
 		relatedId: backendMsg.relatedId,
+		storyOwnerId: backendMsg.storyOwnerId,
 		sharedPostImage: backendMsg.sharedPostImage,
 		sharedPostTitle: backendMsg.sharedPostTitle,
 		sharedPost,

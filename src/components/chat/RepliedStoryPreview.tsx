@@ -1,51 +1,64 @@
-import React from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 interface Props {
 	storyId: string
-	storyOwnerId?: string // Thêm cái này nếu bạn đang dùng logic truyền cả 2 ID
+	storyOwnerId?: string
 	thumbnailUrl?: string
-	title?: string
+	isOwn: boolean
 }
 
 export default function RepliedStoryPreview({
 	storyId,
 	storyOwnerId,
 	thumbnailUrl,
-	title,
+	isOwn,
 }: Props) {
+	const messages = useTranslations('messages')
+	const story = useTranslations('story')
+
 	if (!thumbnailUrl || !storyId) return null
 
-	// Tạo href linh hoạt: Có ownerId thì truyền cả hai, không thì truyền một
-	const linkHref = `/story/view/${storyOwnerId}?startAt=${storyId}`
+	const title = messages(isOwn ? 'storyReplyOwn' : 'storyReplyReceived')
+	const preview = (
+		<>
+			<div className='relative h-16 w-10 flex-shrink-0 overflow-hidden rounded-md border border-border-subtle'>
+				<img
+					src={thumbnailUrl}
+					alt={story('storyMediaAlt')}
+					className='h-full w-full object-cover'
+				/>
+			</div>
+
+			<div className='flex min-w-0 flex-col pr-2'>
+				<span className='text-caption font-medium leading-tight text-text-primary'>
+					{title}
+				</span>
+				<span className='mt-1 text-2xs text-text-muted'>
+					{storyOwnerId
+						? messages('tapToView')
+						: messages('storyReplyUnavailable')}
+				</span>
+			</div>
+		</>
+	)
+
+	const className =
+		'mb-1 flex w-fit max-w-xs items-center gap-3 rounded-lg border border-border-subtle bg-bg-elevated p-2 shadow-card'
+
+	if (!storyOwnerId) {
+		return <div className={className}>{preview}</div>
+	}
+
+	const linkHref = `/story/view/${encodeURIComponent(storyOwnerId)}?startAt=${encodeURIComponent(storyId)}`
 
 	return (
 		<Link
-			href={linkHref} // ✅ SỬA LẠI THÀNH DÒNG NÀY
-			className='group block w-fit mb-1 transition-transform active:scale-95'
+			href={linkHref}
+			aria-label={`${title}. ${messages('tapToView')}`}
+			className={`${className} transition-colors hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand active:scale-[0.98]`}
 		>
-			<div className='relative flex items-center gap-3 p-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-black/5 dark:border-white/10 shadow-card'>
-				{/* Thumbnail Story - Tỷ lệ đứng 9:16 */}
-				<div className='relative w-10 h-16 flex-shrink-0 overflow-hidden rounded-xl border border-black/5'>
-					<img
-						src={thumbnailUrl}
-						alt='story thumb'
-						className='w-full h-full object-cover group-hover:scale-110 transition-transform duration-300'
-					/>
-				</div>
-
-				<div className='flex flex-col pr-2'>
-					<span className='text-caption font-medium text-neutral-900 dark:text-neutral-100 leading-tight'>
-						{title || 'Đã phản hồi tin của bạn'}
-					</span>
-					<span className='text-2xs text-neutral-500 dark:text-neutral-400 mt-1'>
-						Xem tin →
-					</span>
-				</div>
-
-				{/* Hiệu ứng overlay khi hover */}
-				<div className='absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors' />
-			</div>
+			{preview}
 		</Link>
 	)
 }

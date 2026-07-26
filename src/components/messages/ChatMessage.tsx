@@ -35,10 +35,6 @@ import {
 	LIST_ITEM_TAP,
 } from '@/lib/motion'
 
-// =============================================================================
-// TYPES
-// =============================================================================
-
 export interface Message {
 	id: string
 	senderId: string
@@ -56,8 +52,9 @@ export interface Message {
 		count: number
 		userReacted: boolean
 	}[]
-	type?: 'TEXT' | 'POST_SHARE'
+	type?: 'TEXT' | 'POST_SHARE' | 'STORY_REPLY'
 	relatedId?: string
+	storyOwnerId?: string
 	sharedPostImage?: string
 	sharedPostTitle?: string
 }
@@ -113,10 +110,6 @@ function ChatMessageErrorFallback({
 	)
 }
 
-// =============================================================================
-// HELPERS
-// =============================================================================
-
 const formatTime = (date: Date): string => {
 	return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
@@ -149,10 +142,6 @@ const QUICK_REACTIONS = [
 	{ emoji: '😢', label: 'sad' },
 	{ emoji: '🙏', label: 'thanks' },
 ]
-
-// =============================================================================
-// REACTION PICKER
-// =============================================================================
 
 interface ReactionPickerProps {
 	isOwn: boolean
@@ -190,10 +179,6 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 		</motion.div>
 	)
 }
-
-// =============================================================================
-// MESSAGE ACTIONS
-// =============================================================================
 
 interface MessageActionsProps {
 	isOwn: boolean
@@ -271,10 +256,6 @@ const MessageActions = ({
 		</motion.div>
 	)
 }
-
-// =============================================================================
-// CHAT MESSAGE (MAIN EXPORT)
-// =============================================================================
 
 const ChatMessageContent = ({
 	message,
@@ -491,24 +472,23 @@ const ChatMessageContent = ({
 								</motion.div>
 							</Link>
 						) : (
-							// TEXT: Enhanced bubble (Tích hợp Story Preview)
 							<div
 								className={cn(
-									'flex flex-col gap-0.5', // gap nhỏ để story và tin nhắn nhìn như một khối
+									'flex flex-col gap-0.5',
 									message.isOwn ? 'items-end' : 'items-start',
 								)}
 							>
-								{/* Story Preview Area */}
-								{message.sharedPostImage && message.relatedId && (
-									<RepliedStoryPreview
-										storyId={message.relatedId}
-										thumbnailUrl={message.sharedPostImage}
-										// Logic title: Ưu tiên title từ BE, nếu không có thì mới tự gen
-										title={message.sharedPostTitle}
-									/>
-								)}
+								{message.type === 'STORY_REPLY' &&
+									message.sharedPostImage &&
+									message.relatedId && (
+										<RepliedStoryPreview
+											storyId={message.relatedId}
+											storyOwnerId={message.storyOwnerId}
+											thumbnailUrl={message.sharedPostImage}
+											isOwn={message.isOwn}
+										/>
+									)}
 
-								{/* Bong bóng tin nhắn Text */}
 								<motion.div
 									initial={{ scale: 0.9, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
@@ -617,10 +597,6 @@ export const ChatMessage = (props: ChatMessageProps) => (
 	</ErrorBoundary>
 )
 
-// =============================================================================
-// TYPING INDICATOR
-// =============================================================================
-
 interface TypingIndicatorProps {
 	senderAvatar?: string
 	senderName?: string
@@ -677,10 +653,6 @@ export const TypingIndicator = ({
 		</motion.div>
 	)
 }
-
-// =============================================================================
-// DATE DIVIDER
-// =============================================================================
 
 interface DateDividerProps {
 	date: Date

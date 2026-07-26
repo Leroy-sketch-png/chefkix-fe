@@ -1,12 +1,12 @@
 'use client'
 
-import { use } from 'react'
+import { use, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { StoryViewer } from '@/components/story/StoryViewer'
 
 interface ViewStoryPageProps {
 	params: Promise<{ userId: string }>
-	searchParams: Promise<{ name?: string; avatar?: string }> // 🌟 Khai báo thêm searchParams
+	searchParams: Promise<{ startAt?: string | string[] }>
 }
 
 export default function ViewStoryPage({
@@ -14,18 +14,17 @@ export default function ViewStoryPage({
 	searchParams,
 }: ViewStoryPageProps) {
 	const router = useRouter()
-
-	// 🌟 Bóc vỏ an toàn bằng React.use() cho Next.js 15
 	const { userId } = use(params)
-	const { name, avatar } = use(searchParams)
+	const { startAt } = use(searchParams)
+	const startAtStoryId = Array.isArray(startAt) ? startAt[0] : startAt
+	const handleClose = useCallback(() => router.push('/'), [router])
 
 	return (
 		<div className='fixed inset-0 z-modal bg-black'>
 			<StoryViewer
 				userId={userId}
-				authorName={name} // 🌟 Chuyền vào cho Viewer
-				authorAvatar={avatar} // 🌟 Chuyền vào cho Viewer
-				onClose={() => router.push('/')}
+				startAtStoryId={startAtStoryId || null}
+				onClose={handleClose}
 			/>
 		</div>
 	)

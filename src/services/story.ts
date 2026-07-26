@@ -30,9 +30,7 @@ export const getStoriesByUserId = async (userId: string) => {
 	)
 }
 
-// Trong file services/story.ts
 export const getStoryById = async (storyId: string) => {
-	// Đảm bảo BASE_URL khớp với cấu hình của bạn
 	return await api.get<ApiResponse<StoryResponse>>(`/api/v1/stories/${storyId}`)
 }
 
@@ -45,18 +43,11 @@ export const sendStoryReaction = async (
 	)
 }
 
-/**
- * Gửi tin nhắn trả lời Story (Khớp với @PostMapping("/{storyId}/replies"))
- * Lưu ý: Backend dùng @RequestBody StoryReplyRequest
- */
 export const sendStoryReply = (storyId: string, text: string) => {
-	// Truyền storyId qua URL và text qua Body
 	return api.post(`/api/v1/stories/${storyId}/replies`, { text })
 }
 
-/**
- * Ghi nhận lượt xem Story (Khớp với @PostMapping("/{storyId}/views"))
- */
+/** Record a Story view */
 export const recordStoryView = async (storyId: string) => {
 	return await api.post<ApiResponse<string>>(
 		`${API_ENDPOINTS.STORIES.BASE}/${storyId}/views`,

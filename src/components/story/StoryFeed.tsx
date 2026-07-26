@@ -139,7 +139,7 @@ export const StoryFeed = ({
 
 	const addStoryData: UserStoryFeedResponse = {
 		userId: currentUser?.userId || 'add-btn',
-		displayName: 'Add Story',
+		displayName: t('addStory'),
 		avatarUrl: currentUser?.avatarUrl || '/placeholder-avatar.svg',
 		hasUnseenStory: false,
 	}

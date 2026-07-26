@@ -1,13 +1,10 @@
-// ============================================================================
-// 1. DTO DÙNG ĐỂ TẠO STORY (Khớp với StoryCreateRequest.java)
-// ============================================================================
 export interface StoryCreateRequest {
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
-	imageScale?: number // Thêm trường này
+	imageScale?: number
 	imageRotation?: number
 	linkedRecipeId?: string
-	items: StoryOverlayItem[] // Danh sách text, stickers...
+	items: StoryOverlayItem[]
 }
 
 export interface StoryOverlayItem {
@@ -16,18 +13,15 @@ export interface StoryOverlayItem {
 	y: number
 	rotation: number
 	scale: number
-	data: Record<string, any> // Khớp với Map<String, Object> ở Backend
+	data: Record<string, any>
 }
 
-// ============================================================================
-// 2. ENTITIES DÙNG ĐỂ HIỂN THỊ (Khớp với Database/Response Backend trả về)
-// ============================================================================
 export interface Story {
 	id: string
 	userId: string
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
-	imageScale?: number // Thêm trường này
+	imageScale?: number
 	imageRotation?: number
 	createdAt: string
 	expiresAt: string
@@ -48,7 +42,7 @@ export interface StoryResponse {
 	userId: string
 	mediaUrl: string
 	mediaType: 'IMAGE' | 'VIDEO'
-	imageScale?: number // Thêm trường này
+	imageScale?: number
 	imageRotation?: number
 	linkedRecipeId?: string
 	items: StoryItemDto[]
@@ -65,17 +59,14 @@ export enum ReactionType {
 	ANGRY = 'ANGRY',
 }
 
-// Request body when sending a reaction to a story
 export interface StoryReactionRequest {
 	storyId: string
 	reactionType: ReactionType | string
 }
 
-// Request body when sending a reply (message) to a story
 export interface StoryReplyRequest {
 	storyId: string
 	text: string
-	// Optional: id of message being replied to or metadata
 	replyToMessageId?: string
 }
 

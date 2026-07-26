@@ -23,6 +23,7 @@ import { createStory } from '@/services/story'
 import { api } from '@/lib/axios'
 import { useTranslations } from '@/i18n/hooks'
 import { STORY_IMAGE_ACCEPT, validateStoryImage } from '@/lib/story-media'
+import { logDevError } from '@/lib/dev-log'
 
 interface StoryItem {
 	id: string
@@ -32,11 +33,9 @@ interface StoryItem {
 	width: number | string
 	height: number | string
 
-	// --- 3 BIẾN MỚI THÊM VÀO ---
 	baseWidth?: number
 	baseHeight?: number
 	scale?: number
-	// ---------------------------
 
 	rotation: number
 	data: Record<string, any>
@@ -199,8 +198,7 @@ export function StoryCreator() {
 
 		setIsLoading(true)
 		try {
-			// 1. Chờ upload toàn bộ ảnh sticker lên Cloudinary (Nếu có)
-			// 1. Chờ upload toàn bộ ảnh sticker lên Cloudinary (Nếu có)
+		// Wait for all sticker images to upload to Cloudinary
 			const processedItems = await Promise.all(
 				items.map(async item => {
 					let finalImageUrl = item.data?.imageUrl
@@ -214,7 +212,7 @@ export function StoryCreator() {
 						x: item.x,
 						y: item.y,
 						rotation: item.rotation || 0,
-						// LẤY SCALE, WIDTH, HEIGHT TỪ ITEM, KHÔNG PHẢI ITEM.DATA
+						// Get scale, width, height from item, not item.data
 						scale: item.scale || 1,
 						data: {
 							...(item.data || {}),
@@ -226,15 +224,15 @@ export function StoryCreator() {
 				}),
 			)
 
-			// 2. Đóng gói FormData
+			// Package FormData
 			const formData = new FormData()
 			formData.append('file', mediaFile)
 
 			const storyMetadata = {
 				mediaType: 'IMAGE',
 				linkedRecipeId: null,
-				imageScale: imageScale, // Gửi tỷ lệ của ảnh nền
-				imageRotation: imageRotation, // Gửi góc xoay của ảnh nền
+				imageScale: imageScale,
+				imageRotation: imageRotation,
 				items: processedItems,
 			}
 
@@ -245,7 +243,7 @@ export function StoryCreator() {
 				}),
 			)
 
-			// 3. Gửi lên Backend
+			// Send to Backend
 			const response = await api.post('/api/v1/stories', formData, {
 				headers: { 'Content-Type': 'multipart/form-data' },
 			})
@@ -256,7 +254,7 @@ export function StoryCreator() {
 				router.push('/dashboard')
 			}
 		} catch (e: any) {
-			console.error('Story publish error:', e)
+			logDevError('Story publish error:', e)
 			toast.error(e.response?.data?.message || t('errorMessage'))
 		} finally {
 			setIsLoading(false)
@@ -265,14 +263,14 @@ export function StoryCreator() {
 
 	return (
 		<div className='flex h-screen bg-bg text-text-primary font-sans overflow-hidden'>
-			{/* CỘT TRÁI: Thanh Sidebar điều khiển */}
+			{/* Left column: control sidebar */}
 			<div className='w-drawer bg-bg-card border-r border-border flex flex-col z-10 shadow-2xl'>
 				<div className='flex items-center gap-3 p-4 border-b border-border'>
 					<Button
 						variant='ghost'
 						size='icon'
 						onClick={() => router.back()}
-						className='rounded-full hover:bg-bg-hover text-white'
+						className='rounded-full hover:bg-bg-hover text-text-secondary'
 					>
 						<X className='w-5 h-5' />
 					</Button>
@@ -280,7 +278,7 @@ export function StoryCreator() {
 				</div>
 
 				<div className='flex-1 overflow-y-auto p-4 space-y-6'>
-					{/* Khu vực Upload Ảnh Nền */}
+					{/* Background image upload area */}
 					<div className='space-y-3'>
 						<h3 className='text-label font-semibold text-text-secondary'>
 							{t('backgroundMediaLabel')}
@@ -343,7 +341,7 @@ export function StoryCreator() {
 						</div>
 					)}
 
-					{/* Khu vực Thêm Sticker / Text */}
+					{/* Sticker / text add area */}
 					<div className='space-y-3'>
 						<h3 className='text-label font-semibold text-text-secondary'>
 							{t('addDetailsSection')}
@@ -407,7 +405,7 @@ export function StoryCreator() {
 					</div>
 				</div>
 
-				{/* Nút Đăng Story */}
+				{/* Publish story button */}
 				<div className='p-4 border-t border-border bg-bg-card'>
 					<Button
 						onClick={handleSubmit}
@@ -419,7 +417,7 @@ export function StoryCreator() {
 				</div>
 			</div>
 
-			{/* CỘT PHẢI: Canvas Review */}
+			{/* Right column: canvas preview */}
 			<div className='flex-1 flex items-center justify-center bg-bg p-8 relative'>
 				<div className='relative w-full max-w-sm aspect-[9/16] bg-black rounded-xl shadow-md overflow-hidden border border-border'>
 					{/* Story background image */}
@@ -439,7 +437,7 @@ export function StoryCreator() {
 						</div>
 					)}
 
-					{/* Lớp Layer Items (Text, Stickers) */}
+					{/* Overlay layer items (text, stickers) */}
 					{items.map(item => (
 						<Rnd
 							key={item.id}
