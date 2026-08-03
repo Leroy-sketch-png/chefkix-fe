@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
+import { safeRecipeImageSrc } from '@/lib/imageSafety'
 
 interface ImageCarouselProps {
 	images: string[]
@@ -43,14 +44,11 @@ export function ImageCarousel({
 	onImageError,
 }: ImageCarouselProps) {
 	const t = useTranslations('common')
-	const normalizedImages = images.map(image =>
-		/^https?:\/\/(?:images|plus)\.unsplash\.com/i.test(image)
-			? '/placeholder-recipe.svg'
-			: image,
-	)
+	const normalizedImages = images.map(safeRecipeImageSrc)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [direction, setDirection] = useState(0)
 	const [failedIndices, setFailedIndices] = useState<number[]>([])
+	const [loadedIndices, setLoadedIndices] = useState<number[]>([])
 	const containerRef = useRef<HTMLDivElement>(null)
 	const imageSetKey = normalizedImages.join('||')
 
@@ -66,8 +64,8 @@ export function ImageCarousel({
 			Math.min(prev, Math.max(normalizedImages.length - 1, 0)),
 		)
 		setFailedIndices([])
+		setLoadedIndices([])
 	}, [imageSetKey, normalizedImages.length])
-	const [loadedIndices, setLoadedIndices] = useState<number[]>([])
 	const currentImageIsLoading =
 		!loadedIndices.includes(currentIndex) &&
 		!failedIndices.includes(currentIndex)

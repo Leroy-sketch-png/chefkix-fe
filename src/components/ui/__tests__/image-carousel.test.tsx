@@ -60,6 +60,39 @@ jest.mock('next/image', () => ({
 }))
 
 describe('ImageCarousel', () => {
+	const validUnsplashImage =
+		'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=160&q=60'
+	const knownBrokenUnsplashImage =
+		'https://images.unsplash.com/photo-1482049016530-d79f7d5e8c6e?w=160'
+
+	it('preserves valid remote food images and preflights only known-broken sources', () => {
+		const { rerender } = render(
+			<ImageCarousel
+				images={[validUnsplashImage]}
+				alt='Dish'
+				showControls={false}
+				showIndicators={false}
+			/>,
+		)
+
+		expect(
+			screen.getByRole('img', { name: 'Dish 1 of 1' }).getAttribute('src'),
+		).toBe(validUnsplashImage)
+
+		rerender(
+			<ImageCarousel
+				images={[knownBrokenUnsplashImage]}
+				alt='Dish'
+				showControls={false}
+				showIndicators={false}
+			/>,
+		)
+
+		expect(
+			screen.getByRole('img', { name: 'Dish 1 of 1' }).getAttribute('src'),
+		).toBe('/placeholder-recipe.svg')
+	})
+
 	it('renders a fallback frame when the current image fails to load', () => {
 		render(
 			<ImageCarousel
@@ -77,5 +110,35 @@ describe('ImageCarousel', () => {
 
 		const fallback = screen.getByRole('img', { name: 'Dish 1 of 1' })
 		expect(fallback.tagName).toBe('DIV')
+	})
+
+	it('restores loading feedback when the image changes at the same index', () => {
+		const { container, rerender } = render(
+			<ImageCarousel
+				images={['https://example.com/first.jpg']}
+				alt='Dish'
+				showControls={false}
+				showIndicators={false}
+			/>,
+		)
+		const firstImage = screen.getByRole('img', { name: 'Dish 1 of 1' })
+
+		expect(container.querySelector('.animate-pulse')).not.toBeNull()
+		fireEvent.load(firstImage)
+		expect(container.querySelector('.animate-pulse')).toBeNull()
+
+		rerender(
+			<ImageCarousel
+				images={['https://example.com/second.jpg']}
+				alt='Dish'
+				showControls={false}
+				showIndicators={false}
+			/>,
+		)
+
+		expect(
+			screen.getByRole('img', { name: 'Dish 1 of 1' }).getAttribute('src'),
+		).toBe('https://example.com/second.jpg')
+		expect(container.querySelector('.animate-pulse')).not.toBeNull()
 	})
 })
