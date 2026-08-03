@@ -5,6 +5,7 @@ import { PATHS } from './paths'
 // Use exact paths for static routes and prefix patterns for dynamic ones.
 export const PUBLIC_ROUTES = [
 	PATHS.HOME,
+	PATHS.JOIN,
 	PATHS.AUTH.SIGN_IN,
 	PATHS.AUTH.SIGN_UP,
 	PATHS.AUTH.VERIFY_OTP,
@@ -84,6 +85,7 @@ const KNOWN_ROUTE_SEGMENTS = new Set([
 	'feed',
 	'friends',
 	'groups',
+	'join',
 	'leaderboard',
 	'meal-planner',
 	'messages',

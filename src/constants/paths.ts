@@ -1,5 +1,6 @@
 export const PATHS = {
 	HOME: '/',
+	JOIN: '/join',
 	DASHBOARD: '/dashboard',
 	EXPLORE: '/explore',
 	EXPLORE_SEARCH: (query: string) => {

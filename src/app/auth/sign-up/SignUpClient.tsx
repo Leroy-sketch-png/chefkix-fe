@@ -6,14 +6,24 @@ import { motion } from 'framer-motion'
 import { SignUpForm } from '@/components/auth/SignUpForm'
 import { useTranslations } from '@/i18n/hooks'
 import { staggerContainer, staggerItem } from '@/lib/motion'
-import { ChefHat, Sparkles, ArrowLeft, Compass, Users } from 'lucide-react'
+import {
+	ChefHat,
+	Sparkles,
+	ArrowLeft,
+	Compass,
+	Gift,
+	Users,
+} from 'lucide-react'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { getGuestBrowseHref, PATHS } from '@/constants'
+import { getReferralCodeFromRedeemPath } from '@/lib/referral-intent'
 
 const SignUpPage = () => {
 	const t = useTranslations('auth')
+	const referralT = useTranslations('referral')
 	const searchParams = useSearchParams()
 	const returnTo = searchParams.get('returnTo')
+	const referralCode = getReferralCodeFromRedeemPath(returnTo)
 	const guestExploreHref = getGuestBrowseHref(returnTo)
 	return (
 		<AuthLayout className='px-4 py-8 sm:py-8'>
@@ -85,6 +95,15 @@ const SignUpPage = () => {
 								<p className='text-sm text-text-secondary'>
 									{t('signUpPageSubtitle')}
 								</p>
+								{referralCode && (
+									<p
+										className='flex items-center justify-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success sm:justify-start'
+										role='status'
+									>
+										<Gift className='size-4 shrink-0' />
+										{referralT('inviteSignupReady', { code: referralCode })}
+									</p>
+								)}
 							</div>
 						</div>
 

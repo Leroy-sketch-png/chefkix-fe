@@ -10,6 +10,11 @@ describe('auth route policy', () => {
 		expect(isPublicRoutePath(PATHS.COOK)).toBe(true)
 	})
 
+	it('treats the referral intake as an explicit public route', () => {
+		expect(isPublicRoutePath(PATHS.JOIN)).toBe(true)
+		expect(shouldRedirectExpiredSession(PATHS.JOIN)).toBe(false)
+	})
+
 	it('preserves /cook as a valid guest return target', () => {
 		expect(getGuestBrowseHref(PATHS.COOK)).toBe(PATHS.COOK)
 	})
