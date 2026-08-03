@@ -59,7 +59,6 @@ import type {
 import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { relativeTime } from '@/lib/relative-time'
 import {
 	PremiumSurface,
@@ -113,8 +112,6 @@ export default function ShoppingListsPage() {
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
-	// Onboarding hints
-	useOnboardingOrchestrator({ delay: 1000, condition: !isLoading })
 	const t = useTranslations('shoppingLists')
 	const tc = useTranslations('common')
 

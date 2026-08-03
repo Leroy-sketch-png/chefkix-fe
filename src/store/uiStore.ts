@@ -7,7 +7,31 @@ import type { AuthAction } from '@/components/auth/AuthRequiredModal'
 // - 'mini': Minimal bar (mobile/collapsed)
 // - 'docked': Side panel (desktop, replaces RightSidebar)
 // - 'expanded': Full modal view (for detailed step view or mobile)
-type CookingMode = 'hidden' | 'mini' | 'docked' | 'expanded'
+export type CookingMode = 'hidden' | 'mini' | 'docked' | 'expanded'
+
+interface CookingVisibilityContext {
+	isPreviewMode: boolean
+	session: { status?: string } | null
+	recipe: unknown | null
+}
+
+export function resolveCookingCloseMode({
+	isPreviewMode,
+	session,
+	recipe,
+}: CookingVisibilityContext): CookingMode {
+	if (isPreviewMode || !session || !recipe || !session.status) return 'hidden'
+	return session.status === 'in_progress' || session.status === 'paused'
+		? 'mini'
+		: 'hidden'
+}
+
+function resolveCurrentCookingCloseMode(): CookingMode {
+	const cookingState = useCookingStore.getState()
+	const mode = resolveCookingCloseMode(cookingState)
+	if (cookingState.isPreviewMode) cookingState.exitPreview()
+	return mode
+}
 
 interface UiState {
 	// Auth gate modal (global singleton)
@@ -56,14 +80,16 @@ export const useUiStore = create<UiState>(set => ({
 	toggleCookingPlayer: () =>
 		set(state => ({
 			isCookingPlayerOpen: !state.isCookingPlayerOpen,
-			cookingMode: state.isCookingPlayerOpen ? 'hidden' : 'expanded',
+			cookingMode: state.isCookingPlayerOpen
+				? resolveCurrentCookingCloseMode()
+				: 'expanded',
 		})),
 
 	// New cooking mode system
 	cookingMode: 'hidden',
 	setCookingMode: (mode: CookingMode) =>
 		set({
-			cookingMode: mode,
+			cookingMode: mode === 'hidden' ? resolveCurrentCookingCloseMode() : mode,
 			isCookingPlayerOpen: mode === 'expanded',
 		}),
 	openCookingPanel: () =>
@@ -72,26 +98,16 @@ export const useUiStore = create<UiState>(set => ({
 			isCookingPlayerOpen: false, // Docked, not fullscreen
 		}),
 	closeCookingPanel: () => {
-		// Auto-exit preview mode to prevent ghost sessions
-		const cookingState = useCookingStore.getState()
-		if (cookingState.isPreviewMode) {
-			cookingState.exitPreview()
-		}
+		const cookingMode = resolveCurrentCookingCloseMode()
 		set({
-			cookingMode: 'hidden',
+			cookingMode,
 			isCookingPlayerOpen: false,
 		})
 	},
 	minimizeCookingPanel: () => {
-		// Preview sessions can't be minimized — exit preview instead
-		const cookingState = useCookingStore.getState()
-		if (cookingState.isPreviewMode) {
-			cookingState.exitPreview()
-			set({ cookingMode: 'hidden', isCookingPlayerOpen: false })
-			return
-		}
+		const cookingMode = resolveCurrentCookingCloseMode()
 		set({
-			cookingMode: 'mini',
+			cookingMode,
 			isCookingPlayerOpen: false,
 		})
 	},

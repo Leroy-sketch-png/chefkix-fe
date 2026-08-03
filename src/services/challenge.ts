@@ -64,6 +64,26 @@ export interface ChallengeHistoryResponse {
 	stats: ChallengeStats
 }
 
+export const countCompletedDaysThisUtcWeek = (
+	items: ChallengeHistoryItem[],
+	now = new Date(),
+) => {
+	const today = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+	)
+	const mondayOffset = (today.getUTCDay() + 6) % 7
+	const weekStart = new Date(today)
+	weekStart.setUTCDate(today.getUTCDate() - mondayOffset)
+	const start = weekStart.toISOString().slice(0, 10)
+	const end = today.toISOString().slice(0, 10)
+
+	return new Set(
+		items
+			.filter(item => item.completed && item.date >= start && item.date <= end)
+			.map(item => item.date),
+	).size
+}
+
 // Weekly challenge (multi-completion target)
 export interface WeeklyChallenge {
 	id: string
@@ -162,12 +182,12 @@ export const getTodaysChallenge = async (requestOptions?: {
  * @param limit Number of past challenges to return (default: 7)
  */
 export const getChallengeHistory = async (
-	limit: number = 7,
+	size: number = 7,
 ): Promise<ApiResponse<ChallengeHistoryResponse>> => {
 	try {
 		const response = await api.get<ApiResponse<ChallengeHistoryResponse>>(
 			API_ENDPOINTS.CHALLENGES.HISTORY,
-			{ params: { limit } },
+			{ params: { size } },
 		)
 		return response.data
 	} catch (error) {
@@ -194,7 +214,7 @@ export const getChallengeStats = async (): Promise<
 	ApiResponse<ChallengeStats>
 > => {
 	try {
-		const response = await getChallengeHistory(0) // No history items, just stats
+		const response = await getChallengeHistory(1)
 		if (response.success && response.data) {
 			return {
 				success: true,

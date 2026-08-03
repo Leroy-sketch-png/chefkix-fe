@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Image as ImageIcon, Smile, MapPin, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
@@ -71,6 +71,7 @@ export function GroupCreatePostBox({
 	if (!isOpen) {
 		return (
 			<motion.div
+				data-group-post-box
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				className='bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 rounded-2xl p-4 border border-border-subtle/80 mb-6 shadow-card'
@@ -82,36 +83,13 @@ export function GroupCreatePostBox({
 				>
 					{t('gpWhatsOnMind')}
 				</button>
-
-				<div className='flex gap-2 mt-4 flex-wrap'>
-					<button
-						type='button'
-						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
-					>
-						<ImageIcon className='size-5' />
-						{t('gpPhoto')}
-					</button>
-					<button
-						type='button'
-						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
-					>
-						<Smile className='size-5' />
-						{t('gpFeeling')}
-					</button>
-					<button
-						type='button'
-						className='flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-brand rounded-md transition-colors'
-					>
-						<MapPin className='size-5' />
-						{t('gpLocation')}
-					</button>
-				</div>
 			</motion.div>
 		)
 	}
 
 	return (
 		<motion.div
+			data-group-post-box
 			initial={{ opacity: 0, y: -10 }}
 			animate={{ opacity: 1, y: 0 }}
 			className='bg-bg-card rounded-xl p-6 border border-border mb-6 shadow-card'

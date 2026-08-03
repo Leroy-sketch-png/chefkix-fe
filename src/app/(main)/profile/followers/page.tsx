@@ -27,10 +27,19 @@ import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
+import {
+	getSettledProfileNetworkCount,
+	getSettledProfileNetworkTotal,
+	parseProfileNetworkTab,
+	PROFILE_NETWORK_TABS,
+	type ProfileNetworkTab,
+} from '@/lib/profile-network-proof'
 
-type Tab = 'followers' | 'following' | 'friends'
-
-const TABS: { key: Tab; labelKey: string; icon: React.ReactNode }[] = [
+const TABS: {
+	key: ProfileNetworkTab
+	labelKey: string
+	icon: React.ReactNode
+}[] = [
 	{
 		key: 'followers',
 		labelKey: 'tabFollowers',
@@ -47,6 +56,19 @@ const TABS: { key: Tab; labelKey: string; icon: React.ReactNode }[] = [
 		icon: <Heart className='size-4' />,
 	},
 ]
+
+const TAB_FETCHERS: Record<
+	ProfileNetworkTab,
+	() => ReturnType<typeof getFollowers>
+> = {
+	followers: getFollowers,
+	following: getFollowing,
+	friends: getFriends,
+}
+
+interface RequestGuard {
+	cancelled: boolean
+}
 
 function FollowersSkeleton() {
 	return (
@@ -73,19 +95,22 @@ function FollowersContent() {
 	const router = useRouter()
 	const t = useTranslations('followers')
 	const tc = useTranslations('common')
-	const initialTab = (searchParams.get('tab') as Tab) || 'followers'
-	const [activeTab, setActiveTab] = useState<Tab>(initialTab)
-	const [data, setData] = useState<Record<Tab, Profile[]>>({
+	const [activeTab, setActiveTab] = useState<ProfileNetworkTab>(() =>
+		parseProfileNetworkTab(searchParams.get('tab')),
+	)
+	const [data, setData] = useState<Record<ProfileNetworkTab, Profile[]>>({
 		followers: [],
 		following: [],
 		friends: [],
 	})
-	const [loading, setLoading] = useState<Record<Tab, boolean>>({
+	const [loading, setLoading] = useState<Record<ProfileNetworkTab, boolean>>({
 		followers: true,
 		following: true,
 		friends: true,
 	})
-	const [errors, setErrors] = useState<Record<Tab, string | null>>({
+	const [errors, setErrors] = useState<
+		Record<ProfileNetworkTab, string | null>
+	>({
 		followers: null,
 		following: null,
 		friends: null,
@@ -98,18 +123,13 @@ function FollowersContent() {
 	const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 
 	const fetchTab = useCallback(
-		async (tab: Tab) => {
+		async (tab: ProfileNetworkTab, guard?: RequestGuard) => {
 			setLoading(prev => ({ ...prev, [tab]: true }))
 			setErrors(prev => ({ ...prev, [tab]: null }))
 
-			const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
-				followers: getFollowers,
-				following: getFollowing,
-				friends: getFriends,
-			}
-
 			try {
-				const response = await fetchers[tab]()
+				const response = await TAB_FETCHERS[tab]()
+				if (guard?.cancelled) return
 				if (response.success && response.data) {
 					setData(prev => ({ ...prev, [tab]: response.data! }))
 				} else {
@@ -119,9 +139,12 @@ function FollowersContent() {
 					}))
 				}
 			} catch {
+				if (guard?.cancelled) return
 				setErrors(prev => ({ ...prev, [tab]: t('failedToLoad', { tab }) }))
 			} finally {
-				setLoading(prev => ({ ...prev, [tab]: false }))
+				if (!guard?.cancelled) {
+					setLoading(prev => ({ ...prev, [tab]: false }))
+				}
 			}
 		},
 		[t],
@@ -143,53 +166,27 @@ function FollowersContent() {
 		}
 	}, [suggestionsLoaded, suggestionsLoading])
 
-	// Fetch active tab on mount and tab change
+	// Prepare all three lanes together; each request still settles independently.
 	useEffect(() => {
-		let cancelled = false
-
-		const load = async () => {
-			setLoading(prev => ({ ...prev, [activeTab]: true }))
-			setErrors(prev => ({ ...prev, [activeTab]: null }))
-
-			const fetchers: Record<Tab, () => ReturnType<typeof getFollowers>> = {
-				followers: getFollowers,
-				following: getFollowing,
-				friends: getFriends,
-			}
-
-			try {
-				const response = await fetchers[activeTab]()
-				if (cancelled) return
-				if (response.success && response.data) {
-					setData(prev => ({ ...prev, [activeTab]: response.data! }))
-					// Fetch suggestions if the list is empty and we haven't loaded them yet
-					if (response.data.length === 0 && !suggestionsLoaded) {
-						fetchSuggestions()
-					}
-				} else {
-					setErrors(prev => ({
-						...prev,
-						[activeTab]:
-							response.message || t('failedToLoad', { tab: activeTab }),
-					}))
-				}
-			} catch {
-				if (!cancelled) {
-					setErrors(prev => ({
-						...prev,
-						[activeTab]: t('failedToLoad', { tab: activeTab }),
-					}))
-				}
-			} finally {
-				if (!cancelled) setLoading(prev => ({ ...prev, [activeTab]: false }))
-			}
-		}
-
-		load()
+		const guard: RequestGuard = { cancelled: false }
+		void Promise.all(PROFILE_NETWORK_TABS.map(tab => fetchTab(tab, guard)))
 		return () => {
-			cancelled = true
+			guard.cancelled = true
 		}
-	}, [activeTab, suggestionsLoaded, fetchSuggestions, t])
+	}, [fetchTab])
+
+	useEffect(() => {
+		const shouldLoadSuggestions =
+			(activeTab === 'following' || activeTab === 'friends') &&
+			!loading[activeTab] &&
+			!errors[activeTab] &&
+			data[activeTab].length === 0 &&
+			!suggestionsLoaded
+
+		if (shouldLoadSuggestions) {
+			void fetchSuggestions()
+		}
+	}, [activeTab, data, errors, fetchSuggestions, loading, suggestionsLoaded])
 
 	const handleSuggestionFollowed = (userId: string) => {
 		// Move from suggestions to following list
@@ -229,13 +226,46 @@ function FollowersContent() {
 	const currentList = data[activeTab]
 	const isLoading = loading[activeTab]
 	const error = errors[activeTab]
+	const settledCounts: Record<ProfileNetworkTab, number | null> = {
+		followers: getSettledProfileNetworkCount({
+			isLoading: loading.followers,
+			error: errors.followers,
+			count: data.followers.length,
+		}),
+		following: getSettledProfileNetworkCount({
+			isLoading: loading.following,
+			error: errors.following,
+			count: data.following.length,
+		}),
+		friends: getSettledProfileNetworkCount({
+			isLoading: loading.friends,
+			error: errors.friends,
+			count: data.friends.length,
+		}),
+	}
+	const settledTotalLinks = getSettledProfileNetworkTotal([
+		{
+			isLoading: loading.followers,
+			error: errors.followers,
+			count: data.followers.length,
+		},
+		{
+			isLoading: loading.following,
+			error: errors.following,
+			count: data.following.length,
+		},
+	])
 
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='md'>
 				<PremiumSurface
 					eyebrow={tc('eyebrows.socialGraph')}
-					chipText={tc('eyebrows.totalLinks', { n: data.followers.length + data.following.length })}
+					chipText={
+						settledTotalLinks === null
+							? undefined
+							: tc('eyebrows.totalLinks', { n: settledTotalLinks })
+					}
 					tone='xp'
 					className='mb-6 p-3 md:p-4'
 				>
@@ -270,39 +300,50 @@ function FollowersContent() {
 					className='mb-6 p-3 md:p-4'
 				>
 					<div className='flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
-						{TABS.map(tab => (
-							<button
-								type='button'
-								key={tab.key}
-								onClick={() => setActiveTab(tab.key)}
-								className={cn(
-									'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
-									activeTab === tab.key
-										? 'bg-bg-card text-text-primary shadow-card'
-										: 'text-text-muted hover:text-text-secondary',
-								)}
-							>
-								{tab.icon}
-								{t(tab.labelKey)}
-								<span
+						{TABS.map(tab => {
+							const count = settledCounts[tab.key]
+							return (
+								<button
+									type='button'
+									key={tab.key}
+									onClick={() => setActiveTab(tab.key)}
 									className={cn(
-										'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
+										'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
 										activeTab === tab.key
-											? 'bg-brand/15 text-brand'
-											: 'bg-bg-elevated text-text-muted',
+											? 'bg-bg-card text-text-primary shadow-card'
+											: 'text-text-muted hover:text-text-secondary',
 									)}
 								>
-									{data[tab.key].length}
-								</span>
-							</button>
-						))}
+									{tab.icon}
+									{t(tab.labelKey)}
+									{count !== null ? (
+										<span
+											className={cn(
+												'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
+												activeTab === tab.key
+													? 'bg-brand/15 text-brand'
+													: 'bg-bg-elevated text-text-muted',
+											)}
+										>
+											{count}
+										</span>
+									) : null}
+								</button>
+							)
+						})}
 					</div>
 				</PremiumSurface>
 
 				{/* Content */}
 				<PremiumSurface
 					eyebrow={tc('eyebrows.peopleResults')}
-					chipText={isLoading ? tc('eyebrows.loading') : tc('eyebrows.nProfiles', { n: currentList.length })}
+					chipText={
+						isLoading
+							? tc('eyebrows.loading')
+							: error
+								? undefined
+								: tc('eyebrows.nProfiles', { n: currentList.length })
+					}
 					className='p-3 md:p-4'
 				>
 					<SurfaceSectionHeader

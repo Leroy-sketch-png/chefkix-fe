@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { useCookingStore } from '@/store/cookingStore'
 import { useTimerNotifications } from '@/hooks/useTimerNotifications'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
@@ -30,6 +32,7 @@ import { useUiStore } from '@/store/uiStore'
  * Mount this in the main layout - it renders nothing.
  */
 export const CookingTimerProvider = () => {
+	const t = useTranslations('cooking')
 	const { session, localTimers, tickTimers, resumeExistingSession } =
 		useCookingStore()
 	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
@@ -44,10 +47,7 @@ export const CookingTimerProvider = () => {
 	// only fire when the component is mounted/visible. This one fires ALWAYS.
 	const hasActiveSession =
 		session?.status === 'in_progress' && !!session?.recipeId
-	useBeforeUnloadWarning(
-		hasActiveSession,
-		'You have an active cooking session. Leaving will not save your progress.',
-	)
+	useBeforeUnloadWarning(hasActiveSession, t('cpBeforeUnloadWarning'))
 
 	// Sync with backend on mount — catch "ninja sessions" that exist on BE but not in FE store
 	// This handles: cleared localStorage, different browser, out-of-sync state
@@ -73,28 +73,46 @@ export const CookingTimerProvider = () => {
 
 		hasSyncedRef.current = true
 
-		// Check backend for existing session and restore if found
 		let cancelled = false
-		resumeExistingSession()
-			.then(resumed => {
-				if (cancelled) return
-				if (resumed) {
-					// Auto-show cooking UI: docked panel on desktop, mini bar on mobile
-					const isDesktop = window.innerWidth >= 1280
-					if (isDesktop) {
-						openCookingPanel() // Shows CookingPanel in right sidebar
-					} else {
-						setCookingMode('mini') // Shows MiniCookingBar at bottom
-					}
-				} else if (session) {
-					// We had a partial session from localStorage but backend says no session exists
-					// Clear the stale partial session
-					useCookingStore.getState().clearSession()
+		const restoreSession = async () => {
+			if (cancelled) return
+			hasSyncedRef.current = true
+
+			const resumed = await resumeExistingSession()
+			if (cancelled) return
+
+			if (resumed) {
+				toast.dismiss('cooking-session-restoration')
+				// Auto-show cooking UI: docked panel on desktop, mini bar on mobile
+				const isDesktop = window.innerWidth >= 1280
+				if (isDesktop) {
+					openCookingPanel() // Shows CookingPanel in right sidebar
+				} else {
+					setCookingMode('mini') // Shows MiniCookingBar at bottom
 				}
-			})
-			.catch(() => {
-				/* session resume is best-effort */
-			})
+				return
+			}
+
+			const currentState = useCookingStore.getState()
+			if (currentState.error) {
+				toast.error(t('restoreSessionFailedTitle'), {
+					id: 'cooking-session-restoration',
+					description: t('restoreSessionFailedDescription'),
+					action: {
+						label: t('retryRestoreSession'),
+						onClick: () => void restoreSession(),
+					},
+				})
+				return
+			}
+
+			if (session) {
+				// A successful empty response authoritatively invalidates stale local state.
+				currentState.clearSession()
+			}
+		}
+
+		void restoreSession()
 
 		return () => {
 			cancelled = true
@@ -105,6 +123,7 @@ export const CookingTimerProvider = () => {
 		resumeExistingSession,
 		openCookingPanel,
 		setCookingMode,
+		t,
 	])
 
 	// Reset sync flag on logout so next login will sync

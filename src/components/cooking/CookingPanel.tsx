@@ -221,10 +221,7 @@ export const CookingPanel = () => {
 		if (!hasActiveSession && voice.isContinuous) {
 			voice.stopContinuous()
 		}
-	}, [
-		hasActiveSession,
-		voice,
-	])
+	}, [hasActiveSession, voice])
 
 	// Derive state (always compute, even if we won't render)
 	const currentStepNumber = session?.currentStep ?? 1
@@ -655,7 +652,6 @@ export const CookingPanel = () => {
 										}}
 										isChecked={!!checkedIngredients[id]}
 										onToggle={() => toggleIngredient(id)}
-										index={idx}
 									/>
 								)
 							})}

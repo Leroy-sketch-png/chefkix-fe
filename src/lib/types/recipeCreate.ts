@@ -73,7 +73,7 @@ export interface XpBreakdown {
 	adjustments?: { reason: string; xp: number }[]
 	total: number
 	isValidated: boolean
-	confidence: number
+	confidence?: number
 }
 
 // ── Publish validation ──────────────────────────────────────────────

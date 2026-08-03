@@ -15,6 +15,7 @@ import {
 	Sparkles,
 	Users,
 	Utensils,
+	ExternalLink,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -23,7 +24,12 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
 import { ImageWithFallback } from '@/components/ui/image-with-fallback'
 import { Switch } from '@/components/ui/switch'
-import { createCookPlan, getCurrentCookPlan } from '@/services/cookplan'
+import { CookPlanDishSwapDialog } from '@/components/meal-planner/CookPlanDishSwapDialog'
+import {
+	createCookPlan,
+	getCurrentCookPlan,
+	swapCookPlanDish,
+} from '@/services/cookplan'
 import { getAllSettings } from '@/services/settings'
 import type { CookPlan, CookPlanMode, MealRole } from '@/lib/types/cookplan'
 
@@ -137,6 +143,31 @@ export default function MealPlannerPage() {
 			else next.add(ingredient)
 			return next
 		})
+	}
+
+	const swapDish = async (
+		batchId: string,
+		dishRecipeId: string,
+		replacementRecipeId: string,
+	) => {
+		if (!plan?.id) throw new Error('Cook plan is not ready to update')
+		const nextPlan = await swapCookPlanDish(
+			plan.id,
+			batchId,
+			dishRecipeId,
+			replacementRecipeId,
+		)
+		setPlan(nextPlan)
+		setCheckedItems(new Set())
+		toast.success(
+			t('swappedTo', {
+				title:
+					nextPlan.cookBatches
+						.flatMap(nextBatch => nextBatch.dishes)
+						.find(nextDish => nextDish.recipeId === replacementRecipeId)
+						?.title ?? t('replacementDish'),
+			}),
+		)
 	}
 
 	const hasPlan = Boolean(plan?.cookBatches.length)
@@ -461,12 +492,14 @@ export default function MealPlannerPage() {
 								</div>
 								<div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
 									{batch.dishes.map(dish => (
-										<Link
+										<article
 											key={dish.recipeId}
-											href={`/recipes/${dish.recipeId}`}
-											className='group overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-colors hover:border-brand/40'
+											className='overflow-hidden rounded-lg border border-border-subtle bg-bg-card transition-colors hover:border-brand/40'
 										>
-											<div className='relative aspect-video overflow-hidden bg-bg-elevated'>
+											<Link
+												href={`/recipes/${dish.recipeId}`}
+												className='group relative block aspect-video overflow-hidden bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand'
+											>
 												<ImageWithFallback
 													src={dish.coverImageUrl || ''}
 													alt={dish.title}
@@ -474,12 +507,17 @@ export default function MealPlannerPage() {
 													fallbackType='recipe'
 													className='object-cover transition-transform duration-300 group-hover:scale-[1.02]'
 												/>
-											</div>
+											</Link>
 											<div className='p-4'>
 												<div className='flex items-start justify-between gap-3'>
 													<div>
-														<h3 className='font-semibold leading-5 text-text-primary group-hover:text-brand'>
-															{dish.title}
+														<h3 className='font-semibold leading-5 text-text-primary'>
+															<Link
+																href={`/recipes/${dish.recipeId}`}
+																className='hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
+															>
+																{dish.title}
+															</Link>
 														</h3>
 														{dish.cuisineType ? (
 															<p className='mt-1 text-xs text-text-muted'>
@@ -512,8 +550,34 @@ export default function MealPlannerPage() {
 														</p>
 													</div>
 												</div>
+												<div className='mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border-subtle pt-3'>
+													<Link
+														href={`/recipes/${dish.recipeId}`}
+														className='inline-flex min-h-9 items-center gap-1.5 text-sm font-semibold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
+													>
+														{t('viewRecipe')}
+														<ExternalLink
+															className='size-3.5'
+															aria-hidden='true'
+														/>
+													</Link>
+													<CookPlanDishSwapDialog
+														dish={dish}
+														excludedRecipeIds={batch.dishes.map(
+															plannedDish => plannedDish.recipeId,
+														)}
+														disabled={!plan?.id}
+														onSwap={replacementRecipeId =>
+															swapDish(
+																batch.id,
+																dish.recipeId,
+																replacementRecipeId,
+															)
+														}
+													/>
+												</div>
 											</div>
-										</Link>
+										</article>
 									))}
 								</div>
 							</section>

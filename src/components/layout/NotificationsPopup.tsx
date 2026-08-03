@@ -12,6 +12,8 @@ import {
 	UserPlus,
 	ChefHat,
 	CheckCheck,
+	ArrowRight,
+	Check,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -24,103 +26,33 @@ import {
 	getNotifications,
 	markNotificationRead,
 	markAllNotificationsRead,
-	type Notification as APINotification,
 } from '@/services/notification'
 import { toggleFollow } from '@/services/social'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
-import { formatShortTimeAgo } from '@/lib/utils'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
-import { transformToGamifiedNotification } from '@/lib/notifications/gamified'
+import { useNotificationStore } from '@/store/notificationStore'
+import {
+	markNotificationReadTruthfully,
+	resolveSocialNotificationPath,
+	type SocialNotification,
+	type SocialNotificationType,
+} from '@/lib/notifications/social'
+import { partitionNotifications } from '@/lib/notifications/presentation'
+import { getGamifiedNotificationCallbacks } from '@/lib/notifications/actions'
 
-type NotificationType =
-	| 'like'
-	| 'comment'
-	| 'follow'
-	| 'cook'
-	| 'achievement'
-	| 'mention'
-
-interface SocialNotification {
-	id: number
-	notificationId: string // For marking as read
-	type: NotificationType
-	userId: string
-	user: string
-	avatar: string
-	action: string
-	target?: string
-	targetEntityId?: string // Post ID for likes/comments, User ID for follows
-	targetEntityUrl?: string
-	time: string
-	read: boolean
-}
-
-// Helper to transform API notification to social notification format
-// Uses BE NotificationType enum values (SCREAMING_SNAKE_CASE)
-// BE sends: latestActorId, latestActorName, actorInfo (NOT nested in data)
-const transformToSocialNotification = (
-	notif: APINotification,
-	index: number,
-): SocialNotification | null => {
-	const timestamp = new Date(notif.createdAt)
-
-	const typeMap: Record<string, NotificationType> = {
-		NEW_FOLLOWER: 'follow',
-		FOLLOW: 'follow',
-		POST_LIKE: 'like',
-		RECIPE_LIKED: 'like',
-		POST_COMMENT: 'comment',
-		USER_MENTION: 'mention',
-		CO_CHEF_TAGGED: 'mention',
-		ROOM_INVITE: 'cook',
-		DUEL_INVITE: 'cook',
-		DUEL_ACCEPTED: 'cook',
-		DUEL_DECLINED: 'cook',
-		DUEL_COMPLETED: 'achievement',
-		DUEL_EXPIRED: 'cook',
-		JOIN_REQUESTED: 'follow',
-		MEMBER_JOINED: 'follow',
-		JOIN_REQUEST_APPROVED: 'follow',
-	}
-
-	const type = typeMap[notif.type]
-	if (!type) return null
-
-	// BE sends actor info directly on notification, not in 'data' object
-	const userId = notif.latestActorId || notif.actorInfo?.actorId || ''
-	const userName = notif.latestActorName || notif.actorInfo?.actorName || 'User'
-	const userAvatar =
-		notif.latestActorAvatarUrl ||
-		notif.actorInfo?.avatarUrl ||
-		'/placeholder-avatar.svg'
-
-	return {
-		id: index,
-		notificationId: notif.id,
-		type,
-		userId,
-		user: userName,
-		avatar: userAvatar,
-		action: notif.content || notif.body || '',
-		target: undefined,
-		targetEntityId: notif.targetEntityId, // Post ID for likes/comments, userId for follows
-		targetEntityUrl: notif.targetEntityUrl,
-		time: formatShortTimeAgo(timestamp),
-		read: notif.isRead,
-	}
-}
-
-const NotificationBadge = ({ type }: { type: NotificationType }) => {
+const NotificationBadge = ({ type }: { type: SocialNotificationType }) => {
 	const iconMap = {
 		like: { icon: Heart, bg: 'bg-destructive' },
 		comment: { icon: MessageCircle, bg: 'bg-brand' },
 		mention: { icon: MessageCircle, bg: 'bg-brand' },
+		story: { icon: Heart, bg: 'bg-destructive' },
 		follow: { icon: UserPlus, bg: 'bg-accent-purple' },
 		cook: { icon: ChefHat, bg: 'bg-gold' },
 		achievement: { icon: ChefHat, bg: 'bg-gradient-gold' },
+		generic: { icon: Bell, bg: 'bg-bg-elevated' },
 	}
 
 	const { icon: Icon, bg } = iconMap[type]
@@ -137,24 +69,48 @@ const NotificationBadge = ({ type }: { type: NotificationType }) => {
 	)
 }
 
+const NotificationActorHover = ({
+	userId,
+	currentUserId,
+	children,
+}: {
+	userId: string
+	currentUserId?: string
+	children: React.ReactNode
+}) =>
+	userId ? (
+		<UserHoverCard userId={userId} currentUserId={currentUserId}>
+			{children}
+		</UserHoverCard>
+	) : (
+		<>{children}</>
+	)
+
 export const NotificationsPopup = () => {
 	const t = useTranslations('notifications')
 	const { isNotificationsPopupOpen, toggleNotificationsPopup } = useUiStore()
 	const { user } = useAuth()
 	const router = useRouter()
+	const {
+		unreadCount,
+		incrementUnreadCount,
+		decrementUnreadCount,
+		clearUnreadCount,
+		fetchUnreadCount,
+	} = useNotificationStore()
 	const [gamifiedNotifications, setGamifiedNotifications] = useState<
 		GamifiedNotification[]
 	>([])
 	const [socialNotifications, setSocialNotifications] = useState<
 		SocialNotification[]
 	>([])
-	const [unreadCount, setUnreadCount] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
 
 	useEscapeKey(isNotificationsPopupOpen, toggleNotificationsPopup)
 
-	const markPopupNotificationRead = (notificationId: string) => {
+	const markPopupNotificationRead = async (notificationId: string) => {
 		const wasUnread =
 			gamifiedNotifications.some(
 				notification =>
@@ -162,48 +118,52 @@ export const NotificationsPopup = () => {
 			) ||
 			socialNotifications.some(
 				notification =>
-					notification.notificationId === notificationId && !notification.read,
+					notification.id === notificationId && !notification.read,
 			)
 
-		if (!wasUnread) {
-			return
+		const updateReadState = (read: boolean) => {
+			setGamifiedNotifications(prev =>
+				prev.map(notification =>
+					notification.id === notificationId
+						? { ...notification, isRead: read }
+						: notification,
+				),
+			)
+			setSocialNotifications(prev =>
+				prev.map(notification =>
+					notification.id === notificationId
+						? { ...notification, read }
+						: notification,
+				),
+			)
 		}
 
-		setGamifiedNotifications(prev =>
-			prev.map(notification =>
-				notification.id === notificationId
-					? { ...notification, isRead: true }
-					: notification,
-			),
-		)
-		setSocialNotifications(prev =>
-			prev.map(notification =>
-				notification.notificationId === notificationId
-					? { ...notification, read: true }
-					: notification,
-			),
-		)
-		setUnreadCount(prev => Math.max(0, prev - 1))
-
-		void markNotificationRead(notificationId).catch(error => {
-			logDevError('Failed to mark popup notification read:', error)
+		const succeeded = await markNotificationReadTruthfully({
+			wasUnread,
+			request: () => markNotificationRead(notificationId),
+			onOptimisticRead: () => {
+				updateReadState(true)
+				decrementUnreadCount()
+			},
+			onRollback: () => {
+				updateReadState(false)
+				incrementUnreadCount()
+			},
 		})
+
+		if (!succeeded) {
+			logDevError('Failed to mark popup notification read')
+			toast.error(t('failedToUpdate'))
+		}
 	}
 
 	const navigateFromPopupNotification = (
 		notificationId: string,
 		path: string,
 	) => {
-		markPopupNotificationRead(notificationId)
+		void markPopupNotificationRead(notificationId)
 		handleClose()
 		router.push(path)
-	}
-
-	const openPostComposer = (sessionId?: string) => {
-		const target = sessionId
-			? `/post/new?session=${encodeURIComponent(sessionId)}`
-			: '/post/new'
-		return target
 	}
 
 	// Fetch notifications when popup opens
@@ -218,41 +178,15 @@ export const NotificationsPopup = () => {
 				const response = await getNotifications({ size: 20 })
 				if (cancelled) return
 				if (response.success && response.data) {
-					const { notifications, unreadCount: count } = response.data
-					setUnreadCount(count)
-
-					// Split notifications into gamified and social
-					const gamified: GamifiedNotification[] = []
-					const social: SocialNotification[] = []
-
-					notifications.forEach((notif, idx) => {
-						const gamifiedNotif = transformToGamifiedNotification(notif)
-						if (gamifiedNotif) {
-							gamified.push(gamifiedNotif)
-						} else {
-							const socialNotif = transformToSocialNotification(notif, idx)
-							if (socialNotif) {
-								social.push(socialNotif)
-							} else {
-								// Fallback: show unknown types as generic social notifications
-								social.push({
-									id: idx,
-									notificationId: notif.id,
-									type: 'achievement',
-									userId: notif.latestActorId || '',
-									user: notif.latestActorName || 'ChefKix',
-									avatar:
-										notif.latestActorAvatarUrl || '/placeholder-avatar.svg',
-									action: notif.content || notif.body || t('newNotification'),
-									time: formatShortTimeAgo(new Date(notif.createdAt)),
-									read: notif.isRead,
-								})
-							}
-						}
-					})
-
+					void fetchUnreadCount()
+					const { gamified, social } = partitionNotifications(
+						response.data.notifications,
+					)
 					setGamifiedNotifications(gamified)
 					setSocialNotifications(social)
+				} else {
+					logDevError('Failed to fetch notifications:', response)
+					setFetchError(true)
 				}
 			} catch (err) {
 				logDevError('Failed to fetch notifications:', err)
@@ -266,7 +200,7 @@ export const NotificationsPopup = () => {
 		return () => {
 			cancelled = true
 		}
-	}, [isNotificationsPopupOpen, t])
+	}, [fetchUnreadCount, isNotificationsPopupOpen, retryKey])
 
 	if (!isNotificationsPopupOpen) return null
 
@@ -274,7 +208,7 @@ export const NotificationsPopup = () => {
 		try {
 			const response = await markAllNotificationsRead()
 			if (response.success) {
-				setUnreadCount(0)
+				clearUnreadCount()
 				setGamifiedNotifications(prev =>
 					prev.map(n => ({ ...n, isRead: true })),
 				)
@@ -304,7 +238,9 @@ export const NotificationsPopup = () => {
 				{/* Header */}
 				<div className='flex items-center justify-between border-b border-border-subtle/60 bg-gradient-to-r from-bg-card to-bg-elevated/50 p-4'>
 					<div className='flex items-center gap-2'>
-						<h3 className='text-lg font-bold text-text-primary'>{t('title')}</h3>
+						<h3 className='text-lg font-bold text-text-primary'>
+							{t('title')}
+						</h3>
 						{unreadCount > 0 && (
 							<span className='rounded-full bg-brand px-2 py-0.5 text-xs font-bold text-white'>
 								{unreadCount}
@@ -349,34 +285,7 @@ export const NotificationsPopup = () => {
 							</p>
 							<button
 								type='button'
-								onClick={() => {
-									setFetchError(false)
-									setIsLoading(true)
-									getNotifications({ size: 20 })
-										.then(response => {
-											if (response.success && response.data) {
-												const { notifications, unreadCount: count } =
-													response.data
-												setUnreadCount(count)
-												const gamified: GamifiedNotification[] = []
-												const social: SocialNotification[] = []
-												notifications.forEach((notif, idx) => {
-													const g = transformToGamifiedNotification(notif)
-													if (g) gamified.push(g)
-													else {
-														const s = transformToSocialNotification(notif, idx)
-														if (s) social.push(s)
-													}
-												})
-												setGamifiedNotifications(gamified)
-												setSocialNotifications(social)
-											} else {
-												setFetchError(true)
-											}
-										})
-										.catch(() => setFetchError(true))
-										.finally(() => setIsLoading(false))
-								}}
+								onClick={() => setRetryKey(key => key + 1)}
 								className='text-sm font-semibold text-brand hover:text-brand/80'
 							>
 								{t('tryAgain')}
@@ -405,64 +314,13 @@ export const NotificationsPopup = () => {
 					{gamifiedNotifications.length > 0 && (
 						<>
 							<div className='border-b border-border bg-bg-elevated/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
-								Activity
+								{t('activitySection')}
 							</div>
 							{gamifiedNotifications.map(notif => {
-								// Provide callbacks based on notification type
-								const callbacks = {
-									onPost:
-										notif.type === 'xp_awarded' && notif.pendingXp > 0
-											? () => {
-													navigateFromPopupNotification(
-														notif.id,
-														openPostComposer(notif.sessionId),
-													)
-												}
-											: undefined,
-									onFindRecipe:
-										notif.type === 'streak_warning'
-											? () => {
-													navigateFromPopupNotification(notif.id, '/explore')
-												}
-											: undefined,
-									onViewBadge:
-										notif.type === 'badge_unlocked'
-											? () => {
-													navigateFromPopupNotification(
-														notif.id,
-														'/profile/badges',
-													)
-												}
-											: undefined,
-									onPostNow:
-										notif.type === 'post_deadline' ||
-										notif.type === 'post_deadline_urgent'
-											? () => {
-													navigateFromPopupNotification(
-														notif.id,
-														openPostComposer(notif.sessionId),
-													)
-												}
-											: undefined,
-									onSeeRecipes:
-										notif.type === 'challenge_reminder'
-											? () => {
-													navigateFromPopupNotification(notif.id, '/challenges')
-												}
-											: undefined,
-									onExplore:
-										notif.type === 'weekend_nudge'
-											? () => {
-													navigateFromPopupNotification(notif.id, '/explore')
-												}
-											: undefined,
-									onViewPantry:
-										notif.type === 'pantry_expiring'
-											? () => {
-													navigateFromPopupNotification(notif.id, '/pantry')
-												}
-											: undefined,
-								}
+								const callbacks = getGamifiedNotificationCallbacks(
+									notif,
+									navigateFromPopupNotification,
+								)
 
 								return (
 									<NotificationItemGamified
@@ -479,42 +337,19 @@ export const NotificationsPopup = () => {
 					{socialNotifications.length > 0 && (
 						<>
 							<div className='border-b border-border bg-bg-elevated/30 px-4 py-2 text-xs font-bold uppercase tracking-wide text-text-secondary'>
-								Social
+								{t('socialSection')}
 							</div>
 							{socialNotifications.map(notif => {
 								// Determine navigation target based on notification type
-								const getNavigationPath = () => {
-									if (notif.targetEntityUrl) {
-										return notif.targetEntityUrl
-									}
-									if (notif.type === 'follow') {
-										// For follow notifications, navigate to the follower's profile
-										return `/${notif.userId}`
-									}
-									if (
-										(notif.type === 'like' ||
-											notif.type === 'comment' ||
-											notif.type === 'mention') &&
-										notif.targetEntityId
-									) {
-										// For likes/comments, navigate to the post
-										return `/post/${notif.targetEntityId}`
-									}
-									if (notif.type === 'cook' || notif.type === 'achievement') {
-										return '/dashboard'
-									}
-									return null
-								}
-
+								const path = resolveSocialNotificationPath(notif, user?.userId)
+								const actorLabel = notif.user || t('systemUpdate')
 								const handleClick = () => {
-									const path = getNavigationPath()
 									if (path) {
-										navigateFromPopupNotification(notif.notificationId, path)
+										navigateFromPopupNotification(notif.id, path)
 									}
 								}
 
-								const handleFollowBack = async (e: React.MouseEvent) => {
-									e.stopPropagation() // Prevent triggering the parent onClick
+								const handleFollowBack = async () => {
 									if (!notif.userId) {
 										toast.error(t('toastFollowBackNotFound'))
 										return
@@ -525,7 +360,7 @@ export const NotificationsPopup = () => {
 											toast.success(
 												t('toastFollowSuccess', { user: notif.user }),
 											)
-											markPopupNotificationRead(notif.notificationId)
+											void markPopupNotificationRead(notif.id)
 										} else {
 											toast.error(t('toastFollowFailed'))
 										}
@@ -537,43 +372,55 @@ export const NotificationsPopup = () => {
 								return (
 									<div
 										key={notif.id}
-										onClick={handleClick}
 										className={cn(
-											'relative flex cursor-pointer items-start gap-3 border-b border-border p-4 transition-colors hover:bg-bg-hover/50',
+											'relative flex items-start gap-3 border-b border-border p-4',
 											!notif.read && 'bg-brand/5',
 										)}
 									>
 										{/* Avatar with badge */}
-										<UserHoverCard
-											userId={notif.userId}
-											currentUserId={user?.userId}
-										>
-											<div className='relative flex-shrink-0'>
-												<Avatar size='lg' className='shadow-card'>
-													<AvatarImage src={notif.avatar} alt={notif.user} />
-													<AvatarFallback>
-														{notif.user
-															.split(' ')
-															.map(n => n[0])
-															.join('')
-															.toUpperCase()
-															.slice(0, 2)}
-													</AvatarFallback>
-												</Avatar>
-												<NotificationBadge type={notif.type} />
+										{notif.user ? (
+											<NotificationActorHover
+												userId={notif.userId}
+												currentUserId={user?.userId}
+											>
+												<div className='relative flex-shrink-0'>
+													<Avatar size='lg' className='shadow-card'>
+														<AvatarImage src={notif.avatar} alt={actorLabel} />
+														<AvatarFallback>
+															{actorLabel
+																.split(' ')
+																.map(n => n[0])
+																.join('')
+																.toUpperCase()
+																.slice(0, 2)}
+														</AvatarFallback>
+													</Avatar>
+													<NotificationBadge type={notif.type} />
+												</div>
+											</NotificationActorHover>
+										) : (
+											<div className='grid size-10 shrink-0 place-items-center rounded-full bg-bg-elevated text-text-secondary'>
+												<Bell className='size-5' />
 											</div>
-										</UserHoverCard>
+										)}
 										{/* Content */}
 										<div className='min-w-0 flex-1'>
 											<p className='text-sm leading-relaxed text-text-primary'>
-												<UserHoverCard
-													userId={notif.userId}
+												<NotificationActorHover
+													userId={notif.user ? notif.userId : ''}
 													currentUserId={user?.userId}
 												>
-													<span className='cursor-pointer font-semibold hover:underline'>
-														{notif.user}
+													<span
+														className={cn(
+															'font-semibold',
+															notif.user &&
+																notif.userId &&
+																'cursor-pointer hover:underline',
+														)}
+													>
+														{actorLabel}
 													</span>
-												</UserHoverCard>{' '}
+												</NotificationActorHover>{' '}
 												{notif.action}
 												{notif.target && (
 													<>
@@ -588,9 +435,30 @@ export const NotificationsPopup = () => {
 												{notif.time}
 											</span>
 										</div>
+										{path ? (
+											<button
+												type='button'
+												onClick={handleClick}
+												aria-label={t('openNotification')}
+												title={t('openNotification')}
+												className='grid size-10 shrink-0 place-items-center rounded-full text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												<ArrowRight className='size-4' />
+											</button>
+										) : !notif.read ? (
+											<button
+												type='button'
+												onClick={() => void markPopupNotificationRead(notif.id)}
+												aria-label={t('markRead')}
+												title={t('markRead')}
+												className='grid size-10 shrink-0 place-items-center rounded-full text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												<Check className='size-4' />
+											</button>
+										) : null}
 										{/* Unread dot */}
 										{!notif.read && (
-											<div className='absolute right-4 top-5 size-2 rounded-full bg-brand shadow-glow' />
+											<div className='absolute left-2 top-1/2 size-2 -translate-y-1/2 rounded-full bg-brand shadow-glow' />
 										)}{' '}
 										{/* Follow back button - functional */}
 										{notif.type === 'follow' && !notif.read && (
@@ -599,7 +467,7 @@ export const NotificationsPopup = () => {
 												onClick={handleFollowBack}
 												className='flex-shrink-0 rounded-full bg-brand px-4 py-1.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-brand/90'
 											>
-												Follow Back
+												{t('followBack')}
 											</button>
 										)}
 									</div>
@@ -615,7 +483,7 @@ export const NotificationsPopup = () => {
 						href='/notifications'
 						className='text-sm font-semibold text-brand transition-colors hover:text-brand/80'
 					>
-						View All Notifications
+						{t('viewAll')}
 					</Link>
 				</div>
 			</div>

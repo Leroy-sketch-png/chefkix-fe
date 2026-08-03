@@ -12,11 +12,12 @@ import {
 } from '@/components/challenges'
 import {
 	getChallengeHistory,
+	countCompletedDaysThisUtcWeek,
 	ChallengeHistoryItem,
-	ChallengeStats,
 } from '@/services/challenge'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -54,8 +55,6 @@ export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
 	const t = useTranslations('challenges')
 	const tc = useTranslations('common')
-	const [currentMonth, setCurrentMonth] = useState(new Date())
-	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
 	const [days, setDays] = useState<ChallengeDay[]>([])
@@ -75,20 +74,22 @@ export default function ChallengeHistoryPageRoute() {
 			setIsLoading(true)
 			setFetchError(false)
 			try {
-				const response = await getChallengeHistory(30) // Get last 30 days
+				const response = await getChallengeHistory(100)
 				if (cancelled) return
 				if (response.success && response.data) {
 					const { challenges, stats: apiStats } = response.data
 					setDays(challenges.map(transformToChallengeDay))
 					setStats({
 						currentStreak: apiStats.currentStreak,
-						completedThisWeek: 0, // Calculate from challenges
+						completedThisWeek: countCompletedDaysThisUtcWeek(challenges),
 						totalDays: 7,
 						bonusXpEarned: apiStats.totalBonusXp,
 						bestStreak: apiStats.longestStreak,
 						totalCompleted: apiStats.totalCompleted,
 						totalBonusXp: apiStats.totalBonusXp,
 					})
+				} else {
+					setFetchError(true)
 				}
 			} catch (err) {
 				if (!cancelled) {
@@ -105,16 +106,7 @@ export default function ChallengeHistoryPageRoute() {
 		return () => {
 			cancelled = true
 		}
-	}, [currentMonth, t])
-
-	const handleMonthChange = (direction: 'prev' | 'next') => {
-		const newMonth = new Date(currentMonth)
-		newMonth.setMonth(newMonth.getMonth() + (direction === 'next' ? 1 : -1))
-		setCurrentMonth(newMonth)
-	}
-
-	// NOTE: Load more disabled until pagination API is implemented
-	// When ready, add: onLoadMore={handleLoadMore} to ChallengeHistoryPage
+	}, [t])
 
 	if (fetchError) {
 		return (
@@ -126,11 +118,23 @@ export default function ChallengeHistoryPageRoute() {
 						onRetry={() => {
 							setIsLoading(true)
 							setFetchError(false)
-							setCurrentMonth(new Date(currentMonth))
+							window.location.reload()
 						}}
 					/>
 				</PageContainer>
 			</PageTransition>
+		)
+	}
+
+	if (isLoading) {
+		return (
+			<PageContainer maxWidth='lg'>
+				<div className='mx-auto max-w-3xl space-y-6 p-6'>
+					<Skeleton className='h-10 w-64 rounded-xl' />
+					<Skeleton className='h-56 w-full rounded-xl' />
+					<Skeleton className='h-72 w-full rounded-xl' />
+				</div>
+			</PageContainer>
 		)
 	}
 
@@ -146,10 +150,7 @@ export default function ChallengeHistoryPageRoute() {
 					<ChallengeHistoryPage
 						days={days}
 						stats={stats}
-						currentMonth={currentMonth}
-						onMonthChange={handleMonthChange}
 						onBack={() => router.back()}
-						isLoadingMore={isLoadingMore}
 					/>
 				</PremiumSurface>
 

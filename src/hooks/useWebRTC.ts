@@ -8,6 +8,7 @@ import {
 	buildVideoSignalingProtocols,
 	buildVideoSignalingUrl,
 } from '@/lib/video-signaling-auth'
+import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 
 type SignalData = RTCSessionDescriptionInit | RTCIceCandidate
 
@@ -34,13 +35,10 @@ export type MediaReadinessState =
 	| 'timeout'
 	| 'error'
 
-const MEDIA_PERMISSION_TIMEOUT_MS = 12_000
-
 export function getTurnServer(): RTCIceServer {
 	return {
 		urls:
-			process.env.NEXT_PUBLIC_TURN_URL ||
-			'turn:localhost:3478?transport=udp',
+			process.env.NEXT_PUBLIC_TURN_URL || 'turn:localhost:3478?transport=udp',
 		username: process.env.NEXT_PUBLIC_TURN_USERNAME || 'chefkix',
 		credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL,
 	}
@@ -48,10 +46,7 @@ export function getTurnServer(): RTCIceServer {
 
 export function getRtcConfiguration(): RTCConfiguration {
 	return {
-		iceServers: [
-			{ urls: 'stun:stun.l.google.com:19302' },
-			getTurnServer(),
-		],
+		iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, getTurnServer()],
 		iceCandidatePoolSize: 4,
 	}
 }
@@ -103,39 +98,6 @@ export async function probeTurnRelay(
 	})
 }
 
-async function getUserMediaBounded(
-	constraints: MediaStreamConstraints,
-	timeoutMs = MEDIA_PERMISSION_TIMEOUT_MS,
-): Promise<MediaStream> {
-	if (!navigator.mediaDevices?.getUserMedia) {
-		throw new DOMException('Media devices are unavailable.', 'NotSupportedError')
-	}
-
-	let timedOut = false
-	const mediaRequest = navigator.mediaDevices.getUserMedia(constraints)
-	mediaRequest
-		.then(stream => {
-			if (timedOut) {
-				stream.getTracks().forEach(track => track.stop())
-			}
-		})
-		.catch(() => undefined)
-
-	let timeoutId = 0
-	const timeout = new Promise<never>((_, reject) => {
-		timeoutId = window.setTimeout(() => {
-			timedOut = true
-			reject(new DOMException('Media permission timed out.', 'TimeoutError'))
-		}, timeoutMs)
-	})
-
-	try {
-		return await Promise.race([mediaRequest, timeout])
-	} finally {
-		window.clearTimeout(timeoutId)
-	}
-}
-
 function mediaFailureState(error: unknown): MediaReadinessState {
 	if (!(error instanceof DOMException)) return 'error'
 	if (error.name === 'TimeoutError') return 'timeout'
@@ -179,14 +141,12 @@ export function useWebRTC({
 		useState<RTCSessionDescriptionInit | null>(null)
 	// Ref mirror so acceptCall always reads the current offer, not a stale closure
 	const remoteOfferRef = useRef<RTCSessionDescriptionInit | null>(null)
-	const [mediaState, setMediaState] =
-		useState<MediaReadinessState>('idle')
+	const [mediaState, setMediaState] = useState<MediaReadinessState>('idle')
 	const [connectionState, setConnectionState] =
 		useState<RTCPeerConnectionState>('new')
 	const [iceConnectionState, setIceConnectionState] =
 		useState<RTCIceConnectionState>('new')
-	const [relayCandidateAvailable, setRelayCandidateAvailable] =
-		useState(false)
+	const [relayCandidateAvailable, setRelayCandidateAvailable] = useState(false)
 
 	const [playIncomingRingtone, { stop: stopIncoming }] = useSound(
 		'/sounds/call-ring-tone.mp3',
@@ -334,7 +294,10 @@ export function useWebRTC({
 
 	const handleNewIceCandidate = useCallback(
 		async (candidate: RTCIceCandidateInit) => {
-			if (!peerConnectionRef.current || !peerConnectionRef.current.remoteDescription) {
+			if (
+				!peerConnectionRef.current ||
+				!peerConnectionRef.current.remoteDescription
+			) {
 				iceCandidateBufferRef.current.push(candidate)
 			} else {
 				await peerConnectionRef.current.addIceCandidate(candidate)
@@ -391,14 +354,10 @@ export function useWebRTC({
 						if (callTimeoutRef.current) {
 							clearTimeout(callTimeoutRef.current)
 						}
-						await handleReceiveAnswer(
-							message.data as RTCSessionDescriptionInit,
-						)
+						await handleReceiveAnswer(message.data as RTCSessionDescriptionInit)
 						break
 					case 'ice-candidate':
-						await handleNewIceCandidate(
-							message.data as RTCIceCandidateInit,
-						)
+						await handleNewIceCandidate(message.data as RTCIceCandidateInit)
 						break
 					case 'leave':
 						stopAllRingtones()
@@ -459,7 +418,9 @@ export function useWebRTC({
 						})
 						attachStream(audioStream, false)
 						connectWebSocket()
-						toast.info('Camera unavailable. Co-cook is ready in audio-only mode.')
+						toast.info(
+							'Camera unavailable. Co-cook is ready in audio-only mode.',
+						)
 						return true
 					} catch (audioError) {
 						setMediaState(mediaFailureState(audioError))
@@ -539,7 +500,9 @@ export function useWebRTC({
 				const offer = remoteOfferRef.current
 				if (!offer) {
 					logDevError('[WebRTC] acceptCall called but remoteOffer is null', {})
-					toast.error('Call setup failed — please ask the other person to call again.')
+					toast.error(
+						'Call setup failed — please ask the other person to call again.',
+					)
 					return
 				}
 

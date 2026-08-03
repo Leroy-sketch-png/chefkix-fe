@@ -117,7 +117,7 @@ export function CommandMenu({
 							className,
 						)}
 						role='dialog'
-						aria-label={tCommon('search')}
+						aria-label={tCommon('commandMenu')}
 					>
 						<div className='flex items-center gap-2 border-b border-border-subtle px-4'>
 							<Search className='size-4 text-text-muted' />
@@ -130,6 +130,7 @@ export function CommandMenu({
 								}}
 								onKeyDown={handleKeyDown}
 								placeholder={placeholder ?? tCommon('commandPlaceholder')}
+								aria-label={tCommon('commandPlaceholder')}
 								className='flex-1 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted'
 							/>
 							<button

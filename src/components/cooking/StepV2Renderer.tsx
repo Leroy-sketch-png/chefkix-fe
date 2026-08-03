@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, TRANSITION_SMOOTH } from '@/lib/motion'
+import { TRANSITION_SMOOTH } from '@/lib/motion'
 import type { Step, Ingredient } from '@/lib/types/recipe'
 import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 
@@ -51,6 +51,58 @@ interface StepV2RendererProps {
 	timerComponent?: React.ReactNode // External timer component to render
 	ingredientChecklistComponent?: React.ReactNode // External ingredient checklist
 	className?: string
+}
+
+const StepMedia = ({
+	step,
+	autoPlay = false,
+	controls = false,
+	className,
+}: {
+	step: Step
+	autoPlay?: boolean
+	controls?: boolean
+	className?: string
+}) => {
+	const [videoFailed, setVideoFailed] = useState(false)
+	const [imageFailed, setImageFailed] = useState(false)
+	const showVideo = Boolean(step.videoUrl && !videoFailed)
+	const showImage = Boolean(!showVideo && step.imageUrl && !imageFailed)
+
+	if (!showVideo && !showImage) return null
+
+	return (
+		<div
+			data-testid='step-media-frame'
+			className={cn(
+				'relative mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm',
+				className,
+			)}
+		>
+			{showVideo ? (
+				<video
+					src={step.videoUrl}
+					poster={step.videoThumbnailUrl || undefined}
+					controls={controls}
+					autoPlay={autoPlay}
+					loop
+					muted
+					playsInline
+					className='h-full w-full object-cover'
+					onError={() => setVideoFailed(true)}
+				/>
+			) : (
+				<Image
+					src={step.imageUrl!}
+					alt={step.title ?? `Step ${step.stepNumber}`}
+					fill
+					sizes='(max-width: 768px) 100vw, 672px'
+					className='object-cover'
+					onError={() => setImageFailed(true)}
+				/>
+			)}
+		</div>
+	)
 }
 
 // Collapsible section wrapper
@@ -150,66 +202,22 @@ const FullModeRenderer = ({
 
 	return (
 		<div className='space-y-4'>
-			{/* Step Video (priority) or Image */}
-			{step.videoUrl ? (
-				<motion.div
-					initial={{ opacity: 0, scale: 0.95 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: 0.1 }}
-					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'
-				>
-					<video
-						src={step.videoUrl}
-						poster={step.videoThumbnailUrl || undefined}
-						controls
-						loop
-						muted
-						playsInline
-						className='h-full w-full object-cover'
-						onError={e => {
-							;(e.target as HTMLVideoElement).style.display = 'none'
-						}}
-					/>
-				</motion.div>
-			) : step.imageUrl ? (
-				<motion.div
-					initial={{ opacity: 0, scale: 0.95 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: 0.1 }}
-					className='relative mx-auto mb-4 aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'
-				>
-					<Image
-						src={step.imageUrl}
-						alt={step.title ?? `Step ${step.stepNumber}`}
-						fill
-						sizes='(max-width: 768px) 100vw, 672px'
-						className='object-cover'
-						onError={e => {
-							;(e.target as HTMLImageElement).style.display = 'none'
-						}}
-					/>
-				</motion.div>
-			) : null}
+			<StepMedia
+				key={`${step.videoUrl ?? ''}:${step.imageUrl ?? ''}`}
+				step={step}
+				controls
+				className='mb-4'
+			/>
 
 			{/* Step Title */}
-			<motion.h3
-				initial={{ opacity: 0, y: 10 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ delay: 0.15 }}
-				className='text-center text-xl font-bold text-text-primary md:text-2xl'
-			>
+			<h3 className='text-center text-xl font-bold text-text-primary md:text-2xl'>
 				{t('step', { stepNum: step.stepNumber })}:{' '}
 				{step.title ?? t('ttsTitleFallback')}
-			</motion.h3>
+			</h3>
 
 			{/* Goal (V2) - prominent display */}
 			{step.goal && (
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.18 }}
-					className='mx-auto flex max-w-lg items-start gap-3 rounded-xl border border-brand/20 bg-brand/5 p-4'
-				>
+				<div className='mx-auto flex max-w-lg items-start gap-3 rounded-xl border border-brand/20 bg-brand/5 p-4'>
 					<Target className='mt-0.5 size-5 shrink-0 text-brand' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-brand'>
@@ -217,27 +225,17 @@ const FullModeRenderer = ({
 						</p>
 						<p className='text-text-primary'>{step.goal}</p>
 					</div>
-				</motion.div>
+				</div>
 			)}
 
 			{/* Main Description */}
-			<motion.p
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.2 }}
-				className='mx-auto max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'
-			>
+			<p className='mx-auto max-w-lg text-center text-lg leading-relaxed text-text-secondary md:text-xl'>
 				{step.description}
-			</motion.p>
+			</p>
 
 			{/* Micro-Steps (V2) */}
 			{step.microSteps && step.microSteps.length > 0 && (
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.22 }}
-					className='mx-auto max-w-md rounded-xl border border-border-subtle bg-bg-card p-4'
-				>
+				<div className='mx-auto max-w-md rounded-xl border border-border-subtle bg-bg-card p-4'>
 					<div className='mb-3 flex items-center gap-2'>
 						<ListChecks className='size-4 text-text-muted' />
 						<span className='text-sm font-semibold text-text-primary'>
@@ -257,29 +255,15 @@ const FullModeRenderer = ({
 							</li>
 						))}
 					</ol>
-				</motion.div>
+				</div>
 			)}
 
 			{/* Timer */}
-			{timerComponent && (
-				<motion.div
-					initial={{ opacity: 0, scale: 0.9 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: 0.25 }}
-					className='mb-4'
-				>
-					{timerComponent}
-				</motion.div>
-			)}
+			{timerComponent && <div className='mb-4'>{timerComponent}</div>}
 
 			{/* Visual Cues (V2) */}
 			{step.visualCues && (
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.28 }}
-					className='mx-auto flex max-w-md items-start gap-3 rounded-xl border border-success/30 bg-success/5 p-4'
-				>
+				<div className='mx-auto flex max-w-md items-start gap-3 rounded-xl border border-success/30 bg-success/5 p-4'>
 					<Eye className='mt-0.5 size-5 shrink-0 text-success' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-success'>
@@ -287,17 +271,12 @@ const FullModeRenderer = ({
 						</p>
 						<p className='text-success'>{step.visualCues}</p>
 					</div>
-				</motion.div>
+				</div>
 			)}
 
 			{/* Common Mistake (V2) */}
 			{step.commonMistake && (
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.3 }}
-					className='mx-auto flex max-w-md items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4'
-				>
+				<div className='mx-auto flex max-w-md items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4'>
 					<AlertTriangle className='mt-0.5 size-5 shrink-0 text-warning' />
 					<div>
 						<p className='text-xs font-semibold uppercase tracking-wide text-warning-vivid'>
@@ -305,20 +284,15 @@ const FullModeRenderer = ({
 						</p>
 						<p className='text-warning-vivid'>{step.commonMistake}</p>
 					</div>
-				</motion.div>
+				</div>
 			)}
 
 			{/* Chef Tip / Tips */}
 			{(step.chefTip || step.tips) && (
-				<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.32 }}
-					className='mx-auto flex max-w-md items-start gap-3 rounded-xl bg-bonus/10 p-4'
-				>
+				<div className='mx-auto flex max-w-md items-start gap-3 rounded-xl bg-bonus/10 p-4'>
 					<span className='text-lg'>💡</span>
 					<p className='text-bonus'>{step.chefTip || step.tips}</p>
-				</motion.div>
+				</div>
 			)}
 
 			{/* Collapsible enrichments */}
@@ -422,23 +396,11 @@ const KitchenModeRenderer = ({
 	const { preferences, isReady: preferencesReady } = useRuntimePreferences()
 	return (
 		<div className='space-y-6'>
-			{/* Video (auto-plays, useful at distance for visual reference) */}
-			{step.videoUrl && (
-				<div className='relative mx-auto aspect-video w-full max-w-2xl overflow-hidden rounded-2xl shadow-warm'>
-					<video
-						src={step.videoUrl}
-						poster={step.videoThumbnailUrl || undefined}
-						autoPlay={preferencesReady && preferences.autoPlayVideos}
-						loop
-						muted
-						playsInline
-						className='h-full w-full object-cover'
-						onError={e => {
-							;(e.target as HTMLVideoElement).style.display = 'none'
-						}}
-					/>
-				</div>
-			)}
+			<StepMedia
+				key={`${step.videoUrl ?? ''}:${step.imageUrl ?? ''}`}
+				step={step}
+				autoPlay={preferencesReady && preferences.autoPlayVideos}
+			/>
 
 			{/* Large step number */}
 			<div className='text-center'>
@@ -499,13 +461,7 @@ const StepV2RendererComponent = ({
 	className,
 }: StepV2RendererProps) => {
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={TRANSITION_SPRING}
-			className={cn('w-full', className)}
-		>
+		<div className={cn('w-full', className)}>
 			{mode === 'full' && (
 				<FullModeRenderer
 					step={step}
@@ -519,7 +475,7 @@ const StepV2RendererComponent = ({
 			{mode === 'kitchen' && (
 				<KitchenModeRenderer step={step} timerComponent={timerComponent} />
 			)}
-		</motion.div>
+		</div>
 	)
 }
 

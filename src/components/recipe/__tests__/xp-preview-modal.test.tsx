@@ -28,6 +28,10 @@ jest.mock('next-intl', () => ({
 					return 'Validated'
 				case 'xpValidatedDesc':
 					return 'Validated by AI'
+				case 'xpEstimate':
+					return 'XP estimate'
+				case 'xpEstimateDesc':
+					return 'Not validated yet'
 				case 'xpConfident':
 					return `Confidence ${values?.confidence}`
 				case 'cooksCanEarn':
@@ -36,8 +40,6 @@ jest.mock('next-intl', () => ({
 					return 'Creator XP'
 				case 'creatorXpWhenOthersCook':
 					return 'When others cook'
-				case 'creatorXpProjection':
-					return 'Projected XP'
 				case 'editRecipe':
 					return 'Edit recipe'
 				case 'publishRecipe':
@@ -195,5 +197,41 @@ describe('XpPreviewModal', () => {
 
 		expect(onPublish).toHaveBeenCalledTimes(1)
 		expect(onPublish).toHaveBeenCalledWith(recipe)
+	})
+
+	it('shows measured validation only for a validated breakdown', () => {
+		render(
+			<XpPreviewModal
+				recipe={recipe}
+				xpBreakdown={xpBreakdown}
+				onBack={jest.fn()}
+				onPublish={jest.fn()}
+			/>,
+		)
+
+		expect(screen.getByText('Validated')).toBeTruthy()
+		expect(screen.getByText('Confidence 95')).toBeTruthy()
+		expect(screen.queryByText('XP estimate')).toBeNull()
+		expect(screen.queryByText('Projected XP')).toBeNull()
+	})
+
+	it('labels cached rewards as estimates without invented confidence', () => {
+		render(
+			<XpPreviewModal
+				recipe={recipe}
+				xpBreakdown={{
+					...xpBreakdown,
+					isValidated: false,
+					confidence: undefined,
+				}}
+				onBack={jest.fn()}
+				onPublish={jest.fn()}
+			/>,
+		)
+
+		expect(screen.getByText('XP estimate')).toBeTruthy()
+		expect(screen.getByText('Not validated yet')).toBeTruthy()
+		expect(screen.queryByText('Validated')).toBeNull()
+		expect(screen.queryByText(/Confidence/)).toBeNull()
 	})
 })

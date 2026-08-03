@@ -58,6 +58,7 @@ export default function ChallengesPage() {
 		icon: string
 		bonusXp: number
 		endsAt: Date
+		completed: boolean
 	} | null>(null)
 	const [weeklyChallenge, setWeeklyChallenge] =
 		useState<WeeklyChallenge | null>(null)
@@ -106,6 +107,7 @@ export default function ChallengesPage() {
 					icon: data.icon || '🎯',
 					bonusXp: data.bonusXp,
 					endsAt: new Date(data.endsAt),
+					completed: data.completed,
 				})
 			}
 			if (weeklyRes?.success && weeklyRes.data) {
@@ -247,17 +249,26 @@ export default function ChallengesPage() {
 						) : (
 							<>
 								{/* Daily Challenge Banner - Featured */}
-								{dailyChallenge && (
-									<DailyChallengeBanner
-										variant='active'
-										challenge={dailyChallenge}
-										onFindRecipe={() =>
-											startNavigationTransition(() => {
-												router.push(PATHS.EXPLORE_SEARCH(dailyChallenge.title))
-											})
-										}
-									/>
-								)}
+								{dailyChallenge &&
+									(dailyChallenge.completed ? (
+										<DailyChallengeBanner
+											variant='completed'
+											challenge={dailyChallenge}
+											onViewHistory={() => router.push('/challenges/history')}
+										/>
+									) : (
+										<DailyChallengeBanner
+											variant='active'
+											challenge={dailyChallenge}
+											onFindRecipe={() =>
+												startNavigationTransition(() => {
+													router.push(
+														PATHS.EXPLORE_SEARCH(dailyChallenge.title),
+													)
+												})
+											}
+										/>
+									))}
 
 								{/* Weekly Challenge Section */}
 								{weeklyChallenge && (

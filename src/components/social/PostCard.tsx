@@ -78,6 +78,7 @@ import { AnimatedNumber } from '@/components/ui/animated-number'
 import { Lens } from '@/components/ui/lens'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { isPositiveSocialMetric } from '@/lib/positive-social-proof'
 import {
 	socialCardSurface,
 	socialCardTopAccent,
@@ -257,6 +258,8 @@ const PostCardContent = ({
 	useEscapeKey(showShareMenu, () => setShowShareMenu(false))
 	const isLoggedIn = !!currentUserId
 	const createdAt = new Date(post.createdAt)
+	const hasLikeProof = isPositiveSocialMetric(post.likes)
+	const hasCommentProof = isPositiveSocialMetric(post.commentCount)
 
 	// Sync local state when parent updates the post prop
 	useEffect(() => {
@@ -314,7 +317,6 @@ const PostCardContent = ({
 				const newIsLiked = response.data.isLiked ?? !wasLiked
 
 				trackEvent('POST_LIKED', post.id, 'post', { liked: newIsLiked })
-				window.dispatchEvent(new CustomEvent('chefkix:interaction'))
 				setPost(prev => ({
 					...prev,
 					likes: newLikes,
@@ -697,10 +699,11 @@ const PostCardContent = ({
 					<div
 						className={`flex items-center justify-between ${socialCardHeaderPadding}`}
 					>
-						<UserHoverCard userId={post.userId} currentUserId={currentUserId}>
+						<div className='flex min-w-0 items-center gap-3'>
 							<Link
 								href={post.userId ? `/${post.userId}` : '/dashboard'}
-								className='flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80'
+								aria-label={post.displayName || t('unknownUser')}
+								className='shrink-0 transition-opacity hover:opacity-80'
 							>
 								<div className='relative shrink-0'>
 									<Avatar
@@ -727,72 +730,84 @@ const PostCardContent = ({
 										</span>
 									)}
 								</div>
-								<div className='min-w-0'>
-									<div className='flex items-center gap-1.5 text-sm font-semibold leading-tight text-text-primary'>
+							</Link>
+							<div className='min-w-0'>
+								<UserHoverCard
+									userId={post.userId}
+									currentUserId={currentUserId}
+								>
+									<Link
+										href={post.userId ? `/${post.userId}` : '/dashboard'}
+										className='flex items-center gap-1.5 text-sm font-semibold leading-tight text-text-primary transition-colors hover:text-brand'
+									>
 										<span className='truncate'>
 											{post.displayName || t('unknownUser')}
 										</span>
 										{post.isVerified && <VerifiedBadge size='sm' />}
-									</div>
-									<div className='mt-0.5 flex flex-wrap items-center gap-1.5 text-xs leading-normal text-text-muted'>
-										{post.postType && post.postType !== 'PERSONAL' && (
-											<span
-												className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${POST_TYPE_BADGE_STYLES[post.postType] || 'bg-bg-elevated text-text-muted'}`}
-											>
-												{post.postType === 'QUICK' && (
-													<>
-														<Zap className='size-3' />
-														{t('typeQuickShort')}
-													</>
-												)}
-												{post.postType === 'POLL' && (
-													<>
-														<BarChart3 className='size-3' />
-														{t('typePollShort')}
-													</>
-												)}
-												{post.postType === 'RECENT_COOK' && (
-													<>
-														<ChefHat className='size-3' />
-														{t('typeCookShort')}
-													</>
-												)}
-												{post.postType === 'GROUP' && (
-													<>
-														<Users className='size-3' />
-														{t('typeGroupShort')}
-													</>
-												)}
-												{post.postType === 'RECIPE_REVIEW' && (
-													<>
-														<Star className='size-3' />
-														{t('typeReviewShort')}
-													</>
-												)}
-												{post.postType === 'QUICK_TIP' && (
-													<>
-														<Lightbulb className='size-3' />
-														{t('typeTipShort')}
-													</>
-												)}
-												{post.postType === 'RECIPE_BATTLE' && (
-													<>
-														<Swords className='size-3' />
-														{t('typeBattleShort')}
-													</>
-												)}
-											</span>
-										)}
-										<span>
-											{formatDistanceToNow(new Date(post.createdAt), {
-												addSuffix: true,
-											})}
+									</Link>
+								</UserHoverCard>
+								<div className='mt-0.5 flex flex-wrap items-center gap-1.5 text-xs leading-normal text-text-muted'>
+									{post.postType && post.postType !== 'PERSONAL' && (
+										<span
+											className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium ${POST_TYPE_BADGE_STYLES[post.postType] || 'bg-bg-elevated text-text-muted'}`}
+										>
+											{post.postType === 'QUICK' && (
+												<>
+													<Zap className='size-3' />
+													{t('typeQuickShort')}
+												</>
+											)}
+											{post.postType === 'POLL' && (
+												<>
+													<BarChart3 className='size-3' />
+													{t('typePollShort')}
+												</>
+											)}
+											{post.postType === 'RECENT_COOK' && (
+												<>
+													<ChefHat className='size-3' />
+													{t('typeCookShort')}
+												</>
+											)}
+											{post.postType === 'GROUP' && (
+												<>
+													<Users className='size-3' />
+													{t('typeGroupShort')}
+												</>
+											)}
+											{post.postType === 'RECIPE_REVIEW' && (
+												<>
+													<Star className='size-3' />
+													{t('typeReviewShort')}
+												</>
+											)}
+											{post.postType === 'QUICK_TIP' && (
+												<>
+													<Lightbulb className='size-3' />
+													{t('typeTipShort')}
+												</>
+											)}
+											{post.postType === 'RECIPE_BATTLE' && (
+												<>
+													<Swords className='size-3' />
+													{t('typeBattleShort')}
+												</>
+											)}
 										</span>
-										{canEdit && <EditCountdown createdAt={createdAt} />}
-									</div>
+									)}
+									<Link
+										href={`/post/${post.id}`}
+										aria-label={t('viewPost')}
+										className='rounded-sm transition-colors hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+									>
+										{formatDistanceToNow(new Date(post.createdAt), {
+											addSuffix: true,
+										})}
+									</Link>
+									{canEdit && <EditCountdown createdAt={createdAt} />}
 								</div>
-							</Link>
-						</UserHoverCard>
+							</div>
+						</div>
 
 						{/* Menu - Show for all logged in users */}
 						{isLoggedIn && (
@@ -1379,7 +1394,13 @@ const PostCardContent = ({
 							disabled={isLiking}
 							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={
-								post.isLiked ? t('unlikePostLabel') : t('likePostLabel')
+								hasLikeProof
+									? post.isLiked
+										? t('unlikePostWithCountLabel', { count: post.likes })
+										: t('likePostWithCountLabel', { count: post.likes })
+									: post.isLiked
+										? t('unlikePostLabel')
+										: t('likePostLabel')
 							}
 							className={`group/btn flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								post.isLiked
@@ -1400,9 +1421,11 @@ const PostCardContent = ({
 									}`}
 								/>
 							</motion.div>
-							<span className='tabular-nums'>
-								<AnimatedNumber value={post.likes ?? 0} className='' />
-							</span>
+							{hasLikeProof ? (
+								<span className='tabular-nums'>
+									<AnimatedNumber value={post.likes} className='' />
+								</span>
+							) : null}
 						</motion.button>
 
 						<motion.button
@@ -1410,7 +1433,17 @@ const PostCardContent = ({
 							onClick={() => setShowComments(!showComments)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							aria-label={
-								showComments ? t('hideCommentsLabel') : t('showCommentsLabel')
+								hasCommentProof
+									? showComments
+										? t('hideCommentsWithCountLabel', {
+												count: post.commentCount,
+											})
+										: t('showCommentsWithCountLabel', {
+												count: post.commentCount,
+											})
+									: showComments
+										? t('hideCommentsLabel')
+										: t('showCommentsLabel')
 							}
 							className={`group/btn flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-all hover:bg-brand/8 hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 ${
 								showComments ? 'text-brand' : 'text-text-secondary'
@@ -1421,9 +1454,11 @@ const PostCardContent = ({
 									showComments ? 'fill-brand/20 stroke-brand' : ''
 								}`}
 							/>
-							<span className='tabular-nums'>
-								<AnimatedNumber value={post.commentCount ?? 0} className='' />
-							</span>
+							{hasCommentProof ? (
+								<span className='tabular-nums'>
+									<AnimatedNumber value={post.commentCount} className='' />
+								</span>
+							) : null}
 						</motion.button>
 
 						{/* Share button with dropdown menu */}

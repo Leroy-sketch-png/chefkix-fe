@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { logDevError } from '@/lib/dev-log'
 import { getKitchenAudioCoordinator } from '@/lib/voice'
+import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 
 interface UseClapDetectionOptions {
 	/** Whether clap detection is active */
@@ -87,7 +88,7 @@ export function useClapDetection({
 		const start = async () => {
 			if (!getKitchenAudioCoordinator().acquireMicrophone('clap')) return
 			try {
-				const stream = await navigator.mediaDevices.getUserMedia({
+				const stream = await getUserMediaBounded({
 					audio: { echoCancellation: true, noiseSuppression: true },
 					video: false,
 				})

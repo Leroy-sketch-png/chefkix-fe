@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -57,73 +56,13 @@ import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { logDevError } from '@/lib/dev-log'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { useTranslations } from 'next-intl'
-
-const CookingHistoryTab = dynamic(
-	() => import('@/components/pending').then(module => module.CookingHistoryTab),
-	{ ssr: false, loading: () => null },
-)
-
-const ProfileHeaderGamified = dynamic(
-	() =>
-		import('./ProfileHeaderGamified').then(
-			module => module.ProfileHeaderGamified,
-		),
-	{
-		ssr: false,
-		loading: () => (
-			<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'>
-				<Skeleton className='h-48 w-full md:h-56' />
-				<div className='space-y-4 p-6'>
-					<Skeleton className='h-8 w-56' />
-					<Skeleton className='h-5 w-40' />
-					<div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
-						<Skeleton className='h-16 w-full' />
-						<Skeleton className='h-16 w-full' />
-						<Skeleton className='h-16 w-full' />
-						<Skeleton className='h-16 w-full' />
-					</div>
-				</div>
-			</div>
-		),
-	},
-)
-
-const PostCard = dynamic(
-	() => import('@/components/social/PostCard').then(module => module.PostCard),
-	{ ssr: false, loading: () => null },
-)
-
-const SkillTree = dynamic(
-	() =>
-		import('@/components/achievements/SkillTree').then(
-			module => module.SkillTree,
-		),
-	{ ssr: false, loading: () => null },
-)
-
-const ConfirmDialog = dynamic(
-	() =>
-		import('@/components/shared/ConfirmDialog').then(
-			module => module.ConfirmDialog,
-		),
-	{ ssr: false, loading: () => null },
-)
-
-const TasteCompatibility = dynamic(
-	() =>
-		import('@/components/profile/TasteCompatibility').then(
-			module => module.TasteCompatibility,
-		),
-	{ ssr: false, loading: () => null },
-)
-
-const ProfileCommandRail = dynamic(
-	() =>
-		import('@/components/profile/ProfileCommandRail').then(
-			module => module.ProfileCommandRail,
-		),
-	{ ssr: false, loading: () => null },
-)
+import { CookingHistoryTab } from '@/components/pending'
+import { PostCard } from '@/components/social/PostCard'
+import { SkillTree } from '@/components/achievements/SkillTree'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { TasteCompatibility } from '@/components/profile/TasteCompatibility'
+import { ProfileCommandRail } from '@/components/profile/ProfileCommandRail'
+import { ProfileHeaderGamified } from '@/components/profile/ProfileHeaderGamified'
 
 interface ProfileUser {
 	id: string
@@ -1009,9 +948,9 @@ export const UserProfile = ({
 													href={`/collections/${collection.id}`}
 													className='block h-full'
 												>
-													<div
-														className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
-													>
+											<div
+												className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
+											>
 														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10'>
 															{coverImageDelivery ? (
 																<Image

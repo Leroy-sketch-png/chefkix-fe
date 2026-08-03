@@ -56,12 +56,12 @@ interface ActiveChallengeProps {
 interface CompletedChallengeProps {
 	variant: 'completed'
 	challenge: ChallengeBase
-	completedWith: {
+	completedWith?: {
 		recipeId: string
 		recipeTitle: string
 		recipeImageUrl: string
 	}
-	streakCount: number
+	streakCount?: number
 	onViewHistory?: () => void
 }
 
@@ -313,25 +313,31 @@ const CompletedChallengeBanner = ({
 					</div>
 				</div>
 
-				{/* Completed With */}
+				{/* The daily API may not identify a completing recipe. */}
 				<div className='mb-3 flex items-center justify-between rounded-xl bg-bg-card p-3.5'>
-					<div className='flex items-center gap-3'>
-						<Image
-							src={completedWith.recipeImageUrl}
-							alt={completedWith.recipeTitle}
-							width={48}
-							height={48}
-							className='size-12 rounded-xl object-cover'
-						/>
-						<div className='flex flex-col'>
-							<span className='text-xs text-text-muted'>
-								{t('completedWith')}
-							</span>
-							<span className='text-sm font-semibold text-text-primary'>
-								{completedWith.recipeTitle}
-							</span>
+					{completedWith ? (
+						<div className='flex items-center gap-3'>
+							<Image
+								src={completedWith.recipeImageUrl}
+								alt={completedWith.recipeTitle}
+								width={48}
+								height={48}
+								className='size-12 rounded-xl object-cover'
+							/>
+							<div className='flex flex-col'>
+								<span className='text-xs text-text-muted'>
+									{t('completedWith')}
+								</span>
+								<span className='text-sm font-semibold text-text-primary'>
+									{completedWith.recipeTitle}
+								</span>
+							</div>
 						</div>
-					</div>
+					) : (
+						<span className='text-sm font-semibold text-success'>
+							{t('completedToday')}
+						</span>
+					)}
 					<div className='text-right'>
 						<span className='block tabular-nums text-xl font-bold tracking-tight text-xp'>
 							+{challenge.bonusXp} XP
@@ -341,7 +347,7 @@ const CompletedChallengeBanner = ({
 				</div>
 
 				{/* Streak Teaser */}
-				{streakCount > 0 && (
+				{streakCount !== undefined && streakCount > 0 && (
 					<div className='flex items-center justify-center gap-2 rounded-xl bg-streak/10 px-3 py-2.5'>
 						<span className='text-lg'>🔥</span>
 						<span className='text-sm font-semibold text-streak'>
@@ -349,17 +355,18 @@ const CompletedChallengeBanner = ({
 						</span>
 					</div>
 				)}
-			</div>
 
-			{/* View History */}
-			<button
-				type='button'
-				onClick={onViewHistory}
-				className='absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-border-subtle px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
-			>
-				{t('viewHistory')}
-				<ChevronRight className='size-4' />
-			</button>
+				{onViewHistory && (
+					<button
+						type='button'
+						onClick={onViewHistory}
+						className='mt-3 flex min-h-10 w-full items-center justify-center gap-1 rounded-xl border border-border-subtle px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
+					>
+						{t('viewHistory')}
+						<ChevronRight className='size-4' />
+					</button>
+				)}
+			</div>
 		</motion.div>
 	)
 }

@@ -54,7 +54,9 @@ function MessagesDrawerMessageBubbleContent({
 }: MessagesDrawerMessageBubbleProps) {
 	return (
 		<div
-			className={`flex items-end ${message.me ? 'justify-end' : 'justify-start'}`}
+			className={`flex items-end ${message.me ? 'justify-end' : 'justify-start'} ${
+				message.deliveryStatus === 'sending' ? 'opacity-70' : ''
+			}`}
 		>
 			<div
 				className={`max-w-[70%] rounded-xl p-2 ${
@@ -63,7 +65,15 @@ function MessagesDrawerMessageBubbleContent({
 						: 'rounded-bl-none bg-bg-elevated'
 				}`}
 			>
-				<p className='text-sm'>{message.message}</p>
+				<div className='flex items-end gap-2'>
+					<p className='text-sm'>{message.message}</p>
+					{message.deliveryStatus === 'sending' && (
+						<span
+							aria-hidden='true'
+							className='mb-0.5 size-1.5 shrink-0 animate-pulse rounded-full bg-current opacity-60'
+						/>
+					)}
+				</div>
 			</div>
 		</div>
 	)

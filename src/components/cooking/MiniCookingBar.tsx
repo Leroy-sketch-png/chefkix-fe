@@ -7,6 +7,7 @@ import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
 import { ChevronUp, Pause, Play, X, Timer, ChefHat } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { deriveCookingProgress } from '@/lib/cooking-progress'
 import { useTranslations } from 'next-intl'
 import {
 	Dialog,
@@ -33,10 +34,8 @@ export const MiniCookingBar = () => {
 	const [showExitConfirm, setShowExitConfirm] = useState(false)
 	const [isAbandoning, setIsAbandoning] = useState(false)
 
-	// Show on non-xl screens when cooking (mini or docked mode)
-	// On xl+ screens, docked mode uses CookingPanel instead
-	// CSS handles the xl:hidden, so we show whenever there's an ACTIVE cooking session
-	// (not completed/abandoned) and the user hasn't explicitly hidden or expanded it
+	// Mini mode stays reachable at every viewport. Docked mode uses this bar only
+	// below xl, where the desktop CookingPanel is unavailable.
 	const isActiveSession =
 		session && session.status !== 'completed' && session.status !== 'abandoned'
 	const isVisible =
@@ -54,8 +53,12 @@ export const MiniCookingBar = () => {
 	const timerSecs = timerSeconds % 60
 	const hasActiveTimer = localTimers.size > 0
 
-	const currentStep = session?.currentStep ?? 1
-	const totalSteps = recipe?.steps?.length ?? 0
+	const { currentStep, totalSteps, progressPercent } = deriveCookingProgress({
+		currentStep: session?.currentStep,
+		completedSteps: session?.completedSteps,
+		sessionTotalSteps: session?.totalSteps,
+		recipeTotalSteps: recipe?.steps?.length,
+	})
 	const isPaused = session?.status === 'paused'
 
 	const handleExpand = () => {
@@ -88,7 +91,10 @@ export const MiniCookingBar = () => {
 							animate={{ y: 0, opacity: 1 }}
 							exit={{ y: 100, opacity: 0 }}
 							transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-							className='fixed inset-x-0 bottom-18 z-sticky border-t border-border-subtle/60 bg-gradient-to-r from-bg-card/95 via-bg-card/97 to-bg-card/95 shadow-lg backdrop-blur-xl md:bottom-0 xl:hidden'
+							className={cn(
+								'fixed inset-x-0 bottom-18 z-sticky border-t border-border-subtle/60 bg-gradient-to-r from-bg-card/95 via-bg-card/97 to-bg-card/95 shadow-lg backdrop-blur-xl md:bottom-0',
+								cookingMode === 'docked' && 'xl:hidden',
+							)}
 						>
 							<div className='flex items-center gap-3 px-4 py-3'>
 								{/* Recipe Info */}
@@ -105,7 +111,7 @@ export const MiniCookingBar = () => {
 											{recipe.title}
 										</h4>
 										<p className='text-xs text-text-secondary'>
-											Step {currentStep} of {totalSteps}
+											{t('stepOf', { current: currentStep, total: totalSteps })}
 											{hasActiveTimer && (
 												<>
 													{' '}
@@ -172,10 +178,7 @@ export const MiniCookingBar = () => {
 									className='h-full bg-gradient-hero'
 									initial={{ scaleX: 0 }}
 									animate={{
-										scaleX:
-											totalSteps > 0
-												? (session.completedSteps?.length ?? 0) / totalSteps
-												: 0,
+										scaleX: progressPercent / 100,
 									}}
 									style={{ transformOrigin: 'left' }}
 								/>

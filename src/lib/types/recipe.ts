@@ -314,7 +314,9 @@ export interface RecipeCompleteResponse {
 export interface RecipeSearchParams {
 	query?: string
 	difficulty?: Difficulty
+	difficulties?: Difficulty[]
 	cuisineType?: string
+	cuisineTypes?: string[]
 	dietaryTags?: string[]
 	maxTimeMinutes?: number
 	sortBy?: 'newest' | 'trending' | 'xpReward'
@@ -426,11 +428,15 @@ export interface RecipeQueryParams {
 	size?: number
 	limit?: number
 	difficulty?: Difficulty
+	difficulties?: Difficulty[]
 	cuisineType?: string
+	cuisineTypes?: string[]
 	dietaryTags?: string[]
 	minTime?: number
 	maxTime?: number
 	maxTimeMinutes?: number // BE field name for time filter
+	minRating?: number
+	qualityTier?: 'FOOLPROOF' | 'GOOD' | 'NEEDS_WORK' | 'DRAFT_QUALITY'
 	query?: string // BE field name for text search
 	search?: string // FE alias (mapped to query)
 	sortBy?: string // newest, trending, popular

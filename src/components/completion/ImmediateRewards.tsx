@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { logDevError } from '@/lib/dev-log'
 import {
 	Tooltip,
 	TooltipContent,
@@ -42,13 +43,15 @@ import { AnimatedNumber } from '@/components/ui/animated-number'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 import { hasClaimablePostXp, isNoRecipeXpRun } from '@/lib/cookingXp'
 import type { Badge } from '@/lib/types/gamification'
+import type { CompletedChallengeReward } from '@/services/cookingSession'
 
 // ============================================
 // TYPES
 // ============================================
 
 interface RewardRow {
-	type: 'immediate' | 'streak' | 'pending' | 'creator-tip'
+	id: string
+	type: 'recipe' | 'challenge' | 'co-op' | 'streak' | 'pending' | 'creator-tip'
 	label: string
 	description: string
 	xpAmount: number
@@ -59,13 +62,19 @@ interface RewardRow {
 
 interface ImmediateRewardsProps {
 	isOpen: boolean
-	onClose: () => void
+	onClose: (capturedPhotos?: File[]) => Promise<boolean>
 	sessionId?: string
 	recipeName: string
 	recipeImageUrl?: string
 	// XP breakdown
 	immediateXp: number
+	recipeXpAwarded: number
+	coOpBonusXp: number
 	pendingXp: number
+	completedChallengeRewards: CompletedChallengeReward[]
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED'
+	xpMultiplier?: number
+	xpMultiplierReason?: string
 	xpBreakdown?: {
 		base: number
 		baseReason: string
@@ -85,10 +94,12 @@ interface ImmediateRewardsProps {
 	postDeadlineHours: number
 	// Achievement (if unlocked)
 	unlockedAchievement?: Badge | null
-	// Actions - onPostNow now receives captured photos
-	onPostNow: (capturedPhotos?: File[]) => void
-	onPostLater: () => void
+	onPostNow: (capturedPhotos?: File[]) => Promise<boolean>
+	onPostLater: (capturedPhotos?: File[]) => Promise<boolean>
 }
+
+const MAX_CAPTURED_PHOTOS = 3
+const FULL_POST_XP_PHOTO_COUNT = 2
 
 // ============================================
 // SUB-COMPONENTS
@@ -110,8 +121,9 @@ const RewardRowComponent = ({
 		className={cn(
 			'flex items-center gap-3.5 rounded-xl p-3.5 transition-all',
 			reward.isLocked && 'opacity-60',
-			reward.type === 'immediate' &&
+			(reward.type === 'recipe' || reward.type === 'challenge') &&
 				'bg-gradient-to-r from-success/10 to-success/5',
+			reward.type === 'co-op' && 'bg-gradient-to-r from-brand/10 to-brand/5',
 			reward.type === 'streak' &&
 				'bg-gradient-to-r from-warning/10 to-warning/5',
 		)}
@@ -185,7 +197,13 @@ export const ImmediateRewards = ({
 	recipeName,
 	recipeImageUrl,
 	immediateXp,
+	recipeXpAwarded,
+	coOpBonusXp,
 	pendingXp,
+	completedChallengeRewards,
+	xpDeliveryStatus,
+	xpMultiplier,
+	xpMultiplierReason,
 	xpBreakdown,
 	streakBonus = 0,
 	streakDays = 0,
@@ -197,11 +215,13 @@ export const ImmediateRewards = ({
 	onPostLater,
 }: ImmediateRewardsProps) => {
 	const t = useTranslations('completion')
-	useEscapeKey(isOpen, onClose)
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
 	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
 	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
-	const [isNavigating, setIsNavigating] = useState(false)
+	const [activeAction, setActiveAction] = useState<
+		'postNow' | 'postLater' | null
+	>(null)
+	const actionLockRef = useRef(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const { shouldReduceMotion } = useReducedMotionPreference()
 
@@ -227,8 +247,10 @@ export const ImmediateRewards = ({
 			const MAX_PHOTO_SIZE = 10 * 1024 * 1024
 			const validFiles = files.filter(f => f.size <= MAX_PHOTO_SIZE)
 
-			// Limit to 3 photos in modal (can add more on post page)
-			const newFiles = validFiles.slice(0, 3 - capturedPhotos.length)
+			const newFiles = validFiles.slice(
+				0,
+				MAX_CAPTURED_PHOTOS - capturedPhotos.length,
+			)
 			if (newFiles.length === 0) return
 
 			setCapturedPhotos(prev => [...prev, ...newFiles])
@@ -255,33 +277,99 @@ export const ImmediateRewards = ({
 		setPhotoPreviewUrls(prev => prev.filter((_, i) => i !== index))
 	}, [])
 
+	const runAction = useCallback(
+		async (
+			action: 'postNow' | 'postLater',
+			callback: (capturedPhotos?: File[]) => Promise<boolean>,
+		) => {
+			if (actionLockRef.current) return
+			actionLockRef.current = true
+			setActiveAction(action)
+			try {
+				const didNavigate = await callback(
+					capturedPhotos.length > 0 ? capturedPhotos : undefined,
+				)
+				if (!didNavigate) {
+					actionLockRef.current = false
+					setActiveAction(null)
+				}
+			} catch (error) {
+				logDevError('Completion action failed:', error)
+				actionLockRef.current = false
+				setActiveAction(null)
+			}
+		},
+		[capturedPhotos],
+	)
+
 	const handlePostNowClick = useCallback(() => {
-		// Set loading state - don't reset since navigation will unmount component
-		setIsNavigating(true)
-		// Pass captured photos to the callback
-		onPostNow(capturedPhotos.length > 0 ? capturedPhotos : undefined)
-	}, [onPostNow, capturedPhotos])
+		void runAction('postNow', onPostNow)
+	}, [onPostNow, runAction])
+
+	const handlePostLaterClick = useCallback(() => {
+		void runAction('postLater', onPostLater)
+	}, [onPostLater, runAction])
+
+	const handleDismiss = useCallback(() => {
+		void runAction('postLater', onClose)
+	}, [onClose, runAction])
+
+	useEscapeKey(isOpen, handleDismiss)
 
 	// Calculate totals
 	const earnedNow = immediateXp + streakBonus
 	const pendingTotal = pendingXp + creatorTipXp
 	const canUnlockPostXp = hasClaimablePostXp(pendingXp, creatorTipXp)
-	const noRecipeXpThisRun = isNoRecipeXpRun(immediateXp, pendingXp)
+	const noRecipeXpThisRun = isNoRecipeXpRun(recipeXpAwarded, pendingXp)
 
 	// Build reward rows
 	const rewards: RewardRow[] = [
 		{
-			type: 'immediate',
-			label: t('immediateXp'),
+			id: 'recipe',
+			type: 'recipe',
+			label: t('recipeCompletionXp'),
 			description: t('earnedForCompleting'),
-			xpAmount: immediateXp,
+			xpAmount: recipeXpAwarded,
 			isLocked: false,
 			icon: <Zap className='size-6 text-success' />,
 		},
 	]
 
+	completedChallengeRewards.forEach(reward => {
+		rewards.push({
+			id: `challenge-${reward.challengeKind}-${reward.challengeId}`,
+			type: 'challenge',
+			label: reward.challengeTitle,
+			description: t('challengeCompleted', {
+				kind: t(`challengeKind${reward.challengeKind}`),
+			}),
+			xpAmount: reward.bonusXp,
+			isLocked: false,
+			icon: <Gift className='size-5 text-xp' />,
+		})
+	})
+
+	if (coOpBonusXp > 0) {
+		const coOpDescriptionKey =
+			xpMultiplierReason === 'CO_OP_DUO'
+				? 'coCookingDuoBonusPercent'
+				: 'coCookingGroupBonusPercent'
+		rewards.push({
+			id: 'co-op',
+			type: 'co-op',
+			label: t('coCookingBonus'),
+			description: t(coOpDescriptionKey, {
+				percent: Math.round(((xpMultiplier ?? 1) - 1) * 100),
+			}),
+			xpAmount: coOpBonusXp,
+			isLocked: false,
+			icon: <Flame className='size-5 text-brand' />,
+		})
+	}
+
 	if (streakBonus > 0) {
 		rewards.push({
+			id: 'streak',
 			type: 'streak',
 			label: t('dayStreak', { days: streakDays }),
 			description: t('cookingStreakBonus'),
@@ -294,6 +382,7 @@ export const ImmediateRewards = ({
 	// Locked rewards
 	if (pendingXp > 0) {
 		rewards.push({
+			id: 'pending',
 			type: 'pending',
 			label: t('postReward'),
 			description: t('shareToUnlock'),
@@ -305,6 +394,7 @@ export const ImmediateRewards = ({
 
 	if (creatorTipXp > 0 && creatorHandle) {
 		rewards.push({
+			id: 'creator-tip',
 			type: 'creator-tip',
 			label: t('creatorTip'),
 			description: t('creatorTipPercent', { handle: creatorHandle }),
@@ -326,7 +416,7 @@ export const ImmediateRewards = ({
 						ref={focusTrapRef}
 						role='dialog'
 						aria-modal='true'
-						aria-label='Cooking rewards'
+						aria-label={t('ariaCookingRewards')}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
@@ -343,7 +433,8 @@ export const ImmediateRewards = ({
 							{/* Close button */}
 							<button
 								type='button'
-								onClick={onClose}
+								onClick={handleDismiss}
+								disabled={activeAction !== null}
 								aria-label={t('ariaClose')}
 								className='absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-bg-elevated text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
 							>
@@ -396,7 +487,7 @@ export const ImmediateRewards = ({
 								{/* Unlocked rewards */}
 								{unlockedRewards.map((reward, i) => (
 									<RewardRowComponent
-										key={reward.type}
+										key={reward.id}
 										reward={reward}
 										animationDelay={0.2 + i * 0.1}
 									/>
@@ -429,7 +520,8 @@ export const ImmediateRewards = ({
 												},
 												xpBreakdown.techniques != null &&
 													xpBreakdown.techniques > 0 && {
-														label: xpBreakdown.techniquesReason || t('xpTechniques'),
+														label:
+															xpBreakdown.techniquesReason || t('xpTechniques'),
 														value: xpBreakdown.techniques,
 													},
 											]
@@ -519,7 +611,9 @@ export const ImmediateRewards = ({
 									className='rounded-xl border-2 border-success bg-bg-elevated p-4 text-center'
 								>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
-										{t('earnedNow')}
+										{xpDeliveryStatus === 'APPLIED'
+											? t('earnedNow')
+											: t('xpProcessing')}
 									</span>
 									<span className='block text-2xl font-bold tracking-tight tabular-nums text-success'>
 										<AnimatedNumber value={earnedNow} duration={1.2} /> XP
@@ -532,7 +626,7 @@ export const ImmediateRewards = ({
 									className='rounded-xl border-2 border-brand/30 bg-brand/5 p-4 text-center'
 								>
 									<span className='block text-xs uppercase tracking-wide text-text-muted'>
-										{t('pending')}
+										{t('maximumPostXp')}
 									</span>
 									<span className='block text-2xl font-bold tracking-tight tabular-nums text-brand/70'>
 										<AnimatedNumber value={pendingTotal} duration={1.2} /> XP
@@ -551,10 +645,10 @@ export const ImmediateRewards = ({
 									<Clock className='size-4' />
 									<span>
 										{postDeadlineHours >= 24
-											? t('postWithinDays', {
+											? t('postRewardPolicyDays', {
 													count: Math.floor(postDeadlineHours / 24),
 												})
-											: t('postWithinHours', {
+											: t('postRewardPolicyHours', {
 													count: postDeadlineHours,
 												})}
 									</span>
@@ -569,11 +663,15 @@ export const ImmediateRewards = ({
 							{/* Photo Capture Section */}
 							<div className='mb-4'>
 								<div className='mb-2 flex items-center justify-between'>
-									<span className='text-sm font-medium text-text-primary'>
-										📸 Capture your dish
+									<span className='flex items-center gap-1.5 text-sm font-medium text-text-primary'>
+										<Camera className='size-4' aria-hidden='true' />
+										{t('captureYourDish')}
 									</span>
 									<span className='text-xs text-text-muted'>
-										{t('photosCount', { count: capturedPhotos.length })}
+										{t('photosCount', {
+											count: capturedPhotos.length,
+											max: MAX_CAPTURED_PHOTOS,
+										})}
 									</span>
 								</div>
 
@@ -589,7 +687,7 @@ export const ImmediateRewards = ({
 										>
 											<Image
 												src={url}
-												alt={`Photo ${index + 1}`}
+												alt={t('capturedPhotoAlt', { number: index + 1 })}
 												fill
 												sizes='80px'
 												className='object-cover'
@@ -597,6 +695,9 @@ export const ImmediateRewards = ({
 											<button
 												type='button'
 												onClick={() => removePhoto(index)}
+												aria-label={t('removeCapturedPhoto', {
+													number: index + 1,
+												})}
 												className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 											>
 												<Trash2 className='size-5 text-white' />
@@ -605,7 +706,7 @@ export const ImmediateRewards = ({
 									))}
 
 									{/* Add photo button */}
-									{capturedPhotos.length < 5 && (
+									{capturedPhotos.length < MAX_CAPTURED_PHOTOS && (
 										<label className='flex size-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-brand hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
 												<Camera className='size-5 text-text-muted' />
@@ -636,11 +737,12 @@ export const ImmediateRewards = ({
 										{t('photoHintOne')}
 									</p>
 								)}
-								{capturedPhotos.length >= 2 && canUnlockPostXp && (
-									<p className='mt-2 text-xs text-success'>
-										{t('photoHintFull')}
-									</p>
-								)}
+								{capturedPhotos.length >= FULL_POST_XP_PHOTO_COUNT &&
+									canUnlockPostXp && (
+										<p className='mt-2 text-xs text-success'>
+											{t('photoHintFull')}
+										</p>
+									)}
 							</div>
 
 							{/* Cook Card CTA */}
@@ -670,24 +772,24 @@ export const ImmediateRewards = ({
 								<motion.button
 									type='button'
 									onClick={handlePostNowClick}
-									disabled={isNavigating}
-									whileHover={isNavigating ? undefined : STAT_ITEM_HOVER}
-									whileTap={isNavigating ? undefined : LIST_ITEM_TAP}
+									disabled={activeAction !== null}
+									whileHover={activeAction ? undefined : STAT_ITEM_HOVER}
+									whileTap={activeAction ? undefined : LIST_ITEM_TAP}
 									className={cn(
 										'flex w-full items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-brand to-brand/90 px-6 py-4 text-white shadow-warm shadow-brand/30 transition-shadow focus-visible:ring-2 focus-visible:ring-brand/50',
-										isNavigating
+										activeAction
 											? 'cursor-wait opacity-80'
 											: 'hover:shadow-warm hover:shadow-brand/40',
 									)}
 								>
 									<div className='flex items-center gap-2.5'>
-										{isNavigating ? (
+										{activeAction === 'postNow' ? (
 											<Loader2 className='size-5 shrink-0 animate-spin' />
 										) : (
 											<Camera className='size-5 shrink-0' />
 										)}
 										<span className='text-lg font-bold'>
-											{isNavigating
+											{activeAction === 'postNow'
 												? t('preparingPost')
 												: capturedPhotos.length > 0
 													? capturedPhotos.length > 1
@@ -698,20 +800,28 @@ export const ImmediateRewards = ({
 													: t('shareYourCreation')}
 										</span>
 									</div>
-									{!isNavigating && canUnlockPostXp && (
+									{!activeAction && canUnlockPostXp && (
 										<span className='shrink-0 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold'>
-											{t('unlockXp', { amount: pendingTotal })}
+											{t('upToXp', { amount: pendingTotal })}
 										</span>
 									)}
 								</motion.button>
 								<motion.button
 									type='button'
-									onClick={onPostLater}
-									whileHover={BUTTON_SUBTLE_HOVER}
-									whileTap={BUTTON_SUBTLE_TAP}
+									onClick={handlePostLaterClick}
+									disabled={activeAction !== null}
+									whileHover={activeAction ? undefined : BUTTON_SUBTLE_HOVER}
+									whileTap={activeAction ? undefined : BUTTON_SUBTLE_TAP}
 									className='w-full py-3 text-text-muted transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									{t('postLater')}
+									{activeAction === 'postLater' ? (
+										<span className='inline-flex items-center gap-2'>
+											<Loader2 className='size-4 animate-spin' />
+											{t('savingDraft')}
+										</span>
+									) : (
+										t('postLater')
+									)}
 								</motion.button>
 							</div>
 						</motion.div>

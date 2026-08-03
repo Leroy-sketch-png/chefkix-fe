@@ -44,7 +44,7 @@ describe('novelty component removal contract', () => {
 		)
 
 		expect(source).toContain('h-11 w-11')
-		expect(source).toContain('h-9 w-full')
+		expect(source).toContain('h-11 w-full')
 		expect(
 			source.match(/focus-visible:ring-2/g)?.length,
 		).toBeGreaterThanOrEqual(2)

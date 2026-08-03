@@ -70,7 +70,8 @@ import {
 import { SocialProof } from '@/components/recipe/SocialProof'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
-import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
+import { RecipeIngredientChecklistItem } from '@/components/recipe/RecipeIngredientChecklistItem'
+import { RecipeStepCompletionControl } from '@/components/recipe/RecipeStepCompletionControl'
 import {
 	QualityBadge,
 	getTierDescription,
@@ -90,7 +91,6 @@ import {
 	BOOKMARK_SLIDE,
 	ICON_BUTTON_HOVER,
 	ICON_BUTTON_TAP,
-	ICON_HOVER,
 	NAV_ITEM_HOVER,
 	STAT_ITEM_HOVER,
 	staggerContainer,
@@ -105,6 +105,7 @@ import { LazySection } from '@/components/ui/lazy-section'
 import { calibrateDifficulty, CalibrationResult } from '@/services/ml'
 import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
+import { settleOptimisticMutation } from '@/lib/optimistic-mutation'
 import { generateRecipeJsonLd, jsonLd } from '@/lib/seo'
 
 function RecipeDetailContent() {
@@ -375,26 +376,22 @@ function RecipeDetailContent() {
 		setLikeCount(prev => (isLiked ? prev - 1 : prev + 1))
 		setIsLikeLoading(true)
 
-		try {
-			const response = await toggleLikeRecipe(recipeId)
-			if (response.success && response.data) {
+		await settleOptimisticMutation({
+			request: () => toggleLikeRecipe(recipeId),
+			onSuccess: data => {
 				// Defensive: handle both 'isLiked' and 'liked' (Jackson serialization quirk)
 				const serverLiked =
-					response.data.isLiked ??
-					(response.data as { liked?: boolean }).liked ??
-					newLikedState
+					data.isLiked ?? (data as { liked?: boolean }).liked ?? newLikedState
 				setIsLiked(serverLiked)
-				setLikeCount(
-					response.data.likeCount ?? previousCount + (serverLiked ? 1 : -1),
-				)
-			}
-		} catch (error) {
-			setIsLiked(previousLiked)
-			setLikeCount(previousCount)
-			toast.error(t('toastFailedLike'))
-		} finally {
-			setIsLikeLoading(false)
-		}
+				setLikeCount(data.likeCount ?? previousCount + (serverLiked ? 1 : -1))
+			},
+			onFailure: () => {
+				setIsLiked(previousLiked)
+				setLikeCount(previousCount)
+				toast.error(t('toastFailedLike'))
+			},
+			onSettled: () => setIsLikeLoading(false),
+		})
 	}, [isLikeLoading, isLiked, likeCount, recipeId, requireAuth, t])
 
 	const handleSave = useCallback(async () => {
@@ -408,32 +405,28 @@ function RecipeDetailContent() {
 		setSaveCount(prev => (isSaved ? prev - 1 : prev + 1))
 		setIsSaveLoading(true)
 
-		try {
-			const response = await toggleSaveRecipe(recipeId)
-			if (response.success && response.data) {
+		await settleOptimisticMutation({
+			request: () => toggleSaveRecipe(recipeId),
+			onSuccess: data => {
 				// Defensive: handle both 'isSaved' and 'saved' (Jackson serialization quirk)
 				const serverSaved =
-					response.data.isSaved ??
-					(response.data as { saved?: boolean }).saved ??
-					newSavedState
+					data.isSaved ?? (data as { saved?: boolean }).saved ?? newSavedState
 				setIsSaved(serverSaved)
-				setSaveCount(
-					response.data.saveCount ?? previousCount + (serverSaved ? 1 : -1),
-				)
+				setSaveCount(data.saveCount ?? previousCount + (serverSaved ? 1 : -1))
 				trackEvent(
 					serverSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
 					recipeId,
 					'recipe',
 				)
 				toast.success(serverSaved ? t('toastSaved') : t('toastUnsaved'))
-			}
-		} catch (error) {
-			setIsSaved(previousSaved)
-			setSaveCount(previousCount)
-			toast.error(t('toastFailedSave'))
-		} finally {
-			setIsSaveLoading(false)
-		}
+			},
+			onFailure: () => {
+				setIsSaved(previousSaved)
+				setSaveCount(previousCount)
+				toast.error(t('toastFailedSave'))
+			},
+			onSettled: () => setIsSaveLoading(false),
+		})
 	}, [isSaveLoading, isSaved, recipeId, saveCount, requireAuth, t])
 
 	const handleShare = async () => {
@@ -804,7 +797,7 @@ function RecipeDetailContent() {
 				>
 					<div className='relative mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-2xl'>
 						{/* Hero Image with overlay */}
-						<div className='group relative h-[28rem] w-full overflow-hidden md:h-[34rem]'>
+						<div className='group relative h-[20rem] w-full overflow-hidden sm:h-[24rem] md:h-[34rem]'>
 							<motion.div
 								initial={{ scale: 1.1 }}
 								animate={{ scale: 1 }}
@@ -910,14 +903,14 @@ function RecipeDetailContent() {
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									transition={{ delay: 0.3 }}
-									className='mb-2 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md'
+									className='mb-2 line-clamp-3 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md md:line-clamp-none'
 								>
 									{recipe.description}
 								</motion.p>
 							</div>
 						</div>
 
-						<div className='px-6 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 bg-bg-card'>
+						<div className='flex flex-col bg-bg-card px-6 pb-6 pt-6 md:px-10 md:pb-8 md:pt-8'>
 							<div className='mb-6'>
 								{recipe.author && (
 									<motion.div
@@ -1171,7 +1164,7 @@ function RecipeDetailContent() {
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.5 }}
-								className='space-y-3'
+								className='-order-1 mb-6 space-y-3 md:order-none md:mb-0'
 							>
 								{/* Primary cooking action */}
 								<motion.button
@@ -1590,88 +1583,27 @@ function RecipeDetailContent() {
 							</p>
 							<ul className='space-y-2'>
 								{recipe.fullIngredientList.map((ingredient, index) => (
-									<motion.li
+									<RecipeIngredientChecklistItem
 										key={`ingredient-${index}`}
-										initial={{ opacity: 0, x: -10 }}
-										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: 0.5 + index * 0.03 }}
-										whileHover={NAV_ITEM_HOVER}
-										onClick={() => {
+										ingredient={ingredient}
+										isChecked={Boolean(checkedIngredients[index])}
+										onToggle={() => {
 											setCheckedIngredients(prev => ({
 												...prev,
 												[index]: !prev[index],
 											}))
 										}}
-										className='group flex items-start gap-3 rounded-xl p-3 transition-colors hover:bg-bg-elevated cursor-pointer select-none'
-									>
-										<div
-											onClick={e => {
-												e.stopPropagation()
-												setCheckedIngredients(prev => ({
-													...prev,
-													[index]: !prev[index],
-												}))
-											}}
-											className={cn(
-												'mt-0.5 size-5 flex-shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer',
-												checkedIngredients[index]
-													? 'bg-success border-success text-white scale-110 shadow-card'
-													: 'border-border-medium hover:border-brand/50 bg-transparent',
-											)}
-										>
-											{checkedIngredients[index] && (
-												<motion.div
-													initial={{ scale: 0 }}
-													animate={{ scale: 1 }}
-													transition={TRANSITION_SPRING}
-												>
-													<Check className='size-3 stroke-[3]' />
-												</motion.div>
-											)}
-										</div>
-										<span
-											className={cn(
-												'flex-1 text-text-secondary transition-all duration-300',
-												checkedIngredients[index] &&
-													'text-text-muted/60 line-through decoration-brand/35',
-											)}
-										>
-											<span
-												className={cn(
-													'font-semibold text-text-primary transition-all duration-300',
-													checkedIngredients[index] && 'text-text-muted/50',
-												)}
-											>
-												{ingredient.quantity} {ingredient.unit}
-											</span>{' '}
-											{ingredient.name}
-										</span>
-										<div className='flex flex-shrink-0 items-center gap-1'>
-											{ingredientBuyLinks[`ing-${index}`] && (
-												<a
-													href={ingredientBuyLinks[`ing-${index}`]}
-													target='_blank'
-													rel='noopener noreferrer'
-													className='flex size-8 items-center justify-center rounded-lg text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
-													title={t('buyIngredient', { name: ingredient.name })}
-													onClick={() =>
-														trackEvent(
-															'INGREDIENT_CHECKED',
-															`ing-${index}`,
-															'ingredient',
-															{ name: ingredient.name, action: 'buy_click' },
-														)
-													}
-												>
-													<ShoppingCart className='size-4' />
-												</a>
-											)}
-											<SubstitutionButton
-												ingredientName={ingredient.name}
-												recipeTitle={recipe.title}
-											/>
-										</div>
-									</motion.li>
+										buyLink={ingredientBuyLinks[`ing-${index}`]}
+										recipeTitle={recipe.title}
+										onBuy={() =>
+											trackEvent(
+												'INGREDIENT_CHECKED',
+												`ing-${index}`,
+												'ingredient',
+												{ name: ingredient.name, action: 'buy_click' },
+											)
+										}
+									/>
 								))}
 							</ul>
 						</div>
@@ -1696,60 +1628,18 @@ function RecipeDetailContent() {
 										key={`step-${step.stepNumber}`}
 										variants={staggerItem}
 										whileHover={STAT_ITEM_HOVER}
-										onClick={() => toggleStep(index)}
 										className={cn(
-											'group rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-all duration-300 hover:shadow-warm cursor-pointer select-none relative overflow-hidden',
+											'group relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-all duration-300 hover:shadow-warm',
 											completedSteps[index] &&
 												'bg-bg-card/45 border-success/20 shadow-none scale-[0.98]',
 										)}
 									>
-										{/* Completed-step indicator */}
-										{completedSteps[index] && (
-											<div className='absolute top-2 right-2 flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success z-10'>
-												<Check className='size-3 stroke-[3] inline' />{' '}
-												{t('done')}
-											</div>
-										)}
-
-										<div className='mb-4 flex items-center gap-4'>
-											<motion.div
-												whileHover={ICON_HOVER}
-												transition={TRANSITION_SPRING}
-												onClick={e => {
-													e.stopPropagation()
-													toggleStep(index)
-												}}
-												className={cn(
-													'grid size-12 flex-shrink-0 place-items-center rounded-xl text-lg font-bold text-white shadow-card transition-all duration-300',
-													completedSteps[index]
-														? 'bg-success shadow-success/20'
-														: 'bg-gradient-hero',
-												)}
-											>
-												{completedSteps[index] ? (
-													<Check className='size-5 stroke-[3]' />
-												) : (
-													index + 1
-												)}
-											</motion.div>
-											<div className='flex-1'>
-												<h3
-													className={cn(
-														'text-lg font-bold text-text-primary transition-all duration-300',
-														completedSteps[index] &&
-															'text-text-muted/70 line-through decoration-success/30',
-													)}
-												>
-													{step.title}
-												</h3>
-												{step.timerSeconds && (
-													<p className='flex items-center gap-1 text-sm text-streak'>
-														<Clock className='size-3.5' />
-														{Math.ceil(step.timerSeconds / 60)} {t('minTimer')}
-													</p>
-												)}
-											</div>
-										</div>
+										<RecipeStepCompletionControl
+											step={step}
+											stepIndex={index}
+											isCompleted={Boolean(completedSteps[index])}
+											onToggle={() => toggleStep(index)}
+										/>
 										{step.videoUrl ? (
 											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 												<video

@@ -15,6 +15,34 @@ jest.mock('next-intl', () => ({
 }))
 
 describe('MessagesDrawerMessageBubble', () => {
+	it('distinguishes an optimistic message from an acknowledged message', () => {
+		const { container } = render(
+			<MessagesDrawerMessageBubble
+				message={{
+					id: 'pending:client-1',
+					clientMessageId: 'client-1',
+					conversationId: 'conv-1',
+					me: true,
+					message: 'Water is boiling',
+					sender: {
+						userId: 'user-1',
+						username: 'cook',
+						firstName: 'Kitchen',
+						lastName: 'Cook',
+						avatar: '/avatar.png',
+					},
+					createdDate: '2026-04-21T10:00:00.000Z',
+					deliveryStatus: 'sending',
+				}}
+			/>,
+		)
+
+		expect(screen.getByText('Water is boiling')).toBeTruthy()
+		expect(container.firstElementChild?.className.split(' ')).toContain(
+			'opacity-70',
+		)
+	})
+
 	it('shows a localized fallback when a drawer message bubble crashes', () => {
 		const consoleErrorSpy = jest
 			.spyOn(console, 'error')

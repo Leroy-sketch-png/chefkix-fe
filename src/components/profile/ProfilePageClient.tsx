@@ -6,6 +6,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { UserProfileSkeleton } from '@/components/profile/UserProfileSkeleton'
 import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
+import { ProfilePageShell } from '@/components/profile/ProfilePageShell'
 import { useAuth } from '@/hooks/useAuth'
 import { Profile } from '@/lib/types'
 
@@ -31,14 +32,17 @@ export function ProfilePageClient() {
 	const [notFound, setNotFound] = useState(false)
 	const [serverError, setServerError] = useState(false)
 	const [retryCount, setRetryCount] = useState(0)
+	const [componentError, setComponentError] = useState(false)
+	const [componentLoadAttempt, setComponentLoadAttempt] = useState(0)
 	const [isProfileComponentLoading, setIsProfileComponentLoading] =
-		useState(false)
+		useState(true)
 
 	useEffect(() => {
 		let cancelled = false
 
 		const fetchProfile = async () => {
 			setIsLoading(true)
+			setProfile(null)
 			setNotFound(false)
 			setServerError(false)
 
@@ -76,15 +80,21 @@ export function ProfilePageClient() {
 	}, [userId, retryCount])
 
 	useEffect(() => {
-		if (!profile || UserProfileComponent) return
+		if (UserProfileComponent) return
 
 		let cancelled = false
 		setIsProfileComponentLoading(true)
+		setComponentError(false)
 
 		import('@/components/profile/UserProfile')
 			.then(module => {
 				if (!cancelled) {
 					setUserProfileComponent(() => module.UserProfile)
+				}
+			})
+			.catch(() => {
+				if (!cancelled) {
+					setComponentError(true)
 				}
 			})
 			.finally(() => {
@@ -96,60 +106,75 @@ export function ProfilePageClient() {
 		return () => {
 			cancelled = true
 		}
-	}, [profile, UserProfileComponent])
+	}, [UserProfileComponent, componentLoadAttempt])
 
-	if (isLoading) {
-		return <UserProfileSkeleton />
+	const handleRetry = () => {
+		if (serverError) {
+			setRetryCount(count => count + 1)
+		}
+		if (componentError) {
+			setComponentLoadAttempt(count => count + 1)
+		}
 	}
 
-	if (serverError) {
-		return (
+	const isOwnProfile = profile?.userId === currentUser?.userId
+	const showBackButton = Boolean(profile && isHydrated && !isOwnProfile)
+	const hasTerminalError = serverError || componentError
+	const isPending =
+		!hasTerminalError &&
+		!notFound &&
+		(isLoading ||
+			isProfileComponentLoading ||
+			!profile ||
+			!UserProfileComponent)
+
+	let content
+
+	if (isPending) {
+		content = <UserProfileSkeleton />
+	} else if (hasTerminalError) {
+		content = (
 			<div className='flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center'>
 				<p className='text-lg text-text-secondary'>{t('somethingWentWrong')}</p>
 				<button
 					type='button'
-					onClick={() => setRetryCount(count => count + 1)}
+					onClick={handleRetry}
 					className='rounded-lg bg-brand px-4 py-2 text-white transition-colors hover:bg-brand/90'
 				>
 					{t('tryAgain')}
 				</button>
 			</div>
 		)
+	} else if (notFound || !profile) {
+		content = <ProfileNotFound />
+	} else if (UserProfileComponent) {
+		content = (
+			<UserProfileComponent
+				profile={profile}
+				currentUserId={currentUser?.userId}
+				initialTab={initialTab}
+			/>
+		)
+	} else {
+		content = <UserProfileSkeleton />
 	}
-
-	if (notFound || !profile) {
-		return <ProfileNotFound />
-	}
-
-	const isOwnProfile = profile.userId === currentUser?.userId
-	const showBackButton = isHydrated && !isOwnProfile
 
 	return (
-		<div className='min-h-screen bg-bg'>
-			<div className='mx-auto w-full max-w-container-xl px-4 py-4 md:px-6 lg:px-8'>
-				{showBackButton ? (
-					<div className='mb-4'>
-						<button
-							type='button'
-							onClick={() => router.back()}
-							className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-secondary shadow-card transition-colors hover:bg-bg-elevated hover:text-text-primary'
-							aria-label={t('ariaGoBack')}
-						>
-							<ArrowLeft className='size-4' />
-							<span>{t('back')}</span>
-						</button>
-					</div>
-				) : null}
-				{UserProfileComponent && !isProfileComponentLoading ? (
-					<UserProfileComponent
-						profile={profile}
-						currentUserId={currentUser?.userId}
-						initialTab={initialTab}
-					/>
-				) : (
-					<UserProfileSkeleton />
-				)}
-			</div>
-		</div>
+		<ProfilePageShell>
+			{showBackButton ? (
+				<div className='mb-4'>
+					<button
+						type='button'
+						onClick={() => router.back()}
+						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-secondary shadow-card transition-colors hover:bg-bg-elevated hover:text-text-primary'
+						aria-label={t('ariaGoBack')}
+					>
+						<ArrowLeft className='size-4' />
+						<span>{t('back')}</span>
+					</button>
+				</div>
+			) : null}
+			{content}
+		</ProfilePageShell>
 	)
 }

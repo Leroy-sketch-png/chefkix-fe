@@ -13,15 +13,26 @@ import type { AxiosError } from 'axios'
 
 // ── Unified Search ──
 
+export interface UnifiedRecipeSearchFilters {
+	difficulty?: string[]
+	cuisine?: string[]
+	dietary?: string[]
+	maxTime?: number
+	minRating?: number
+	qualityTier?: string
+}
+
 export async function unifiedSearch(
 	q: string,
 	type: SearchType = 'all',
 	limit = 10,
 	page = 1,
+	filters?: UnifiedRecipeSearchFilters,
 ): Promise<ApiResponse<UnifiedSearchResponse>> {
 	try {
 		const response = await api.get(API_ENDPOINTS.SEARCH.UNIFIED, {
-			params: { q, type, limit, page },
+			params: { q, type, limit, page, ...filters },
+			paramsSerializer: { indexes: null },
 		})
 		return response.data
 	} catch (error) {

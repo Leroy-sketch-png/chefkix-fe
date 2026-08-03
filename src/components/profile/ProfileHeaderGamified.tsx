@@ -845,7 +845,9 @@ const OtherUserProfileHeader = ({
 				<LevelRing
 					level={user.gamification.currentLevel}
 					progressPercent={user.gamification.progressPercent}
-					xpText={t('topPercent')}
+					xpText={t('xpLabel', {
+						xp: formatNumber(user.gamification.currentXP),
+					})}
 				/>
 
 				{/* Streak Badge */}

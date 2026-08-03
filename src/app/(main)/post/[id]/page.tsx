@@ -1,21 +1,18 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { Post } from '@/lib/types'
 import { getPostById } from '@/services/post'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PostCard } from '@/components/social/PostCard'
-import { PostDetailCommandDeck } from '@/components/social/PostDetailCommandDeck'
-import { PostDetailContextRail } from '@/components/social/PostDetailContextRail'
-import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { useAuth } from '@/hooks/useAuth'
-import { motion } from 'framer-motion'
-import { TRANSITION_SPRING } from '@/lib/motion'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
+import { PostDetailSkeleton } from './PostDetailSkeleton'
 
 /**
  * Post Detail Page
@@ -39,54 +36,38 @@ export default function PostDetailPage() {
 	const [post, setPost] = useState<Post | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const requestIdRef = useRef(0)
 
 	const fetchPost = useCallback(async () => {
 		if (!postId) return
+		const requestId = ++requestIdRef.current
 
 		setIsLoading(true)
 		setError(null)
 
 		try {
 			const response = await getPostById(postId)
+			if (requestId !== requestIdRef.current) return
 			if (response.success && response.data) {
 				setPost(response.data)
 			} else {
 				setError(response.message || t('errorPostNotFound'))
 			}
 		} catch {
+			if (requestId !== requestIdRef.current) return
 			setError(t('errorLoadPostFailed'))
 			toast.error(t('toastLoadPostFailed'))
 		} finally {
-			setIsLoading(false)
+			if (requestId === requestIdRef.current) setIsLoading(false)
 		}
 	}, [postId, t])
 
 	useEffect(() => {
-		if (!postId) return
-		let cancelled = false
-		setIsLoading(true)
-		setError(null)
-		getPostById(postId)
-			.then(response => {
-				if (cancelled) return
-				if (response.success && response.data) {
-					setPost(response.data)
-				} else {
-					setError(response.message || t('errorPostNotFound'))
-				}
-			})
-			.catch(() => {
-				if (cancelled) return
-				setError(t('errorLoadPostFailed'))
-				toast.error(t('toastLoadPostFailed'))
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
+		void fetchPost()
 		return () => {
-			cancelled = true
+			requestIdRef.current += 1
 		}
-	}, [postId, t])
+	}, [fetchPost])
 
 	const handlePostUpdate = useCallback((updatedPost: Post) => {
 		setPost(updatedPost)
@@ -99,7 +80,7 @@ export default function PostDetailPage() {
 
 	if (isLoading) {
 		return (
-			<PageContainer maxWidth='2xl' className='py-6'>
+			<PageContainer maxWidth='lg' className='py-6'>
 				<PostDetailSkeleton />
 			</PageContainer>
 		)
@@ -107,12 +88,10 @@ export default function PostDetailPage() {
 
 	if (error || !post) {
 		return (
-			<PageContainer maxWidth='2xl' className='py-6'>
+			<PageContainer maxWidth='lg' className='py-6'>
 				<ErrorState
 					title={t('postNotFound')}
-					message={
-						error || t('postDeleted')
-					}
+					message={error || t('postDeleted')}
 					showHomeButton
 					onRetry={fetchPost}
 				/>
@@ -122,79 +101,28 @@ export default function PostDetailPage() {
 
 	return (
 		<PageTransition>
-			<PageContainer maxWidth='2xl' className='py-6'>
-				<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
-					<div className='space-y-6'>
-						<PostDetailCommandDeck post={post} onBack={() => router.back()} />
+			<PageContainer maxWidth='lg' className='py-6'>
+				<div className='space-y-4'>
+					<button
+						type='button'
+						onClick={() => router.back()}
+						className='inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
+						aria-label={t('ariaGoBack')}
+					>
+						<ArrowLeft className='size-4' aria-hidden='true' />
+						{t('back')}
+					</button>
 
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ ...TRANSITION_SPRING, delay: 0.1 }}
-						>
-							<PostCard
-								post={post}
-								onUpdate={handlePostUpdate}
-								onDelete={handlePostDelete}
-								currentUserId={user?.userId}
-							/>
-						</motion.div>
-					</div>
-
-					<PostDetailContextRail post={post} />
+					<PostCard
+						post={post}
+						onUpdate={handlePostUpdate}
+						onDelete={handlePostDelete}
+						currentUserId={user?.userId}
+					/>
 				</div>
 
 				<div className='pb-40 md:pb-8' />
 			</PageContainer>
 		</PageTransition>
-	)
-}
-
-/**
- * Loading skeleton that matches PostCard dimensions
- */
-function PostDetailSkeleton() {
-	return (
-		<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]'>
-			<div className='space-y-4'>
-				{/* Command deck skeleton */}
-				<Skeleton className='h-14 rounded-xl' />
-
-				{/* Post card skeleton */}
-				<div className='rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card md:p-6'>
-					{/* Header */}
-					<div className='mb-4 flex items-center gap-3'>
-						<Skeleton className='size-10 rounded-full' />
-						<div className='flex-1'>
-							<Skeleton className='mb-1 h-4 w-32' />
-							<Skeleton className='h-3 w-24' />
-						</div>
-					</div>
-
-					{/* Content */}
-					<div className='mb-4 space-y-2'>
-						<Skeleton className='h-4 w-full' />
-						<Skeleton className='h-4 w-3/4' />
-						<Skeleton className='h-4 w-1/2' />
-					</div>
-
-					{/* Image placeholder */}
-					<Skeleton className='mb-4 aspect-video w-full rounded-lg' />
-
-					{/* Actions */}
-					<div className='flex gap-4'>
-						<Skeleton className='h-8 w-16' />
-						<Skeleton className='h-8 w-16' />
-						<Skeleton className='h-8 w-16' />
-					</div>
-				</div>
-			</div>
-
-			{/* Rail skeleton */}
-			<div className='hidden xl:flex xl:flex-col xl:gap-4'>
-				<Skeleton className='h-40 rounded-xl' />
-				<Skeleton className='h-60 rounded-xl' />
-			</div>
-		</div>
 	)
 }

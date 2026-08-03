@@ -43,6 +43,7 @@ import {
 import type { Difficulty } from '@/lib/types/gamification'
 import { formatCookingTime } from '@/lib/types/recipe'
 import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
+import { formatPositiveSocialCount } from '@/lib/positive-social-proof'
 import { QualityBadge } from './QualityBadge'
 
 type QualityTier = 'Foolproof' | 'Great' | 'Good' | 'Fair' | 'Needs Work'
@@ -206,7 +207,9 @@ const DifficultyIndicator = ({
 	return (
 		<div className='absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm ring-1 ring-white/10'>
 			<span className={cn('size-1.5 rounded-full', config.bgColor)} />
-			{showLabel && <span>{difficulty ? t(`diff${difficulty}`) : t('diffBeginner')}</span>}
+			{showLabel && (
+				<span>{difficulty ? t(`diff${difficulty}`) : t('diffBeginner')}</span>
+			)}
 		</div>
 	)
 }
@@ -401,15 +404,14 @@ const FeedCard = ({
 	onCookNow,
 }: FeedCardProps) => {
 	const t = useTranslations('recipe')
+	const formattedCookCount = formatPositiveSocialCount(cookCount)
 	return (
 		<motion.article
 			whileHover={CARD_FEED_HOVER}
 			transition={TRANSITION_SPRING}
 			className='relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<div
-				className='h-full w-full'
-			>
+			<div className='h-full w-full'>
 				<Link
 					href={`/recipes/${id}`}
 					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
@@ -469,13 +471,12 @@ const FeedCard = ({
 
 						<div className='flex items-center justify-between gap-4'>
 							<div className='flex gap-4'>
-								<span className='flex items-center gap-1.5 text-sm text-success tabular-nums'>
-									<ChefHat className='size-4' />
-									{cookCount >= 1000
-										? `${(cookCount / 1000).toFixed(1)}k`
-										: cookCount}{' '}
-									{t('cookedCount')}
-								</span>
+								{formattedCookCount && (
+									<span className='flex items-center gap-1.5 text-sm text-success tabular-nums'>
+										<ChefHat className='size-4' />
+										{formattedCookCount} {t('cookedCount')}
+									</span>
+								)}
 								{rating > 0 && (
 									<span className='flex items-center gap-1.5 text-sm text-warning tabular-nums'>
 										<Star className='size-4' />
@@ -530,15 +531,15 @@ const GridCard = ({
 	isSaved,
 }: GridCardProps) => {
 	const t = useTranslations('recipe')
+	const formattedCookCount = formatPositiveSocialCount(cookCount)
+
 	return (
 		<motion.article
 			whileHover={CARD_GRID_HOVER}
 			transition={TRANSITION_SPRING}
 			className='group/recipe overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
 		>
-			<div
-				className='h-full w-full'
-			>
+			<div className='h-full w-full'>
 				<Link
 					href={`/recipes/${id}`}
 					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
@@ -610,12 +611,10 @@ const GridCard = ({
 									<Clock className='size-3.5' />
 									{formatCookingTime(cookTimeMinutes)}
 								</span>
-								{cookCount > 0 && (
+								{formattedCookCount && (
 									<span className='flex items-center gap-1 text-success tabular-nums'>
 										<ChefHat className='size-3.5' />
-										{cookCount >= 1000
-											? `${(cookCount / 1000).toFixed(1)}k`
-											: cookCount}
+										{formattedCookCount}
 									</span>
 								)}
 							</div>
@@ -718,15 +717,14 @@ const FeaturedCard = ({
 	onCook,
 }: FeaturedCardProps) => {
 	const t = useTranslations('recipe')
+	const formattedCookCount = formatPositiveSocialCount(cookCount)
 	return (
 		<motion.article
 			whileHover={CARD_FEATURED_HOVER}
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl shadow-warm'
 		>
-			<div
-				className='h-full w-full'
-			>
+			<div className='h-full w-full'>
 				<Link
 					href={`/recipes/${id}`}
 					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'
@@ -823,13 +821,12 @@ const FeaturedCard = ({
 
 							{/* Stats */}
 							<div className='mb-5 flex flex-wrap gap-4 md:gap-6'>
-								<span className='flex items-center gap-1.5 text-sm text-white/90'>
-									<ChefHat className='size-4' />
-									{cookCount >= 1000
-										? `${(cookCount / 1000).toFixed(1)}k`
-										: cookCount}{' '}
-									{t('cookedCount')}
-								</span>
+								{formattedCookCount && (
+									<span className='flex items-center gap-1.5 text-sm text-white/90'>
+										<ChefHat className='size-4' />
+										{formattedCookCount} {t('cookedCount')}
+									</span>
+								)}
 								{rating > 0 && (
 									<span className='flex items-center gap-1.5 text-sm text-white/90'>
 										<Star className='size-4' />
@@ -911,9 +908,7 @@ const CookedCard = ({
 			transition={TRANSITION_SPRING}
 			className='overflow-hidden rounded-2xl border border-xp/25 bg-bg-card shadow-card transition-all duration-300 hover:border-xp/45 hover:shadow-warm'
 		>
-			<div
-				className='h-full w-full'
-			>
+			<div className='h-full w-full'>
 				<Link
 					href={`/recipes/${id}`}
 					className='block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl'

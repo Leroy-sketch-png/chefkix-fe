@@ -7,6 +7,7 @@ import { UserCard } from './UserCard'
 import { EmptyStateGamified } from '@/components/shared'
 import { Search, X } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +15,7 @@ import { staggerContainer } from '@/lib/motion'
 import { getProfilesPaginated } from '@/services/profile'
 import { autocompleteSearch } from '@/services/search'
 import { logDevError } from '@/lib/dev-log'
+import { createAsyncRequestAuthority } from '@/lib/async-request-authority'
 import {
 	AsyncCombobox,
 	type AsyncComboboxOption,
@@ -49,9 +51,11 @@ export const UserDiscoveryClient = ({
 	const [hasMore, setHasMore] = useState(true)
 	const [isLoading, setIsLoading] = useState(!initialProfiles)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadMoreError, setLoadMoreError] = useState(false)
 	const [loadError, setLoadError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const paginationAuthority = useRef(createAsyncRequestAuthority())
 	const hasAnimated = useRef(false)
 	const isEmbedded = surfaceMode === 'embedded'
 	const searchShellClass = isEmbedded
@@ -65,7 +69,10 @@ export const UserDiscoveryClient = ({
 
 			const response = await autocompleteSearch(trimmedQuery, 'users', 6)
 			if (!response.success || !response.data) {
-				logDevError('[UserDiscoveryClient] autocompleteSearch failed:', response)
+				logDevError(
+					'[UserDiscoveryClient] autocompleteSearch failed:',
+					response,
+				)
 				return []
 			}
 
@@ -147,6 +154,10 @@ export const UserDiscoveryClient = ({
 	// Fetch profiles on initial load or search change
 	useEffect(() => {
 		let cancelled = false
+		const requestAuthority = paginationAuthority.current
+		requestAuthority.reset()
+		setIsLoadingMore(false)
+		setLoadMoreError(false)
 		const fetchProfiles = async () => {
 			setIsLoading(true)
 			setLoadError(false)
@@ -195,6 +206,7 @@ export const UserDiscoveryClient = ({
 		}
 		return () => {
 			cancelled = true
+			requestAuthority.reset()
 		}
 	}, [debouncedSearch, initialProfiles, isEmbedded, retryKey, t])
 
@@ -202,8 +214,10 @@ export const UserDiscoveryClient = ({
 	const handleLoadMore = useCallback(async () => {
 		if (isLoadingMore || !hasMore) return
 
+		setLoadMoreError(false)
 		setIsLoadingMore(true)
 		const nextPage = page + 1
+		const ticket = paginationAuthority.current.begin()
 
 		try {
 			const response = await getProfilesPaginated({
@@ -212,37 +226,48 @@ export const UserDiscoveryClient = ({
 				search: debouncedSearch || undefined,
 			})
 
-			if (response.success && response.data) {
-				setProfiles(prev => {
-					const existingIds = new Set(prev.map(p => p.userId))
-					const newProfiles = response.data.filter(
-						p => !existingIds.has(p.userId),
-					)
-					return [...prev, ...newProfiles]
-				})
-				setPage(nextPage)
-				if (response.pagination) {
-					setHasMore(!response.pagination.last)
-				} else {
-					setHasMore(response.data.length >= PROFILES_PER_PAGE)
-				}
-			} else {
-				toast.error(t('toastLoadMoreUsersFailed'))
+			if (!paginationAuthority.current.isCurrent(ticket)) return
+			if (!response.success || !response.data) {
+				setLoadMoreError(true)
+				return
 			}
-		} catch {
-			toast.error(t('toastLoadMoreUsersFailed'))
+
+			setProfiles(prev => {
+				const existingIds = new Set(prev.map(p => p.userId))
+				const newProfiles = response.data.filter(
+					p => !existingIds.has(p.userId),
+				)
+				return [...prev, ...newProfiles]
+			})
+			setPage(nextPage)
+			if (response.pagination) {
+				setHasMore(!response.pagination.last)
+			} else {
+				setHasMore(response.data.length >= PROFILES_PER_PAGE)
+			}
+		} catch (error) {
+			if (!paginationAuthority.current.isCurrent(ticket)) return
+			logDevError('Failed to load more users:', error)
+			setLoadMoreError(true)
 		} finally {
-			setIsLoadingMore(false)
+			if (paginationAuthority.current.isCurrent(ticket)) {
+				setIsLoadingMore(false)
+			}
 		}
-	}, [isLoadingMore, hasMore, page, debouncedSearch, t])
+	}, [isLoadingMore, hasMore, page, debouncedSearch])
 
 	// Infinite scroll observer
 	useEffect(() => {
-		if (!loadMoreRef.current || isLoading) return
+		if (!loadMoreRef.current || isLoading || loadMoreError) return
 
 		const observer = new IntersectionObserver(
 			entries => {
-				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+				if (
+					entries[0].isIntersecting &&
+					hasMore &&
+					!isLoadingMore &&
+					!loadMoreError
+				) {
 					handleLoadMore()
 				}
 			},
@@ -251,7 +276,7 @@ export const UserDiscoveryClient = ({
 
 		observer.observe(loadMoreRef.current)
 		return () => observer.disconnect()
-	}, [hasMore, isLoadingMore, isLoading, handleLoadMore])
+	}, [hasMore, isLoadingMore, isLoading, loadMoreError, handleLoadMore])
 
 	// Mark as animated after first render
 	useEffect(() => {
@@ -413,6 +438,25 @@ export const UserDiscoveryClient = ({
 									<Skeleton className='h-7 w-28 rounded-md' />
 								</div>
 							))}
+						</div>
+					)}
+
+					{loadMoreError && !isLoadingMore && (
+						<div
+							role='alert'
+							className='flex flex-col items-center gap-3 py-6 text-center'
+						>
+							<p className='text-sm text-text-muted'>
+								{t('toastLoadMoreUsersFailed')}
+							</p>
+							<Button
+								type='button'
+								variant='outline'
+								size='sm'
+								onClick={handleLoadMore}
+							>
+								{t('tryAgain')}
+							</Button>
 						</div>
 					)}
 

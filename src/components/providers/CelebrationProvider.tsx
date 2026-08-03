@@ -35,6 +35,9 @@ import { logDevError } from '@/lib/dev-log'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import type { Badge } from '@/lib/types/gamification'
+import type { CompletedChallengeReward } from '@/services/cookingSession'
+import { useAuth } from '@/hooks/useAuth'
+import { postDraftRepository } from '@/lib/post-draft-storage'
 
 // ============================================
 // SHARE HELPER
@@ -129,6 +132,7 @@ interface FirstCookData {
 	recipeName: string
 	recipeImageUrl: string
 	xpEarned: number
+	sessionId?: string
 	badgeEarned?: Badge
 }
 
@@ -137,7 +141,13 @@ interface ImmediateRewardsData {
 	recipeName: string
 	recipeImageUrl?: string
 	immediateXp: number
+	recipeXpAwarded: number
+	coOpBonusXp: number
 	pendingXp: number
+	completedChallengeRewards: CompletedChallengeReward[]
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED'
+	xpMultiplier?: number
+	xpMultiplierReason?: string
 	xpBreakdown?: {
 		base: number
 		baseReason: string
@@ -236,6 +246,7 @@ interface CelebrationProviderProps {
 export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const router = useRouter()
 	const t = useTranslations('social')
+	const { user } = useAuth()
 
 	// Level Up state
 	const [levelUpOpen, setLevelUpOpen] = useState(false)
@@ -409,6 +420,7 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const handlePostSuccessClose = () => {
 		setPostSuccessOpen(false)
 		setPostSuccessData(null)
+		router.push('/dashboard')
 	}
 
 	const handlePostSuccessViewPost = () => {
@@ -428,43 +440,50 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		setImmediateRewardsData(null)
 	}
 
-	const handleImmediateRewardsPostNow = async (capturedPhotos?: File[]) => {
-		// Navigate to create post screen with session data for XP linking
+	const persistImmediateRewardsDraft = async (capturedPhotos?: File[]) => {
 		const sessionId = immediateRewardsData?.sessionId
-
-		// Store captured photos in sessionStorage as base64 for post page to retrieve
-		if (capturedPhotos && capturedPhotos.length > 0) {
-			try {
-				const photoData = await Promise.all(
-					capturedPhotos.map(async file => {
-						return new Promise<{ name: string; type: string; data: string }>(
-							resolve => {
-								const reader = new FileReader()
-								reader.onloadend = () => {
-									resolve({
-										name: file.name,
-										type: file.type,
-										data: reader.result as string,
-									})
-								}
-								reader.readAsDataURL(file)
-							},
-						)
-					}),
-				)
-				sessionStorage.setItem('pendingPostPhotos', JSON.stringify(photoData))
-			} catch (e) {
-				logDevError('Failed to store photos:', e)
-			}
+		if (!user?.userId || !sessionId) {
+			toast.error(t('failedToSaveDraft'))
+			return null
 		}
 
-		handleImmediateRewardsClose()
-		router.push(sessionId ? `/post/new?session=${sessionId}` : '/post/new')
+		try {
+			await postDraftRepository.save({
+				ownerId: user.userId,
+				sessionId,
+				photos: capturedPhotos,
+			})
+			return sessionId
+		} catch (error) {
+			logDevError('Failed to save completion post draft:', error)
+			toast.error(t('failedToSaveDraft'))
+			return null
+		}
 	}
 
-	const handleImmediateRewardsPostLater = () => {
-		// Dismiss and show reminder toast
+	const handleImmediateRewardsPostNow = async (
+		capturedPhotos?: File[],
+	): Promise<boolean> => {
+		const sessionId = await persistImmediateRewardsDraft(capturedPhotos)
+		if (!sessionId) return false
+
 		handleImmediateRewardsClose()
+		router.push(`/post/new?session=${sessionId}`)
+		return true
+	}
+
+	const handleImmediateRewardsPostLater = async (
+		capturedPhotos?: File[],
+	): Promise<boolean> => {
+		const sessionId = await persistImmediateRewardsDraft(capturedPhotos)
+		if (!sessionId) return false
+
+		handleImmediateRewardsClose()
+		toast.success(t('draftSaved'), {
+			description: t('xpDecay'),
+		})
+		router.push('/dashboard')
+		return true
 	}
 
 	const handleStreakSavedClose = () => {
@@ -644,8 +663,9 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					pendingXp={20} // Default pending XP for first cook
 					postDeadlineDays={2}
 					onPostNow={() => {
+						const sessionId = firstCookData.sessionId
 						handleFirstCookClose()
-						router.push('/create')
+						router.push(sessionId ? `/post/new?session=${sessionId}` : '/post/new')
 					}}
 					onShareAchievement={() => {
 						shareWithFallback(
@@ -670,12 +690,20 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 			{immediateRewardsData && (
 				<ImmediateRewards
 					isOpen={immediateRewardsOpen}
-					onClose={handleImmediateRewardsClose}
+					onClose={handleImmediateRewardsPostLater}
 					sessionId={immediateRewardsData.sessionId}
 					recipeName={immediateRewardsData.recipeName}
 					recipeImageUrl={immediateRewardsData.recipeImageUrl}
 					immediateXp={immediateRewardsData.immediateXp}
+					recipeXpAwarded={immediateRewardsData.recipeXpAwarded}
+					coOpBonusXp={immediateRewardsData.coOpBonusXp}
 					pendingXp={immediateRewardsData.pendingXp}
+					completedChallengeRewards={
+						immediateRewardsData.completedChallengeRewards
+					}
+					xpDeliveryStatus={immediateRewardsData.xpDeliveryStatus}
+					xpMultiplier={immediateRewardsData.xpMultiplier}
+					xpMultiplierReason={immediateRewardsData.xpMultiplierReason}
 					xpBreakdown={immediateRewardsData.xpBreakdown}
 					streakBonus={immediateRewardsData.streakBonus}
 					streakDays={immediateRewardsData.streakDays}

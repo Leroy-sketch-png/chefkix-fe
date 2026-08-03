@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Fragment } from 'react'
+import { Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -432,7 +432,7 @@ export const FirstCookCelebration = ({
 											{t('shareYourCreation')}
 										</span>
 										<span className='text-xs opacity-85'>
-											{t('unlockXp', { amount: Math.round(pendingXp) })}
+											{t('upToXp', { amount: Math.round(pendingXp) })}
 										</span>
 									</div>
 								</motion.button>{' '}

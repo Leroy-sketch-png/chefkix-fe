@@ -2,7 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChefHat, Users, Eye, ArrowRight } from 'lucide-react'
+import {
+	AlertTriangle,
+	ArrowRight,
+	ChefHat,
+	Eye,
+	RefreshCw,
+	Users,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getFriendsActiveRooms } from '@/services/cookingRoom'
@@ -37,20 +44,34 @@ export function FriendsCookingNow({
 	const [rooms, setRooms] = useState<FriendsActiveRoom[]>([])
 	const [soloFriends, setSoloFriends] = useState<ActiveFriend[]>([])
 	const [isLoading, setIsLoading] = useState(true)
+	const [hasError, setHasError] = useState(false)
 
-	const fetchAll = useCallback(async () => {
+	const fetchAll = useCallback(async (showLoading = false) => {
+		if (showLoading) setIsLoading(true)
 		try {
-			const [roomsRes, soloRes] = await Promise.all([
+			const [roomsResult, soloResult] = await Promise.allSettled([
 				getFriendsActiveRooms({ timeoutMs: FRIENDS_COOKING_TIMEOUT_MS }),
 				getFriendsActiveCooking({ timeoutMs: FRIENDS_COOKING_TIMEOUT_MS }),
 			])
-			if (roomsRes.success && roomsRes.data) setRooms(roomsRes.data)
-			if (soloRes.success && soloRes.data) {
+			const roomsRes =
+				roomsResult.status === 'fulfilled' ? roomsResult.value : null
+			const soloRes = soloResult.status === 'fulfilled' ? soloResult.value : null
+			const roomsSucceeded = Boolean(
+				roomsRes?.success && Array.isArray(roomsRes.data),
+			)
+			const soloSucceeded = Boolean(
+				soloRes?.success && Array.isArray(soloRes.data?.friends),
+			)
+
+			if (roomsSucceeded) setRooms(roomsRes!.data!)
+			if (soloSucceeded) {
 				// Solo friends: those not in a room (roomCode is null)
-				setSoloFriends(soloRes.data.friends.filter(f => !f.roomCode))
+				setSoloFriends(soloRes!.data!.friends.filter(f => !f.roomCode))
 			}
+			setHasError(!roomsSucceeded || !soloSucceeded)
 		} catch (error) {
 			logDevError('[FriendsCookingNow] fetch failed:', error)
+			setHasError(true)
 		} finally {
 			setIsLoading(false)
 		}
@@ -72,6 +93,8 @@ export function FriendsCookingNow({
 	}, [fetchAll, pollInterval])
 
 	const totalActive = rooms.length + soloFriends.length
+	const isUnavailable = hasError && totalActive === 0
+	const isPartial = hasError && totalActive > 0
 
 	return (
 		<div
@@ -88,9 +111,18 @@ export function FriendsCookingNow({
 					<h3 className='text-sm font-bold text-text-primary'>
 						{t('friendsCookingNow')}
 					</h3>
-					<span className='ml-auto inline-flex h-6 items-center rounded-full border border-brand/20 bg-brand/10 px-2 text-xs font-bold tabular-nums text-brand'>
-						{totalActive}
-					</span>
+					{isUnavailable ? (
+						<span
+							className='ml-auto inline-flex size-6 items-center justify-center rounded-full border border-warning/30 bg-warning/10 text-warning'
+							aria-label={t('friendsCookingCountUnavailable')}
+						>
+							<AlertTriangle className='size-3.5' />
+						</span>
+					) : (
+						<span className='ml-auto inline-flex h-6 items-center rounded-full border border-brand/20 bg-brand/10 px-2 text-xs font-bold tabular-nums text-brand'>
+							{totalActive}
+						</span>
+					)}
 				</div>
 
 				{isLoading && (
@@ -100,7 +132,34 @@ export function FriendsCookingNow({
 					</div>
 				)}
 
-				{!isLoading && totalActive === 0 && (
+				{!isLoading && isUnavailable && (
+					<div
+						role='alert'
+						className='rounded-xl border border-warning/30 bg-warning/8 p-3'
+					>
+						<div className='flex items-start gap-2.5'>
+							<AlertTriangle className='mt-0.5 size-4 shrink-0 text-warning' />
+							<div>
+								<p className='text-sm font-semibold text-text-primary'>
+									{t('friendsCookingUnavailableTitle')}
+								</p>
+								<p className='mt-1 text-xs text-text-secondary'>
+									{t('friendsCookingUnavailableDesc')}
+								</p>
+							</div>
+						</div>
+						<button
+							type='button'
+							onClick={() => void fetchAll(true)}
+							className='mt-3 inline-flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand/90'
+						>
+							<RefreshCw className='size-3.5' />
+							{t('friendsCookingRetry')}
+						</button>
+					</div>
+				)}
+
+				{!isLoading && !hasError && totalActive === 0 && (
 					<div className='rounded-xl border border-border-subtle/70 bg-bg-elevated/50 p-3'>
 						<p className='text-sm font-semibold text-text-primary'>
 							{t('friendsCookingEmptyTitle')}
@@ -122,6 +181,22 @@ export function FriendsCookingNow({
 								{t('friendsCookingStartCocooking')}
 							</Link>
 						</div>
+					</div>
+				)}
+
+				{!isLoading && isPartial && (
+					<div
+						role='status'
+						className='mb-2 flex items-center justify-between gap-3 rounded-lg bg-warning/8 px-3 py-2 text-xs text-text-secondary'
+					>
+						<span>{t('friendsCookingPartial')}</span>
+						<button
+							type='button'
+							onClick={() => void fetchAll(false)}
+							className='shrink-0 font-semibold text-brand hover:text-brand/80'
+						>
+							{t('friendsCookingRetry')}
+						</button>
 					</div>
 				)}
 

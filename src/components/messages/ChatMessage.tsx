@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import {
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { toast } from 'sonner'
 import {
 	TRANSITION_SPRING,
 	scaleIn,
@@ -67,7 +68,7 @@ interface ChatMessageProps {
 	onReact?: (messageId: string, emoji: string) => void
 	onDelete?: (messageId: string) => void
 	onReply?: (message: Message) => void
-	onCopy?: (content: string) => void
+	onCopy?: (content: string) => void | Promise<void>
 }
 
 function ChatMessageErrorFallback({
@@ -135,13 +136,13 @@ const getStatusIcon = (status: Message['status']) => {
 
 // Quick reactions
 const QUICK_REACTIONS = [
-	{ emoji: '❤️', label: 'heart' },
-	{ emoji: '👍', label: 'thumbs up' },
-	{ emoji: '😂', label: 'laughing' },
-	{ emoji: '😮', label: 'surprised' },
-	{ emoji: '😢', label: 'sad' },
-	{ emoji: '🙏', label: 'thanks' },
-]
+	{ emoji: '❤️', labelKey: 'reactionHeart' },
+	{ emoji: '👍', labelKey: 'reactionThumbsUp' },
+	{ emoji: '😂', labelKey: 'reactionLaughing' },
+	{ emoji: '😮', labelKey: 'reactionSurprised' },
+	{ emoji: '😢', labelKey: 'reactionSad' },
+	{ emoji: '🙏', labelKey: 'reactionThanks' },
+] as const
 
 interface ReactionPickerProps {
 	isOwn: boolean
@@ -149,8 +150,12 @@ interface ReactionPickerProps {
 }
 
 const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
+	const t = useTranslations('messages')
+
 	return (
 		<motion.div
+			role='menu'
+			aria-label={t('reactionPickerLabel')}
 			initial={{ opacity: 0, scale: 0.8, y: 10 }}
 			animate={{ opacity: 1, scale: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -160,12 +165,13 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 				isOwn ? 'bottom-full right-0 mb-2' : 'bottom-full left-0 mb-2',
 			)}
 		>
-			{QUICK_REACTIONS.map(({ emoji, label }, i) => (
+			{QUICK_REACTIONS.map(({ emoji, labelKey }, i) => (
 				<motion.button
 					type='button'
+					role='menuitem'
 					key={emoji}
 					onClick={() => onSelect(emoji)}
-					aria-label={label}
+					aria-label={t(labelKey)}
 					className='flex size-9 items-center justify-center rounded-full text-lg hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
 					initial={{ opacity: 0, scale: 0 }}
 					animate={{ opacity: 1, scale: 1 }}
@@ -181,6 +187,7 @@ const ReactionPicker = ({ isOwn, onSelect }: ReactionPickerProps) => {
 }
 
 interface MessageActionsProps {
+	id: string
 	isOwn: boolean
 	onReact: () => void
 	onReply: () => void
@@ -189,15 +196,19 @@ interface MessageActionsProps {
 }
 
 const MessageActions = ({
+	id,
 	isOwn,
 	onReact,
 	onReply,
 	onCopy,
 	onDelete,
 }: MessageActionsProps) => {
-	const t = useTranslations('chat')
+	const t = useTranslations('messages')
 	return (
 		<motion.div
+			id={id}
+			role='menu'
+			aria-label={t('messageActionsLabel')}
 			initial={{ opacity: 0, scale: 0.9, y: 5 }}
 			animate={{ opacity: 1, scale: 1, y: 0 }}
 			exit={{ opacity: 0, scale: 0.9, y: 5 }}
@@ -209,6 +220,7 @@ const MessageActions = ({
 		>
 			<motion.button
 				type='button'
+				role='menuitem'
 				onClick={onReact}
 				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
@@ -220,6 +232,7 @@ const MessageActions = ({
 			</motion.button>
 			<motion.button
 				type='button'
+				role='menuitem'
 				onClick={onReply}
 				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
@@ -231,6 +244,7 @@ const MessageActions = ({
 			</motion.button>
 			<motion.button
 				type='button'
+				role='menuitem'
 				onClick={onCopy}
 				className='rounded-xl p-2 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 				whileHover={ICON_BUTTON_HOVER}
@@ -243,6 +257,7 @@ const MessageActions = ({
 			{isOwn && onDelete && (
 				<motion.button
 					type='button'
+					role='menuitem'
 					onClick={onDelete}
 					className='rounded-xl p-2 text-text-muted transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
 					whileHover={ICON_BUTTON_HOVER}
@@ -267,10 +282,13 @@ const ChatMessageContent = ({
 	onReply,
 	onCopy,
 }: ChatMessageProps) => {
-	const [showActions, setShowActions] = useState(false)
+	const [isActionHoverActive, setIsActionHoverActive] = useState(false)
+	const [areActionsPinned, setAreActionsPinned] = useState(false)
 	const [showReactionPicker, setShowReactionPicker] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const t = useTranslations('messages')
+	const actionsId = useId()
+	const showActions = isActionHoverActive || areActionsPinned
 	const sharedPostImageDelivery =
 		message.sharedPostImage &&
 		getImageDeliveryProps(message.sharedPostImage, {
@@ -282,21 +300,27 @@ const ChatMessageContent = ({
 	const handleReact = (emoji: string) => {
 		onReact?.(message.id, emoji)
 		setShowReactionPicker(false)
+		setAreActionsPinned(false)
 	}
 
 	const handleReply = () => {
 		onReply?.(message)
-		setShowActions(false)
+		setAreActionsPinned(false)
 	}
 
 	const handleCopy = () => {
-		navigator.clipboard.writeText(message.content)
-		onCopy?.(message.content)
-		setShowActions(false)
+		if (onCopy) {
+			void onCopy(message.content)
+		} else {
+			void navigator.clipboard
+				.writeText(message.content)
+				.catch(() => toast.error(t('failedToCopy')))
+		}
+		setAreActionsPinned(false)
 	}
 
 	const handleDelete = () => {
-		setShowActions(false)
+		setAreActionsPinned(false)
 		setShowDeleteConfirm(true)
 	}
 
@@ -328,10 +352,12 @@ const ChatMessageContent = ({
 						'relative flex items-end gap-2.5',
 						message.isOwn && 'flex-row-reverse',
 					)}
-					onMouseEnter={() => setShowActions(true)}
+					onMouseEnter={() => setIsActionHoverActive(true)}
 					onMouseLeave={() => {
-						setShowActions(false)
-						setShowReactionPicker(false)
+						setIsActionHoverActive(false)
+						if (!areActionsPinned) {
+							setShowReactionPicker(false)
+						}
 					}}
 				>
 					{/* Avatar (for received messages) */}
@@ -396,7 +422,7 @@ const ChatMessageContent = ({
 											<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl ring-2 ring-border-subtle'>
 												<Image
 													src={sharedPostImageDelivery.src}
-													alt='Shared post'
+													alt={t('sharedPostImageAlt')}
 													fill
 													sizes='80px'
 													className='object-cover transition-transform group-hover/card:scale-110'
@@ -432,7 +458,7 @@ const ChatMessageContent = ({
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
-													Shared Recipe
+													{t('sharedRecipe')}
 												</span>
 											</div>
 
@@ -464,7 +490,7 @@ const ChatMessageContent = ({
 														message.isOwn ? 'text-brand' : 'text-text-muted',
 													)}
 												>
-													Tap to view →
+													{t('tapToView')} →
 												</motion.div>
 											</div>
 										</div>
@@ -541,6 +567,7 @@ const ChatMessageContent = ({
 						<AnimatePresence>
 							{showActions && (
 								<MessageActions
+									id={actionsId}
 									isOwn={message.isOwn}
 									onReact={() => setShowReactionPicker(!showReactionPicker)}
 									onReply={handleReply}
@@ -557,6 +584,21 @@ const ChatMessageContent = ({
 							)}
 						</AnimatePresence>
 					</div>
+
+					<motion.button
+						type='button'
+						aria-label={t('ariaMoreMessageActions')}
+						aria-controls={actionsId}
+						aria-expanded={showActions}
+						aria-haspopup='menu'
+						onClick={() => setAreActionsPinned(current => !current)}
+						className='grid size-10 shrink-0 place-items-center rounded-xl text-text-muted transition-[color,background-color,opacity] hover:bg-bg-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-brand/50 md:opacity-0 md:group-hover:opacity-100'
+						whileHover={ICON_BUTTON_HOVER}
+						whileTap={ICON_BUTTON_TAP}
+						transition={TRANSITION_SPRING}
+					>
+						<MoreHorizontal className='size-4' />
+					</motion.button>
 				</div>
 
 				{/* Status & Time */}
@@ -659,16 +701,18 @@ interface DateDividerProps {
 }
 
 export const DateDivider = ({ date }: DateDividerProps) => {
+	const t = useTranslations('messages')
+
 	const formatDate = (d: Date): string => {
 		const today = new Date()
 		const yesterday = new Date(today)
 		yesterday.setDate(yesterday.getDate() - 1)
 
 		if (d.toDateString() === today.toDateString()) {
-			return 'Today'
+			return t('today')
 		}
 		if (d.toDateString() === yesterday.toDateString()) {
-			return 'Yesterday'
+			return t('yesterday')
 		}
 		return d.toLocaleDateString(undefined, {
 			weekday: 'long',

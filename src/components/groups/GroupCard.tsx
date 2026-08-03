@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 
-import { Group } from '@/lib/types/group'
+import { Group, MemberStatus } from '@/lib/types/group'
 import { Button } from '@/components/ui/button'
 import { ImageWithFallback } from '@/components/ui/image-with-fallback'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ import {
 	Check,
 	Clock,
 } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { joinGroup } from '@/services/group'
 import { toast } from 'sonner'
 import { TRANSITION_SPRING, CARD_HOVER } from '@/lib/motion'
@@ -25,7 +25,7 @@ import { PATHS } from '@/constants/paths'
 interface GroupCardProps {
 	group: Group
 	variant?: 'default' | 'compact' | 'horizontal'
-	onJoinSuccess?: (group: Group) => void
+	onMembershipChange?: (group: Group) => void
 	currentUserId?: string
 	isJoinable?: boolean
 }
@@ -42,38 +42,64 @@ interface GroupCardProps {
 export const GroupCard = ({
 	group,
 	variant = 'default',
-	onJoinSuccess,
+	onMembershipChange,
 	currentUserId,
 	isJoinable = true,
 }: GroupCardProps) => {
 	const [isJoining, setIsJoining] = useState(false)
 	const t = useTranslations('groups')
-	const [hasJoined, setHasJoined] = useState(group.isJoined ?? false)
-	const [requestPending, setRequestPending] = useState(
-		group.hasPendingRequest ?? false,
+	const resolveMembershipStatus = useCallback((): MemberStatus | 'NONE' => {
+		if (group.myStatus && group.myStatus !== 'NONE') return group.myStatus
+		if (group.hasPendingRequest) return 'PENDING'
+		if (group.isJoined) return 'ACTIVE'
+		return 'NONE'
+	}, [group.hasPendingRequest, group.isJoined, group.myStatus])
+	const [membershipStatus, setMembershipStatus] = useState(
+		resolveMembershipStatus,
 	)
 
+	useEffect(() => {
+		setMembershipStatus(resolveMembershipStatus())
+	}, [resolveMembershipStatus])
+
+	const hasJoined = membershipStatus === 'ACTIVE'
+	const requestPending = membershipStatus === 'PENDING'
+	const canRequestMembership =
+		membershipStatus === 'NONE' && isJoinable && Boolean(currentUserId)
+
 	const handleJoin = useCallback(async () => {
-		if (!isJoinable || !currentUserId) return
+		if (!canRequestMembership || isJoining) return
 
 		setIsJoining(true)
 		try {
 			const response = await joinGroup(group.id)
-			setHasJoined(true)
+			const nextStatus = response.membershipStatus
+			if (nextStatus !== 'ACTIVE' && nextStatus !== 'PENDING') {
+				throw new Error(`Unexpected membership status: ${nextStatus}`)
+			}
 
-			if (response.status === 'PENDING') {
-				setRequestPending(true)
+			setMembershipStatus(nextStatus)
+			const updatedGroup: Group = {
+				...group,
+				myStatus: nextStatus,
+				isJoined: nextStatus === 'ACTIVE',
+				hasPendingRequest: nextStatus === 'PENDING',
+				memberCount:
+					nextStatus === 'ACTIVE' ? group.memberCount + 1 : group.memberCount,
+			}
+			onMembershipChange?.(updatedGroup)
+
+			if (nextStatus === 'PENDING') {
 				toast.info(t('gcJoinRequestSent'))
 			} else {
 				toast.success(t('gcJoinedSuccess'))
-				onJoinSuccess?.(group)
 			}
 		} catch (error) {
 			toast.error(t('gcJoinFailed'))
 		} finally {
 			setIsJoining(false)
 		}
-	}, [group, isJoinable, currentUserId, onJoinSuccess, t])
+	}, [canRequestMembership, group, isJoining, onMembershipChange, t])
 
 	if (variant === 'compact') {
 		return (
@@ -165,7 +191,7 @@ export const GroupCard = ({
 					</div>
 				)}
 
-				{!hasJoined && !requestPending && isJoinable && currentUserId && (
+				{canRequestMembership && (
 					<Button
 						size='sm'
 						variant='outline'
@@ -275,42 +301,47 @@ export const GroupCard = ({
 			</div>
 
 			{/* Footer / Actions */}
-			<div className='border-t border-border-subtle p-4'>
-				{hasJoined ? (
-					<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
-						<Button className='w-full bg-brand hover:bg-brand/90 text-white'>
-							{t('gcViewGroup')}
+			{(hasJoined ||
+				requestPending ||
+				canRequestMembership ||
+				!currentUserId) && (
+				<div className='border-t border-border-subtle p-4'>
+					{hasJoined ? (
+						<Link href={PATHS.GROUPS.DETAIL(group.id)} className='block'>
+							<Button className='w-full bg-brand hover:bg-brand/90 text-white'>
+								{t('gcViewGroup')}
+							</Button>
+						</Link>
+					) : requestPending ? (
+						<div className='text-center py-2'>
+							<p className='text-xs text-warning font-medium'>
+								{t('gcRequestPending')}
+							</p>
+						</div>
+					) : canRequestMembership ? (
+						<Button
+							className='w-full bg-brand hover:bg-brand/90 text-white'
+							onClick={handleJoin}
+							disabled={isJoining}
+						>
+							{isJoining ? (
+								<>
+									<Loader2 className='size-4 mr-2 animate-spin' />
+									{t('gcJoining')}
+								</>
+							) : (
+								t('gcJoinGroup')
+							)}
 						</Button>
-					</Link>
-				) : requestPending ? (
-					<div className='text-center py-2'>
-						<p className='text-xs text-warning font-medium'>
-							{t('gcRequestPending')}
-						</p>
-					</div>
-				) : isJoinable && currentUserId ? (
-					<Button
-						className='w-full bg-brand hover:bg-brand/90 text-white'
-						onClick={handleJoin}
-						disabled={isJoining}
-					>
-						{isJoining ? (
-							<>
-								<Loader2 className='size-4 mr-2 animate-spin' />
-								{t('gcJoining')}
-							</>
-						) : (
-							t('gcJoinGroup')
-						)}
-					</Button>
-				) : (
-					<Link href={PATHS.AUTH.SIGN_IN} className='block'>
-						<Button variant='outline' className='w-full'>
-							{t('gcSignInToJoin')}
-						</Button>
-					</Link>
-				)}
-			</div>
+					) : (
+						<Link href={PATHS.AUTH.SIGN_IN} className='block'>
+							<Button variant='outline' className='w-full'>
+								{t('gcSignInToJoin')}
+							</Button>
+						</Link>
+					)}
+				</div>
+			)}
 		</motion.div>
 	)
 }

@@ -14,6 +14,7 @@ import {
 	Eye,
 	Activity,
 	ArrowUpCircle,
+	RefreshCw,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -44,10 +45,11 @@ export default function CookingRoomPage() {
 	const [copied, setCopied] = useState(false)
 	const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([])
 	const [isUpgrading, setIsUpgrading] = useState(false)
+	const [isRecoveringSession, setIsRecoveringSession] = useState(false)
 	const [storeHydrated, setStoreHydrated] = useState(() =>
 		useCookingStore.persist.hasHydrated(),
 	)
-	const activityEndRef = useRef<HTMLDivElement>(null)
+	const activityFeedRef = useRef<HTMLDivElement>(null)
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const currentUserId = useAuthStore(s => s.user?.userId)
 	const authHydrated = useAuthStore(s => s.isHydrated)
@@ -62,6 +64,7 @@ export default function CookingRoomPage() {
 		leaveRoom,
 		handleRoomEvent,
 		joinRoom,
+		loadSession,
 	} = useCookingStore()
 
 	// Derive spectator status from participants list
@@ -94,7 +97,9 @@ export default function CookingRoomPage() {
 
 	// Auto-scroll activity feed
 	useEffect(() => {
-		activityEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		if (activityFeed.length === 0) return
+		const feed = activityFeedRef.current
+		feed?.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' })
 	}, [activityFeed])
 
 	// Map room events to activity feed items
@@ -242,21 +247,33 @@ export default function CookingRoomPage() {
 		if (!roomCode || isUpgrading) return
 		setIsUpgrading(true)
 		try {
-			// Leave as spectator and rejoin as cook
-			await leaveRoom()
 			const success = await joinRoom(roomCode, 'COOK')
 			if (success) {
 				toast.success(t('ctToastNowCooking'))
 			} else {
-				toast.error(t('toastJoinCookFailed'))
-				router.replace('/cook-together')
+				toast.error(t('toastUpgradeCookFailed'))
 			}
 		} catch {
 			toast.error(t('toastUpgradeCookFailed'))
 		} finally {
 			setIsUpgrading(false)
 		}
-	}, [roomCode, isUpgrading, leaveRoom, joinRoom, router, t])
+	}, [roomCode, isUpgrading, joinRoom, t])
+
+	const recoverySessionId =
+		!isSpectator && !session ? currentParticipant?.sessionId : null
+
+	const handleRecoverCookSession = useCallback(async () => {
+		if (!recoverySessionId || isRecoveringSession) return
+		setIsRecoveringSession(true)
+		const loaded = await loadSession(recoverySessionId)
+		if (loaded) {
+			toast.success(t('ctCookSetupRecovered'))
+		} else {
+			toast.error(t('ctCookSetupRetryFailed'))
+		}
+		setIsRecoveringSession(false)
+	}, [isRecoveringSession, loadSession, recoverySessionId, t])
 
 	const handleLeave = useCallback(async () => {
 		await leaveRoom()
@@ -276,6 +293,33 @@ export default function CookingRoomPage() {
 	return (
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
+				{!isSpectator && !session && (
+					<div
+						className='mb-4 flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between'
+						role='alert'
+					>
+						<div className='min-w-0'>
+							<p className='font-semibold text-text-primary'>
+								{t('ctCookSetupNeedsAttention')}
+							</p>
+							<p className='mt-0.5 text-sm text-text-secondary'>
+								{t('ctCookSetupRecoveryDescription')}
+							</p>
+						</div>
+						<button
+							type='button'
+							onClick={handleRecoverCookSession}
+							disabled={!recoverySessionId || isRecoveringSession}
+							className='inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
+						>
+							<RefreshCw
+								className={`size-4 ${isRecoveringSession ? 'animate-spin' : ''}`}
+							/>
+							{isRecoveringSession ? t('ctJoining') : t('ctRetryCookSetup')}
+						</button>
+					</div>
+				)}
+
 				{/* Spectator Banner */}
 				<AnimatePresence>
 					{isSpectator && (
@@ -520,9 +564,10 @@ export default function CookingRoomPage() {
 									<motion.button
 										type='button'
 										onClick={handleStartCooking}
+										disabled={!session}
 										whileHover={BUTTON_HOVER}
 										whileTap={BUTTON_TAP}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-4 text-lg font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:ring-2 focus-visible:ring-brand/50'
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand py-4 text-lg font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 									>
 										<ChefHat className='size-6' />
 										{session ? t('ctContinueCooking') : t('ctStartCooking')}
@@ -587,7 +632,10 @@ export default function CookingRoomPage() {
 									<span className='ml-auto inline-block size-2 animate-pulse rounded-full bg-success' />
 								)}
 							</div>
-							<div className='max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[28rem]'>
+							<div
+								ref={activityFeedRef}
+								className='max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[28rem]'
+							>
 								{activityFeed.length === 0 ? (
 									<p className='py-8 text-center text-sm text-text-muted'>
 										{t('ctWaitingActivity')}
@@ -607,7 +655,6 @@ export default function CookingRoomPage() {
 										</motion.div>
 									))
 								)}
-								<div ref={activityEndRef} />
 							</div>
 						</motion.div>
 					</PremiumSurface>

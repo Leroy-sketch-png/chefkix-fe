@@ -32,7 +32,6 @@ import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
-import { triggerSuccessConfetti } from '@/lib/confetti'
 import { hasClaimablePostXp } from '@/lib/cookingXp'
 import {
 	TRANSITION_SPRING,
@@ -43,6 +42,8 @@ import {
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { useCelebration } from '@/components/providers/CelebrationProvider'
+import { postDraftRepository } from '@/lib/post-draft-storage'
 
 interface SessionInfo {
 	id: string
@@ -61,19 +62,14 @@ interface PendingPostLink {
 }
 
 const PENDING_POST_LINK_KEY = 'pendingPostLink'
-const DRAFT_CONTENT_KEY = 'postDraftContent'
-const DRAFT_PHOTOS_KEY = 'postDraftPhotos'
-const DRAFT_TIMESTAMP_KEY = 'postDraftTs'
-const DRAFT_MAX_AGE_MS = 86_400_000 // 24 hours
 
-function clearDraftStorage() {
-	try {
-		localStorage.removeItem(DRAFT_CONTENT_KEY)
-		localStorage.removeItem(DRAFT_TIMESTAMP_KEY)
-		sessionStorage.removeItem(DRAFT_PHOTOS_KEY)
-	} catch {
-		/* quota or access error — non-critical */
-	}
+function fileToDataUrl(file: File): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = () => reject(reader.error)
+		reader.readAsDataURL(file)
+	})
 }
 
 function CreatePostContent() {
@@ -81,7 +77,9 @@ function CreatePostContent() {
 	const t = useTranslations('post')
 	const tc = useTranslations('common')
 	const searchParams = useSearchParams()
-	const sessionId = searchParams.get('session')
+	const requestedSessionId = searchParams.get('session')
+	const [draftSessionId, setDraftSessionId] = useState<string | null>(null)
+	const sessionId = requestedSessionId ?? draftSessionId
 
 	const {
 		user,
@@ -89,6 +87,7 @@ function CreatePostContent() {
 		isLoading: isAuthLoading,
 		isHydrated,
 	} = useAuth()
+	const { showPostSuccess } = useCelebration()
 	const [session, setSession] = useState<SessionInfo | null>(null)
 	const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId)
 
@@ -97,8 +96,9 @@ function CreatePostContent() {
 	const [previewUrls, setPreviewUrls] = useState<string[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [reviewRating, setReviewRating] = useState<number>(0)
+	const [isDraftHydrated, setIsDraftHydrated] = useState(false)
 
-	const hasLoadedPendingPhotos = useRef(false)
+	const loadedDraftKey = useRef<string | null>(null)
 
 	// Auth guard — redirect guests to sign-in
 	useEffect(() => {
@@ -126,62 +126,11 @@ function CreatePostContent() {
 		return lastResponse
 	}
 
-	// Load pending photos from sessionStorage (passed from completion modal)
-	useEffect(() => {
-		const pendingPhotosJson = sessionStorage.getItem('pendingPostPhotos')
-		if (!pendingPhotosJson) return
-
-		try {
-			const photoData = JSON.parse(pendingPhotosJson) as Array<{
-				name: string
-				type: string
-				data: string
-			}>
-
-			// Convert base64 back to File objects
-			const files: File[] = []
-			const urls: string[] = []
-
-			photoData.forEach(photo => {
-				try {
-					if (!photo.data || !photo.data.includes(',')) return
-					// Extract base64 data and convert to blob
-					const byteString = atob(photo.data.split(',')[1])
-					const mimeString = photo.data
-						.split(',')[0]
-						.split(':')[1]
-						.split(';')[0]
-					const ab = new ArrayBuffer(byteString.length)
-					const ia = new Uint8Array(ab)
-					for (let i = 0; i < byteString.length; i++) {
-						ia[i] = byteString.charCodeAt(i)
-					}
-					const blob = new Blob([ab], { type: mimeString })
-					const file = new File([blob], photo.name, { type: photo.type })
-					files.push(file)
-					urls.push(photo.data)
-				} catch {
-					// Skip individual corrupted photos instead of failing all
-				}
-			})
-
-			setPhotoFiles(files)
-			setPreviewUrls(urls)
-
-			// Clear from sessionStorage
-			sessionStorage.removeItem('pendingPostPhotos')
-			hasLoadedPendingPhotos.current = true
-		} catch (error) {
-			logDevError('Failed to load pending photos:', error)
-			sessionStorage.removeItem('pendingPostPhotos')
-			toast.info(t('toastPhotosNotRestored'))
-		}
-	}, [t])
-
 	// Load session info if sessionId is provided
 	useEffect(() => {
 		if (!sessionId) return
 		let cancelled = false
+		setIsLoadingSession(true)
 
 		const loadSession = async () => {
 			try {
@@ -236,85 +185,66 @@ function CreatePostContent() {
 		}
 	}, [sessionId, t])
 
-	// ── Draft recovery on mount ──────────────────────────────────────
+	// ── Durable draft recovery ────────────────────────────────────────
 	useEffect(() => {
-		try {
-			const ts = localStorage.getItem(DRAFT_TIMESTAMP_KEY)
-			if (!ts) return
-			if (Date.now() - Number(ts) > DRAFT_MAX_AGE_MS) {
-				clearDraftStorage()
-				return
-			}
+		const ownerId = user?.userId
+		if (!isHydrated || !ownerId) return
+		const key = `${ownerId}:${requestedSessionId ?? 'latest'}`
+		if (loadedDraftKey.current === key) return
+		loadedDraftKey.current = key
+		let cancelled = false
 
-			const savedContent = localStorage.getItem(DRAFT_CONTENT_KEY)
-			if (savedContent) {
-				setContent(savedContent)
-			}
-
-			if (!hasLoadedPendingPhotos.current) {
-				const savedPhotos = sessionStorage.getItem(DRAFT_PHOTOS_KEY)
-				if (savedPhotos) {
-					const photoUrls = JSON.parse(savedPhotos) as string[]
-					if (Array.isArray(photoUrls) && photoUrls.length > 0) {
-						const files: File[] = []
-						const urls: string[] = []
-						photoUrls.forEach(url => {
-							try {
-								if (!url || !url.includes(',')) return
-								const byteString = atob(url.split(',')[1])
-								const mimeString = url
-									.split(',')[0]
-									.split(':')[1]
-									.split(';')[0]
-								const ab = new ArrayBuffer(byteString.length)
-								const ia = new Uint8Array(ab)
-								for (let i = 0; i < byteString.length; i++) {
-									ia[i] = byteString.charCodeAt(i)
-								}
-								const blob = new Blob([ab], { type: mimeString })
-								const file = new File([blob], `draft-${Date.now()}.jpg`, {
-									type: mimeString,
-								})
-								files.push(file)
-								urls.push(url)
-							} catch {
-								/* skip corrupted photo */
-							}
-						})
-						if (files.length > 0) {
-							setPhotoFiles(files)
-							setPreviewUrls(urls)
-						}
-					}
+		const recoverDraft = async () => {
+			try {
+				const draft = await postDraftRepository.load(
+					ownerId,
+					requestedSessionId,
+				)
+				if (cancelled || !draft) return
+				const urls = await Promise.all(draft.photos.map(fileToDataUrl))
+				if (cancelled) return
+				setContent(draft.content)
+				setPhotoFiles(draft.photos)
+				setPreviewUrls(urls)
+				setDraftSessionId(draft.sessionId)
+			} catch (error) {
+				if (!cancelled) {
+					logDevError('Failed to restore post draft:', error)
+					toast.info(t('toastPhotosNotRestored'))
 				}
+			} finally {
+				if (!cancelled) setIsDraftHydrated(true)
 			}
-		} catch {
-			/* storage access error — non-critical */
 		}
-	}, [])
 
-	// ── Debounced auto-save draft ────────────────────────────────────
+		void recoverDraft()
+		return () => {
+			cancelled = true
+		}
+	}, [isHydrated, requestedSessionId, t, user?.userId])
+
+	// ── Debounced durable auto-save ──────────────────────────────────
 	useEffect(() => {
-		if (!content && photoFiles.length === 0) return
+		const ownerId = user?.userId
+		if (!isDraftHydrated || !ownerId) return
 
 		const timer = setTimeout(() => {
-			try {
-				localStorage.setItem(DRAFT_CONTENT_KEY, content)
-				localStorage.setItem(DRAFT_TIMESTAMP_KEY, String(Date.now()))
-
-				if (photoFiles.length > 0 && previewUrls.length > 0) {
-					sessionStorage.setItem(
-						DRAFT_PHOTOS_KEY,
-						JSON.stringify(previewUrls),
-					)
-				}
-			} catch {
-				/* quota or access error — content-only save still works */
-			}
+			const persist =
+				content.trim() || photoFiles.length > 0 || sessionId
+					? postDraftRepository.save({
+							ownerId,
+							sessionId,
+							content,
+							photos: photoFiles,
+						})
+					: postDraftRepository.clear(ownerId, sessionId)
+			void persist.catch(error => {
+				logDevError('Failed to auto-save post draft:', error)
+			})
 		}, 1500)
 
 		return () => clearTimeout(timer)
-	}, [content, photoFiles, previewUrls])
+	}, [content, isDraftHydrated, photoFiles, sessionId, user?.userId])
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -386,7 +316,13 @@ function CreatePostContent() {
 			})
 
 			if (response.success && response.data) {
-				clearDraftStorage()
+				if (user?.userId) {
+					await postDraftRepository
+						.clear(user.userId, sessionId)
+						.catch(error =>
+							logDevError('Failed to clear published post draft:', error),
+						)
+				}
 				const createdPost = response.data
 				const postId = createdPost.id
 				trackEvent('POST_CREATED', postId, 'post', {
@@ -444,19 +380,40 @@ function CreatePostContent() {
 					sessionStorage.setItem('newPost', JSON.stringify(createdPost))
 				}
 
-				// Show success with XP if earned
+				// Show celebration modal with XP breakdown
 				if (xpAwarded > 0) {
-					triggerSuccessConfetti()
-					toast.success(t('toastPostSharedXp', { xp: xpAwarded }), {
-						description: session?.recipeTitle
-							? t('toastPostLive', { title: session.recipeTitle })
-							: undefined,
+					const level = user?.statistics?.currentLevel ?? 1
+					const xpGoal = user?.statistics?.currentXPGoal ?? 1000
+					const currentXp = user?.statistics?.currentXP ?? 0
+					showPostSuccess({
+						recipeName: session?.recipeTitle || 'Your creation',
+						recipeImageUrl: session?.recipeImage || '',
+						postId,
+						xpRows: [
+							{
+								id: 'cooking',
+								source: 'Cooking',
+								emoji: '🍳',
+								amount: Math.round(xpAwarded * 0.6),
+							},
+							{
+								id: 'sharing',
+								source: 'Sharing',
+								emoji: '📸',
+								amount: Math.round(xpAwarded * 0.4),
+								isHighlight: true,
+							},
+						],
+						totalXp: xpAwarded,
+						currentLevel: level,
+						xpToNextLevel: xpGoal,
+						levelProgressPercent: Math.round((currentXp / xpGoal) * 100),
+						levelGainedPercent: Math.round((xpAwarded / xpGoal) * 100),
 					})
 				} else {
 					toast.success(t('toastPostShared'))
+					router.push('/dashboard')
 				}
-
-				router.push('/dashboard')
 			} else {
 				toast.error(t('toastPostFailed'))
 				setIsSubmitting(false)
@@ -504,7 +461,9 @@ function CreatePostContent() {
 				<div className='py-6'>
 					<PremiumSurface
 						eyebrow={tc('eyebrows.postComposer')}
-						chipText={session ? tc('eyebrows.sessionLinked') : tc('eyebrows.quickPost')}
+						chipText={
+							session ? tc('eyebrows.sessionLinked') : tc('eyebrows.quickPost')
+						}
 						className='mb-6 p-3 md:p-4'
 						tone='brand'
 					>
@@ -554,9 +513,7 @@ function CreatePostContent() {
 						<PremiumSurface
 							eyebrow={tc('eyebrows.cookSession')}
 							chipText={
-								hasPendingSessionXp
-									? t('xpClaimAvailable')
-									: t('noBonusXp')
+								hasPendingSessionXp ? t('xpClaimAvailable') : t('noBonusXp')
 							}
 							tone='success'
 							className='mb-6 p-0'
@@ -636,7 +593,9 @@ function CreatePostContent() {
 					{session && !isLoadingSession && (
 						<PremiumSurface
 							eyebrow={tc('eyebrows.recipeReview')}
-							chipText={reviewRating > 0 ? `${reviewRating}/5` : tc('eyebrows.optional')}
+							chipText={
+								reviewRating > 0 ? `${reviewRating}/5` : tc('eyebrows.optional')
+							}
 							tone='streak'
 							className='mb-6 p-0'
 						>

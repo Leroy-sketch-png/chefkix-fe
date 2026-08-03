@@ -32,7 +32,10 @@ import { PATHS } from '@/constants'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
-import { PremiumSurface, SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
+import {
+	PremiumSurface,
+	SurfaceSectionHeader,
+} from '@/components/layout/PremiumSurface'
 
 /**
  * Group Detail Page - Facebook Style
@@ -207,159 +210,165 @@ export default function GroupDetailPage() {
 					tone='success'
 				>
 					<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className=''
-				>
-					<GroupHeader
-						group={group}
-						currentUserId={user?.userId}
-						onSettingsClick={() => setShowSettings(true)}
-						onLeaveGroup={() => router.push('/groups')}
-					/>
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={TRANSITION_SPRING}
+						className=''
+					>
+						<GroupHeader
+							group={group}
+							currentUserId={user?.userId}
+							onSettingsClick={() => setShowSettings(true)}
+							onLeaveGroup={() => router.push('/groups')}
+						/>
 					</motion.div>
 				</PremiumSurface>
 
 				<PremiumSurface
 					eyebrow={tc('eyebrows.groupWorkspace')}
-					chipText={activeTab}
+					chipText={
+						activeTab === 'about'
+							? t('tabAbout')
+							: activeTab === 'members'
+								? t('tabMembers', { count: group.memberCount })
+								: t('tabPosts')
+					}
 					className='mb-20 p-3 md:p-4'
 				>
 					<SurfaceSectionHeader
 						eyebrow={tc('eyebrows.aboutMembersPosts')}
-						chipText='Collaborative board'
+						chipText={t('groupWorkspaceChip')}
 						className='mb-3'
 					/>
 					<motion.div
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={TRANSITION_SPRING}
-					className=''
-				>
-					<Tabs
-						value={activeTab}
-						onValueChange={setActiveTab}
-						className='w-full'
+						initial={{ opacity: 0, y: 10 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={TRANSITION_SPRING}
+						className=''
 					>
-						{/* Tab Navigation */}
-						<TabsList className='mb-6 grid w-full grid-cols-3'>
-							<TabsTrigger value='about'>{t('tabAbout')}</TabsTrigger>
-							<TabsTrigger value='members'>
-								{t('tabMembers', { count: group.memberCount })}
-							</TabsTrigger>
-							<TabsTrigger value='posts'>{t('tabPosts')}</TabsTrigger>
-						</TabsList>
-						{/* About Tab - Shows rich group information */}
-						<TabsContent value='about' className='space-y-4'>
-							<GroupAboutSection
-								group={group}
-								onViewMembers={() => setActiveTab('members')}
-							/>
-						</TabsContent>{' '}
-						{/* Members Tab - Shows group members */}
-						<TabsContent value='members' className='space-y-4'>
-							<GroupMembersList
-								members={members}
-								groupId={groupId}
-								currentUserId={user?.userId}
-								canManageMembers={isAdmin}
-								isLoading={isLoadingMembers}
-								onMemberRemoved={userId => {
-									setMembers(prev => prev.filter(m => m.userId !== userId))
-								}}
-							/>
-						</TabsContent>
-						{/* Posts Tab - Shows group posts and create post box */}
-						<TabsContent value='posts' className='space-y-4'>
-							{isMember ? (
-								<>
-									{/* Post creation box */}
-									<GroupCreatePostBox
-										groupId={groupId}
-										groupName={group.name}
-										onPostCreated={async () => {
-											// Reload posts after creating a new post
-											try {
-												setIsLoadingPosts(true)
-												const response = await getGroupPosts(groupId, 0, 20)
-												setPosts(response.content || [])
-											} catch (error) {
-												logDevError('Failed to reload posts:', error)
-											} finally {
-												setIsLoadingPosts(false)
-											}
-										}}
-									/>
-
-									{/* Posts list */}
-									{isLoadingPosts ? (
-										<div className='space-y-4'>
-											{[1, 2, 3].map(i => (
-												<div
-													key={i}
-													className='rounded-2xl border border-border-subtle bg-bg-card p-4 space-y-3'
-												>
-													<div className='flex items-center gap-3'>
-														<Skeleton className='size-10 rounded-full' />
-														<div className='space-y-1'>
-															<Skeleton className='h-4 w-24' />
-															<Skeleton className='h-3 w-16' />
-														</div>
-													</div>
-													<Skeleton className='h-4 w-full' />
-													<Skeleton className='h-4 w-3/4' />
-													<Skeleton className='h-48 w-full rounded-xl' />
-												</div>
-											))}
-										</div>
-									) : posts.length > 0 ? (
-										<div className='space-y-4'>
-											{posts.map(post => (
-												<motion.div
-													key={post.id}
-													initial={{ opacity: 0, y: 10 }}
-													animate={{ opacity: 1, y: 0 }}
-													transition={TRANSITION_SPRING}
-												>
-													<PostCard
-														post={post}
-														currentUserId={user?.userId}
-														onDelete={handleGroupPostDelete}
-														onUpdate={handleGroupPostUpdate}
-													/>
-												</motion.div>
-											))}
-										</div>
-									) : (
-										<EmptyState
-											variant='feed'
-											title={t('noPostsYet')}
-											description={t('beFirstToPost')}
-											emoji='🍳'
-											primaryAction={{
-												label: t('createFirstPost'),
-												onClick: () => {
-													const postBox = document.querySelector(
-														'[data-group-post-box]',
-													)
-													if (postBox)
-														postBox.scrollIntoView({ behavior: 'smooth' })
-												},
+						<Tabs
+							value={activeTab}
+							onValueChange={setActiveTab}
+							className='w-full'
+						>
+							{/* Tab Navigation */}
+							<TabsList className='mb-6 grid w-full grid-cols-3'>
+								<TabsTrigger value='about'>{t('tabAbout')}</TabsTrigger>
+								<TabsTrigger value='members'>
+									{t('tabMembers', { count: group.memberCount })}
+								</TabsTrigger>
+								<TabsTrigger value='posts'>{t('tabPosts')}</TabsTrigger>
+							</TabsList>
+							{/* About Tab - Shows rich group information */}
+							<TabsContent value='about' className='space-y-4'>
+								<GroupAboutSection
+									group={group}
+									onViewMembers={() => setActiveTab('members')}
+								/>
+							</TabsContent>{' '}
+							{/* Members Tab - Shows group members */}
+							<TabsContent value='members' className='space-y-4'>
+								<GroupMembersList
+									members={members}
+									groupId={groupId}
+									currentUserId={user?.userId}
+									canManageMembers={isAdmin}
+									isLoading={isLoadingMembers}
+									onMemberRemoved={userId => {
+										setMembers(prev => prev.filter(m => m.userId !== userId))
+									}}
+								/>
+							</TabsContent>
+							{/* Posts Tab - Shows group posts and create post box */}
+							<TabsContent value='posts' className='space-y-4'>
+								{isMember ? (
+									<>
+										{/* Post creation box */}
+										<GroupCreatePostBox
+											groupId={groupId}
+											groupName={group.name}
+											onPostCreated={async () => {
+												// Reload posts after creating a new post
+												try {
+													setIsLoadingPosts(true)
+													const response = await getGroupPosts(groupId, 0, 20)
+													setPosts(response.content || [])
+												} catch (error) {
+													logDevError('Failed to reload posts:', error)
+												} finally {
+													setIsLoadingPosts(false)
+												}
 											}}
 										/>
-									)}
-								</>
-							) : (
-								<EmptyState
-									variant='custom'
-									title={t('joinConversation')}
-									description={t('joinConversationDesc')}
-									emoji='👋'
-								/>
-							)}
-						</TabsContent>
-					</Tabs>
+
+										{/* Posts list */}
+										{isLoadingPosts ? (
+											<div className='space-y-4'>
+												{[1, 2, 3].map(i => (
+													<div
+														key={i}
+														className='rounded-2xl border border-border-subtle bg-bg-card p-4 space-y-3'
+													>
+														<div className='flex items-center gap-3'>
+															<Skeleton className='size-10 rounded-full' />
+															<div className='space-y-1'>
+																<Skeleton className='h-4 w-24' />
+																<Skeleton className='h-3 w-16' />
+															</div>
+														</div>
+														<Skeleton className='h-4 w-full' />
+														<Skeleton className='h-4 w-3/4' />
+														<Skeleton className='h-48 w-full rounded-xl' />
+													</div>
+												))}
+											</div>
+										) : posts.length > 0 ? (
+											<div className='space-y-4'>
+												{posts.map(post => (
+													<motion.div
+														key={post.id}
+														initial={{ opacity: 0, y: 10 }}
+														animate={{ opacity: 1, y: 0 }}
+														transition={TRANSITION_SPRING}
+													>
+														<PostCard
+															post={post}
+															currentUserId={user?.userId}
+															onDelete={handleGroupPostDelete}
+															onUpdate={handleGroupPostUpdate}
+														/>
+													</motion.div>
+												))}
+											</div>
+										) : (
+											<EmptyState
+												variant='feed'
+												title={t('noPostsYet')}
+												description={t('beFirstToPost')}
+												emoji='🍳'
+												primaryAction={{
+													label: t('createFirstPost'),
+													onClick: () => {
+														const postBox = document.querySelector(
+															'[data-group-post-box]',
+														)
+														if (postBox)
+															postBox.scrollIntoView({ behavior: 'smooth' })
+													},
+												}}
+											/>
+										)}
+									</>
+								) : (
+									<EmptyState
+										variant='custom'
+										title={t('joinConversation')}
+										description={t('joinConversationDesc')}
+										emoji='👋'
+									/>
+								)}
+							</TabsContent>
+						</Tabs>
 					</motion.div>
 				</PremiumSurface>
 

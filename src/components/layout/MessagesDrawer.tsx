@@ -26,6 +26,13 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { Portal } from '@/components/ui/portal'
 import { MessagesDrawerConversationListItem } from './MessagesDrawerConversationListItem'
 import { MessagesDrawerMessageBubble } from './MessagesDrawerMessageBubble'
+import { useChatWebSocket } from '@/hooks/useChatWebSocket'
+import {
+	createClientMessageId,
+	createOptimisticMessage,
+	reconcileChatMessage,
+	removePendingMessage,
+} from '@/lib/optimistic-chat'
 
 export const MessagesDrawer = () => {
 	const t = useTranslations('messages')
@@ -49,6 +56,16 @@ export const MessagesDrawer = () => {
 	const [isLoadingConversations, setIsLoadingConversations] = useState(true)
 	const [isLoadingMessages, setIsLoadingMessages] = useState(false)
 	const [isSending, setIsSending] = useState(false)
+	const handleIncomingMessage = useCallback((message: ChatMessage) => {
+		setMessages(prev => reconcileChatMessage(prev, message))
+	}, [])
+
+	useChatWebSocket({
+		conversationId: selectedConversation?.id ?? null,
+		onMessage: handleIncomingMessage,
+		userId: user?.userId,
+		enabled: isMessagesDrawerOpen,
+	})
 
 	// Fetch conversations when drawer opens
 	useEffect(() => {
@@ -190,19 +207,40 @@ export const MessagesDrawer = () => {
 	const handleSendMessage = async () => {
 		if (!newMessage.trim() || !selectedConversation || isSending) return
 
+		const messageText = newMessage.trim()
+		const clientMessageId = createClientMessageId()
+		const optimisticMessage = createOptimisticMessage({
+			clientMessageId,
+			conversationId: selectedConversation.id,
+			message: messageText,
+			sender: {
+				userId: user?.userId ?? '',
+				username: user?.username ?? '',
+				firstName: user?.firstName ?? '',
+				lastName: user?.lastName ?? '',
+				avatar: user?.avatarUrl ?? '',
+			},
+		})
+		setMessages(prev => reconcileChatMessage(prev, optimisticMessage))
+		setNewMessage('')
 		setIsSending(true)
 		try {
 			const response = await sendMessage({
 				conversationId: selectedConversation.id,
-				message: newMessage.trim(),
+				message: messageText,
+				clientMessageId,
 			})
 
 			if (response.success && response.data) {
-				setMessages(prev => [...prev, response.data!])
-				setNewMessage('')
+				setMessages(prev => reconcileChatMessage(prev, response.data!))
+			} else {
+				setMessages(prev => removePendingMessage(prev, clientMessageId))
+				setNewMessage(messageText)
 			}
 		} catch (err) {
 			logDevError('Failed to send message:', err)
+			setMessages(prev => removePendingMessage(prev, clientMessageId))
+			setNewMessage(messageText)
 		} finally {
 			setIsSending(false)
 		}

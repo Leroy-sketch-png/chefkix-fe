@@ -19,6 +19,7 @@ import { getSessionHistory } from '@/services/cookingSession'
 import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
 import { cn } from '@/lib/utils'
+import { isStreakAtRisk } from '@/lib/streak-status'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 import { toast } from 'sonner'
 import {
@@ -220,14 +221,14 @@ export const RightSidebar = () => {
 
 	// Compute streak data from user stats + cooking session history
 	const streakData = useMemo(() => {
-		const { weekProgress, isActiveToday } = computeWeekProgress(cookDates)
+		const { weekProgress, isActiveToday } = computeWeekProgress(
+			cookDates,
+			user?.statistics?.lastCookAt,
+		)
 		const currentStreak = user?.statistics?.streakCount ?? 0
-
-		// Determine streak status (must match StreakWidget props: 'active' | 'at-risk')
-		let status: 'active' | 'at-risk' = 'active'
-		if (currentStreak > 0 && !isActiveToday) {
-			status = 'at-risk' // Has streak but hasn't cooked today
-		}
+		const status: 'active' | 'at-risk' = isStreakAtRisk(user?.statistics)
+			? 'at-risk'
+			: 'active'
 
 		return {
 			currentStreak,
@@ -235,7 +236,7 @@ export const RightSidebar = () => {
 			isActiveToday,
 			status,
 		}
-	}, [cookDates, user?.statistics?.streakCount])
+	}, [cookDates, user?.statistics])
 
 	const topSuggestions = useMemo(() => suggestions.slice(0, 3), [suggestions])
 

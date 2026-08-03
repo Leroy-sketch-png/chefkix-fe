@@ -2,20 +2,17 @@
 
 import { useTranslations, useLocale } from 'next-intl'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
 	CalendarCheck,
 	ChevronRight,
-	ChevronLeft,
 	Check,
 	X,
 	ArrowRight,
 	ArrowLeft,
-	ChevronDown,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,
@@ -68,11 +65,7 @@ interface ChallengeHistoryPageProps {
 		totalCompleted: number
 		totalBonusXp: number
 	}
-	currentMonth: Date
-	onMonthChange?: (direction: 'prev' | 'next') => void
 	onBack?: () => void
-	onLoadMore?: () => void
-	isLoadingMore?: boolean
 	className?: string
 }
 
@@ -280,9 +273,7 @@ export const ChallengeHistorySection = ({
 				className,
 			)}
 		>
-			<div
-				className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
-			>
+			<div className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'>
 				<div className='relative z-10 w-full'>
 					{/* Header */}
 					<div className='mb-5 flex items-center justify-between'>
@@ -475,11 +466,7 @@ const HistoryItem = ({
 export const ChallengeHistoryPage = ({
 	days,
 	stats,
-	currentMonth,
-	onMonthChange,
 	onBack,
-	onLoadMore,
-	isLoadingMore,
 	className,
 }: ChallengeHistoryPageProps) => {
 	const completionRate = Math.round(
@@ -512,9 +499,7 @@ export const ChallengeHistoryPage = ({
 
 			{/* Lifetime Stats */}
 			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<div
-					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
-				>
+				<div className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'>
 					<div className='relative z-10 w-full'>
 						<div className='mb-5 grid gap-5 md:grid-cols-[1fr_2fr]'>
 							{/* Big Stat */}
@@ -583,70 +568,24 @@ export const ChallengeHistoryPage = ({
 				</div>
 			</div>
 
-			{/* Month View */}
-			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<div
-					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
-				>
-					<div className='relative z-10 w-full'>
-						<div className='mb-5 flex items-center justify-center gap-6'>
-							<button
-								type='button'
-								onClick={() => onMonthChange?.('prev')}
-								className='flex size-8 items-center justify-center rounded-xl border border-border-subtle bg-bg-elevated/40 text-text-primary transition-colors hover:bg-bg-elevated'
-							>
-								<ChevronLeft className='size-4' />
-							</button>
-							<span className='text-lg font-bold text-text-primary'>
-								{currentMonth.toLocaleDateString(locale, {
-									month: 'long',
-									year: 'numeric',
-								})}
-							</span>
-							<button
-								type='button'
-								onClick={() => onMonthChange?.('next')}
-								className='flex size-8 items-center justify-center rounded-xl border border-border-subtle bg-bg-elevated/40 text-text-primary transition-colors hover:bg-bg-elevated'
-							>
-								<ChevronRight className='size-4' />
-							</button>
-						</div>
-
-						{/* Simple calendar grid placeholder */}
-						<div className='grid grid-cols-7 gap-1'>
-							{(
-								[
-									{ key: 'dayMon', label: t('dayMon') },
-									{ key: 'dayTue', label: t('dayTue') },
-									{ key: 'dayWed', label: t('dayWed') },
-									{ key: 'dayThu', label: t('dayThu') },
-									{ key: 'dayFri', label: t('dayFri') },
-									{ key: 'daySat', label: t('daySat') },
-									{ key: 'daySun', label: t('daySun') },
-								] as Array<{ key: string; label: string }>
-							).map(({ key, label }) => (
-								<div
-									key={key}
-									className='py-2 text-center text-xs font-semibold text-text-secondary'
-								>
-									{label}
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
-			</div>
-
 			{/* Recent History List */}
 			<div className='rounded-2xl overflow-hidden shadow-card border border-border-subtle'>
-				<div
-					className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'
-				>
+				<div className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-6'>
 					<div className='relative z-10 w-full'>
 						<h3 className='mb-5 text-base font-bold text-text-primary'>
 							{t('recentChallenges')}
 						</h3>
 						<div>
+							{recentDays.length === 0 && (
+								<div className='rounded-xl border border-border-subtle bg-bg-elevated/30 px-5 py-8 text-center'>
+									<p className='font-semibold text-text-primary'>
+										{t('historyEmptyTitle')}
+									</p>
+									<p className='mt-1 text-sm text-text-secondary'>
+										{t('historyEmptyDescription')}
+									</p>
+								</div>
+							)}
 							{recentDays.map((day, i) => (
 								<HistoryItem
 									key={i}
@@ -655,20 +594,6 @@ export const ChallengeHistoryPage = ({
 								/>
 							))}
 						</div>
-
-						{onLoadMore && (
-							<motion.button
-								type='button'
-								onClick={onLoadMore}
-								disabled={isLoadingMore}
-								whileHover={BUTTON_HOVER}
-								whileTap={BUTTON_TAP}
-								className='mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border-subtle/60 bg-bg-elevated/40 py-3.5 text-sm font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-							>
-								{isLoadingMore ? t('loading') : t('loadMore')}
-								<ChevronDown className='size-4' />
-							</motion.button>
-						)}
 					</div>
 				</div>
 			</div>

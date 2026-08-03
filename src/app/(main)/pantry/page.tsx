@@ -69,7 +69,6 @@ import {
 import { autocompleteSearch } from '@/services/search'
 import { suggestCategory } from '@/lib/data/ingredients'
 import { createFromRecipe } from '@/services/shoppingList'
-import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { relativeExpiry } from '@/lib/relative-time'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 
@@ -113,9 +112,6 @@ export default function PantryPage() {
 	const [error, setError] = useState(false)
 	const [filterCategory, setFilterCategory] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
-
-	// Onboarding hints
-	useOnboardingOrchestrator({ delay: 1000, condition: !loading })
 
 	// Quick-add state
 	const [quickAddName, setQuickAddName] = useState('')
@@ -570,9 +566,7 @@ export default function PantryPage() {
 
 						{/* ── Quick Add Bar ─────────────────── */}
 						<motion.div className='overflow-visible rounded-3xl'>
-							<div
-								className='overflow-visible rounded-3xl shadow-card'
-							>
+							<div className='overflow-visible rounded-3xl shadow-card'>
 								<PremiumSurface
 									tone='success'
 									className='bg-bg-card/85 sm:p-4 border-none shadow-none backdrop-blur-none'

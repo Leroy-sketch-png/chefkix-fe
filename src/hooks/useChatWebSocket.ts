@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs'
 import { useAuthStore } from '@/store/authStore'
 import { ChatMessage, Conversation } from '@/services/chat'
@@ -21,7 +21,6 @@ interface UseChatWebSocketOptions {
 }
 
 interface UseChatWebSocketReturn {
-	sendMessage: (message: string, replyToId?: string) => void
 	isConnected: boolean
 	error: string | null
 }
@@ -202,33 +201,7 @@ export function useChatWebSocket({
 		}
 	}, [conversationId, isConnected])
 
-	// Send message via WebSocket
-	const sendMessage = useCallback(
-		(message: string, replyToId?: string) => {
-			if (!clientRef.current?.connected || !conversationId) {
-				logDevWarn('[WebSocket] Cannot send: not connected or no conversation')
-				return
-			}
-
-			const payload: Record<string, string> = {
-				conversationId,
-				message,
-				type: 'TEXT',
-			}
-			if (replyToId) {
-				payload.replyToId = replyToId
-			}
-
-			clientRef.current.publish({
-				destination: '/app/chat.sendMessage',
-				body: JSON.stringify(payload),
-			})
-		},
-		[conversationId],
-	)
-
 	return {
-		sendMessage,
 		isConnected,
 		error,
 	}

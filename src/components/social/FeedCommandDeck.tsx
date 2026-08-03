@@ -87,7 +87,7 @@ export function FeedCommandDeck({
 							{t('postsCount', { count: postCount })}
 						</span>
 						<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1'>
-							{hasMore ? t('loadMore') : t('liveFeed')}
+							{hasMore ? t('loadMore') : t('endOfFeed')}
 						</span>
 					</div>
 				)}

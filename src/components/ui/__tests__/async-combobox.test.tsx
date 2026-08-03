@@ -96,4 +96,26 @@ describe('AsyncCombobox', () => {
 		expect(screen.getByText('Fresh basil')).toBeTruthy()
 		expect(screen.queryByText('Stale apple')).toBeNull()
 	})
+
+	it('accepts async results after the Strict Mode effect replay', async () => {
+		const fetchOptions = jest
+			.fn()
+			.mockResolvedValue([{ value: 'pho', label: 'Pho Bo Ha Noi' }])
+
+		render(
+			<React.StrictMode>
+				<AsyncComboboxHarness fetchOptions={fetchOptions} />
+			</React.StrictMode>,
+		)
+
+		const input = screen.getByRole('combobox')
+		fireEvent.focus(input)
+		fireEvent.change(input, { target: { value: 'pho' } })
+		await act(async () => {
+			jest.advanceTimersByTime(50)
+		})
+
+		expect(await screen.findByText('Pho Bo Ha Noi')).toBeTruthy()
+		expect(screen.queryByText('Searching...')).toBeNull()
+	})
 })

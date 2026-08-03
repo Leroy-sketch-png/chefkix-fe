@@ -11,21 +11,21 @@ const mockedLogDevError = logDevError as jest.MockedFunction<typeof logDevError>
 describe('getCurrentSession', () => {
 	beforeEach(() => jest.clearAllMocks())
 
-	it('normalizes an expected no-active-session response without logging an error', async () => {
-		mockedApi.get.mockRejectedValue({
+	it('preserves a structured 404 instead of disguising it as empty success', async () => {
+		const error = {
 			response: {
 				status: 404,
-				data: { message: 'No active cooking session' },
+				data: {
+					success: false,
+					statusCode: 404,
+					message: 'Current session recipe not found',
+				},
 			},
-		})
+		}
+		mockedApi.get.mockRejectedValue(error)
 
-		await expect(getCurrentSession()).resolves.toEqual({
-			success: true,
-			data: null,
-			message: 'No active cooking session',
-			statusCode: 200,
-		})
-		expect(mockedLogDevError).not.toHaveBeenCalled()
+		await expect(getCurrentSession()).resolves.toEqual(error.response.data)
+		expect(mockedLogDevError).toHaveBeenCalledWith('response failed:', error)
 	})
 
 	it('keeps unexpected server failures visible to diagnostics', async () => {

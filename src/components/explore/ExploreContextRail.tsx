@@ -18,10 +18,7 @@ export function ExploreContextRail({
 	showDiscoveryWidgets,
 }: ExploreContextRailProps) {
 	const t = useTranslations('explore')
-	const quickTerms =
-		trendingSearches.length > 0
-			? trendingSearches.slice(0, 8)
-			: ['Quick meals', 'Pasta', 'Chicken', 'Vegan', 'Desserts', 'Breakfast']
+	const quickTerms = trendingSearches.slice(0, 8)
 
 	return (
 		<motion.aside
@@ -37,32 +34,34 @@ export function ExploreContextRail({
 				</>
 			)}
 
-			<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-4 shadow-card'>
-				<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
-					{t('railSearchMomentum')}
-				</p>
-				<h3 className='mt-1 text-lg font-black leading-tight text-text-primary'>
-					{t('railHotQueries')}
-				</h3>
-				<p className='mt-1 text-xs font-medium leading-relaxed text-text-secondary'>
-					{t('railSearchMomentumDesc')}
-				</p>
-				<div className='mt-3 flex flex-wrap gap-2'>
-					{quickTerms.map(term => (
-						<motion.button
-							type='button'
-							key={term}
-							onClick={() => onQuickSearch(term)}
-							whileHover={BUTTON_HOVER}
-							whileTap={BUTTON_TAP}
-							className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand'
-						>
-							<TrendingUp className='size-3' />
-							{term}
-						</motion.button>
-					))}
+			{quickTerms.length > 0 && (
+				<div className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-4 shadow-card'>
+					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
+						{t('railSearchMomentum')}
+					</p>
+					<h3 className='mt-1 text-lg font-black leading-tight text-text-primary'>
+						{t('railHotQueries')}
+					</h3>
+					<p className='mt-1 text-xs font-medium leading-relaxed text-text-secondary'>
+						{t('railSearchMomentumDesc')}
+					</p>
+					<div className='mt-3 flex flex-wrap gap-2'>
+						{quickTerms.map(term => (
+							<motion.button
+								type='button'
+								key={term}
+								onClick={() => onQuickSearch(term)}
+								whileHover={BUTTON_HOVER}
+								whileTap={BUTTON_TAP}
+								className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/40 hover:bg-brand/10 hover:text-brand'
+							>
+								<TrendingUp className='size-3' />
+								{term}
+							</motion.button>
+						))}
+					</div>
 				</div>
-			</div>
+			)}
 
 			<div className='rounded-2xl border border-border-subtle/80 bg-bg-card p-4 shadow-card'>
 				<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>

@@ -50,15 +50,16 @@ import {
 	ICON_BUTTON_TAP,
 	DURATION_S,
 } from '@/lib/motion'
-import { difficultyToDisplay, DifficultyDisplay } from '@/lib/apiUtils'
 import { getTrendingSearches, unifiedSearch } from '@/services/search'
 import { toggleFollow } from '@/services/social'
 import { toggleSaveRecipe } from '@/services/recipe'
+import { UserSearchDoc } from '@/lib/types/search'
 import {
-	RecipeSearchDoc,
-	UserSearchDoc,
-	PostSearchDoc,
-} from '@/lib/types/search'
+	toPostSearchResult,
+	toRecipeSearchResult,
+	type PostSearchResult,
+	type RecipeSearchResult,
+} from '@/lib/search-result'
 import { logDevError } from '@/lib/dev-log'
 import { trackEvent, trackSearch } from '@/lib/eventTracker'
 import { ErrorState } from '@/components/ui/error-state'
@@ -68,23 +69,12 @@ import { toast } from 'sonner'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { useAuth } from '@/hooks/useAuth'
 import { SearchCommandDeck } from '@/components/search/SearchCommandDeck'
+import {
+	formatPositiveSocialCount,
+	isPositiveSocialMetric,
+} from '@/lib/positive-social-proof'
 
 type SearchTab = 'recipes' | 'people' | 'posts'
-
-interface RecipeResult {
-	id: string
-	title: string
-	imageUrl: string
-	rating?: number // Optional until BE rating system is implemented
-	cookTime: string
-	difficulty: DifficultyDisplay
-	author: {
-		username: string
-		avatarUrl: string
-	}
-	cookCount: number
-	isSaved?: boolean
-}
 
 interface PersonResult {
 	id: string
@@ -94,18 +84,6 @@ interface PersonResult {
 	bio: string
 	isFollowing?: boolean
 	isVerified?: boolean
-}
-
-interface PostResult {
-	id: string
-	imageUrl: string
-	caption: string
-	author: {
-		username: string
-		avatarUrl: string
-	}
-	likeCount: number
-	recipeId?: string
 }
 
 import {
@@ -185,10 +163,16 @@ function SearchResultImage({
 	)
 }
 
-const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
+const RecipeResultCard = ({ recipe }: { recipe: RecipeSearchResult }) => {
 	const [saved, setSaved] = useState(recipe.isSaved)
 	const { requireAuth } = useAuthActionGuard()
 	const t = useTranslations('search')
+	const formattedCookCount = formatPositiveSocialCount(recipe.cookCount)
+	const hasMetadata =
+		isPositiveSocialMetric(recipe.rating) ||
+		recipe.cookTimeMinutes !== undefined ||
+		recipe.difficulty !== undefined
+	const hasFooter = Boolean(recipe.author || formattedCookCount)
 
 	const handleSave = async (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -252,46 +236,66 @@ const RecipeResultCard = ({ recipe }: { recipe: RecipeResult }) => {
 						</motion.button>
 					</div>
 
-					<div className='mb-3 flex items-center gap-4 border-b border-border-subtle pb-3'>
-						{recipe.rating !== undefined && (
-							<div className='flex items-center gap-1 text-warning'>
-								<Star className='size-3.5 fill-current' />
-								<span className='text-caption font-semibold'>
-									{recipe.rating.toFixed(1)}
-								</span>
-							</div>
-						)}
-						<div className='flex items-center gap-1 text-text-secondary'>
-							<Clock className='size-3.5' />
-							<span className='text-caption'>{recipe.cookTime}</span>
+					{hasMetadata && (
+						<div
+							className={cn(
+								'flex items-center gap-4 pb-3',
+								hasFooter && 'mb-3 border-b border-border-subtle',
+							)}
+						>
+							{isPositiveSocialMetric(recipe.rating) && (
+								<div className='flex items-center gap-1 text-warning'>
+									<Star className='size-3.5 fill-current' />
+									<span className='text-caption font-semibold'>
+										{recipe.rating.toFixed(1)}
+									</span>
+								</div>
+							)}
+							{recipe.cookTimeMinutes !== undefined && (
+								<div className='flex items-center gap-1 text-text-secondary'>
+									<Clock className='size-3.5' />
+									<span className='text-caption'>
+										{t('minutes', { count: recipe.cookTimeMinutes })}
+									</span>
+								</div>
+							)}
+							{recipe.difficulty !== undefined && (
+								<div className='flex items-center gap-1 text-text-secondary'>
+									<Flame className='size-3.5' />
+									<span className='text-caption'>{recipe.difficulty}</span>
+								</div>
+							)}
 						</div>
-						<div className='flex items-center gap-1 text-text-secondary'>
-							<Flame className='size-3.5' />
-							<span className='text-caption'>{recipe.difficulty}</span>
-						</div>
-					</div>
+					)}
 
-					<div className='flex items-center justify-between'>
-						<div className='flex items-center gap-2'>
-							<Avatar size='xs'>
-								<AvatarImage
-									src={recipe.author.avatarUrl}
-									alt={recipe.author.username}
-								/>
-								<AvatarFallback>
-									{recipe.author.username?.slice(0, 2).toUpperCase() || '??'}
-								</AvatarFallback>
-							</Avatar>
-							<span className='text-caption text-text-secondary'>
-								@{recipe.author.username}
-							</span>
+					{hasFooter && (
+						<div className='flex items-center justify-between gap-3'>
+							{recipe.author && (
+								<div className='flex min-w-0 items-center gap-2'>
+									<Avatar size='xs'>
+										{recipe.author.avatarUrl && (
+											<AvatarImage
+												src={recipe.author.avatarUrl}
+												alt={recipe.author.name}
+											/>
+										)}
+										<AvatarFallback>
+											{recipe.author.name.slice(0, 2).toUpperCase()}
+										</AvatarFallback>
+									</Avatar>
+									<span className='truncate text-caption text-text-secondary'>
+										{recipe.author.name}
+									</span>
+								</div>
+							)}
+							{formattedCookCount && (
+								<span className='flex-shrink-0 tabular-nums text-xs font-semibold text-text-secondary'>
+									{formattedCookCount}{' '}
+									{t('cookUnit', { count: recipe.cookCount })}
+								</span>
+							)}
 						</div>
-						<span className='tabular-nums text-xs font-semibold text-text-secondary'>
-							{recipe.cookCount >= 1000
-								? `${(recipe.cookCount / 1000).toFixed(1)}k cooks`
-								: `${recipe.cookCount} cooks`}
-						</span>
-					</div>
+					)}
 				</div>
 			</Link>
 		</motion.div>
@@ -376,65 +380,65 @@ const PersonResultCard = ({ person }: { person: PersonResult }) => {
 	)
 }
 
-const PostResultCard = ({ post }: { post: PostResult }) => {
+const PostResultCard = ({ post }: { post: PostSearchResult }) => {
+	const t = useTranslations('search')
+	const formattedLikeCount = formatPositiveSocialCount(post.likeCount)
+	const resultText = post.caption || post.recipeTitle || t('postResult')
+
 	return (
 		<motion.div variants={staggerItemVariants}>
 			<Link
 				href={`/post/${post.id}`}
 				className='group flex gap-3 rounded-2xl border border-border-subtle bg-bg-card p-3 transition-shadow hover:shadow-card'
 			>
-				<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
-					<SearchResultImage
-						src={post.imageUrl || '/placeholder-recipe.svg'}
-						alt={`Post by ${post.author.username}${post.caption ? `: ${post.caption.slice(0, 80)}` : ''}`}
-						fill
-						sizes='80px'
-						className='object-cover transition-transform duration-300 group-hover:scale-105'
-					/>
-				</div>
-				<div className='min-w-0 flex-1'>
-					<div className='mb-1 flex items-center gap-2'>
-						<Avatar size='xs'>
-							<AvatarImage
-								src={post.author.avatarUrl}
-								alt={post.author.username}
-							/>
-							<AvatarFallback>
-								{post.author.username?.slice(0, 2).toUpperCase() || '??'}
-							</AvatarFallback>
-						</Avatar>
-						<span className='text-sm font-semibold text-text-primary'>
-							@{post.author.username}
-						</span>
+				{post.imageUrl && (
+					<div className='relative size-20 flex-shrink-0 overflow-hidden rounded-xl'>
+						<SearchResultImage
+							src={post.imageUrl}
+							alt={t('postImageAlt', {
+								author: post.author?.name ?? t('communityMember'),
+							})}
+							fill
+							sizes='80px'
+							className='object-cover transition-transform duration-300 group-hover:scale-105'
+						/>
 					</div>
+				)}
+				<div className='min-w-0 flex-1'>
+					{post.author && (
+						<div className='mb-1 flex items-center gap-2'>
+							<Avatar size='xs'>
+								{post.author.avatarUrl && (
+									<AvatarImage
+										src={post.author.avatarUrl}
+										alt={post.author.name}
+									/>
+								)}
+								<AvatarFallback>
+									{post.author.name.slice(0, 2).toUpperCase()}
+								</AvatarFallback>
+							</Avatar>
+							<span className='truncate text-sm font-semibold text-text-primary'>
+								{post.author.name}
+							</span>
+						</div>
+					)}
 					<p className='line-clamp-2 text-caption text-text-secondary'>
-						{post.caption}
+						{resultText}
 					</p>
-					<p className='mt-1 flex items-center gap-1 tabular-nums text-xs text-text-secondary'>
-						<Heart className='size-3 text-error' aria-hidden='true' />
-						<span>{post.likeCount} likes</span>
-					</p>
+					{formattedLikeCount && (
+						<p className='mt-1 flex items-center gap-1 tabular-nums text-xs text-text-secondary'>
+							<Heart className='size-3 text-error' aria-hidden='true' />
+							<span>
+								{formattedLikeCount} {t('likeUnit', { count: post.likeCount })}
+							</span>
+						</p>
+					)}
 				</div>
 			</Link>
 		</motion.div>
 	)
 }
-
-const transformRecipeDoc = (doc: RecipeSearchDoc): RecipeResult => ({
-	id: doc.id,
-	title: doc.title,
-	imageUrl: doc.coverImageUrl || '/placeholder-recipe.svg',
-	rating: doc.avgRating > 0 ? doc.avgRating : undefined,
-	cookTime: `${doc.totalTime || 0} min`,
-	difficulty: difficultyToDisplay(
-		doc.difficulty as 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert',
-	),
-	author: {
-		username: doc.authorName || 'chef',
-		avatarUrl: '/placeholder-avatar.svg',
-	},
-	cookCount: doc.cookCount || 0,
-})
 
 const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 	id: doc.id,
@@ -443,17 +447,6 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 	avatarUrl: doc.avatarUrl || '/placeholder-avatar.svg',
 	bio: doc.bio || '',
 	isVerified: (doc as UserSearchDoc & { isVerified?: boolean }).isVerified,
-})
-
-const transformPostDoc = (doc: PostSearchDoc): PostResult => ({
-	id: doc.id,
-	imageUrl: doc.photoUrl || '/placeholder-recipe.svg',
-	caption: doc.content || '',
-	author: {
-		username: doc.authorName || 'user',
-		avatarUrl: '/placeholder-avatar.svg',
-	},
-	likeCount: doc.likeCount || 0,
 })
 
 function SearchContent() {
@@ -472,9 +465,9 @@ function SearchContent() {
 	const [trendingSearches, setTrendingSearches] = useState<string[]>([])
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [results, setResults] = useState<{
-		recipes: RecipeResult[]
+		recipes: RecipeSearchResult[]
 		people: PersonResult[]
-		posts: PostResult[]
+		posts: PostSearchResult[]
 	}>({
 		recipes: [],
 		people: [],
@@ -561,12 +554,13 @@ function SearchContent() {
 
 				if (res.success && res.data) {
 					const recipes =
-						res.data.recipes?.hits?.map(h => transformRecipeDoc(h.document)) ??
-						[]
+						res.data.recipes?.hits?.map(h =>
+							toRecipeSearchResult(h.document),
+						) ?? []
 					const people =
 						res.data.users?.hits?.map(h => transformUserDoc(h.document)) ?? []
 					const posts =
-						res.data.posts?.hits?.map(h => transformPostDoc(h.document)) ?? []
+						res.data.posts?.hits?.map(h => toPostSearchResult(h.document)) ?? []
 					setResults({ recipes, people, posts })
 
 					// Track search query for taste vector building
@@ -767,10 +761,10 @@ function SearchContent() {
 						chipLabel={t('results', { count: totalResults })}
 						backLabel={t('goBack')}
 						onBack={() => {
-	setSearchInput('')
-	isInternalNav.current = true
-	router.replace('/search')
-}}
+							setSearchInput('')
+							isInternalNav.current = true
+							router.replace('/search')
+						}}
 						heading={t('resultsHeading', { query })}
 						summary={t('resultsFound', { count: totalResults })}
 						searchValue={searchInput}

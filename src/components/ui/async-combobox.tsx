@@ -109,6 +109,8 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 		}))
 
 		useEffect(() => {
+			isMountedRef.current = true
+
 			return () => {
 				isMountedRef.current = false
 				requestSequenceRef.current += 1
@@ -300,7 +302,10 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 		const optionId = (index: number) => `${listboxId}-option-${index}`
 		const showDropdown =
 			isOpen &&
-			(displayed.length > 0 || isLoading || hasError || value.trim().length >= minChars)
+			(displayed.length > 0 ||
+				isLoading ||
+				hasError ||
+				value.trim().length >= minChars)
 
 		return (
 			<div ref={containerRef} className='relative w-full'>
@@ -338,7 +343,11 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 						autoComplete='off'
 					/>
 					<div className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-muted'>
-						{isOpen ? <ChevronUp className='size-4' /> : <ChevronDown className='size-4' />}
+						{isOpen ? (
+							<ChevronUp className='size-4' />
+						) : (
+							<ChevronDown className='size-4' />
+						)}
 					</div>
 					{isLoading && (
 						<div className='pointer-events-none absolute right-8 top-1/2 -translate-y-1/2'>
@@ -349,9 +358,12 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 
 				<AnimatePresence>
 					{showDropdown && (
-							<Portal>
-								<>
-								<div className='fixed inset-0 z-dropdown' onMouseDown={() => setIsOpen(false)} />
+						<Portal>
+							<>
+								<div
+									className='fixed inset-0 z-dropdown'
+									onMouseDown={() => setIsOpen(false)}
+								/>
 								<motion.div
 									initial={{ opacity: 0, y: dropdownPosition.openUp ? -4 : 4 }}
 									animate={{ opacity: 1, y: 0 }}
@@ -437,9 +449,9 @@ export const AsyncCombobox = forwardRef<AsyncComboboxRef, AsyncComboboxProps>(
 										select
 									</div>
 								</motion.div>
-								</>
-							</Portal>
-						)}
+							</>
+						</Portal>
+					)}
 				</AnimatePresence>
 			</div>
 		)

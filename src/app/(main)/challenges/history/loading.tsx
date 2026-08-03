@@ -20,19 +20,7 @@ export default function Loading() {
 				))}
 			</div>
 
-			{/* Month navigation */}
-			<div className='mb-4 flex items-center justify-between'>
-				<Skeleton className='size-8 rounded-full' />
-				<Skeleton className='h-6 w-32 rounded' />
-				<Skeleton className='size-8 rounded-full' />
-			</div>
-
-			{/* Calendar grid (7 cols x 5 rows) */}
-			<div className='grid grid-cols-7 gap-2'>
-				{Array.from({ length: 35 }).map((_, i) => (
-					<Skeleton key={i} className='aspect-square rounded-xl' />
-				))}
-			</div>
+			<Skeleton className='h-72 w-full rounded-xl' />
 		</PageContainer>
 	)
 }

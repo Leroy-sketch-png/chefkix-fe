@@ -28,7 +28,13 @@ import {
 import messages from '../../messages/en.json'
 
 /** Static lookup for axios error translations (non-component context) */
-const t = (key: keyof typeof messages.common) => messages.common[key]
+type ScalarCommonMessageKey = {
+	[Key in keyof typeof messages.common]: (typeof messages.common)[Key] extends string
+		? Key
+		: never
+}[keyof typeof messages.common]
+
+const t = (key: ScalarCommonMessageKey): string => messages.common[key]
 
 // AXIOS INSTANCES
 

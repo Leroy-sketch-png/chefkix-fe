@@ -24,6 +24,7 @@ import { Post, RecipeReviewStatsResponse } from '@/lib/types/post'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { logDevError } from '@/lib/dev-log'
+import { isPositiveSocialMetric } from '@/lib/positive-social-proof'
 import { useTranslations } from 'next-intl'
 
 interface RecipeReviewsProps {
@@ -239,10 +240,10 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 											{review.content}
 										</p>
 									)}
-									{review.likes != null && review.likes > 0 && (
+									{isPositiveSocialMetric(review.commentCount) && (
 										<div className='mt-2 flex items-center gap-1 text-xs text-text-muted'>
 											<MessageSquare className='size-3' />
-											{review.commentCount ?? 0} {t('commentsLabel')}
+											{t('commentsCount', { count: review.commentCount })}
 										</div>
 									)}
 								</div>

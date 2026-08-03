@@ -64,6 +64,7 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 		const fetchPick = async () => {
 			setIsLoading(true)
 			setHasError(false)
+			setRecommendation(null)
 			try {
 				const res = await getTonightsPick({
 					timeoutMs: TONIGHTS_PICK_TIMEOUT_MS,
@@ -72,6 +73,11 @@ export const TonightsPick = ({ className }: TonightsPickProps) => {
 
 				if (res.success && res.data?.recipe) {
 					setRecommendation(res.data)
+					setHasError(false)
+					return
+				}
+
+				if (res.success || res.statusCode === 404) {
 					setHasError(false)
 					return
 				}

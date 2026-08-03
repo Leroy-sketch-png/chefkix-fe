@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Edit3, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
+import { Edit3, Info, Loader2, Rocket, Send, Shield, X } from 'lucide-react'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -185,17 +185,36 @@ export const XpPreviewModal = ({
 						</div>
 
 						{/* Validation */}
-						<div className='flex items-center gap-3 rounded-xl bg-success/10 px-4 py-3.5 text-success'>
-							<Shield className='size-6' />
+						<div
+							className={
+								xpBreakdown.isValidated
+									? 'flex items-center gap-3 rounded-xl bg-success/10 px-4 py-3.5 text-success'
+									: 'flex items-center gap-3 rounded-xl border border-border bg-bg-card px-4 py-3.5 text-text-secondary'
+							}
+						>
+							{xpBreakdown.isValidated ? (
+								<Shield className='size-6' />
+							) : (
+								<Info className='size-6' />
+							)}
 							<div className='flex-1'>
-								<strong className='text-sm'>{t('xpValidated')}</strong>
+								<strong className='text-sm'>
+									{xpBreakdown.isValidated ? t('xpValidated') : t('xpEstimate')}
+								</strong>
 								<span className='block text-xs opacity-80'>
-									{t('xpValidatedDesc')}
+									{xpBreakdown.isValidated
+										? t('xpValidatedDesc')
+										: t('xpEstimateDesc')}
 								</span>
 							</div>
-							<span className='text-xs font-semibold text-text-secondary'>
-								{t('xpConfident', { confidence: xpBreakdown.confidence })}
-							</span>
+							{xpBreakdown.isValidated &&
+								xpBreakdown.confidence !== undefined && (
+									<span className='text-xs font-semibold text-text-secondary'>
+										{t('xpConfident', {
+											confidence: xpBreakdown.confidence,
+										})}
+									</span>
+								)}
 						</div>
 					</div>
 
@@ -231,11 +250,6 @@ export const XpPreviewModal = ({
 							<span className='text-sm text-text-primary'>
 								{t('creatorXpWhenOthersCook')}
 							</span>
-							<span className='block text-xs text-text-secondary'>
-								{t('creatorXpProjection', {
-									xp: Math.round(xpBreakdown.total * 0.04 * 100),
-								})}
-							</span>
 						</div>
 					</div>
 
@@ -261,7 +275,7 @@ export const XpPreviewModal = ({
 							<Send className='size-4' />
 							{t('publishRecipe')}
 							<kbd className='hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline-block'>
-								{modKey}+?
+								{modKey}+Enter
 							</kbd>
 						</motion.button>
 					</div>
@@ -282,7 +296,6 @@ export const XpPreviewModal = ({
 								<AlertDialogDescription className='text-sm text-text-secondary'>
 									{t.rich('publishConfirmDesc', {
 										title: recipe.title,
-										xp: xpBreakdown.total,
 									})}
 								</AlertDialogDescription>
 							</AlertDialogHeader>

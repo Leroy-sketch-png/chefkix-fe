@@ -206,19 +206,19 @@ function LeaderboardItemContent({
 						{isCurrentUser ? t('you') : entry.displayName}
 					</span>
 					<span className='text-xs text-text-tertiary'>
-						Level {entry.level}
+						{t('levelN', { n: entry.level })}
 					</span>
 				</div>
 
 				{/* Badges */}
 				{isCurrentUser && !isLeading && (
 					<span className='rounded-xl bg-gradient-xp px-2 py-0.5 text-xs font-bold text-white shadow-glow'>
-						You
+						{t('you')}
 					</span>
 				)}
 				{isLeading && (
 					<span className='rounded-xl bg-gradient-gold px-2.5 py-1 text-xs font-bold text-white shadow-glow'>
-						🔥 Leading!
+						{t('leading')}
 					</span>
 				)}
 			</div>

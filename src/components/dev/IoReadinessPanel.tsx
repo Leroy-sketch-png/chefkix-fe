@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { notifyTimerComplete } from '@/lib/audio'
 import { getKitchenAudioCoordinator } from '@/lib/voice/KitchenAudioCoordinator'
 import { getTurnServer, probeTurnRelay } from '@/hooks/useWebRTC'
+import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 import {
 	EMPTY_IO_CERTIFICATION_RESULTS,
 	IO_CERTIFICATION_STORAGE_KEY,
@@ -29,39 +30,6 @@ import {
 
 function nowLabel() {
 	return new Date().toISOString()
-}
-
-async function getUserMediaBounded(
-	constraints: MediaStreamConstraints,
-	timeoutMs: number,
-): Promise<MediaStream> {
-	if (!navigator.mediaDevices?.getUserMedia) {
-		throw new DOMException('Media devices are unavailable.', 'NotSupportedError')
-	}
-
-	let timedOut = false
-	const request = navigator.mediaDevices.getUserMedia(constraints)
-	request
-		.then(stream => {
-			if (timedOut) stream.getTracks().forEach(track => track.stop())
-		})
-		.catch(() => undefined)
-
-	let timeoutId = 0
-	const timeout = new Promise<never>((_, reject) => {
-		timeoutId = window.setTimeout(() => {
-			timedOut = true
-			reject(
-				new DOMException('Permission request timed out.', 'TimeoutError'),
-			)
-		}, timeoutMs)
-	})
-
-	try {
-		return await Promise.race([request, timeout])
-	} finally {
-		window.clearTimeout(timeoutId)
-	}
 }
 
 function statusClasses(status: IoCertificationStatus) {
@@ -102,10 +70,7 @@ export function IoReadinessPanel() {
 		}
 	})
 
-	const summary = useMemo(
-		() => summarizeIoCertification(results),
-		[results],
-	)
+	const summary = useMemo(() => summarizeIoCertification(results), [results])
 
 	useEffect(() => {
 		window.localStorage.setItem(
@@ -246,34 +211,39 @@ export function IoReadinessPanel() {
 	}
 
 	const runVoiceRoundTrip = () => {
-		const Recognition = (
-			window as typeof window & {
-				SpeechRecognition?: new () => {
-					lang: string
-					continuous: boolean
-					interimResults: boolean
-					start: () => void
-					stop: () => void
-					onresult: ((event: {
-						results: ArrayLike<ArrayLike<{ transcript: string }>>
-					}) => void) | null
-					onerror: ((event: { error: string }) => void) | null
-					onend: (() => void) | null
+		const Recognition =
+			(
+				window as typeof window & {
+					SpeechRecognition?: new () => {
+						lang: string
+						continuous: boolean
+						interimResults: boolean
+						start: () => void
+						stop: () => void
+						onresult:
+							| ((event: {
+									results: ArrayLike<ArrayLike<{ transcript: string }>>
+							  }) => void)
+							| null
+						onerror: ((event: { error: string }) => void) | null
+						onend: (() => void) | null
+					}
+					webkitSpeechRecognition?: new () => {
+						lang: string
+						continuous: boolean
+						interimResults: boolean
+						start: () => void
+						stop: () => void
+						onresult:
+							| ((event: {
+									results: ArrayLike<ArrayLike<{ transcript: string }>>
+							  }) => void)
+							| null
+						onerror: ((event: { error: string }) => void) | null
+						onend: (() => void) | null
+					}
 				}
-				webkitSpeechRecognition?: new () => {
-					lang: string
-					continuous: boolean
-					interimResults: boolean
-					start: () => void
-					stop: () => void
-					onresult: ((event: {
-						results: ArrayLike<ArrayLike<{ transcript: string }>>
-					}) => void) | null
-					onerror: ((event: { error: string }) => void) | null
-					onend: (() => void) | null
-				}
-			}
-		).SpeechRecognition ||
+			).SpeechRecognition ||
 			(
 				window as typeof window & {
 					webkitSpeechRecognition?: new () => {
@@ -282,9 +252,11 @@ export function IoReadinessPanel() {
 						interimResults: boolean
 						start: () => void
 						stop: () => void
-						onresult: ((event: {
-							results: ArrayLike<ArrayLike<{ transcript: string }>>
-						}) => void) | null
+						onresult:
+							| ((event: {
+									results: ArrayLike<ArrayLike<{ transcript: string }>>
+							  }) => void)
+							| null
 						onerror: ((event: { error: string }) => void) | null
 						onend: (() => void) | null
 					}
@@ -451,7 +423,12 @@ export function IoReadinessPanel() {
 						{summary.stageDetail}
 					</p>
 				</div>
-				<Button variant='outline' size='icon' onClick={reset} title='Reset evidence'>
+				<Button
+					variant='outline'
+					size='icon'
+					onClick={reset}
+					title='Reset evidence'
+				>
 					<RotateCcw />
 				</Button>
 			</div>
@@ -475,7 +452,9 @@ export function IoReadinessPanel() {
 					<div>
 						<div className='mb-1 flex items-center justify-between text-xs text-text-muted'>
 							<span>Microphone level</span>
-							<span className='tabular-nums'>{Math.round(micLevel * 100)}%</span>
+							<span className='tabular-nums'>
+								{Math.round(micLevel * 100)}%
+							</span>
 						</div>
 						<div className='h-2 overflow-hidden rounded bg-bg-elevated'>
 							<div

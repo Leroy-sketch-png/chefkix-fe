@@ -656,8 +656,8 @@ export const Comment = ({
 								<ChevronDown className='size-3' />
 							)}
 							<span>
-								{showReplies ? t('hideReplies') : t('viewReplies')} {replyCount}{' '}
-								{replyCount === 1 ? t('reply') : t('reply')}
+								{showReplies ? t('hideReplies') : t('viewReplies')}{' '}
+								{t('replyCount', { count: replyCount })}
 							</span>
 						</button>
 					)}

@@ -101,7 +101,11 @@ export interface CompleteSessionResponse {
 	status: 'completed'
 	completedAt: string
 	baseXpAwarded: number
+	recipeXpAwarded: number
+	coOpBonusXp: number
 	pendingXp: number
+	completedChallengeRewards: CompletedChallengeReward[]
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED'
 	xpBreakdown?: {
 		base: number
 		baseReason: string
@@ -124,6 +128,14 @@ export interface CompleteSessionResponse {
 	// Co-op multiplier — only set when cooking in a room with 2+ cooks
 	xpMultiplier?: number // 1.2 (duo) or 1.1 (group), null if solo
 	xpMultiplierReason?: string // "CO_OP_DUO" or "CO_OP_GROUP"
+}
+
+export interface CompletedChallengeReward {
+	completed: boolean
+	challengeKind: 'DAILY' | 'WEEKLY' | 'SEASONAL'
+	challengeId: string
+	challengeTitle: string
+	bonusXp: number
 }
 
 export interface LinkPostResponse {
@@ -185,16 +197,6 @@ export const getCurrentSession = async (requestOptions?: {
 	} catch (error) {
 		const axiosError = error as AxiosError<ApiResponse<CookingSession | null>>
 		if (axiosError.response) {
-			if (axiosError.response.status === 404) {
-				return {
-					success: true,
-					data: null,
-					message:
-						axiosError.response.data?.message || 'No active cooking session',
-					statusCode: 200,
-				}
-			}
-
 			logDevError('response failed:', error)
 			return axiosError.response.data
 		}

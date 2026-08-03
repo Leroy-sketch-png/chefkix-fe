@@ -27,6 +27,7 @@ import {
 	autocompleteSearch,
 	getTrendingSearches,
 } from '@/services/search'
+import type { UnifiedRecipeSearchFilters } from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
@@ -61,12 +62,15 @@ import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
-import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
+import { settleOptimisticMutation } from '@/lib/optimistic-mutation'
 import { useTranslations } from '@/i18n/hooks'
 import { PostCard } from '@/components/social/PostCard'
 import { getFeedPosts } from '@/services/post'
 import type { Post } from '@/lib/types/post'
 import { useAuth } from '@/hooks/useAuth'
+import { getAppScrollTop, scrollAppTo } from '@/lib/app-scroll'
+import { createAsyncRequestAuthority } from '@/lib/async-request-authority'
+import { isPositiveSocialMetric } from '@/lib/positive-social-proof'
 
 const RECIPES_PER_PAGE = 12
 const SEARCH_DEBOUNCE_MS = 300
@@ -95,6 +99,47 @@ interface RecipeFilters {
 	cookingTimeMax: number
 	rating: number | null
 	foolproofOnly: boolean
+}
+
+function buildUnifiedSearchFilters(
+	filters: RecipeFilters,
+): UnifiedRecipeSearchFilters {
+	return {
+		difficulty: filters.difficulty
+			.map(d => FILTER_STATE_TO_API_DISPLAY[d.toLowerCase()] || d)
+			.filter(Boolean),
+		cuisine: filters.cuisine,
+		dietary: filters.dietary,
+		maxTime: filters.cookingTimeMax < 1440 ? filters.cookingTimeMax : undefined,
+		minRating: filters.rating ?? undefined,
+		qualityTier: filters.foolproofOnly ? 'Foolproof' : undefined,
+	}
+}
+
+function buildBrowseFilterParams(
+	filters: RecipeFilters,
+	page: number,
+	sortBy: string,
+): Record<string, unknown> {
+	const filterParams: Record<string, unknown> = {
+		page,
+		size: RECIPES_PER_PAGE,
+	}
+
+	const difficulties = filters.difficulty
+		.map(d => FILTER_STATE_TO_API_DISPLAY[d.toLowerCase()] || d)
+		.filter(Boolean)
+	if (difficulties.length > 0) filterParams.difficulties = difficulties
+	if (filters.cuisine.length > 0) filterParams.cuisineTypes = filters.cuisine
+	if (filters.dietary.length > 0) filterParams.dietaryTags = filters.dietary
+	if (filters.cookingTimeMax < 1440) {
+		filterParams.maxTimeMinutes = filters.cookingTimeMax
+	}
+	if (filters.rating !== null) filterParams.minRating = filters.rating
+	if (filters.foolproofOnly) filterParams.qualityTier = 'FOOLPROOF'
+	if (sortBy) filterParams.sortBy = sortBy
+
+	return filterParams
 }
 
 /** Map a Typesense RecipeSearchDoc hit to a minimal Recipe shape for cards. */
@@ -178,11 +223,6 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 						/>
 						{/* Scrim top for badge readability */}
 						<div className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/30 to-transparent' />
-						{/* Featured badge */}
-						<div className='absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white shadow-badge backdrop-blur-sm'>
-							<Flame className='size-3.5' />
-							{t('featuredToday')}
-						</div>
 					</div>
 
 					{/* Right: Content */}
@@ -230,9 +270,11 @@ function HeroRecipe({ recipe, onCook }: HeroRecipeProps) {
 									<p className='text-sm font-semibold text-text-primary'>
 										{recipe.author.displayName}
 									</p>
-									<p className='text-xs text-text-muted'>
-										{t('heroCookCount', { count: recipe.cookCount ?? 0 })}
-									</p>
+									{isPositiveSocialMetric(recipe.cookCount) && (
+										<p className='text-xs text-text-muted'>
+											{t('heroCookCount', { count: recipe.cookCount })}
+										</p>
+									)}
 								</div>
 							</div>
 						)}
@@ -422,11 +464,9 @@ function ExploreContent() {
 		modeParam === 'trending' ? 'trending' : 'all'
 	const searchInputRef = useRef<HTMLInputElement>(null)
 	const loadMoreRef = useRef<HTMLDivElement>(null)
+	const paginationAuthority = useRef(createAsyncRequestAuthority())
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const t = useTranslations('explore')
-
-	// Onboarding hints
-	useOnboardingOrchestrator({ delay: 1000 })
 
 	// State
 	const [recipes, setRecipes] = useState<Recipe[]>([])
@@ -675,6 +715,10 @@ function ExploreContent() {
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
 		let cancelled = false
+		const requestAuthority = paginationAuthority.current
+		requestAuthority.reset()
+		setIsLoadingMore(false)
+		setLoadMoreError(false)
 		const fetchRecipes = async () => {
 			// Reset to page 1 when filters/search/mode change
 			setPage(1)
@@ -688,6 +732,8 @@ function ExploreContent() {
 						debouncedSearch,
 						'recipes',
 						RECIPES_PER_PAGE,
+						1,
+						buildUnifiedSearchFilters(filters),
 					)
 					if (cancelled) return
 					if (!searchRes.success) {
@@ -712,32 +758,11 @@ function ExploreContent() {
 					}
 				} else {
 					// MongoDB path: browse / filter / trending (no search query)
-					const filterParams: Record<string, unknown> = {
-						page: 0,
-						size: RECIPES_PER_PAGE,
-					}
-
-					if (filters.difficulty.length > 0) {
-						const apiDifficulty = filters.difficulty
-							.map(d => FILTER_STATE_TO_API_DISPLAY[d.toLowerCase()] || d)
-							.find(Boolean)
-						if (apiDifficulty) filterParams.difficulty = apiDifficulty
-					}
-					if (filters.cuisine.length > 0) {
-						filterParams.cuisineType = filters.cuisine[0]
-					}
-					if (filters.dietary.length > 0) {
-						filterParams.dietaryTags = filters.dietary
-					}
-					if (filters.cookingTimeMax < 1440) {
-						filterParams.maxTime = filters.cookingTimeMax
-					}
-					if (filters.foolproofOnly) {
-						filterParams.qualityTier = 'Foolproof'
-					}
-					if (sortBy && viewMode !== 'trending') {
-						filterParams.sortBy = sortBy
-					}
+					const filterParams = buildBrowseFilterParams(
+						filters,
+						0,
+						viewMode !== 'trending' ? sortBy : '',
+					)
 
 					const response =
 						viewMode === 'trending'
@@ -789,6 +814,7 @@ function ExploreContent() {
 		fetchRecipes()
 		return () => {
 			cancelled = true
+			requestAuthority.reset()
 		}
 	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
 
@@ -799,9 +825,14 @@ function ExploreContent() {
 		if (scrollRestoredRef.current || isLoading) return
 		const savedPosition = sessionStorage.getItem(SCROLL_RESTORATION_KEY)
 		if (savedPosition) {
+			const top = Number.parseInt(savedPosition, 10)
+			if (!Number.isFinite(top) || top < 0) {
+				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
+				return
+			}
 			scrollRestoredRef.current = true
 			requestAnimationFrame(() => {
-				window.scrollTo(0, parseInt(savedPosition, 10))
+				scrollAppTo(top)
 				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
 			})
 		}
@@ -810,14 +841,15 @@ function ExploreContent() {
 	// Save scroll on unmount (covers client-side navigation) and beforeunload (covers refresh/close)
 	useEffect(() => {
 		const handleBeforeUnload = () => {
-			sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+			sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(getAppScrollTop()))
 		}
 		window.addEventListener('beforeunload', handleBeforeUnload)
 		return () => {
 			window.removeEventListener('beforeunload', handleBeforeUnload)
 			// Save on component unmount (e.g., navigating to recipe detail)
-			if (window.scrollY > 0) {
-				sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(window.scrollY))
+			const scrollTop = getAppScrollTop()
+			if (scrollTop > 0) {
+				sessionStorage.setItem(SCROLL_RESTORATION_KEY, String(scrollTop))
 			}
 		}
 	}, [])
@@ -829,6 +861,7 @@ function ExploreContent() {
 		setLoadMoreError(false)
 		setIsLoadingMore(true)
 		const nextPage = page // page state is already 1-based, backend expects 0-based
+		const ticket = paginationAuthority.current.begin()
 
 		try {
 			// Typesense path: paginated search when user has a search query
@@ -838,55 +871,36 @@ function ExploreContent() {
 					'recipes',
 					RECIPES_PER_PAGE,
 					nextPage + 1, // Typesense pages are 1-based
+					buildUnifiedSearchFilters(filters),
 				)
+				if (!paginationAuthority.current.isCurrent(ticket)) return
 				if (!searchRes.success) {
 					throw new Error(searchRes.message || 'Search failed')
 				}
-				if (searchRes.success && searchRes.data?.recipes?.hits) {
-					const recipesResult = searchRes.data.recipes
-					const newRecipes = recipesResult.hits.map(h =>
-						mapRecipeDocToRecipe(h.document),
-					)
-					setRecipes(prev => {
-						const existingIds = new Set(prev.map(r => r.id))
-						const dedupedRecipes = newRecipes.filter(
-							r => !existingIds.has(r.id),
-						)
-						return [...prev, ...dedupedRecipes]
-					})
-					setPage(nextPage + 1)
-					const totalFound = recipesResult.found ?? 0
-					setTotalCount(totalFound)
-					setHasMore(recipes.length + newRecipes.length < totalFound)
-				}
-			} else {
-				// MongoDB path: browse / filter / trending (no search query)
-				const filterParams: Record<string, unknown> = {
-					page: nextPage,
-					size: RECIPES_PER_PAGE,
+				if (!searchRes.data?.recipes?.hits) {
+					throw new Error('Search response did not include a recipe page')
 				}
 
-				if (filters.difficulty.length > 0) {
-					const apiDifficulty = filters.difficulty
-						.map(d => FILTER_STATE_TO_API_DISPLAY[d.toLowerCase()] || d)
-						.find(Boolean)
-					if (apiDifficulty) filterParams.difficulty = apiDifficulty
-				}
-				if (filters.cuisine.length > 0) {
-					filterParams.cuisineType = filters.cuisine[0]
-				}
-				if (filters.dietary.length > 0) {
-					filterParams.dietaryTags = filters.dietary
-				}
-				if (filters.cookingTimeMax < 1440) {
-					filterParams.maxTime = filters.cookingTimeMax
-				}
-				if (filters.foolproofOnly) {
-					filterParams.qualityTier = 'Foolproof'
-				}
-				if (sortBy && viewMode !== 'trending') {
-					filterParams.sortBy = sortBy
-				}
+				const recipesResult = searchRes.data.recipes
+				const newRecipes = recipesResult.hits.map(h =>
+					mapRecipeDocToRecipe(h.document),
+				)
+				setRecipes(prev => {
+					const existingIds = new Set(prev.map(r => r.id))
+					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
+					return [...prev, ...dedupedRecipes]
+				})
+				setPage(nextPage + 1)
+				const totalFound = recipesResult.found ?? 0
+				setTotalCount(totalFound)
+				setHasMore(recipes.length + newRecipes.length < totalFound)
+			} else {
+				// MongoDB path: browse / filter / trending (no search query)
+				const filterParams = buildBrowseFilterParams(
+					filters,
+					nextPage,
+					viewMode !== 'trending' ? sortBy : '',
+				)
 
 				const response =
 					viewMode === 'trending'
@@ -896,41 +910,42 @@ function ExploreContent() {
 							})
 						: await getAllRecipes(filterParams)
 
-				if (response.success && response.data) {
-					const newRecipes = response.data
+				if (!paginationAuthority.current.isCurrent(ticket)) return
+				if (!response.success || !response.data) {
+					throw new Error(response.message || 'Recipe page request failed')
+				}
 
-					// Update saved recipes set
-					response.data.forEach(recipe => {
-						if (recipe.isSaved) {
-							setSavedRecipes(prev => new Set([...prev, recipe.id]))
-						}
-					})
+				const newRecipes = response.data
 
-					// Append to existing recipes (already filtered server-side)
-					setRecipes(prev => {
-						const existingIds = new Set(prev.map(r => r.id))
-						const dedupedRecipes = newRecipes.filter(
-							r => !existingIds.has(r.id),
-						)
-						return [...prev, ...dedupedRecipes]
-					})
-					setPage(nextPage + 1)
-
-					// Update pagination state
-					const pagination = response.pagination
-					if (pagination) {
-						setTotalCount(pagination.totalElements)
-						setHasMore(!pagination.last)
-					} else {
-						setHasMore(response.data.length >= RECIPES_PER_PAGE)
+				response.data.forEach(recipe => {
+					if (recipe.isSaved) {
+						setSavedRecipes(prev => new Set([...prev, recipe.id]))
 					}
+				})
+
+				setRecipes(prev => {
+					const existingIds = new Set(prev.map(r => r.id))
+					const dedupedRecipes = newRecipes.filter(r => !existingIds.has(r.id))
+					return [...prev, ...dedupedRecipes]
+				})
+				setPage(nextPage + 1)
+
+				const pagination = response.pagination
+				if (pagination) {
+					setTotalCount(pagination.totalElements)
+					setHasMore(!pagination.last)
+				} else {
+					setHasMore(response.data.length >= RECIPES_PER_PAGE)
 				}
 			}
 		} catch (err) {
+			if (!paginationAuthority.current.isCurrent(ticket)) return
 			logDevError('Failed to load more recipes:', err)
 			setLoadMoreError(true)
 		} finally {
-			setIsLoadingMore(false)
+			if (paginationAuthority.current.isCurrent(ticket)) {
+				setIsLoadingMore(false)
+			}
 		}
 	}, [
 		isLoadingMore,
@@ -945,11 +960,16 @@ function ExploreContent() {
 
 	// Infinite scroll - IntersectionObserver
 	useEffect(() => {
-		if (!loadMoreRef.current || isLoading) return
+		if (!loadMoreRef.current || isLoading || loadMoreError) return
 
 		const observer = new IntersectionObserver(
 			entries => {
-				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+				if (
+					entries[0].isIntersecting &&
+					hasMore &&
+					!isLoadingMore &&
+					!loadMoreError
+				) {
 					handleLoadMore()
 				}
 			},
@@ -958,7 +978,7 @@ function ExploreContent() {
 
 		observer.observe(loadMoreRef.current)
 		return () => observer.disconnect()
-	}, [hasMore, isLoadingMore, isLoading, handleLoadMore])
+	}, [hasMore, isLoadingMore, isLoading, loadMoreError, handleLoadMore])
 
 	const handleCook = (recipeId: string) => {
 		if (!requireAuth(t('authActionCook'))) return
@@ -981,13 +1001,13 @@ function ExploreContent() {
 			return newSet
 		})
 
-		try {
-			const response = await toggleSaveRecipe(recipeId)
-			if (response.success && response.data) {
+		await settleOptimisticMutation({
+			request: () => toggleSaveRecipe(recipeId),
+			onSuccess: data => {
 				// Reconcile with server's authoritative state
 				setSavedRecipes(prev => {
 					const newSet = new Set(prev)
-					if (response.data.isSaved) {
+					if (data.isSaved) {
 						newSet.add(recipeId)
 					} else {
 						newSet.delete(recipeId)
@@ -995,29 +1015,29 @@ function ExploreContent() {
 					return newSet
 				})
 				trackEvent(
-					response.data.isSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
+					data.isSaved ? 'RECIPE_SAVED' : 'RECIPE_UNSAVED',
 					recipeId,
 					'recipe',
 				)
-				if (response.data.isSaved) {
+				if (data.isSaved) {
 					toast.success(t('toastRecipeSaved'))
 				} else {
 					toast.success(t('toastRecipeUnsaved'))
 				}
-			}
-		} catch (error) {
-			// Revert on error
-			setSavedRecipes(prev => {
-				const newSet = new Set(prev)
-				if (wasSaved) {
-					newSet.add(recipeId)
-				} else {
-					newSet.delete(recipeId)
-				}
-				return newSet
-			})
-			toast.error(t('toastSaveFailed'))
-		}
+			},
+			onFailure: () => {
+				setSavedRecipes(prev => {
+					const newSet = new Set(prev)
+					if (wasSaved) {
+						newSet.add(recipeId)
+					} else {
+						newSet.delete(recipeId)
+					}
+					return newSet
+				})
+				toast.error(t('toastSaveFailed'))
+			},
+		})
 	}
 
 	const handleFiltersApply = (newFilters: RecipeFilters) => {
@@ -1466,7 +1486,7 @@ function ExploreContent() {
 												onClick={() => {
 													sessionStorage.setItem(
 														SCROLL_RESTORATION_KEY,
-														String(window.scrollY),
+														String(getAppScrollTop()),
 													)
 												}}
 											>
@@ -1516,6 +1536,7 @@ function ExploreContent() {
 									{/* Load more error with retry */}
 									{loadMoreError && !isLoadingMore && (
 										<motion.div
+											role='alert'
 											initial={{ opacity: 0, y: 10 }}
 											animate={{ opacity: 1, y: 0 }}
 											className='flex flex-col items-center gap-2 py-8'

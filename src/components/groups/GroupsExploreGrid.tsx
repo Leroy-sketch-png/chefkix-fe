@@ -28,6 +28,7 @@ import { CreateGroupModal } from './CreateGroupModal'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
 import { ErrorState } from '@/components/ui/error-state'
 import { toast } from 'sonner'
+import { scrollAppTo } from '@/lib/app-scroll'
 
 interface GroupsExploreGridProps {
 	currentUserId?: string
@@ -52,9 +53,7 @@ export const GroupsExploreGrid = ({
 	// Filters
 	const [searchTerm, setSearchTerm] = useState('')
 	const [privacyFilter, setPrivacyFilter] = useState<PrivacyType | 'ALL'>('ALL')
-	const [sortBy, setSortBy] = useState<'LATEST' | 'MEMBERS' | 'TRENDING'>(
-		'LATEST',
-	)
+	const [sortBy, setSortBy] = useState<'LATEST' | 'MEMBERS'>('LATEST')
 
 	// Modal state
 	const [showCreateModal, setShowCreateModal] = useState(false)
@@ -107,8 +106,7 @@ export const GroupsExploreGrid = ({
 
 	const handleGroupCreated = (newGroup: Group) => {
 		setGroups(prev => [newGroup, ...prev])
-		// Optionally scroll to top
-		window.scrollTo({ top: 0, behavior: 'smooth' })
+		scrollAppTo(0, 'smooth')
 	}
 
 	if (error && groups.length === 0) {
@@ -191,9 +189,7 @@ export const GroupsExploreGrid = ({
 						{/* Sort */}
 						<Select
 							value={sortBy}
-							onValueChange={val =>
-								setSortBy(val as 'LATEST' | 'MEMBERS' | 'TRENDING')
-							}
+							onValueChange={val => setSortBy(val as 'LATEST' | 'MEMBERS')}
 							disabled={isLoading}
 						>
 							<SelectTrigger className='w-full sm:w-48 rounded-full bg-bg-elevated border-2 border-border hover:border-brand/40 focus:border-brand'>
@@ -202,7 +198,6 @@ export const GroupsExploreGrid = ({
 							<SelectContent>
 								<SelectItem value='LATEST'>{t('geLatestGroups')}</SelectItem>
 								<SelectItem value='MEMBERS'>{t('geMostMembers')}</SelectItem>
-								<SelectItem value='TRENDING'>{t('geTrending')}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
@@ -291,11 +286,11 @@ export const GroupsExploreGrid = ({
 									group={group}
 									variant='default'
 									currentUserId={currentUserId}
-									isJoinable={source === 'explore' && !group.isJoined}
-									onJoinSuccess={updatedGroup => {
+									isJoinable={source === 'explore'}
+									onMembershipChange={updatedGroup => {
 										setGroups(prev =>
 											prev.map(g =>
-												g.id === updatedGroup.id ? { ...g, isJoined: true } : g,
+												g.id === updatedGroup.id ? updatedGroup : g,
 											),
 										)
 									}}

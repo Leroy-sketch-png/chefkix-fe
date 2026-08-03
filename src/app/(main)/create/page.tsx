@@ -8,7 +8,6 @@ import { CreateCommandDeck } from '@/components/recipe/CreateCommandDeck'
 import { DraftsList } from '@/components/recipe/DraftsList'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
-import { SurfaceSectionHeader } from '@/components/layout/PremiumSurface'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Recipe } from '@/lib/types/recipe'
 import { getRecipeById } from '@/services/recipe'
@@ -33,7 +32,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
 import { getStorageJson, removeStorageItem } from '@/lib/storage'
-import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { useTranslations } from 'next-intl'
 
 /**
@@ -58,7 +56,6 @@ function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const t = useTranslations('create')
-	const tc = useTranslations('common')
 	const urlDraftId = searchParams.get('draftId')
 	const [mode, setMode] = useState<'list' | 'create'>(
 		urlDraftId ? 'create' : 'list',
@@ -67,9 +64,6 @@ function CreateRecipeContent() {
 	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
-
-	// Onboarding hints
-	useOnboardingOrchestrator({ delay: 1000 })
 
 	const loadLocalDraft = useCallback(() => {
 		try {
@@ -214,18 +208,7 @@ function CreateRecipeContent() {
 						>
 							<div className='grid grid-cols-1 gap-6'>
 								<div>
-									<CreateCommandDeck
-										hasLocalDraft={Boolean(localDraft)}
-										isLoadingDraft={isLoadingDraft}
-										onNewRecipe={handleNewRecipe}
-										className='mb-6'
-									/>
-
-									<SurfaceSectionHeader
-										className='mb-4 hidden sm:flex'
-										eyebrow={tc('eyebrows.creationStudio')}
-										chipText={tc('eyebrows.draftReady')}
-									/>
+									<CreateCommandDeck className='mb-6' />
 
 									{/* Local Draft Recovery Card */}
 									{localDraft && (

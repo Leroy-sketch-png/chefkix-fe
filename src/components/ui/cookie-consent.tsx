@@ -9,6 +9,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useAuth } from '@/hooks/useAuth'
 import { shouldSuppressCookieConsent } from '@/lib/cookie-consent-policy'
 import { cn } from '@/lib/utils'
+import { getAppScrollTarget } from '@/lib/app-scroll'
 import { useTranslations } from 'next-intl'
 
 const STORAGE_KEY = 'chefkix-cookie-consent'
@@ -89,21 +90,22 @@ export function CookieConsent({
 			const stored = localStorage.getItem(STORAGE_KEY)
 			if (!stored) {
 				if (deferUntilInteraction) {
+					const scrollTarget = getAppScrollTarget()
 					const revealConsent = () => {
-						window.removeEventListener('scroll', revealConsent)
+						scrollTarget.removeEventListener('scroll', revealConsent)
 						window.removeEventListener('pointerdown', revealConsent)
 						window.removeEventListener('keydown', revealConsent)
 						setVisible(true)
 					}
 
-					window.addEventListener('scroll', revealConsent, { once: true })
+					scrollTarget.addEventListener('scroll', revealConsent, { once: true })
 					window.addEventListener('pointerdown', revealConsent, {
 						once: true,
 					})
 					window.addEventListener('keydown', revealConsent, { once: true })
 
 					return () => {
-						window.removeEventListener('scroll', revealConsent)
+						scrollTarget.removeEventListener('scroll', revealConsent)
 						window.removeEventListener('pointerdown', revealConsent)
 						window.removeEventListener('keydown', revealConsent)
 					}
@@ -115,7 +117,13 @@ export function CookieConsent({
 		} catch {
 			/* localStorage restricted */
 		}
-	}, [deferUntilInteraction, isAuthenticated, isHydrated, isSuppressedSurface])
+	}, [
+		deferUntilInteraction,
+		isAuthenticated,
+		isHydrated,
+		isSuppressedSurface,
+		pathname,
+	])
 
 	if (isSuppressedSurface) {
 		return null

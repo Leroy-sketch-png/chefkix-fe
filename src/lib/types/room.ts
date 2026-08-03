@@ -36,6 +36,7 @@ export interface CookingRoom {
 export type RoomEventType =
 	| 'PARTICIPANT_JOINED'
 	| 'PARTICIPANT_LEFT'
+	| 'PARTICIPANT_ROLE_CHANGED'
 	| 'STEP_NAVIGATED'
 	| 'STEP_COMPLETED'
 	| 'TIMER_STARTED'

@@ -32,7 +32,6 @@ import {
 } from '@/components/leaderboard'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { useOnboardingOrchestrator } from '@/hooks/useOnboardingOrchestrator'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 
@@ -71,8 +70,6 @@ export function CommunityPageView({
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
-
-	useOnboardingOrchestrator({ delay: 1000, condition: !loading })
 
 	useEffect(() => {
 		setActiveTab(currentTab => {
@@ -285,7 +282,9 @@ export function CommunityPageView({
 										<section className='space-y-3'>
 											<SurfaceSectionHeader
 												eyebrow={tc('eyebrows.liveFoodPulse')}
-												chipText={tc('eyebrows.nTrending', { n: pulsePosts.length })}
+												chipText={tc('eyebrows.nTrending', {
+													n: pulsePosts.length,
+												})}
 											/>
 											<div className='space-y-4'>
 												{pulsePosts.map(post => (

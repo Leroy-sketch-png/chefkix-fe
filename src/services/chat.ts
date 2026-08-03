@@ -51,6 +51,7 @@ export interface Conversation {
 
 export interface ChatMessage {
 	id: string
+	clientMessageId?: string
 	conversationId: string
 	me: boolean // Is this message from current user
 	message: string
@@ -83,6 +84,7 @@ export interface ChatMessage {
 
 	// Soft-delete flag
 	deleted?: boolean
+	deliveryStatus?: 'sending'
 }
 
 export interface CreateConversationDto {
@@ -94,6 +96,7 @@ export interface SendMessageDto {
 	conversationId: string
 	message: string
 	replyToId?: string
+	clientMessageId?: string
 }
 
 export interface ShareContactResponse {
@@ -229,6 +232,9 @@ export const sendMessage = async (
 				message: data.message,
 				type: 'TEXT', // Explicitly TEXT for regular messages
 				...(data.replyToId && { replyToId: data.replyToId }),
+				...(data.clientMessageId && {
+					clientMessageId: data.clientMessageId,
+				}),
 			},
 		)
 		return response.data
@@ -419,7 +425,7 @@ export const mapChatMessageToMessage = (
 			? 'This message was deleted'
 			: backendMsg.message,
 		timestamp: new Date(backendMsg.createdDate),
-		status: 'sent',
+		status: backendMsg.deliveryStatus ?? 'sent',
 		isOwn: backendMsg.me,
 		type: backendMsg.type || 'TEXT',
 		relatedId: backendMsg.relatedId,

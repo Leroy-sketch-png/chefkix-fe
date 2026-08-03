@@ -2,15 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import {
-	Globe,
-	Users,
-	Trophy,
-	Clock,
-	Share2,
-	ArrowLeft,
-	ChefHat,
-} from 'lucide-react'
+import { Globe, Users, Clock, Share2, ArrowLeft, ChefHat } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
@@ -26,7 +18,6 @@ import {
 import {
 	LeaderboardItem,
 	LeaderboardItemSkeleton,
-	ListDivider,
 	type LeaderboardEntry,
 } from './LeaderboardItem'
 import {
@@ -46,8 +37,8 @@ export interface MyRankInfo {
 	rank: number
 	xpThisWeek: number
 	recipesCooked: number
-	xpToNextRank: number
-	nextRankPosition: number
+	xpToNextRank?: number
+	nextRankPosition?: number
 }
 
 export interface ResetInfo {
@@ -87,7 +78,6 @@ function LeaderboardTabs({
 	const tabs: { type: LeaderboardType; label: string; icon: typeof Globe }[] = [
 		{ type: 'global', label: t('tabGlobal'), icon: Globe },
 		{ type: 'friends', label: t('tabFriends'), icon: Users },
-		{ type: 'league', label: t('tabLeague'), icon: Trophy },
 	]
 
 	return (
@@ -223,12 +213,17 @@ function MyRankBanner({
 
 			{/* Goal & CTA */}
 			<div className='flex-1 flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto'>
-				<span className='text-xs text-text-muted'>
-					{t('xpToNext', {
-						xp: myRank.xpToNextRank,
-						rank: myRank.nextRankPosition,
-					})}
-				</span>
+				{myRank.xpToNextRank !== undefined &&
+					myRank.xpToNextRank > 0 &&
+					myRank.nextRankPosition !== undefined &&
+					myRank.nextRankPosition > 0 && (
+						<span className='text-xs text-text-muted'>
+							{t('xpToNext', {
+								xp: myRank.xpToNextRank,
+								rank: myRank.nextRankPosition,
+							})}
+						</span>
+					)}
 				<motion.button
 					type='button'
 					whileHover={LIST_ITEM_HOVER}
@@ -297,12 +292,13 @@ export function LeaderboardPage({
 			xp: e.xpThisWeek,
 		})) as PodiumEntry[]
 
-	// Remaining entries
-	const listEntries = entries.filter(e => e.rank > 3)
+	const showPodium = podiumEntries.length === 3
+	const listEntries = showPodium ? entries.filter(e => e.rank > 3) : entries
 
 	// Check if current user is in visible list
 	const userInList = entries.find(e => e.isCurrentUser)
-	const showMyRankBanner = myRank && (!userInList || myRank.rank > 50)
+	const showMyRankBanner =
+		myRank && myRank.rank > 0 && (!userInList || myRank.rank > 50)
 
 	return (
 		<div
@@ -368,27 +364,10 @@ export function LeaderboardPage({
 				</>
 			) : (
 				<>
-					{/* Podium (Top 3 if available) — show partial state for young leaderboards */}
-					{podiumEntries.length > 0 && (
+					{/* Podium requires three real competitors. */}
+					{showPodium && (
 						<LeaderboardPodium
-							entries={podiumEntries.concat(
-								// Fill missing spots so podium grid doesn't break
-								Array(3 - podiumEntries.length)
-									.fill(null)
-									.map((_, i) => ({
-										userId: `placeholder-${i}`,
-										username: '',
-										displayName: '',
-										avatarUrl: '',
-										level: 0,
-										rank: (podiumEntries.length + i + 1) as 1 | 2 | 3,
-										xp: 0,
-										isCurrentUser: false,
-										recipesCooked: 0,
-										streak: 0,
-										topBadges: [],
-									})) as unknown as PodiumEntry[],
-							)}
+							entries={podiumEntries}
 							onUserClick={e =>
 								onUserClick?.({
 									...e,
@@ -407,27 +386,15 @@ export function LeaderboardPage({
 						animate='visible'
 						className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-2 shadow-card'
 					>
-						{listEntries.map((entry, index) => (
+						{listEntries.map(entry => (
 							<motion.div
 								key={entry.userId}
 								variants={staggerItem}
 								initial={false}
 							>
 								<LeaderboardItem entry={entry} onClick={onUserClick} />
-								{/* Add divider after rank 6 if there's a gap to user */}
-								{index === 2 && userInList && userInList.rank > 10 && (
-									<ListDivider />
-								)}
 							</motion.div>
 						))}
-
-						{/* Show current user if they're far down */}
-						{userInList && userInList.rank > 10 && (
-							<>
-								<LeaderboardItem entry={userInList} onClick={onUserClick} />
-								<ListDivider />
-							</>
-						)}
 					</motion.div>
 				</>
 			)}

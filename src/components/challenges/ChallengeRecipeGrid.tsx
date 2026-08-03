@@ -25,6 +25,10 @@ import {
 	CARD_FEED_HOVER,
 } from '@/lib/motion'
 import { StaggerContainer } from '@/components/ui/stagger-animation'
+import {
+	formatPositiveSocialCount,
+	isPositiveSocialMetric,
+} from '@/lib/positive-social-proof'
 
 // ============================================
 // TYPES
@@ -125,6 +129,7 @@ const ChallengeRecipeCard = ({
 	const difficulty = difficultyConfig[recipe.difficulty]
 	const totalXp = recipe.baseXp + recipe.bonusXp
 	const t = useTranslations('challenge')
+	const formattedCookCount = formatPositiveSocialCount(recipe.cookCount)
 
 	return (
 		<motion.article
@@ -204,16 +209,18 @@ const ChallengeRecipeCard = ({
 							<Clock className='size-3.5' />
 							{recipe.cookTime}
 						</span>
-						<span className='flex items-center gap-1 text-xs text-text-secondary'>
-							<Star className='size-3.5 fill-warning text-warning' />
-							{recipe.rating}
-						</span>
-						<span className='flex items-center gap-1 text-xs text-text-secondary'>
-							<Users className='size-3.5' />
-							{recipe.cookCount >= 1000
-								? `${(recipe.cookCount / 1000).toFixed(1)}k`
-								: recipe.cookCount}
-						</span>
+						{isPositiveSocialMetric(recipe.rating) && (
+							<span className='flex items-center gap-1 text-xs text-text-secondary'>
+								<Star className='size-3.5 fill-warning text-warning' />
+								{recipe.rating}
+							</span>
+						)}
+						{formattedCookCount && (
+							<span className='flex items-center gap-1 text-xs text-text-secondary'>
+								<Users className='size-3.5' />
+								{formattedCookCount}
+							</span>
+						)}
 					</div>
 
 					{/* Footer */}

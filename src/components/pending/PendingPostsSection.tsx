@@ -186,7 +186,8 @@ const SinglePendingPost = ({
 					<div className='flex items-center gap-3'>
 						{hasClaimableXp ? (
 							<span className='text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-xl tabular-nums'>
-								+<AnimatedNumber value={session.currentXP} /> XP
+								{t('pdUpToXpPrefix')}
+								<AnimatedNumber value={session.currentXP} /> XP
 							</span>
 						) : (
 							<span className='text-sm font-semibold text-warning bg-warning/10 px-2 py-1 rounded-xl'>
@@ -326,7 +327,8 @@ const MultiplePendingPosts = ({
 							</div>
 							{hasSessionClaimableXp ? (
 								<span className='text-sm font-bold text-success tabular-nums'>
-									+<AnimatedNumber value={session.currentXP} />
+									{t('pdUpToXpPrefix')}
+									<AnimatedNumber value={session.currentXP} />
 								</span>
 							) : (
 								<span className='text-xs font-semibold text-warning'>
@@ -686,7 +688,8 @@ export const PendingExpandedModal = ({
 																: 'text-success',
 														)}
 													>
-														+<AnimatedNumber value={session.currentXP} /> XP
+														{t('pdUpToXpPrefix')}
+														<AnimatedNumber value={session.currentXP} /> XP
 													</span>
 												) : (
 													<span className='block text-sm font-semibold text-warning'>

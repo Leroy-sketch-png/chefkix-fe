@@ -19,6 +19,7 @@ import {
 } from '@/lib/motion'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
+import { deriveCookingProgress } from '@/lib/cooking-progress'
 
 interface ResumeCookingBannerProps {
 	className?: string
@@ -122,12 +123,13 @@ export const ResumeCookingBanner = ({
 	}
 
 	// Calculate progress
-	const completedSteps = pendingSession?.completedSteps?.length ?? 0
-	const totalSteps = pendingSession?.completedSteps
-		? Math.max(completedSteps + 1, pendingSession.currentStep ?? 1)
-		: 1
-	const progressPercent =
-		totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
+	const { currentStep, totalSteps, completedCount, progressPercent } =
+		deriveCookingProgress({
+			currentStep: pendingSession?.currentStep,
+			completedSteps: pendingSession?.completedSteps,
+			sessionTotalSteps: pendingSession?.totalSteps,
+			recipeTotalSteps: pendingSession?.recipe?.totalSteps,
+		})
 
 	// Don't show if loading, dismissed, no pending session, or already cooking
 	if (
@@ -203,7 +205,7 @@ export const ResumeCookingBanner = ({
 							{recipeName || t('yourRecipe')} —{' '}
 							<span className='tabular-nums'>
 								{t('stepOf', {
-									current: pendingSession.currentStep,
+									current: currentStep,
 									total: totalSteps,
 								})}
 							</span>
@@ -211,7 +213,7 @@ export const ResumeCookingBanner = ({
 						<div className='flex items-center gap-3 text-xs text-text-muted'>
 							<span className='flex items-center gap-1 tabular-nums'>
 								<Clock className='size-3' />
-								{t('stepsCompleted', { count: completedSteps })}
+								{t('stepsCompleted', { count: completedCount })}
 							</span>
 						</div>
 					</div>

@@ -23,6 +23,7 @@ export type NotificationType =
 	| 'POST_COMMENT'
 	| 'RECIPE_LIKED'
 	| 'USER_MENTION'
+	| 'STORY_INTERACTION'
 	// Gamification
 	| 'XP_AWARDED'
 	| 'LEVEL_UP'
@@ -78,7 +79,7 @@ export interface Notification {
 	/** @deprecated Not in BE response. Use content instead. */
 	body?: string
 	/** @deprecated Not in BE response. Use targetEntityId instead. */
-	data?: Record<string, unknown>
+	data?: Record<string, string>
 }
 
 export interface NotificationPagination {

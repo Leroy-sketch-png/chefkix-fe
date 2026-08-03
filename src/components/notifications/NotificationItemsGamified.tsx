@@ -21,7 +21,6 @@ import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
 	BUTTON_TAP,
-	LIST_ITEM_HOVER,
 	DURATION_S,
 } from '@/lib/motion'
 
@@ -209,9 +208,8 @@ const NotifWrapper = ({
 	<motion.div
 		initial={{ opacity: 0, x: -10 }}
 		animate={{ opacity: 1, x: 0 }}
-		whileHover={LIST_ITEM_HOVER}
 		className={cn(
-			'relative overflow-hidden grid grid-cols-[2.5rem,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 px-3 py-3 shadow-card transition-colors hover:bg-bg-elevated md:grid-cols-[2.75rem,minmax(0,1fr),auto] md:items-center md:gap-x-4 md:px-4 md:py-3.5',
+			'relative overflow-hidden grid grid-cols-[2.5rem,minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 px-3 py-3 shadow-card md:grid-cols-[2.75rem,minmax(0,1fr),auto] md:items-center md:gap-x-4 md:px-4 md:py-3.5',
 			!isRead && 'bg-brand/6 border-brand/20',
 			className,
 		)}
@@ -285,7 +283,7 @@ const ActionButton = ({
 	children,
 	className,
 }: {
-	onClick?: () => void
+	onClick: () => void
 	children: React.ReactNode
 	className?: string
 }) => (
@@ -320,28 +318,22 @@ const XPAwardedItem = ({
 }: XPAwardedNotification) => {
 	const t = useTranslations('notifications')
 	const hasPendingXp = pendingXp > 0
-	const body = hasPendingXp ? (
-		t.rich('xpEarnedBody', {
-			xp: xpAmount.toLocaleString(),
-			recipe: recipeName,
-			strong: chunks => (
-				<strong className='tabular-nums font-bold text-xp'>
-					{chunks}
-				</strong>
-			),
-			brand: chunks => (
-				<span className='font-semibold text-brand'>{chunks}</span>
-			),
-		})
-	) : (
-		content ||
-		t('xpEarnedBodyFallback', {
-			xp: xpAmount.toLocaleString(),
-			source: source
-				? source.toLowerCase().replace(/_/g, ' ')
-				: '',
-		})
-	)
+	const body = hasPendingXp
+		? t.rich('xpEarnedBody', {
+				xp: xpAmount.toLocaleString(),
+				recipe: recipeName,
+				strong: chunks => (
+					<strong className='tabular-nums font-bold text-xp'>{chunks}</strong>
+				),
+				brand: chunks => (
+					<span className='font-semibold text-brand'>{chunks}</span>
+				),
+			})
+		: content ||
+			t('xpEarnedBodyFallback', {
+				xp: xpAmount.toLocaleString(),
+				source: source ? source.toLowerCase().replace(/_/g, ' ') : '',
+			})
 	return (
 		<NotifWrapper isRead={isRead}>
 			{/* Icon */}
@@ -500,9 +492,7 @@ const BadgeUnlockedItem = ({
 				<p className='text-sm'>
 					{t.rich('badgeEarnedBody', {
 						badge: badgeName,
-						strong: chunks => (
-							<strong className='font-bold'>{chunks}</strong>
-						),
+						strong: chunks => <strong className='font-bold'>{chunks}</strong>,
 					})}
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
@@ -516,12 +506,14 @@ const BadgeUnlockedItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onViewBadge}
-				className='border-level/20 bg-level/10 text-level-text hover:bg-level/15 sm:flex-shrink-0'
-			>
-				{t('viewBadge')}
-			</ActionButton>
+			{onViewBadge && (
+				<ActionButton
+					onClick={onViewBadge}
+					className='border-level/20 bg-level/10 text-level-text hover:bg-level/15 sm:flex-shrink-0'
+				>
+					{t('viewBadge')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -555,9 +547,7 @@ const BadgeSurpriseItem = ({
 				<p className='text-sm'>
 					{t.rich('badgeSurpriseBody', {
 						badge: badgeName,
-						strong: chunks => (
-							<strong className='font-bold'>{chunks}</strong>
-						),
+						strong: chunks => <strong className='font-bold'>{chunks}</strong>,
 					})}
 				</p>
 				<div className='mt-1.5 flex items-center gap-2'>
@@ -769,13 +759,15 @@ const StreakWarningItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onFindRecipe}
-				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
-			>
-				<Search className='size-4' />
-				{t('findRecipe')}
-			</ActionButton>
+			{onFindRecipe && (
+				<ActionButton
+					onClick={onFindRecipe}
+					className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+				>
+					<Search className='size-4' />
+					{t('findRecipe')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -817,12 +809,14 @@ const StreakLostItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onStartNewStreak}
-				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
-			>
-				{t('startNewStreak')}
-			</ActionButton>
+			{onStartNewStreak && (
+				<ActionButton
+					onClick={onStartNewStreak}
+					className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+				>
+					{t('startNewStreak')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -893,12 +887,14 @@ const ChallengeReminderItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onSeeRecipes}
-				className='border-accent-purple/20 bg-accent-purple-subtle text-accent-purple hover:bg-accent-purple/12 sm:flex-shrink-0'
-			>
-				{t('seeRecipes')}
-			</ActionButton>
+			{onSeeRecipes && (
+				<ActionButton
+					onClick={onSeeRecipes}
+					className='border-accent-purple/20 bg-accent-purple-subtle text-accent-purple hover:bg-accent-purple/12 sm:flex-shrink-0'
+				>
+					{t('seeRecipes')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -937,13 +933,15 @@ const WeekendNudgeItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onExplore}
-				className='border-brand/20 bg-brand-subtle text-brand-text hover:bg-brand/12 sm:flex-shrink-0'
-			>
-				<Search className='size-4' />
-				{t('explore')}
-			</ActionButton>
+			{onExplore && (
+				<ActionButton
+					onClick={onExplore}
+					className='border-brand/20 bg-brand-subtle text-brand-text hover:bg-brand/12 sm:flex-shrink-0'
+				>
+					<Search className='size-4' />
+					{t('explore')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }
@@ -983,12 +981,14 @@ const PantryExpiringItem = ({
 			</div>
 
 			{/* Action */}
-			<ActionButton
-				onClick={onViewPantry}
-				className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
-			>
-				{t('viewPantry')}
-			</ActionButton>
+			{onViewPantry && (
+				<ActionButton
+					onClick={onViewPantry}
+					className='border-streak/20 bg-streak/10 text-streak-text hover:bg-streak/15 sm:flex-shrink-0'
+				>
+					{t('viewPantry')}
+				</ActionButton>
+			)}
 		</NotifWrapper>
 	)
 }

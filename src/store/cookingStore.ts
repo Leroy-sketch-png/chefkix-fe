@@ -145,504 +145,563 @@ interface CookingState {
 
 export const useCookingStore = create<CookingState>()(
 	persist(
-		(set, get) => ({
-			session: null,
-			recipe: null,
-			isLoading: false,
-			error: null,
-			interactionMode: null,
-			isPreviewMode: false,
-			localTimers: new Map(),
-			checkedIngredients: {},
-			stepRenderMode: 'full' as StepRenderMode,
-			roomCode: null,
-			participants: [],
-			isInRoom: false,
-			isHost: false,
-
-			setInteractionMode: (mode: KitchenInteractionMode) => {
-				set({ interactionMode: mode })
-			},
-
-			setStepRenderMode: (mode: StepRenderMode) => {
-				set({ stepRenderMode: mode })
-			},
-
-			startCooking: async (recipeId: string) => {
-				diag.action('cooking', 'START_COOKING clicked', { recipeId })
-				set({ isLoading: true, error: null })
-
+		(set, get) => {
+			const rollbackRoomEntry = async (roomCode: string, error: string) => {
 				try {
-					// Start session on backend
-					diag.request('cooking', 'POST /cooking-sessions/start', { recipeId })
-					const sessionResponse = await apiStartSession(recipeId)
-					diag.response(
-						'cooking',
-						'POST /cooking-sessions/start',
-						sessionResponse,
-						sessionResponse.success,
+					const response = await apiLeaveRoom(roomCode)
+					if (!response.success) {
+						logDevError('[cookingStore] room entry rollback failed:', response)
+					}
+				} catch (rollbackError) {
+					logDevError(
+						'[cookingStore] room entry rollback failed:',
+						rollbackError,
 					)
+				}
 
-					// Handle "session already active" error (409 Conflict)
-					// Try to resume the existing session instead of failing
-					if (!sessionResponse.success && sessionResponse.statusCode === 409) {
-						diag.warn(
+				set({
+					roomCode: null,
+					participants: [],
+					isInRoom: false,
+					isHost: false,
+					error,
+					isLoading: false,
+				})
+			}
+
+			const hydrateCookRoomSession = async (
+				room: CookingRoom,
+				rollbackOnFailure = true,
+			) => {
+				const handleFailure = async (error: string) => {
+					if (rollbackOnFailure) {
+						await rollbackRoomEntry(room.roomCode, error)
+						return
+					}
+
+					const userId = useAuthStore.getState().user?.userId
+					set({
+						roomCode: room.roomCode,
+						participants: room.participants,
+						isInRoom: true,
+						isHost: room.hostUserId === userId,
+						error,
+						isLoading: false,
+					})
+				}
+
+				if (!room.sessionId) {
+					const error = ct('storeFailedLoadRecipeSession')
+					await handleFailure(error)
+					return false
+				}
+
+				const loaded = await get().loadSession(room.sessionId)
+				if (!loaded) {
+					const error = get().error || ct('storeFailedLoadRecipeSession')
+					await handleFailure(error)
+					return false
+				}
+
+				return true
+			}
+
+			return {
+				session: null,
+				recipe: null,
+				isLoading: false,
+				error: null,
+				interactionMode: null,
+				isPreviewMode: false,
+				localTimers: new Map(),
+				checkedIngredients: {},
+				stepRenderMode: 'full' as StepRenderMode,
+				roomCode: null,
+				participants: [],
+				isInRoom: false,
+				isHost: false,
+
+				setInteractionMode: (mode: KitchenInteractionMode) => {
+					set({ interactionMode: mode })
+				},
+
+				setStepRenderMode: (mode: StepRenderMode) => {
+					set({ stepRenderMode: mode })
+				},
+
+				startCooking: async (recipeId: string) => {
+					diag.action('cooking', 'START_COOKING clicked', { recipeId })
+					set({ isLoading: true, error: null })
+
+					try {
+						// Start session on backend
+						diag.request('cooking', 'POST /cooking-sessions/start', {
+							recipeId,
+						})
+						const sessionResponse = await apiStartSession(recipeId)
+						diag.response(
 							'cooking',
-							'Session already active (409), attempting resume',
-							{},
+							'POST /cooking-sessions/start',
+							sessionResponse,
+							sessionResponse.success,
 						)
-						// User already has an active session - try to resume it
-						const currentResponse = await apiGetCurrentSession()
-						if (currentResponse.success && currentResponse.data) {
-							const existingSession = currentResponse.data
 
-							// If existing session is for the SAME recipe, resume it
-							if (existingSession.recipeId === recipeId) {
-								diag.action(
-									'cooking',
-									'Resuming existing session for same recipe',
-									{
-										sessionId: existingSession.sessionId,
-									},
-								)
-								const recipeResponse = await getRecipeById(recipeId)
-								if (recipeResponse.success && recipeResponse.data) {
-									// Restore local timers from active timers
-									const localTimers = new Map<
-										number,
+						// Handle "session already active" error (409 Conflict)
+						// Try to resume the existing session instead of failing
+						if (
+							!sessionResponse.success &&
+							sessionResponse.statusCode === 409
+						) {
+							diag.warn(
+								'cooking',
+								'Session already active (409), attempting resume',
+								{},
+							)
+							// User already has an active session - try to resume it
+							const currentResponse = await apiGetCurrentSession()
+							if (currentResponse.success && currentResponse.data) {
+								const existingSession = currentResponse.data
+
+								// If existing session is for the SAME recipe, resume it
+								if (existingSession.recipeId === recipeId) {
+									diag.action(
+										'cooking',
+										'Resuming existing session for same recipe',
 										{
-											initialDuration: number
-											startedAt: number
-											remaining: number
-										}
-									>()
-									existingSession.activeTimers?.forEach(timer => {
-										localTimers.set(timer.stepNumber, {
-											initialDuration: timer.remainingSeconds,
-											startedAt: Date.now(),
-											remaining: timer.remainingSeconds,
+											sessionId: existingSession.sessionId,
+										},
+									)
+									const recipeResponse = await getRecipeById(recipeId)
+									if (recipeResponse.success && recipeResponse.data) {
+										// Restore local timers from active timers
+										const localTimers = new Map<
+											number,
+											{
+												initialDuration: number
+												startedAt: number
+												remaining: number
+											}
+										>()
+										existingSession.activeTimers?.forEach(timer => {
+											localTimers.set(timer.stepNumber, {
+												initialDuration: timer.remainingSeconds,
+												startedAt: Date.now(),
+												remaining: timer.remainingSeconds,
+											})
 										})
-									})
 
-									set({
-										session: existingSession,
-										recipe: recipeResponse.data,
-										isLoading: false,
-										localTimers,
-										interactionMode: 'ACTIVE', // Already in-progress session
-									})
-									return true // Successfully resumed!
+										set({
+											session: existingSession,
+											recipe: recipeResponse.data,
+											isLoading: false,
+											localTimers,
+											interactionMode: 'ACTIVE', // Already in-progress session
+										})
+										return true // Successfully resumed!
+									}
 								}
-							}
 
-							// If existing session is for a DIFFERENT recipe,
-							// we need to inform the user (they must abandon first)
+								// If existing session is for a DIFFERENT recipe,
+								// we need to inform the user (they must abandon first)
+								set({
+									error: ct('storeAlreadyCooking').replace(
+										'{title}',
+										existingSession.recipe?.title || ct('storeAnotherRecipe'),
+									),
+									isLoading: false,
+								})
+								return false
+							}
+						}
+
+						if (!sessionResponse.success || !sessionResponse.data) {
 							set({
-								error: ct('storeAlreadyCooking').replace(
-									'{title}',
-									existingSession.recipe?.title || ct('storeAnotherRecipe'),
+								error: sessionResponse.message || ct('storeFailedStart'),
+								isLoading: false,
+							})
+							return false
+						}
+
+						// Fetch full recipe data
+						const recipeResponse = await getRecipeById(recipeId)
+						if (!recipeResponse.success || !recipeResponse.data) {
+							set({
+								error: ct('storeFailedLoadRecipe'),
+								isLoading: false,
+							})
+							return false
+						}
+
+						// Convert StartSessionResponse to CookingSession format
+						const session: CookingSession = {
+							sessionId: sessionResponse.data.sessionId,
+							recipeId: sessionResponse.data.recipeId,
+							status: sessionResponse.data.status,
+							currentStep: sessionResponse.data.currentStep,
+							totalSteps: sessionResponse.data.totalSteps,
+							completedSteps: [],
+							activeTimers: sessionResponse.data.activeTimers || [],
+							startedAt: sessionResponse.data.startedAt,
+							recipe: sessionResponse.data.recipe,
+						}
+
+						set({
+							session,
+							recipe: recipeResponse.data,
+							isLoading: false,
+							localTimers: new Map(),
+							interactionMode: 'PREP', // New session → PREP until user engages
+						})
+
+						return true
+					} catch (error) {
+						set({
+							error: ct('storeErrorStarting'),
+							isLoading: false,
+						})
+						return false
+					}
+				},
+
+				resumeExistingSession: async () => {
+					// Skip resume if current session is a preview (sessionId: 'preview')
+					const currentSession = get().session
+					if (currentSession?.sessionId === 'preview') {
+						set({ isPreviewMode: false, session: null, recipe: null })
+						return false
+					}
+
+					diag.action('cooking', 'RESUME_SESSION called', {})
+					set({ isLoading: true, error: null })
+
+					try {
+						diag.request('cooking', 'GET /cooking-sessions/current', {})
+						const response = await apiGetCurrentSession()
+						diag.response(
+							'cooking',
+							'GET /cooking-sessions/current',
+							response,
+							response.success,
+						)
+
+						if (!response.success) {
+							set({
+								error: response.message || ct('storeFailedResume'),
+								isLoading: false,
+							})
+							return false
+						}
+
+						if (!response.data) {
+							diag.warn('cooking', 'No current session found', {})
+							set({ isLoading: false })
+							return false
+						}
+
+						const session = response.data
+						diag.action('cooking', 'Session found', {
+							sessionId: session.sessionId,
+							recipeId: session.recipeId,
+							currentStep: session.currentStep,
+							status: session.status,
+						})
+
+						// Guard against missing recipeId before fetching recipe
+						if (!session.recipeId) {
+							diag.error('cooking', 'Session has no recipeId, cannot resume', {
+								session,
+							})
+							set({ error: ct('storeFailedResume'), isLoading: false })
+							return false
+						}
+
+						// Fetch recipe data
+						diag.request('cooking', `GET /recipes/${session.recipeId}`, {})
+						const recipeResponse = await getRecipeById(session.recipeId)
+						diag.response(
+							'cooking',
+							`GET /recipes/${session.recipeId}`,
+							recipeResponse,
+							recipeResponse.success,
+						)
+
+						if (!recipeResponse.success || !recipeResponse.data) {
+							diag.error('cooking', 'Failed to load recipe for session', {
+								recipeId: session.recipeId,
+							})
+							set({
+								error: ct('storeFailedLoadRecipeSession'),
+								isLoading: false,
+							})
+							return false
+						}
+
+						// Log the recipe data we loaded
+						diag.snapshot('cooking', 'Recipe loaded for session', {
+							title: recipeResponse.data.title,
+							stepsCount: recipeResponse.data.steps?.length ?? 0,
+							hasSteps: !!recipeResponse.data.steps,
+							stepImages: recipeResponse.data.steps?.map((s, i) => ({
+								step: i + 1,
+								hasImage: !!s.imageUrl,
+							})),
+						})
+
+						// Restore local timers from active timers
+						// When restoring, remainingSeconds IS the initial duration from this point
+						const localTimers = new Map<
+							number,
+							{ initialDuration: number; startedAt: number; remaining: number }
+						>()
+						session.activeTimers?.forEach(timer => {
+							localTimers.set(timer.stepNumber, {
+								initialDuration: timer.remainingSeconds, // Backend synced remaining becomes our new initial
+								startedAt: Date.now(),
+								remaining: timer.remainingSeconds,
+							})
+						})
+
+						set({
+							session,
+							recipe: recipeResponse.data,
+							localTimers,
+							isLoading: false,
+							error: null,
+							interactionMode: 'ACTIVE', // Resuming past-PREP session
+						})
+
+						return true
+					} catch (error) {
+						set({ error: ct('storeFailedResume'), isLoading: false })
+						return false
+					}
+				},
+
+				loadSession: async (sessionId: string) => {
+					set({ isLoading: true, error: null })
+
+					try {
+						const response = await apiGetSessionById(sessionId)
+						if (!response.success || !response.data) {
+							set({
+								error: response.message || ct('storeSessionNotFound'),
+								isLoading: false,
+							})
+							return false
+						}
+
+						const session = response.data
+
+						// Navigation guard: If session is completed or abandoned, don't try to load it for cooking
+						// User should be redirected to recipe page or post page instead
+						if (
+							session.status === 'completed' ||
+							session.status === 'abandoned'
+						) {
+							diag.warn(
+								'cooking',
+								'Attempted to load completed/abandoned session',
+								{
+									sessionId,
+									status: session.status,
+								},
+							)
+							set({
+								error: ct('storeSessionInactive').replace(
+									'{status}',
+									session.status,
 								),
 								isLoading: false,
 							})
 							return false
 						}
-					}
 
-					if (!sessionResponse.success || !sessionResponse.data) {
+						// Fetch recipe
+						const recipeResponse = await getRecipeById(session.recipeId)
+						if (!recipeResponse.success || !recipeResponse.data) {
+							set({
+								error: ct('storeFailedLoadRecipe'),
+								isLoading: false,
+							})
+							return false
+						}
+
 						set({
-							error: sessionResponse.message || ct('storeFailedStart'),
-							isLoading: false,
-						})
-						return false
-					}
-
-					// Fetch full recipe data
-					const recipeResponse = await getRecipeById(recipeId)
-					if (!recipeResponse.success || !recipeResponse.data) {
-						set({
-							error: ct('storeFailedLoadRecipe'),
-							isLoading: false,
-						})
-						return false
-					}
-
-					// Convert StartSessionResponse to CookingSession format
-					const session: CookingSession = {
-						sessionId: sessionResponse.data.sessionId,
-						recipeId: sessionResponse.data.recipeId,
-						status: sessionResponse.data.status,
-						currentStep: sessionResponse.data.currentStep,
-						totalSteps: sessionResponse.data.totalSteps,
-						completedSteps: [],
-						activeTimers: sessionResponse.data.activeTimers || [],
-						startedAt: sessionResponse.data.startedAt,
-						recipe: sessionResponse.data.recipe,
-					}
-
-					set({
-						session,
-						recipe: recipeResponse.data,
-						isLoading: false,
-						localTimers: new Map(),
-						interactionMode: 'PREP', // New session → PREP until user engages
-					})
-
-					return true
-				} catch (error) {
-					set({
-						error: ct('storeErrorStarting'),
-						isLoading: false,
-					})
-					return false
-				}
-			},
-
-			resumeExistingSession: async () => {
-				// Skip resume if current session is a preview (sessionId: 'preview')
-				const currentSession = get().session
-				if (currentSession?.sessionId === 'preview') {
-					set({ isPreviewMode: false, session: null, recipe: null })
-					return false
-				}
-
-				diag.action('cooking', 'RESUME_SESSION called', {})
-				set({ isLoading: true, error: null })
-
-				try {
-					diag.request('cooking', 'GET /cooking-sessions/current', {})
-					const response = await apiGetCurrentSession()
-					diag.response(
-						'cooking',
-						'GET /cooking-sessions/current',
-						response,
-						response.success,
-					)
-
-					if (!response.success || !response.data) {
-						diag.warn('cooking', 'No current session found', {})
-						set({ isLoading: false })
-						return false
-					}
-
-					const session = response.data
-					diag.action('cooking', 'Session found', {
-						sessionId: session.sessionId,
-						recipeId: session.recipeId,
-						currentStep: session.currentStep,
-						status: session.status,
-					})
-
-					// Guard against missing recipeId before fetching recipe
-					if (!session.recipeId) {
-						diag.error('cooking', 'Session has no recipeId, cannot resume', {
 							session,
-						})
-						set({ isLoading: false })
-						return false
-					}
-
-					// Fetch recipe data
-					diag.request('cooking', `GET /recipes/${session.recipeId}`, {})
-					const recipeResponse = await getRecipeById(session.recipeId)
-					diag.response(
-						'cooking',
-						`GET /recipes/${session.recipeId}`,
-						recipeResponse,
-						recipeResponse.success,
-					)
-
-					if (!recipeResponse.success || !recipeResponse.data) {
-						diag.error('cooking', 'Failed to load recipe for session', {
-							recipeId: session.recipeId,
-						})
-						set({
-							error: ct('storeFailedLoadRecipeSession'),
+							recipe: recipeResponse.data,
 							isLoading: false,
+							interactionMode: 'ACTIVE', // loadSession = already past PREP
 						})
+
+						return true
+					} catch (error) {
+						set({ error: ct('storeFailedLoadSession'), isLoading: false })
 						return false
 					}
+				},
 
-					// Log the recipe data we loaded
-					diag.snapshot('cooking', 'Recipe loaded for session', {
-						title: recipeResponse.data.title,
-						stepsCount: recipeResponse.data.steps?.length ?? 0,
-						hasSteps: !!recipeResponse.data.steps,
-						stepImages: recipeResponse.data.steps?.map((s, i) => ({
-							step: i + 1,
-							hasImage: !!s.imageUrl,
-						})),
-					})
+				navigateToStep: async (direction, stepNumber) => {
+					const { session, isPreviewMode } = get()
+					if (!session) return
 
-					// Restore local timers from active timers
-					// When restoring, remainingSeconds IS the initial duration from this point
-					const localTimers = new Map<
-						number,
-						{ initialDuration: number; startedAt: number; remaining: number }
-					>()
-					session.activeTimers?.forEach(timer => {
-						localTimers.set(timer.stepNumber, {
-							initialDuration: timer.remainingSeconds, // Backend synced remaining becomes our new initial
-							startedAt: Date.now(),
-							remaining: timer.remainingSeconds,
-						})
-					})
-
-					set({
-						session,
-						recipe: recipeResponse.data,
-						localTimers,
-						isLoading: false,
-						interactionMode: 'ACTIVE', // Resuming past-PREP session
-					})
-
-					return true
-				} catch (error) {
-					set({ error: ct('storeFailedResume'), isLoading: false })
-					return false
-				}
-			},
-
-			loadSession: async (sessionId: string) => {
-				set({ isLoading: true, error: null })
-
-				try {
-					const response = await apiGetSessionById(sessionId)
-					if (!response.success || !response.data) {
-						set({
-							error: response.message || ct('storeSessionNotFound'),
-							isLoading: false,
-						})
-						return false
+					if (isPreviewMode) {
+						// Pure state computation — no API call
+						const totalSteps = session.totalSteps || 0
+						let newStep = session.currentStep
+						if (direction === 'next' && newStep < totalSteps) newStep++
+						else if (direction === 'previous' && newStep > 1) newStep--
+						else if (direction === 'goto' && stepNumber)
+							newStep = Math.max(1, Math.min(stepNumber, totalSteps))
+						set({ session: { ...session, currentStep: newStep } })
+						return
 					}
 
-					const session = response.data
-
-					// Navigation guard: If session is completed or abandoned, don't try to load it for cooking
-					// User should be redirected to recipe page or post page instead
-					if (
-						session.status === 'completed' ||
-						session.status === 'abandoned'
-					) {
-						diag.warn(
-							'cooking',
-							'Attempted to load completed/abandoned session',
-							{
-								sessionId,
-								status: session.status,
-							},
+					try {
+						const response = await apiNavigateStep(
+							session.sessionId,
+							direction,
+							stepNumber,
 						)
-						set({
-							error: ct('storeSessionInactive').replace(
-								'{status}',
-								session.status,
-							),
-							isLoading: false,
-						})
-						return false
+						if (response.success && response.data) {
+							set({
+								session: { ...session, currentStep: response.data.currentStep },
+							})
+						}
+					} catch (error) {
+						logDevError('Failed to navigate step:', error)
+						toast.error(ct('toastNavigateStepFailed'))
 					}
+				},
 
-					// Fetch recipe
-					const recipeResponse = await getRecipeById(session.recipeId)
-					if (!recipeResponse.success || !recipeResponse.data) {
-						set({
-							error: ct('storeFailedLoadRecipe'),
-							isLoading: false,
-						})
-						return false
-					}
+				completeStep: async (stepNumber: number) => {
+					const { session, isPreviewMode } = get()
+					if (!session) return
 
-					set({
-						session,
-						recipe: recipeResponse.data,
-						isLoading: false,
-						interactionMode: 'ACTIVE', // loadSession = already past PREP
-					})
-
-					return true
-				} catch (error) {
-					set({ error: ct('storeFailedLoadSession'), isLoading: false })
-					return false
-				}
-			},
-
-			navigateToStep: async (direction, stepNumber) => {
-				const { session, isPreviewMode } = get()
-				if (!session) return
-
-				if (isPreviewMode) {
-					// Pure state computation — no API call
-					const totalSteps = session.totalSteps || 0
-					let newStep = session.currentStep
-					if (direction === 'next' && newStep < totalSteps) newStep++
-					else if (direction === 'previous' && newStep > 1) newStep--
-					else if (direction === 'goto' && stepNumber)
-						newStep = Math.max(1, Math.min(stepNumber, totalSteps))
-					set({ session: { ...session, currentStep: newStep } })
-					return
-				}
-
-				try {
-					const response = await apiNavigateStep(
-						session.sessionId,
-						direction,
-						stepNumber,
-					)
-					if (response.success && response.data) {
-						set({
-							session: { ...session, currentStep: response.data.currentStep },
-						})
-					}
-				} catch (error) {
-					logDevError('Failed to navigate step:', error)
-					toast.error(ct('toastNavigateStepFailed'))
-				}
-			},
-
-			completeStep: async (stepNumber: number) => {
-				const { session, isPreviewMode } = get()
-				if (!session) return
-
-				if (isPreviewMode) {
-					// Pure state — toggle step in completedSteps
-					const completed = new Set(session.completedSteps)
-					completed.add(stepNumber)
-					set({
-						session: {
-							...session,
-							completedSteps: Array.from(completed),
-						},
-					})
-					return
-				}
-
-				try {
-					const response = await apiCompleteStep(session.sessionId, stepNumber)
-					if (response.success && response.data) {
+					if (isPreviewMode) {
+						// Pure state — toggle step in completedSteps
+						const completed = new Set(session.completedSteps)
+						completed.add(stepNumber)
 						set({
 							session: {
 								...session,
-								completedSteps: response.data.completedSteps,
+								completedSteps: Array.from(completed),
 							},
 						})
+						return
 					}
-				} catch (error) {
-					logDevError('Failed to complete step:', error)
-					toast.error(ct('toastCompleteStepFailed'))
-				}
-			},
 
-			startTimer: async (stepNumber: number) => {
-				const { session, recipe, localTimers, isPreviewMode } = get()
-				if (!session || !recipe) return
+					try {
+						const response = await apiCompleteStep(
+							session.sessionId,
+							stepNumber,
+						)
+						if (response.success && response.data) {
+							set({
+								session: {
+									...session,
+									completedSteps: response.data.completedSteps,
+								},
+							})
+						}
+					} catch (error) {
+						logDevError('Failed to complete step:', error)
+						toast.error(ct('toastCompleteStepFailed'))
+					}
+				},
 
-				// Find timer duration from recipe step
-				const step = recipe.steps?.find(s => s.stepNumber === stepNumber)
-				const timerSeconds = step?.timerSeconds || 60
+				startTimer: async (stepNumber: number) => {
+					const { session, recipe, localTimers, isPreviewMode } = get()
+					if (!session || !recipe) return
 
-				if (isPreviewMode) {
-					// Start local timer without API event
-					const newTimers = new Map(localTimers)
-					newTimers.set(stepNumber, {
-						initialDuration: timerSeconds,
-						startedAt: Date.now(),
-						remaining: timerSeconds,
-					})
-					set({ localTimers: newTimers })
-					return
-				}
+					// Find timer duration from recipe step
+					const step = recipe.steps?.find(s => s.stepNumber === stepNumber)
+					const timerSeconds = step?.timerSeconds || 60
 
-				try {
-					await apiLogTimerEvent(session.sessionId, stepNumber, 'start')
-
-					// Start local timer with initialDuration for accurate elapsed calculation
-					const newTimers = new Map(localTimers)
-					newTimers.set(stepNumber, {
-						initialDuration: timerSeconds,
-						startedAt: Date.now(),
-						remaining: timerSeconds,
-					})
-					set({ localTimers: newTimers })
-				} catch (error) {
-					logDevError('Failed to start timer:', error)
-					toast.error(ct('toastStartTimerFailed'))
-				}
-			},
-
-			skipTimer: async (stepNumber: number) => {
-				const { session, localTimers, isPreviewMode } = get()
-				if (!session) return
-
-				if (isPreviewMode) {
-					// Remove local timer without API event
-					const newTimers = new Map(localTimers)
-					newTimers.delete(stepNumber)
-					set({ localTimers: newTimers })
-					return
-				}
-
-				try {
-					await apiLogTimerEvent(session.sessionId, stepNumber, 'skip')
-
-					// Remove local timer
-					const newTimers = new Map(localTimers)
-					newTimers.delete(stepNumber)
-					set({ localTimers: newTimers })
-				} catch (error) {
-					logDevError('Failed to skip timer:', error)
-					toast.error(ct('toastSkipTimerFailed'))
-				}
-			},
-
-			pauseCooking: async () => {
-				const { session, isPreviewMode } = get()
-				if (!session) return
-
-				if (isPreviewMode) {
-					set({ session: { ...session, status: 'paused' } })
-					return
-				}
-
-				try {
-					const response = await apiPauseSession(session.sessionId)
-					if (response.success && response.data) {
-						set({
-							session: {
-								...session,
-								status: 'paused',
-								pausedAt: response.data.pauseAt, // BE uses pauseAt (not pausedAt)
-							},
+					if (isPreviewMode) {
+						// Start local timer without API event
+						const newTimers = new Map(localTimers)
+						newTimers.set(stepNumber, {
+							initialDuration: timerSeconds,
+							startedAt: Date.now(),
+							remaining: timerSeconds,
 						})
+						set({ localTimers: newTimers })
+						return
 					}
-				} catch (error) {
-					diag.error('cooking', 'PAUSE_SESSION exception', error)
-					toast.error(ct('toastPauseSessionFailed'))
-				}
-			},
 
-			resumeCooking: async () => {
-				const { session, isPreviewMode } = get()
-				if (!session) return
+					try {
+						await apiLogTimerEvent(session.sessionId, stepNumber, 'start')
 
-				if (isPreviewMode) {
-					set({
-						session: { ...session, status: 'in_progress', pausedAt: undefined },
-					})
-					return
-				}
+						// Start local timer with initialDuration for accurate elapsed calculation
+						const newTimers = new Map(localTimers)
+						newTimers.set(stepNumber, {
+							initialDuration: timerSeconds,
+							startedAt: Date.now(),
+							remaining: timerSeconds,
+						})
+						set({ localTimers: newTimers })
+					} catch (error) {
+						logDevError('Failed to start timer:', error)
+						toast.error(ct('toastStartTimerFailed'))
+					}
+				},
 
-				diag.action('cooking', 'RESUME_COOKING clicked', {
-					sessionId: session.sessionId,
-				})
-				try {
-					diag.request(
-						'cooking',
-						`POST /cooking-sessions/${session.sessionId}/resume`,
-						{},
-					)
-					const response = await apiResumeSession(session.sessionId)
-					diag.response('cooking', `POST /resume`, response, response.success)
+				skipTimer: async (stepNumber: number) => {
+					const { session, localTimers, isPreviewMode } = get()
+					if (!session) return
 
-					if (response.success && response.data) {
+					if (isPreviewMode) {
+						// Remove local timer without API event
+						const newTimers = new Map(localTimers)
+						newTimers.delete(stepNumber)
+						set({ localTimers: newTimers })
+						return
+					}
+
+					try {
+						await apiLogTimerEvent(session.sessionId, stepNumber, 'skip')
+
+						// Remove local timer
+						const newTimers = new Map(localTimers)
+						newTimers.delete(stepNumber)
+						set({ localTimers: newTimers })
+					} catch (error) {
+						logDevError('Failed to skip timer:', error)
+						toast.error(ct('toastSkipTimerFailed'))
+					}
+				},
+
+				pauseCooking: async () => {
+					const { session, isPreviewMode } = get()
+					if (!session) return
+
+					if (isPreviewMode) {
+						set({ session: { ...session, status: 'paused' } })
+						return
+					}
+
+					try {
+						const response = await apiPauseSession(session.sessionId)
+						if (response.success && response.data) {
+							set({
+								session: {
+									...session,
+									status: 'paused',
+									pausedAt: response.data.pauseAt, // BE uses pauseAt (not pausedAt)
+								},
+							})
+						}
+					} catch (error) {
+						diag.error('cooking', 'PAUSE_SESSION exception', error)
+						toast.error(ct('toastPauseSessionFailed'))
+					}
+				},
+
+				resumeCooking: async () => {
+					const { session, isPreviewMode } = get()
+					if (!session) return
+
+					if (isPreviewMode) {
 						set({
 							session: {
 								...session,
@@ -650,430 +709,486 @@ export const useCookingStore = create<CookingState>()(
 								pausedAt: undefined,
 							},
 						})
-					}
-				} catch (error) {
-					diag.error('cooking', 'RESUME_COOKING exception', error)
-					toast.error(ct('toastResumeSessionFailed'))
-				}
-			},
-
-			completeCooking: async (rating?: number, notes?: string) => {
-				const { session, isPreviewMode } = get()
-
-				if (isPreviewMode) {
-					// Preview mode — no API, just exit
-					set({
-						session: null,
-						recipe: null,
-						isPreviewMode: false,
-						localTimers: new Map(),
-						checkedIngredients: {},
-						error: null,
-					})
-					return null
-				}
-
-				diag.action('cooking', 'COMPLETE_COOKING clicked', {
-					sessionId: session?.sessionId,
-					rating,
-					hasNotes: !!notes,
-				})
-
-				if (!session) {
-					diag.warn('cooking', 'COMPLETE_COOKING aborted - no session', {})
-					return null
-				}
-
-				try {
-					diag.request(
-						'cooking',
-						`POST /cooking-sessions/${session.sessionId}/complete`,
-						{ rating, notes },
-					)
-					const body: { rating?: number; notes?: string } = {}
-					if (rating != null) body.rating = rating
-					if (notes) body.notes = notes
-					const response = await apiCompleteSession(session.sessionId, body)
-					diag.response('cooking', `POST /complete`, response, response.success)
-
-					if (response.success && response.data) {
-						diag.action('cooking', 'COMPLETE_COOKING success', {
-							baseXpAwarded: response.data.baseXpAwarded,
-							pendingXp: response.data.pendingXp,
-							postDeadline: response.data.postDeadline,
-						})
-						// Update session status to completed and clear timers
-						// DON'T clear session/recipe yet — CookingPlayer still needs them for rendering
-						// The UI will call clearSession() after closeCookingPanel()
-						const { session } = get()
-						set({
-							session: session
-								? { ...session, status: 'completed' as const }
-								: null,
-							localTimers: new Map(), // Kill zombie timers
-							error: null,
-						})
-						return response.data
+						return
 					}
 
-					// API returned failure
-					set({
-						error: response.message || ct('storeFailedLoadSession'),
+					diag.action('cooking', 'RESUME_COOKING clicked', {
+						sessionId: session.sessionId,
 					})
-					return null
-				} catch (error) {
-					logDevError('Failed to complete session:', error)
-					set({
-						error: ct('storeNetworkError'),
-					})
-					return null
-				}
-			},
+					try {
+						diag.request(
+							'cooking',
+							`POST /cooking-sessions/${session.sessionId}/resume`,
+							{},
+						)
+						const response = await apiResumeSession(session.sessionId)
+						diag.response('cooking', `POST /resume`, response, response.success)
 
-			abandonCooking: async () => {
-				const { session, isPreviewMode } = get()
-				if (!session) return
+						if (response.success && response.data) {
+							set({
+								session: {
+									...session,
+									status: 'in_progress',
+									pausedAt: undefined,
+								},
+							})
+						}
+					} catch (error) {
+						diag.error('cooking', 'RESUME_COOKING exception', error)
+						toast.error(ct('toastResumeSessionFailed'))
+					}
+				},
 
-				if (isPreviewMode) {
-					set({
-						session: null,
-						recipe: null,
-						isPreviewMode: false,
-						localTimers: new Map(),
-						checkedIngredients: {},
-					})
-					return
-				}
+				completeCooking: async (rating?: number, notes?: string) => {
+					const { session, isPreviewMode } = get()
 
-				try {
-					const response = await apiAbandonSession(session.sessionId)
-					if (response.success) {
+					if (isPreviewMode) {
+						// Preview mode — no API, just exit
 						set({
 							session: null,
 							recipe: null,
+							isPreviewMode: false,
 							localTimers: new Map(),
 							checkedIngredients: {},
-							interactionMode: null,
-						})
-						toast.info(ct('toastSessionAbandoned'))
-					} else {
-						logDevError('Failed to abandon session:', response.message)
-						toast.error(ct('toastAbandonSessionFailed'))
-					}
-				} catch (error) {
-					logDevError('Failed to abandon session:', error)
-					toast.error(ct('toastAbandonSessionFailed'))
-				}
-			},
-
-			clearSession: () => {
-				set({
-					session: null,
-					recipe: null,
-					error: null,
-					isPreviewMode: false,
-					localTimers: new Map(),
-					checkedIngredients: {},
-					interactionMode: null,
-				})
-			},
-
-			/**
-			 * Clear all active timers immediately.
-			 * Used when showing completion modal to prevent zombie timers.
-			 */
-			clearAllTimers: () => {
-				set({ localTimers: new Map() })
-			},
-
-			toggleIngredient: (id: string) => {
-				const { checkedIngredients } = get()
-				set({
-					checkedIngredients: {
-						...checkedIngredients,
-						[id]: !checkedIngredients[id],
-					},
-				})
-			},
-
-			clearCheckedIngredients: () => {
-				set({ checkedIngredients: {} })
-			},
-
-			/**
-			 * Start a preview cooking session with a local recipe — no backend session.
-			 * Used by recipe creators to test-play their recipe before publishing.
-			 */
-			startPreviewCooking: (recipe: Recipe) => {
-				const mockSession: CookingSession = {
-					sessionId: `preview-${Date.now()}`,
-					recipeId: recipe.id || 'preview-unsaved',
-					status: 'in_progress',
-					currentStep: 1,
-					totalSteps: recipe.steps?.length || 0,
-					completedSteps: [],
-					activeTimers: [],
-					startedAt: new Date().toISOString(),
-				}
-				set({
-					session: mockSession,
-					recipe,
-					isPreviewMode: true,
-					isLoading: false,
-					error: null,
-					localTimers: new Map(),
-					checkedIngredients: {},
-					interactionMode: 'PREP', // Preview starts in PREP too
-				})
-			},
-
-			/**
-			 * Exit preview mode and clean up all state.
-			 */
-			exitPreview: () => {
-				set({
-					session: null,
-					recipe: null,
-					isPreviewMode: false,
-					isLoading: false,
-					error: null,
-					localTimers: new Map(),
-					checkedIngredients: {},
-					interactionMode: null,
-				})
-			},
-
-			tickTimers: () => {
-				const { localTimers, session, isPreviewMode } = get()
-				if (!session || localTimers.size === 0) return
-
-				const newTimers = new Map(localTimers)
-				let changed = false
-
-				newTimers.forEach((timer, stepNumber) => {
-					// Calculate elapsed since ORIGINAL start (not since last tick)
-					// This prevents drift from slow JS intervals
-					const elapsed = Math.floor((Date.now() - timer.startedAt) / 1000)
-					const newRemaining = Math.max(0, timer.initialDuration - elapsed)
-
-					if (newRemaining !== timer.remaining) {
-						changed = true
-						if (newRemaining <= 0) {
-							// Timer complete - record event (skip API in preview mode)
-							if (!isPreviewMode) {
-								apiLogTimerEvent(
-									session.sessionId,
-									stepNumber,
-									'complete',
-								).catch(err => logDevError('Timer complete event failed:', err))
-							}
-							newTimers.delete(stepNumber)
-						} else {
-							// Update only remaining, keep startedAt and initialDuration unchanged
-							newTimers.set(stepNumber, {
-								...timer,
-								remaining: newRemaining,
-							})
-						}
-					}
-				})
-
-				if (changed) {
-					set({ localTimers: newTimers })
-				}
-			},
-
-			getTimerRemaining: (stepNumber: number) => {
-				const timer = get().localTimers.get(stepNumber)
-				return timer ? timer.remaining : null
-			},
-
-			// ===========================================
-			// CO-COOKING ROOM ACTIONS
-			// ===========================================
-
-			createRoom: async (recipeId: string) => {
-				set({ isLoading: true, error: null })
-				try {
-					const response = await apiCreateRoom({ recipeId })
-					if (!response.success || !response.data) {
-						set({
-							error: response.message || ct('storeFailedCreateRoom'),
-							isLoading: false,
+							error: null,
 						})
 						return null
 					}
 
-					const room: CookingRoom = response.data
-					const userId = useAuthStore.getState().user?.userId
-
-					set({
-						roomCode: room.roomCode,
-						participants: room.participants,
-						isInRoom: true,
-						isHost: room.hostUserId === userId,
-						isLoading: false,
+					diag.action('cooking', 'COMPLETE_COOKING clicked', {
+						sessionId: session?.sessionId,
+						rating,
+						hasNotes: !!notes,
 					})
 
-					return room.roomCode
-				} catch (error) {
-					logDevError('[cookingStore] createRoom failed:', error)
-					set({ error: ct('storeFailedCreateRoom'), isLoading: false })
-					return null
-				}
-			},
-
-			joinRoom: async (roomCode: string, role?: string) => {
-				set({ isLoading: true, error: null })
-				try {
-					const response = await apiJoinRoom({
-						roomCode,
-						role: role as 'COOK' | 'SPECTATOR' | undefined,
-					})
-					if (!response.success || !response.data) {
-						set({
-							error: response.message || ct('storeFailedJoinRoom'),
-							isLoading: false,
-						})
-						return false
+					if (!session) {
+						diag.warn('cooking', 'COMPLETE_COOKING aborted - no session', {})
+						return null
 					}
 
-					const room: CookingRoom = response.data
-					const userId = useAuthStore.getState().user?.userId
+					try {
+						diag.request(
+							'cooking',
+							`POST /cooking-sessions/${session.sessionId}/complete`,
+							{ rating, notes },
+						)
+						const body: { rating?: number; notes?: string } = {}
+						if (rating != null) body.rating = rating
+						if (notes) body.notes = notes
+						const response = await apiCompleteSession(session.sessionId, body)
+						diag.response(
+							'cooking',
+							`POST /complete`,
+							response,
+							response.success,
+						)
 
-					// Also load the recipe for the cooking UI
-					if (room.recipeId) {
-						const recipeResponse = await getRecipeById(room.recipeId)
-						if (recipeResponse.success && recipeResponse.data) {
-							set({ recipe: recipeResponse.data })
+						if (response.success && response.data) {
+							diag.action('cooking', 'COMPLETE_COOKING success', {
+								baseXpAwarded: response.data.baseXpAwarded,
+								pendingXp: response.data.pendingXp,
+								postDeadline: response.data.postDeadline,
+							})
+							// Update session status to completed and clear timers
+							// DON'T clear session/recipe yet — CookingPlayer still needs them for rendering
+							// The UI will call clearSession() after closeCookingPanel()
+							const { session } = get()
+							set({
+								session: session
+									? { ...session, status: 'completed' as const }
+									: null,
+								localTimers: new Map(), // Kill zombie timers
+								error: null,
+							})
+							return response.data
 						}
+
+						// API returned failure
+						set({
+							error: response.message || ct('storeFailedLoadSession'),
+						})
+						return null
+					} catch (error) {
+						logDevError('Failed to complete session:', error)
+						set({
+							error: ct('storeNetworkError'),
+						})
+						return null
+					}
+				},
+
+				abandonCooking: async () => {
+					const { session, isPreviewMode } = get()
+					if (!session) return
+
+					if (isPreviewMode) {
+						set({
+							session: null,
+							recipe: null,
+							isPreviewMode: false,
+							localTimers: new Map(),
+							checkedIngredients: {},
+						})
+						return
 					}
 
+					try {
+						const response = await apiAbandonSession(session.sessionId)
+						if (response.success) {
+							set({
+								session: null,
+								recipe: null,
+								localTimers: new Map(),
+								checkedIngredients: {},
+								interactionMode: null,
+							})
+							toast.info(ct('toastSessionAbandoned'))
+						} else {
+							logDevError('Failed to abandon session:', response.message)
+							toast.error(ct('toastAbandonSessionFailed'))
+						}
+					} catch (error) {
+						logDevError('Failed to abandon session:', error)
+						toast.error(ct('toastAbandonSessionFailed'))
+					}
+				},
+
+				clearSession: () => {
 					set({
-						roomCode: room.roomCode,
-						participants: room.participants,
-						isInRoom: true,
-						isHost: room.hostUserId === userId,
+						session: null,
+						recipe: null,
+						error: null,
+						isPreviewMode: false,
+						localTimers: new Map(),
+						checkedIngredients: {},
+						interactionMode: null,
+					})
+				},
+
+				/**
+				 * Clear all active timers immediately.
+				 * Used when showing completion modal to prevent zombie timers.
+				 */
+				clearAllTimers: () => {
+					set({ localTimers: new Map() })
+				},
+
+				toggleIngredient: (id: string) => {
+					const { checkedIngredients } = get()
+					set({
+						checkedIngredients: {
+							...checkedIngredients,
+							[id]: !checkedIngredients[id],
+						},
+					})
+				},
+
+				clearCheckedIngredients: () => {
+					set({ checkedIngredients: {} })
+				},
+
+				/**
+				 * Start a preview cooking session with a local recipe — no backend session.
+				 * Used by recipe creators to test-play their recipe before publishing.
+				 */
+				startPreviewCooking: (recipe: Recipe) => {
+					const mockSession: CookingSession = {
+						sessionId: `preview-${Date.now()}`,
+						recipeId: recipe.id || 'preview-unsaved',
+						status: 'in_progress',
+						currentStep: 1,
+						totalSteps: recipe.steps?.length || 0,
+						completedSteps: [],
+						activeTimers: [],
+						startedAt: new Date().toISOString(),
+					}
+					set({
+						session: mockSession,
+						recipe,
+						isPreviewMode: true,
 						isLoading: false,
+						error: null,
+						localTimers: new Map(),
+						checkedIngredients: {},
+						interactionMode: 'PREP', // Preview starts in PREP too
+					})
+				},
+
+				/**
+				 * Exit preview mode and clean up all state.
+				 */
+				exitPreview: () => {
+					set({
+						session: null,
+						recipe: null,
+						isPreviewMode: false,
+						isLoading: false,
+						error: null,
+						localTimers: new Map(),
+						checkedIngredients: {},
+						interactionMode: null,
+					})
+				},
+
+				tickTimers: () => {
+					const { localTimers, session, isPreviewMode } = get()
+					if (!session || localTimers.size === 0) return
+
+					const newTimers = new Map(localTimers)
+					let changed = false
+
+					newTimers.forEach((timer, stepNumber) => {
+						// Calculate elapsed since ORIGINAL start (not since last tick)
+						// This prevents drift from slow JS intervals
+						const elapsed = Math.floor((Date.now() - timer.startedAt) / 1000)
+						const newRemaining = Math.max(0, timer.initialDuration - elapsed)
+
+						if (newRemaining !== timer.remaining) {
+							changed = true
+							if (newRemaining <= 0) {
+								// Timer complete - record event (skip API in preview mode)
+								if (!isPreviewMode) {
+									apiLogTimerEvent(
+										session.sessionId,
+										stepNumber,
+										'complete',
+									).catch(err =>
+										logDevError('Timer complete event failed:', err),
+									)
+								}
+								newTimers.delete(stepNumber)
+							} else {
+								// Update only remaining, keep startedAt and initialDuration unchanged
+								newTimers.set(stepNumber, {
+									...timer,
+									remaining: newRemaining,
+								})
+							}
+						}
 					})
 
-					return true
-				} catch (error) {
-					logDevError('[cookingStore] joinRoom failed:', error)
-					set({ error: ct('storeFailedJoinRoom'), isLoading: false })
-					return false
-				}
-			},
+					if (changed) {
+						set({ localTimers: newTimers })
+					}
+				},
 
-			leaveRoom: async () => {
-				const { roomCode } = get()
-				if (!roomCode) return
+				getTimerRemaining: (stepNumber: number) => {
+					const timer = get().localTimers.get(stepNumber)
+					return timer ? timer.remaining : null
+				},
 
-				try {
-					await apiLeaveRoom(roomCode)
-				} catch (e) {
-					logDevError('leaveRoom failed', e)
-				}
+				// ===========================================
+				// CO-COOKING ROOM ACTIONS
+				// ===========================================
 
-				set({
-					roomCode: null,
-					participants: [],
-					isInRoom: false,
-					isHost: false,
-				})
-			},
+				createRoom: async (recipeId: string) => {
+					set({ isLoading: true, error: null })
+					try {
+						const response = await apiCreateRoom({ recipeId })
+						if (!response.success || !response.data) {
+							set({
+								error: response.message || ct('storeFailedCreateRoom'),
+								isLoading: false,
+							})
+							return null
+						}
 
-			refreshRoom: async () => {
-				const { roomCode } = get()
-				if (!roomCode) return
-
-				try {
-					const response = await apiGetRoom(roomCode)
-					if (response.success && response.data) {
 						const room: CookingRoom = response.data
 						const userId = useAuthStore.getState().user?.userId
+						if (!(await hydrateCookRoomSession(room))) {
+							return null
+						}
 
 						set({
+							roomCode: room.roomCode,
 							participants: room.participants,
+							isInRoom: true,
 							isHost: room.hostUserId === userId,
+							isLoading: false,
 						})
-					}
-				} catch (e) {
-					logDevError('refreshRoom failed', e)
-				}
-			},
 
-			handleRoomEvent: (event: RoomEvent) => {
-				const { participants } = get()
+						return room.roomCode
+					} catch (error) {
+						logDevError('[cookingStore] createRoom failed:', error)
+						set({ error: ct('storeFailedCreateRoom'), isLoading: false })
+						return null
+					}
+				},
 
-				switch (event.type) {
-					case 'PARTICIPANT_JOINED': {
-						// Refresh full room state to get new participant
-						get().refreshRoom()
-						break
-					}
-					case 'PARTICIPANT_LEFT': {
-						set({
-							participants: participants.filter(p => p.userId !== event.userId),
+				joinRoom: async (roomCode: string, role?: string) => {
+					const beforeJoin = get()
+					const userId = useAuthStore.getState().user?.userId
+					const isSpectatorUpgrade =
+						role?.toUpperCase() === 'COOK' &&
+						beforeJoin.isInRoom &&
+						beforeJoin.roomCode?.toUpperCase() === roomCode.toUpperCase() &&
+						beforeJoin.participants.some(
+							participant =>
+								participant.userId === userId &&
+								participant.role === 'SPECTATOR',
+						)
+					set({ isLoading: true, error: null })
+					try {
+						const response = await apiJoinRoom({
+							roomCode,
+							role: role as 'COOK' | 'SPECTATOR' | undefined,
 						})
-						break
-					}
-					case 'HOST_TRANSFERRED': {
-						const newHostId = event.data?.newHostUserId as string
-						const userId = useAuthStore.getState().user?.userId
-						set({
-							isHost: newHostId === userId,
-							participants: participants.map(p => ({
-								...p,
-								isHost: p.userId === newHostId,
-							})),
-						})
-						break
-					}
-					case 'STEP_NAVIGATED':
-					case 'STEP_COMPLETED': {
-						const stepNumber = event.data?.stepNumber as number
-						const completedSteps = event.data?.completedSteps as
-							| number[]
-							| undefined
-						set({
-							participants: participants.map(p =>
-								p.userId === event.userId
-									? {
-											...p,
-											currentStep: stepNumber ?? p.currentStep,
-											completedSteps: completedSteps ?? p.completedSteps,
-										}
-									: p,
-							),
-						})
-						break
-					}
-					case 'ROOM_DISSOLVED': {
-						set({
-							roomCode: null,
-							participants: [],
-							isInRoom: false,
-							isHost: false,
-						})
-						break
-					}
-					// TIMER_STARTED, TIMER_COMPLETED, REACTION, SESSION_COMPLETED
-					// These are informational — UI handles them directly via the hook callback
-					default:
-						break
-				}
-			},
+						if (!response.success || !response.data) {
+							set({
+								error: response.message || ct('storeFailedJoinRoom'),
+								isLoading: false,
+							})
+							return false
+						}
 
-			clearRoom: () => {
-				set({
-					roomCode: null,
-					participants: [],
-					isInRoom: false,
-					isHost: false,
-				})
-			},
-		}),
+						const room: CookingRoom = response.data
+						const isSpectator = role?.toUpperCase() === 'SPECTATOR'
+
+						if (isSpectator) {
+							const recipeResponse = await getRecipeById(room.recipeId)
+							if (!recipeResponse.success || !recipeResponse.data) {
+								await rollbackRoomEntry(
+									room.roomCode,
+									ct('storeFailedLoadRecipe'),
+								)
+								return false
+							}
+							set({ recipe: recipeResponse.data })
+						} else if (
+							!(await hydrateCookRoomSession(room, !isSpectatorUpgrade))
+						) {
+							return false
+						}
+
+						set({
+							roomCode: room.roomCode,
+							participants: room.participants,
+							isInRoom: true,
+							isHost: room.hostUserId === userId,
+							isLoading: false,
+						})
+
+						return true
+					} catch (error) {
+						logDevError('[cookingStore] joinRoom failed:', error)
+						set({ error: ct('storeFailedJoinRoom'), isLoading: false })
+						return false
+					}
+				},
+
+				leaveRoom: async () => {
+					const { roomCode } = get()
+					if (!roomCode) return
+
+					try {
+						await apiLeaveRoom(roomCode)
+					} catch (e) {
+						logDevError('leaveRoom failed', e)
+					}
+
+					set({
+						roomCode: null,
+						participants: [],
+						isInRoom: false,
+						isHost: false,
+					})
+				},
+
+				refreshRoom: async () => {
+					const { roomCode } = get()
+					if (!roomCode) return
+
+					try {
+						const response = await apiGetRoom(roomCode)
+						if (response.success && response.data) {
+							const room: CookingRoom = response.data
+							const userId = useAuthStore.getState().user?.userId
+
+							set({
+								participants: room.participants,
+								isHost: room.hostUserId === userId,
+							})
+						}
+					} catch (e) {
+						logDevError('refreshRoom failed', e)
+					}
+				},
+
+				handleRoomEvent: (event: RoomEvent) => {
+					const { participants } = get()
+
+					switch (event.type) {
+						case 'PARTICIPANT_JOINED':
+						case 'PARTICIPANT_ROLE_CHANGED': {
+							// Refresh full room state to get new participant
+							get().refreshRoom()
+							break
+						}
+						case 'PARTICIPANT_LEFT': {
+							set({
+								participants: participants.filter(
+									p => p.userId !== event.userId,
+								),
+							})
+							break
+						}
+						case 'HOST_TRANSFERRED': {
+							const newHostId = event.data?.newHostUserId as string
+							const userId = useAuthStore.getState().user?.userId
+							set({
+								isHost: newHostId === userId,
+								participants: participants.map(p => ({
+									...p,
+									isHost: p.userId === newHostId,
+								})),
+							})
+							break
+						}
+						case 'STEP_NAVIGATED':
+						case 'STEP_COMPLETED': {
+							const stepNumber = event.data?.stepNumber as number
+							const completedSteps = event.data?.completedSteps as
+								| number[]
+								| undefined
+							set({
+								participants: participants.map(p =>
+									p.userId === event.userId
+										? {
+												...p,
+												currentStep: stepNumber ?? p.currentStep,
+												completedSteps: completedSteps ?? p.completedSteps,
+											}
+										: p,
+								),
+							})
+							break
+						}
+						case 'ROOM_DISSOLVED': {
+							set({
+								roomCode: null,
+								participants: [],
+								isInRoom: false,
+								isHost: false,
+							})
+							break
+						}
+						// TIMER_STARTED, TIMER_COMPLETED, REACTION, SESSION_COMPLETED
+						// These are informational — UI handles them directly via the hook callback
+						default:
+							break
+					}
+				},
+
+				clearRoom: () => {
+					set({
+						roomCode: null,
+						participants: [],
+						isInRoom: false,
+						isHost: false,
+					})
+				},
+			}
+		},
 		{
 			name: 'chefkix-cooking-session',
 			// Persist session IDs, checklist state, active timers, and render mode preference

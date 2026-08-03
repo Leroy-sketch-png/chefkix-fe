@@ -13,7 +13,6 @@ import { BlockedUsersProvider } from '@/components/providers/BlockedUsersProvide
 import { LiveAnnouncerProvider } from '@/components/a11y/LiveAnnouncer'
 import { ReducedMotionProvider } from '@/components/providers/ReducedMotionProvider'
 import { RuntimePreferencesProvider } from '@/components/providers/RuntimePreferencesProvider'
-import { FirstVisitHintsProvider } from '@/components/onboarding/FirstVisitHints'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { Toaster } from 'sonner'
@@ -149,12 +148,10 @@ export default async function RootLayout({
 									<LiveAnnouncerProvider>
 										<ReducedMotionProvider>
 											<RuntimePreferencesProvider>
-												<FirstVisitHintsProvider>
-													{children}
-													<NetworkStatusProvider />
-													<GlobalUIEnhancements />
-													<DemoCockpitRuntime />
-												</FirstVisitHintsProvider>
+												{children}
+												<NetworkStatusProvider />
+												<GlobalUIEnhancements />
+												<DemoCockpitRuntime />
 											</RuntimePreferencesProvider>
 										</ReducedMotionProvider>
 									</LiveAnnouncerProvider>

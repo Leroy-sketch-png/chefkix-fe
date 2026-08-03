@@ -7,6 +7,7 @@ import { DURATION_S } from '@/lib/motion'
 import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { cn } from '@/lib/utils'
 import {
 	suggestSubstitutions,
 	type Substitution,
@@ -16,11 +17,13 @@ import {
 interface SubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle?: string
+	className?: string
 }
 
 export function SubstitutionButton({
 	ingredientName,
 	recipeTitle,
+	className,
 }: SubstitutionButtonProps) {
 	const t = useTranslations('recipe')
 	const [open, setOpen] = useState(false)
@@ -87,7 +90,10 @@ export function SubstitutionButton({
 				type='button'
 				ref={buttonRef}
 				onClick={handleOpen}
-				className='rounded-md p-1 text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
+				className={cn(
+					'rounded-md p-1 text-text-muted opacity-70 transition-all hover:bg-brand/10 hover:text-brand md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100',
+					className,
+				)}
 				title={t('findSubstituteFor', { ingredient: ingredientName })}
 				aria-label={t('findSubstituteFor', { ingredient: ingredientName })}
 			>

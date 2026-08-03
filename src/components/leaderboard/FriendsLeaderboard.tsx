@@ -89,12 +89,10 @@ function AvatarWithFallback({
 
 function LeaderboardSummary({
 	totalFriends,
-	totalChefs,
 	isGlobal,
 	onInviteFriends,
 }: {
 	totalFriends: number
-	totalChefs?: number
 	isGlobal?: boolean
 	onInviteFriends?: () => void
 }) {
@@ -102,10 +100,7 @@ function LeaderboardSummary({
 	// Actionable copy based on context
 	const getMessage = () => {
 		if (isGlobal) {
-			if (totalChefs && totalChefs > 1) {
-				return <>{t('competingWithChef', { n: totalChefs })}</>
-			}
-			return <>{t('firstOnBoard')}</>
+			return <>{t('globalCompetition')}</>
 		}
 		if (totalFriends === 0) {
 			return <>{t('noRivals')}</>
@@ -184,7 +179,7 @@ function CatchingUpAlert({
 					onClick={onCookToDefend}
 					className='py-2 px-3.5 bg-streak rounded-xl text-sm font-bold text-white whitespace-nowrap w-full sm:w-auto focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
-					Cook to defend 🍳
+					{t('cookToDefend')}
 				</motion.button>
 			)}
 		</motion.div>
@@ -231,7 +226,6 @@ export function FriendsLeaderboard({
 			{/* Leaderboard Summary */}
 			<LeaderboardSummary
 				totalFriends={totalFriends}
-				totalChefs={entries.length}
 				isGlobal={isGlobal}
 				onInviteFriends={onInviteFriends}
 			/>
@@ -270,9 +264,7 @@ export function FriendsLeaderboard({
 						{entries.length === 1 ? t('soloChampion') : t('dynamicDuo')}
 					</h3>
 					<p className='mb-4 text-sm text-text-secondary'>
-						{entries.length === 1
-							? "You're the only one here — invite friends to make it a real competition!"
-							: 'Just two of you battling it out. Invite more rivals!'}
+						{entries.length === 1 ? t('onlyOneInvite') : t('justTwoInvite')}
 					</p>
 				</motion.div>
 			)}
@@ -339,11 +331,10 @@ export function FriendsLeaderboard({
 						<ChefHat className='size-8 text-white' />
 					</motion.div>
 					<h3 className='mb-2 text-lg font-bold tracking-tight text-text-primary'>
-						Ready to Compete? 🔥
+						{t('readyToCompete')}
 					</h3>
 					<p className='mb-4 max-w-xs text-sm text-text-secondary'>
-						Invite friends to start the ultimate cooking showdown. Who will earn
-						the most XP?
+						{t('inviteShowdown')}
 					</p>
 					{onInviteFriends && (
 						<motion.button

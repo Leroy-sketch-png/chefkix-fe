@@ -235,7 +235,11 @@ export function DraftsList({
 						illustration={
 							<FileText className='size-16 text-brand opacity-50' />
 						}
-						primaryAction={{ label: t('createRecipeNow'), href: '/create' }}
+						primaryAction={{
+							label: t('createRecipeNow'),
+							onClick: onNewRecipe,
+							icon: <Edit3 className='size-4' />,
+						}}
 						secondaryActions={[
 							{
 								label: t('browseRecipeInspiration'),
@@ -243,11 +247,7 @@ export function DraftsList({
 								icon: <Clock className='size-4' />,
 							},
 						]}
-					>
-						<p className='mx-auto mt-2 max-w-sm rounded-full border border-brand/25 bg-brand/8 px-3 py-1 text-xs font-semibold text-brand'>
-							{t('creatorMilestoneHint')}
-						</p>
-					</EmptyStateGamified>
+					/>
 				)}
 			</motion.div>
 

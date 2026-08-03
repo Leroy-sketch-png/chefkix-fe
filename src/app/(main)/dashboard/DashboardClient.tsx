@@ -16,15 +16,25 @@ import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { Button } from '@/components/ui/button'
 import { MeshGradient } from '@/components/ui/mesh-gradient'
 import { ResumeCookingBanner } from '@/components/cooking'
-import { TonightsPick } from '@/components/dashboard'
+import {
+	TonightsPick,
+	SeasonalBanner,
+	SinceLastVisitCard,
+	ActiveChallengesWidget,
+	DashboardCommandDeck,
+} from '@/components/dashboard'
 import { getFeedPosts } from '@/services/post'
 import type { Post } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from '@/i18n/hooks'
+import { useAuth } from '@/hooks/useAuth'
+import { getPendingSessions } from '@/services/cookingSession'
+import { isStreakAtRisk } from '@/lib/streak-status'
 
 const RECENT_ACTIVITY_LIMIT = 5
 const RECENT_ACTIVITY_TIMEOUT_MS = 5000
+const DASHBOARD_SIGNAL_TIMEOUT_MS = 5000
 
 type RecentActivityState = {
 	posts: Post[]
@@ -245,6 +255,40 @@ function RecentActivityList() {
 }
 
 export default function DashboardPage() {
+	const { user } = useAuth()
+	const [pendingSessionCount, setPendingSessionCount] = useState<
+		number | undefined
+	>()
+
+	useEffect(() => {
+		if (!user?.userId) {
+			setPendingSessionCount(undefined)
+			return
+		}
+
+		let cancelled = false
+		setPendingSessionCount(undefined)
+
+		const loadPendingSessions = async () => {
+			const response = await getPendingSessions({
+				timeoutMs: DASHBOARD_SIGNAL_TIMEOUT_MS,
+			})
+			if (cancelled) return
+
+			if (response.success && Array.isArray(response.data)) {
+				setPendingSessionCount(response.data.length)
+				return
+			}
+
+			logDevError('[Dashboard] pending sessions unavailable:', response)
+		}
+
+		void loadPendingSessions()
+		return () => {
+			cancelled = true
+		}
+	}, [user?.userId])
+
 	return (
 		<PageTransition>
 			<MeshGradient className='min-h-full'>
@@ -256,9 +300,21 @@ export default function DashboardPage() {
 							'md:space-y-6 md:pb-8',
 						)}
 					>
+						<DashboardCommandDeck
+							stats={user?.statistics}
+							hasStreakAtRisk={isStreakAtRisk(user?.statistics)}
+							pendingSessionCount={pendingSessionCount}
+						/>
+
+						<SeasonalBanner />
+
+						<SinceLastVisitCard />
+
 						<div>
 							<ResumeCookingBanner className='mb-0' />
 						</div>
+
+						<ActiveChallengesWidget />
 
 						<div className='grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.92fr)]'>
 							<div>

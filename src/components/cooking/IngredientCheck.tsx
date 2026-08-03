@@ -1,15 +1,17 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { TRANSITION_SPRING, TRANSITION_BOUNCY } from '@/lib/motion'
+import { TRANSITION_BOUNCY } from '@/lib/motion'
 
 interface IngredientCheckProps {
 	ingredient: { name: string; quantity: string; unit: string }
 	isChecked: boolean
 	onToggle: () => void
-	index: number
+	children?: ReactNode
+	className?: string
 }
 
 /**
@@ -24,18 +26,16 @@ export const IngredientCheck = ({
 	ingredient,
 	isChecked,
 	onToggle,
-	index,
+	children,
+	className,
 }: IngredientCheckProps) => (
-	<motion.label
-		initial={{ opacity: 0, x: -20 }}
-		animate={{ opacity: 1, x: 0 }}
-		transition={{ delay: index * 0.05, ...TRANSITION_SPRING }}
-		onClick={onToggle}
+	<label
 		className={cn(
 			'flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all',
 			isChecked
 				? 'bg-success/10 text-success line-through opacity-60'
 				: 'bg-bg-elevated hover:bg-bg-hover',
+			className,
 		)}
 	>
 		{/* Semantic checkbox for screen readers */}
@@ -71,8 +71,9 @@ export const IngredientCheck = ({
 			</AnimatePresence>
 		</motion.div>
 
-		<span className='flex-1 text-sm font-medium'>
-			{ingredient.quantity} {ingredient.unit} {ingredient.name}
+		<span className='min-w-0 flex-1 text-sm font-medium'>
+			{children ??
+				`${ingredient.quantity} ${ingredient.unit} ${ingredient.name}`}
 		</span>
-	</motion.label>
+	</label>
 )

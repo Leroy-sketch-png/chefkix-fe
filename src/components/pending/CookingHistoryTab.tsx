@@ -266,7 +266,7 @@ const PendingItem = ({ session, onPost }: PendingItemProps) => {
 				{/* XP Display */}
 				<div className='text-right flex-shrink-0 min-w-thumbnail-lg'>
 					<span className='block text-xl font-bold tracking-tight text-success'>
-						+
+						{t('upToXpPrefix')}
 						<AnimatedNumber
 							value={session.currentXP}
 							className='tabular-nums'

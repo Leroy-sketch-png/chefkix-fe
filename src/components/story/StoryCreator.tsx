@@ -24,6 +24,8 @@ import { api } from '@/lib/axios'
 import { useTranslations } from '@/i18n/hooks'
 import { STORY_IMAGE_ACCEPT, validateStoryImage } from '@/lib/story-media'
 import { logDevError } from '@/lib/dev-log'
+import { StoryRecipePicker } from './StoryRecipePicker'
+import type { AsyncComboboxOption } from '@/components/ui/async-combobox'
 
 interface StoryItem {
 	id: string
@@ -69,6 +71,9 @@ export function StoryCreator() {
 	const [mediaPreview, setMediaPreview] = useState<string>('')
 	const [imageScale, setImageScale] = useState(1)
 	const [imageRotation, setImageRotation] = useState(0)
+	const [linkedRecipe, setLinkedRecipe] = useState<AsyncComboboxOption | null>(
+		null,
+	)
 
 	const [isLoading, setIsLoading] = useState(false)
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -122,21 +127,32 @@ export function StoryCreator() {
 
 	const handleImageStickerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
-		if (file) {
-			const newItem: StoryItem = {
-				id: Date.now().toString(),
-				type: 'IMAGE_STICKER',
-				x: 100,
-				y: 150,
-				width: 150,
-				height: 150,
-				rotation: 0,
-				data: { imageUrl: createObjectUrl(file) },
-				file: file,
-			}
-			setItems([...items, newItem])
-			if (stickerInputRef.current) stickerInputRef.current.value = ''
+		if (!file) return
+
+		const validationError = validateStoryImage(file)
+		if (validationError) {
+			e.target.value = ''
+			toast.error(
+				validationError === 'too-large'
+					? t('imageTooLargeError')
+					: t('unsupportedImageError'),
+			)
+			return
 		}
+
+		const newItem: StoryItem = {
+			id: Date.now().toString(),
+			type: 'IMAGE_STICKER',
+			x: 100,
+			y: 150,
+			width: 150,
+			height: 150,
+			rotation: 0,
+			data: { imageUrl: createObjectUrl(file) },
+			file: file,
+		}
+		setItems([...items, newItem])
+		if (stickerInputRef.current) stickerInputRef.current.value = ''
 	}
 
 	const handleAddText = () => {
@@ -198,7 +214,7 @@ export function StoryCreator() {
 
 		setIsLoading(true)
 		try {
-		// Wait for all sticker images to upload to Cloudinary
+			// Wait for all sticker images to upload to Cloudinary
 			const processedItems = await Promise.all(
 				items.map(async item => {
 					let finalImageUrl = item.data?.imageUrl
@@ -208,7 +224,7 @@ export function StoryCreator() {
 					}
 
 					return {
-						type: item.type === 'IMAGE_STICKER' ? 'STICKER' : item.type,
+						type: item.type,
 						x: item.x,
 						y: item.y,
 						rotation: item.rotation || 0,
@@ -230,7 +246,7 @@ export function StoryCreator() {
 
 			const storyMetadata = {
 				mediaType: 'IMAGE',
-				linkedRecipeId: null,
+				linkedRecipeId: linkedRecipe?.value ?? null,
 				imageScale: imageScale,
 				imageRotation: imageRotation,
 				items: processedItems,
@@ -255,22 +271,28 @@ export function StoryCreator() {
 			}
 		} catch (e: any) {
 			logDevError('Story publish error:', e)
-			toast.error(e.response?.data?.message || t('errorMessage'))
+			toast.error(
+				e.response?.status === 404 && linkedRecipe
+					? t('linkedRecipeUnavailableError')
+					: t('errorMessage'),
+			)
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	return (
-		<div className='flex h-screen bg-bg text-text-primary font-sans overflow-hidden'>
+		<div className='flex min-h-[calc(100dvh-4rem)] flex-col overflow-auto bg-bg font-sans text-text-primary lg:h-[calc(100dvh-4rem)] lg:flex-row lg:overflow-hidden'>
 			{/* Left column: control sidebar */}
-			<div className='w-drawer bg-bg-card border-r border-border flex flex-col z-10 shadow-2xl'>
+			<div className='z-10 flex w-full shrink-0 flex-col border-b border-border bg-bg-card shadow-2xl lg:w-drawer lg:border-b-0 lg:border-r'>
 				<div className='flex items-center gap-3 p-4 border-b border-border'>
 					<Button
 						variant='ghost'
 						size='icon'
 						onClick={() => router.back()}
 						className='rounded-full hover:bg-bg-hover text-text-secondary'
+						aria-label={t('closeButton')}
+						title={t('closeButton')}
 					>
 						<X className='w-5 h-5' />
 					</Button>
@@ -319,6 +341,7 @@ export function StoryCreator() {
 									max='3'
 									step='0.1'
 									value={imageScale}
+									aria-label={t('zoomControlLabel')}
 									onChange={e => setImageScale(Number(e.target.value))}
 									className='w-full accent-blue-500 h-1 bg-bg-hover rounded-xl appearance-none cursor-pointer'
 								/>
@@ -334,6 +357,7 @@ export function StoryCreator() {
 									max='180'
 									step='1'
 									value={imageRotation}
+									aria-label={t('rotateControlLabel')}
 									onChange={e => setImageRotation(Number(e.target.value))}
 									className='w-full accent-blue-500 h-1 bg-bg-hover rounded-xl appearance-none cursor-pointer'
 								/>
@@ -388,7 +412,7 @@ export function StoryCreator() {
 
 						<input
 							type='file'
-							accept='image/png,image/jpeg,image/webp'
+							accept={STORY_IMAGE_ACCEPT}
 							className='hidden'
 							ref={stickerInputRef}
 							onChange={handleImageStickerUpload}
@@ -403,6 +427,11 @@ export function StoryCreator() {
 							</span>
 						</button>
 					</div>
+
+					<StoryRecipePicker
+						selectedRecipe={linkedRecipe}
+						onChange={setLinkedRecipe}
+					/>
 				</div>
 
 				{/* Publish story button */}
@@ -418,13 +447,13 @@ export function StoryCreator() {
 			</div>
 
 			{/* Right column: canvas preview */}
-			<div className='flex-1 flex items-center justify-center bg-bg p-8 relative'>
+			<div className='relative flex min-h-[70dvh] flex-1 items-center justify-center bg-bg p-4 sm:p-8 lg:min-h-0'>
 				<div className='relative w-full max-w-sm aspect-[9/16] bg-black rounded-xl shadow-md overflow-hidden border border-border'>
 					{/* Story background image */}
 					{mediaPreview ? (
 						<img
 							src={mediaPreview}
-							alt='Story Background'
+							alt={t('storyBackgroundAlt')}
 							className='absolute inset-0 w-full h-full object-cover pointer-events-none transition-transform duration-75'
 							style={{
 								transform: `scale(${imageScale}) rotate(${imageRotation}deg)`,
@@ -490,7 +519,7 @@ export function StoryCreator() {
 								{item.type === 'IMAGE_STICKER' && (
 									<img
 										src={item.data.imageUrl}
-										alt='Custom Sticker'
+										alt={t('customStickerAlt')}
 										className='w-full h-full object-contain pointer-events-none drop-shadow-xl'
 									/>
 								)}

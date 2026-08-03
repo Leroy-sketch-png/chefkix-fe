@@ -7,12 +7,10 @@ import {
 	Cloud,
 	Image as ImageIcon,
 	Loader2,
-	Lock,
 	Plus,
 	Rocket,
 	Save,
 	Send,
-	Signal,
 	Timer,
 	Trash2,
 	Upload,
@@ -114,6 +112,23 @@ interface RecipeFormDetailedProps {
 	savingLabel?: string
 	className?: string
 }
+
+const DIFFICULTY_OPTIONS: Difficulty[] = [
+	'Beginner',
+	'Intermediate',
+	'Advanced',
+	'Expert',
+]
+
+const DIFFICULTY_LABEL_KEYS: Record<Difficulty, string> = {
+	Beginner: 'formDifficultyBeginner',
+	Intermediate: 'formDifficultyIntermediate',
+	Advanced: 'formDifficultyAdvanced',
+	Expert: 'formDifficultyExpert',
+}
+
+const isDifficulty = (value: string): value is Difficulty =>
+	DIFFICULTY_OPTIONS.includes(value as Difficulty)
 
 // ============================================
 // CONSTANTS
@@ -328,7 +343,9 @@ const IngredientRow = ({
 				/>
 				<Select
 					value={ingredient.unit}
-					onValueChange={v => onChange({ ...ingredient, unit: v as MeasurementUnit })}
+					onValueChange={v =>
+						onChange({ ...ingredient, unit: v as MeasurementUnit })
+					}
 				>
 					<SelectTrigger
 						aria-label={t('formUnitLabel')}
@@ -885,13 +902,13 @@ export const RecipeFormDetailed = ({
 	// ============================================
 	// LIVE DIFFICULTY PREDICTION
 	// ============================================
-	const [predictedDifficulty, setPredictedDifficulty] = useState<string | null>(
-		null,
-	)
-	const [difficultyConfidence, setDifficultyConfidence] = useState<number>(0)
+	const [predictedDifficulty, setPredictedDifficulty] =
+		useState<Difficulty | null>(null)
 	const difficultyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const difficultyManuallyEditedRef = useRef(Boolean(initialData?.difficulty))
 
 	useEffect(() => {
+		let cancelled = false
 		const ingredientCount = formData.ingredients.filter(i =>
 			i.name.trim(),
 		).length
@@ -902,7 +919,9 @@ export const RecipeFormDetailed = ({
 		// Need at least 1 ingredient AND 1 step to predict
 		if (ingredientCount === 0 || stepCount === 0) {
 			setPredictedDifficulty(null)
-			return
+			return () => {
+				cancelled = true
+			}
 		}
 
 		if (difficultyTimerRef.current) clearTimeout(difficultyTimerRef.current)
@@ -916,16 +935,30 @@ export const RecipeFormDetailed = ({
 					estimated_time_minutes: totalTime || 30,
 					equipment_count: 0,
 				})
-				if (result.success && result.data) {
-					setPredictedDifficulty(result.data.predictedDifficulty)
-					setDifficultyConfidence(result.data.confidence)
+				if (
+					!cancelled &&
+					result.success &&
+					result.data &&
+					isDifficulty(result.data.predictedDifficulty)
+				) {
+					const suggestion = result.data.predictedDifficulty
+					setPredictedDifficulty(suggestion)
+					if (!difficultyManuallyEditedRef.current) {
+						setFormData(previous => ({
+							...previous,
+							difficulty: suggestion,
+						}))
+					}
 				}
 			} catch (err) {
-				logDevError('ML difficulty calibration failed (non-critical):', err)
+				if (!cancelled) {
+					logDevError('ML difficulty calibration failed (non-critical):', err)
+				}
 			}
 		}, 1200)
 
 		return () => {
+			cancelled = true
 			if (difficultyTimerRef.current) clearTimeout(difficultyTimerRef.current)
 		}
 	}, [
@@ -1148,37 +1181,34 @@ export const RecipeFormDetailed = ({
 							>
 								{t('formDifficulty')}
 							</label>
-							<div
-								aria-labelledby='recipe-difficulty-label'
-								className='flex items-center gap-2 rounded-xl border-2 border-border bg-bg-card px-4 py-3 cursor-help'
-								title={t('formDifficultyTitle')}
+							<Select
+								value={formData.difficulty}
+								onValueChange={value => {
+									if (!isDifficulty(value)) return
+									difficultyManuallyEditedRef.current = true
+									updateField('difficulty', value)
+								}}
 							>
-								<Signal
-									className={cn(
-										'size-4',
-										predictedDifficulty ? 'text-brand' : 'text-text-secondary',
-									)}
-								/>
-								<span
-									className={cn(
-										'flex-1 text-sm',
-										predictedDifficulty
-											? 'font-medium text-text-primary'
-											: 'text-text-secondary',
-									)}
+								<SelectTrigger
+									id='recipe-difficulty'
+									aria-labelledby='recipe-difficulty-label'
+									className='w-full rounded-xl border-2 border-border bg-bg-card px-4 py-3 text-sm text-text-primary focus:border-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 								>
-									{predictedDifficulty || t('formDeterminedByAi')}
-								</span>
-								{predictedDifficulty && difficultyConfidence > 0 && (
-									<span className='tabular-nums text-xs text-text-secondary'>
-										{Math.round(difficultyConfidence * 100)}%
-									</span>
-								)}
-								<Lock className='size-4 text-text-secondary' />
-							</div>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{DIFFICULTY_OPTIONS.map(difficulty => (
+										<SelectItem key={difficulty} value={difficulty}>
+											{t(DIFFICULTY_LABEL_KEYS[difficulty])}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 							<p className='mt-1.5 text-xs text-text-secondary'>
 								{predictedDifficulty
-									? t('formAiPrediction')
+									? t('formAiPrediction', {
+											difficulty: t(DIFFICULTY_LABEL_KEYS[predictedDifficulty]),
+										})
 									: t('formAiPredictionHint')}
 							</p>
 						</div>

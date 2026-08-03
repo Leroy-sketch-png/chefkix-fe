@@ -10,7 +10,7 @@ import {
 	PendingRequest,
 	GroupExploreQuery,
 } from '@/lib/types/group'
-import { ApiResponse, Post } from '@/lib/types'
+import { ApiResponse, PaginationMeta, Post } from '@/lib/types'
 
 // Helper to handle pagination responses
 interface PaginatedResponse<T> {
@@ -42,16 +42,19 @@ type NormalizablePaginatedResponse<T> =
 function normalizePaginatedResponse<T>(
 	data: NormalizablePaginatedResponse<T>,
 	fallbackSize: number,
+	pagination?: PaginationMeta,
 ): PaginatedResponse<T> {
 	if (Array.isArray(data)) {
+		const currentPage = pagination?.page ?? 0
+		const totalPages = pagination?.totalPages ?? (data.length > 0 ? 1 : 0)
 		return {
 			content: data,
-			totalElements: data.length,
-			totalPages: data.length > 0 ? 1 : 0,
-			currentPage: 0,
-			pageSize: fallbackSize,
-			hasNext: false,
-			hasPrevious: false,
+			totalElements: pagination?.totalElements ?? data.length,
+			totalPages,
+			currentPage,
+			pageSize: pagination?.size ?? fallbackSize,
+			hasNext: pagination ? !pagination.last : currentPage + 1 < totalPages,
+			hasPrevious: pagination ? !pagination.first : currentPage > 0,
 		}
 	}
 
@@ -121,7 +124,7 @@ export const updateGroup = async (
 
 /**
  * Join a group
- * Returns response with status: PENDING (private groups) or ACTIVE (public groups)
+ * Returns response with membershipStatus: PENDING (private groups) or ACTIVE (public groups)
  */
 export const joinGroup = async (
 	groupId: string,
@@ -150,10 +153,11 @@ export const exploreGroups = async (
 ): Promise<PaginatedResponse<Group>> => {
 	const params = new URLSearchParams()
 
-	if (query.searchTerm) params.append('searchTerm', query.searchTerm)
-	if (query.privacyType) params.append('privacyType', query.privacyType)
-	if (query.sortBy) params.append('sortBy', query.sortBy)
-	if (query.tags?.length) params.append('tags', query.tags.join(','))
+	if (query.searchTerm) params.append('keyword', query.searchTerm)
+	if (query.privacyType) params.append('privacy', query.privacyType)
+	if (query.sortBy) {
+		params.append('sortBy', query.sortBy === 'MEMBERS' ? 'popular' : 'newest')
+	}
 
 	params.append('page', page.toString())
 	params.append('size', size.toString())
@@ -161,7 +165,11 @@ export const exploreGroups = async (
 	const response = await api.get<
 		ApiResponse<PaginatedResponse<Group> | Group[]>
 	>(`${API_ENDPOINTS.GROUPS.EXPLORE}?${params.toString()}`)
-	return normalizePaginatedResponse(response.data.data, size)
+	return normalizePaginatedResponse(
+		response.data.data,
+		size,
+		response.data.pagination,
+	)
 }
 
 /**
@@ -180,7 +188,11 @@ export const getMyGroups = async (
 	const response = await api.get<
 		ApiResponse<NormalizablePaginatedResponse<Group>>
 	>(`${API_ENDPOINTS.GROUPS.MY_GROUPS}?${params.toString()}`)
-	return normalizePaginatedResponse(response.data.data, size)
+	return normalizePaginatedResponse(
+		response.data.data,
+		size,
+		response.data.pagination,
+	)
 }
 
 /**
@@ -198,7 +210,11 @@ export const getGroupMembers = async (
 	const response = await api.get<
 		ApiResponse<PaginatedResponse<GroupMember> | GroupMember[]>
 	>(`${API_ENDPOINTS.GROUPS.GET_MEMBERS(groupId)}?${params.toString()}`)
-	return normalizePaginatedResponse(response.data.data, size)
+	return normalizePaginatedResponse(
+		response.data.data,
+		size,
+		response.data.pagination,
+	)
 }
 
 /**
@@ -218,7 +234,11 @@ export const getPendingRequests = async (
 	>(
 		`${API_ENDPOINTS.GROUPS.GET_PENDING_REQUESTS(groupId)}?${params.toString()}`,
 	)
-	return normalizePaginatedResponse(response.data.data, size)
+	return normalizePaginatedResponse(
+		response.data.data,
+		size,
+		response.data.pagination,
+	)
 }
 
 /**

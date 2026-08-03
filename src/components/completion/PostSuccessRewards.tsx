@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Lock, Unlock, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -184,6 +185,13 @@ export const PostSuccessRewards = ({
 	const t = useTranslations('completion')
 	useEscapeKey(isOpen, onClose)
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
+
+	// Fire confetti burst when the celebration opens
+	useEffect(() => {
+		if (isOpen) {
+			triggerSuccessConfetti()
+		}
+	}, [isOpen])
 	return (
 		<AnimatePresence>
 			{isOpen && (

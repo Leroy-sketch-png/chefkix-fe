@@ -4,13 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-	ChevronsUp,
-	Flame,
-	Loader2,
-	MessageSquare,
-	Sparkles,
-} from 'lucide-react'
+import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -23,12 +17,14 @@ import { PostCardSkeleton } from '@/components/social/PostCardSkeleton'
 import { Button } from '@/components/ui/button'
 import { getFeedPosts, getFollowingFeedPosts } from '@/services/post'
 import { useAuth } from '@/hooks/useAuth'
-import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
+import { createAsyncRequestAuthority } from '@/lib/async-request-authority'
 import type { FeedMode } from '@/components/shared/FeedTabBar'
 import { EmptyStateGamified } from '@/components/shared'
 import { useStoryStore } from '@/store/storyStore'
 import { StoryFeed } from '@/components/story/StoryFeed'
+import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
+import { PullToRefresh } from '@/components/ui/pull-to-refresh'
 
 const POSTS_PER_PAGE = 10
 
@@ -44,12 +40,13 @@ export default function FeedPage() {
 	const [hasMore, setHasMore] = useState(false)
 	const [isLoading, setIsLoading] = useState(true)
 	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadMoreError, setLoadMoreError] = useState(false)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
 	const [isColdStartFallback, setIsColdStartFallback] = useState(false)
-	const [showBackToTop, setShowBackToTop] = useState(false)
 	const initializedAuthMode = useRef(false)
 	const sentinelRef = useRef<HTMLDivElement>(null)
+	const paginationAuthority = useRef(createAsyncRequestAuthority())
 	const availableModes: FeedMode[] = user
 		? ['forYou', 'trending', 'following', 'latest']
 		: ['trending', 'latest']
@@ -85,6 +82,10 @@ export default function FeedPage() {
 
 	useEffect(() => {
 		let cancelled = false
+		const requestAuthority = paginationAuthority.current
+		requestAuthority.reset()
+		setIsLoadingMore(false)
+		setLoadMoreError(false)
 
 		const fetchFeed = async () => {
 			setIsLoading(true)
@@ -171,6 +172,7 @@ export default function FeedPage() {
 		fetchFeed()
 		return () => {
 			cancelled = true
+			requestAuthority.reset()
 		}
 	}, [feedMode, retryKey])
 
@@ -178,6 +180,8 @@ export default function FeedPage() {
 		if (isLoadingMore || !hasMore) return
 
 		const nextPage = currentPage + 1
+		const ticket = paginationAuthority.current.begin()
+		setLoadMoreError(false)
 		setIsLoadingMore(true)
 		try {
 			const effectiveMode: 'forYou' | 'latest' | 'trending' =
@@ -199,27 +203,34 @@ export default function FeedPage() {
 							mode: effectiveMode,
 						})
 
-			if (response.success && response.data) {
-				setPosts(prev => {
-					const existingIds = new Set(prev.map(post => post.id))
-					const nextPosts = response.data.filter(
-						post => !existingIds.has(post.id),
-					)
-					return [...prev, ...nextPosts]
-				})
-				setCurrentPage(nextPage)
-				if (response.pagination) {
-					setHasMore(!response.pagination.last)
-				} else {
-					setHasMore(response.data.length >= POSTS_PER_PAGE)
-				}
+			if (!paginationAuthority.current.isCurrent(ticket)) return
+
+			if (!response.success || !response.data) {
+				setLoadMoreError(true)
+				return
+			}
+
+			setPosts(prev => {
+				const existingIds = new Set(prev.map(post => post.id))
+				const nextPosts = response.data.filter(
+					post => !existingIds.has(post.id),
+				)
+				return [...prev, ...nextPosts]
+			})
+			setCurrentPage(nextPage)
+			if (response.pagination) {
+				setHasMore(!response.pagination.last)
+			} else {
+				setHasMore(response.data.length >= POSTS_PER_PAGE)
 			}
 		} catch (err) {
+			if (!paginationAuthority.current.isCurrent(ticket)) return
 			logDevError('Failed to load more public feed posts:', err)
-			toast.error(t('loadMoreError'))
-			setHasMore(true)
+			setLoadMoreError(true)
 		} finally {
-			setIsLoadingMore(false)
+			if (paginationAuthority.current.isCurrent(ticket)) {
+				setIsLoadingMore(false)
+			}
 		}
 	}
 
@@ -229,11 +240,17 @@ export default function FeedPage() {
 
 	useEffect(() => {
 		const sentinel = sentinelRef.current
-		if (!sentinel || !hasMore || isLoadingMore || isLoading) return
+		if (!sentinel || !hasMore || isLoadingMore || isLoading || loadMoreError)
+			return
 
 		const observer = new IntersectionObserver(
 			entries => {
-				if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+				if (
+					entries[0].isIntersecting &&
+					hasMore &&
+					!isLoadingMore &&
+					!loadMoreError
+				) {
 					loadMoreRef.current()
 				}
 			},
@@ -242,24 +259,7 @@ export default function FeedPage() {
 
 		observer.observe(sentinel)
 		return () => observer.disconnect()
-	}, [hasMore, isLoadingMore, isLoading])
-
-	// Back-to-top visibility (rAF throttled)
-	useEffect(() => {
-		let ticking = false
-		const handleScroll = () => {
-			if (!ticking) {
-				requestAnimationFrame(() => {
-					setShowBackToTop(window.scrollY > 600)
-					ticking = false
-				})
-				ticking = true
-			}
-		}
-
-		window.addEventListener('scroll', handleScroll, { passive: true })
-		return () => window.removeEventListener('scroll', handleScroll)
-	}, [])
+	}, [hasMore, isLoadingMore, isLoading, loadMoreError])
 
 	if (error && posts.length === 0) {
 		return (
@@ -297,222 +297,210 @@ export default function FeedPage() {
 			<PageContainer maxWidth='2xl'>
 				<div data-testid='feed-page'>
 					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
-						<div>
-							{user && (
-								<div className='mb-4 sm:mb-6'>
-									<StoryFeed
-										stories={storyUsers}
-										isLoading={isStoryLoading}
-										onStoryClick={userStory =>
-											router.push(`/story/view/${userStory.userId}`)
-										}
+						<ColdStartExperience
+							isAuthenticated={!!user}
+							onColdStartComplete={() => setRetryKey(k => k + 1)}
+						>
+							<PullToRefresh onRefresh={() => setRetryKey(k => k + 1)}>
+								<div>
+									{user && (
+										<div className='mb-4 sm:mb-6'>
+											<StoryFeed
+												stories={storyUsers}
+												isLoading={isStoryLoading}
+												onStoryClick={userStory =>
+													router.push(`/story/view/${userStory.userId}`)
+												}
+											/>
+										</div>
+									)}
+
+									<FeedCommandDeck
+										feedMode={feedMode}
+										onFeedModeChange={setFeedMode}
+										availableModes={availableModes}
+										postCount={posts.length}
+										hasMore={hasMore}
+										isLoading={isLoading}
+										className='mb-4 sm:mb-6'
 									/>
-								</div>
-							)}
 
-							{isColdStartFallback && (
-							<motion.div
-								initial={{ opacity: 0, y: -8 }}
-								animate={{ opacity: 1, y: 0 }}
-								className='mb-4 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm text-text-secondary'
-							>
-								<p>{t('coldStartBanner')}</p>
-							</motion.div>
-							)}
-
-							<FeedCommandDeck
-								feedMode={feedMode}
-								onFeedModeChange={setFeedMode}
-								availableModes={availableModes}
-								postCount={posts.length}
-								hasMore={hasMore}
-								isLoading={isLoading}
-								className='mb-4 sm:mb-6'
-							/>
-
-							{error && posts.length > 0 && (
-								<div
-									role='alert'
-									className='mb-4 flex items-center gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-3'
-								>
-									<span className='text-sm text-error'>{t('unavailableDesc')}</span>
-									<Button
-										type='button'
-										variant='outline'
-										size='sm'
-										onClick={() => setRetryKey(k => k + 1)}
-										className='ml-auto shrink-0'
-									>
-										{tc('retry')}
-									</Button>
-								</div>
-							)}
-
-							{isLoading ? (
-								<div className='space-y-4'>
-									<PostCardSkeleton />
-									<PostCardSkeleton />
-									<PostCardSkeleton />
-								</div>
-							) : posts.length === 0 ? (
-								feedMode === 'following' ? (
-									<EmptyStateGamified
-										variant='feed'
-										title={t('emptyFollowing')}
-										description={t('emptyFollowingDesc')}
-										primaryAction={{
-											label: t('quickMovesCommunity'),
-											href: '/community',
-											icon: <MessageSquare className='size-4' />,
-										}}
-										secondaryActions={[
-											{
-												label: t('quickMovesExplore'),
-												href: '/explore',
-												icon: <Sparkles className='size-4' />,
-											},
-										]}
-									/>
-								) : feedMode === 'forYou' ? (
-									<EmptyStateGamified
-										variant='feed'
-										title={t('emptyForYou')}
-										description={t('emptyForYouDesc')}
-										primaryAction={{
-											label: t('quickMovesExplore'),
-											href: '/explore',
-											icon: <Sparkles className='size-4' />,
-										}}
-										secondaryActions={[
-											{
-												label: t('quickMovesCommunity'),
-												href: '/community',
-												icon: <MessageSquare className='size-4' />,
-											},
-										]}
-									/>
-								) : (
+									{error && posts.length > 0 && (
 										<div
-											className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
+											role='alert'
+											className='mb-4 flex items-center gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-3'
 										>
-											<div className='relative z-10 w-full'>
-												<div className='p-8 text-center'>
-													<div className='mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-brand/10'>
-														<Flame className='size-7 text-brand' />
-													</div>
-													<p className='mb-1 text-2xs font-bold uppercase tracking-widest text-brand'>
-														{t('emptyEyebrow')}
-													</p>
-													<h2 className='mb-3 text-xl font-black text-text-primary'>
-														{t('emptyTitle')}
-													</h2>
-													<p className='mx-auto mb-6 max-w-sm text-sm leading-relaxed text-text-secondary'>
-														{t('emptyDesc')}
-													</p>
-													<div className='flex flex-wrap justify-center gap-3'>
-														<Button
-															asChild
-															variant='brand'
-															className='h-10 gap-2 rounded-xl px-5'
-														>
-															<Link href='/explore'>
-																<Sparkles className='size-4' />
-																{t('emptyExploreAction')}
-															</Link>
-														</Button>
-														<Button
-															asChild
-															variant='outline'
-															className='h-10 gap-2 rounded-xl px-5'
-														>
-															<Link href='/search'>{t('emptyFindAction')}</Link>
-														</Button>
-													</div>
-												</div>
-												<div className='border-t border-border-subtle/60 bg-bg-elevated/40 px-8 py-4'>
-													<div className='flex flex-wrap items-center justify-center gap-6 text-sm text-text-muted'>
-														<span className='flex items-center gap-1.5'>
-															<span className='inline-block size-2 rounded-full bg-success' />
-															{t('emptyProofCommunity')}
-														</span>
-														<span className='flex items-center gap-1.5'>
-															<span className='inline-block size-2 rounded-full bg-brand' />
-															{t('emptyProofRecipes')}
-														</span>
-														<span className='flex items-center gap-1.5'>
-															<span className='inline-block size-2 rounded-full bg-xp' />
-															{t('emptyProofTips')}
-														</span>
+											<span className='text-sm text-error'>
+												{t('unavailableDesc')}
+											</span>
+											<Button
+												type='button'
+												variant='outline'
+												size='sm'
+												onClick={() => setRetryKey(k => k + 1)}
+												className='ml-auto shrink-0'
+											>
+												{tc('retry')}
+											</Button>
+										</div>
+									)}
+
+									{isLoading ? (
+										<div className='space-y-4'>
+											<PostCardSkeleton />
+											<PostCardSkeleton />
+											<PostCardSkeleton />
+										</div>
+									) : posts.length === 0 ? (
+										feedMode === 'following' ? (
+											<EmptyStateGamified
+												variant='feed'
+												title={t('emptyFollowing')}
+												description={t('emptyFollowingDesc')}
+												primaryAction={{
+													label: t('quickMovesCommunity'),
+													href: '/community',
+													icon: <MessageSquare className='size-4' />,
+												}}
+												secondaryActions={[
+													{
+														label: t('quickMovesExplore'),
+														href: '/explore',
+														icon: <Sparkles className='size-4' />,
+													},
+												]}
+											/>
+										) : feedMode === 'forYou' ? (
+											<EmptyStateGamified
+												variant='feed'
+												title={t('emptyForYou')}
+												description={t('emptyForYouDesc')}
+												primaryAction={{
+													label: t('quickMovesExplore'),
+													href: '/explore',
+													icon: <Sparkles className='size-4' />,
+												}}
+												secondaryActions={[
+													{
+														label: t('quickMovesCommunity'),
+														href: '/community',
+														icon: <MessageSquare className='size-4' />,
+													},
+												]}
+											/>
+										) : (
+											<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'>
+												<div className='relative z-10 w-full'>
+													<div className='p-8 text-center'>
+														<div className='mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-brand/10'>
+															<Flame className='size-7 text-brand' />
+														</div>
+														<p className='mb-1 text-2xs font-bold uppercase tracking-widest text-brand'>
+															{t('emptyEyebrow')}
+														</p>
+														<h2 className='mb-3 text-xl font-black text-text-primary'>
+															{t('emptyTitle')}
+														</h2>
+														<p className='mx-auto mb-6 max-w-sm text-sm leading-relaxed text-text-secondary'>
+															{t('emptyDesc')}
+														</p>
+														<div className='flex flex-wrap justify-center gap-3'>
+															<Button
+																asChild
+																variant='brand'
+																className='h-10 gap-2 rounded-xl px-5'
+															>
+																<Link href='/explore'>
+																	<Sparkles className='size-4' />
+																	{t('emptyExploreAction')}
+																</Link>
+															</Button>
+															<Button
+																asChild
+																variant='outline'
+																className='h-10 gap-2 rounded-xl px-5'
+															>
+																<Link href='/search'>
+																	{t('emptyFindAction')}
+																</Link>
+															</Button>
+														</div>
 													</div>
 												</div>
 											</div>
-										</div>
-								)
-							) : (
-								<>
-									<SurfaceSectionHeader
-										className='mb-3'
-										eyebrow={t('liveFeed')}
-										chipText={t('postsCount', { count: posts.length })}
-									/>
-									<div className='space-y-4'>
-										{posts.map(post => (
-											<PostCard
-												key={post.id}
-												post={post}
-												currentUserId={user?.userId}
-											/>
-										))}
-									</div>
-
-									{hasMore && (
+										)
+									) : (
 										<>
-											<div ref={sentinelRef} className='h-4' />
-											{isLoadingMore && (
-												<div className='mt-4 flex justify-center'>
-													<div className='flex items-center gap-2 text-sm text-text-muted'>
-														<Loader2 className='size-4 animate-spin' />
-														{t('loadingMore')}
-													</div>
+											<SurfaceSectionHeader
+												className='mb-3'
+												eyebrow={t('latestPosts')}
+												chipText={t('postsCount', { count: posts.length })}
+											/>
+											<div className='space-y-4'>
+												{posts.map(post => (
+													<PostCard
+														key={post.id}
+														post={post}
+														currentUserId={user?.userId}
+													/>
+												))}
+											</div>
+
+											{hasMore && (
+												<>
+													<div ref={sentinelRef} className='h-4' />
+													{isLoadingMore && (
+														<div className='mt-4 flex justify-center'>
+															<div className='flex items-center gap-2 text-sm text-text-muted'>
+																<Loader2 className='size-4 animate-spin' />
+																{t('loadingMore')}
+															</div>
+														</div>
+													)}
+												</>
+											)}
+
+											{loadMoreError && !isLoadingMore && (
+												<div
+													role='alert'
+													className='mt-4 flex flex-col items-center gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-5 text-center'
+												>
+													<p className='text-sm text-text-secondary'>
+														{t('loadMoreError')}
+													</p>
+													<Button
+														type='button'
+														variant='outline'
+														size='sm'
+														onClick={handleLoadMore}
+													>
+														{tc('retry')}
+													</Button>
 												</div>
+											)}
+
+											{!hasMore && posts.length > 0 && (
+												<motion.div
+													initial={{ opacity: 0 }}
+													animate={{ opacity: 1 }}
+													className='mt-8 flex flex-col items-center gap-2 text-center'
+												>
+													<div className='flex size-10 items-center justify-center rounded-full bg-bg-elevated'>
+														<Sparkles className='size-4 text-text-muted' />
+													</div>
+													<p className='text-sm font-medium text-text-muted'>
+														{t('endOfFeed')}
+													</p>
+												</motion.div>
 											)}
 										</>
 									)}
 
-									{!hasMore && posts.length > 0 && (
-										<motion.div
-											initial={{ opacity: 0 }}
-											animate={{ opacity: 1 }}
-											className='mt-8 flex flex-col items-center gap-2 text-center'
-										>
-											<div className='flex size-10 items-center justify-center rounded-full bg-bg-elevated'>
-												<Sparkles className='size-4 text-text-muted' />
-											</div>
-											<p className='text-sm font-medium text-text-muted'>
-												{t('endOfFeed')}
-											</p>
-										</motion.div>
-									)}
-								</>
-							)}
-
-							{/* Bottom breathing room for MobileBottomNav */}
-							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
-						</div>
-
-						{showBackToTop && (
-							<motion.button
-								initial={{ opacity: 0, scale: 0.8 }}
-								animate={{ opacity: 1, scale: 1 }}
-								onClick={() =>
-									window.scrollTo({ top: 0, behavior: 'smooth' })
-								}
-								className='fixed bottom-24 right-6 z-50 flex size-10 items-center justify-center rounded-full bg-bg-card shadow-warm ring-1 ring-border-subtle transition-all hover:bg-bg-elevated xl:right-10'
-								aria-label='Back to top'
-							>
-								<ChevronsUp className='size-5 text-text-secondary' />
-							</motion.button>
-						)}
+									{/* Bottom breathing room for MobileBottomNav */}
+									<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+								</div>
+							</PullToRefresh>
+						</ColdStartExperience>
 
 						<FeedContextRail
 							postCount={posts.length}

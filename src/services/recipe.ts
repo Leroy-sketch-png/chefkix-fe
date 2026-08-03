@@ -53,6 +53,7 @@ export const getAllRecipes = async (
 		)
 		const response = await api.get<PaginatedRecipeResponse>(API_BASE, {
 			params: backendParams,
+			paramsSerializer: { indexes: null },
 		})
 		return response.data
 	} catch (error) {

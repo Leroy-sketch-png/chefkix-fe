@@ -33,6 +33,7 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { StickyHeader } from '@/components/layout/StickyHeader'
 import { getHeaderRoutePolicy } from '@/components/layout/topbar-route-policy'
+import { getTopbarProgress } from '@/components/layout/topbar-progress'
 import {
 	CommandMenu,
 	type CommandMenuGroup,
@@ -69,6 +70,7 @@ export const Topbar = () => {
 	const guestSignInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(currentPath)}`
 	const brandHref = user ? PATHS.DASHBOARD : PATHS.EXPLORE
 	const routePolicy = useMemo(() => getHeaderRoutePolicy(pathname), [pathname])
+	const progress = getTopbarProgress(user?.statistics)
 	const headerActionButtonClass =
 		'relative grid size-10 place-items-center rounded-2xl border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-colors hover:border-brand/35 hover:bg-bg-elevated hover:text-brand md:size-11'
 	const counterBadgeClass =
@@ -285,16 +287,16 @@ export const Topbar = () => {
 				whileTap={ICON_BUTTON_TAP}
 				transition={TRANSITION_SPRING}
 				className={headerActionButtonClass}
-				aria-label={tCommon('search')}
-				title={`${modifierSymbol}K`}
+				aria-label={tCommon('openCommandMenu')}
+				title={`${tCommon('openCommandMenu')} (${modifierSymbol}K)`}
 			>
-				<Search className='size-4 md:size-5' />
+				<Menu className='size-4 md:size-5' />
 			</motion.button>
 
 			{!user ? (
 				<Link
 					href={guestSignInHref}
-					className='hidden h-9 items-center rounded-xl border border-border-subtle px-3 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary md:inline-flex md:h-10 md:px-4 md:text-sm'
+					className='hidden h-11 items-center rounded-xl border border-border-subtle px-3 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary md:inline-flex md:h-11 md:px-4 md:text-sm'
 				>
 					{t('tbSignIn')}
 				</Link>
@@ -311,7 +313,11 @@ export const Topbar = () => {
 								headerActionButtonClass,
 								unreadCount > 0 && 'border-brand/20 bg-brand/6 text-brand',
 							)}
-							aria-label={t('tbNotifications')}
+							aria-label={
+								unreadCount > 0
+									? t('tbNotificationsUnread', { count: unreadCount })
+									: t('tbNotifications')
+							}
 						>
 							<Bell className='size-4 md:size-5' />
 							{unreadCount > 0 && (
@@ -333,7 +339,11 @@ export const Topbar = () => {
 								headerActionButtonClass,
 								unreadMessages > 0 && 'border-xp/20 bg-xp/8 text-xp',
 							)}
-							aria-label={t('tbMessages')}
+							aria-label={
+								unreadMessages > 0
+									? t('tbMessagesUnread', { count: unreadMessages })
+									: t('tbMessages')
+							}
 						>
 							<MessageCircle className='size-4 md:size-5' />
 							{unreadMessages > 0 && (
@@ -342,6 +352,46 @@ export const Topbar = () => {
 								</span>
 							)}
 						</motion.button>
+					)}
+
+					{progress && (
+						<Link
+							href={PATHS.PROFILE}
+							className='hidden h-11 shrink-0 items-center gap-2 border-l border-border-subtle pl-3 text-text-secondary transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50 xl:flex'
+							aria-label={t('tbProgressSummary', {
+								level: progress.level,
+								currentXp: progress.currentXP,
+								xpGoal: progress.currentXPGoal,
+								streak: progress.streakCount,
+							})}
+						>
+							<span aria-hidden='true' className='text-xs font-bold text-brand'>
+								{t('tbLevel', { level: progress.level })}
+							</span>
+							<span aria-hidden='true' className='w-20'>
+								<span className='block h-1 overflow-hidden rounded-full bg-border-subtle'>
+									<span
+										className='block h-full bg-xp'
+										style={{ width: `${progress.percent}%` }}
+									/>
+								</span>
+								<span className='mt-1 block text-2xs font-semibold tabular-nums text-text-muted'>
+									{t('tbXpProgress', {
+										current: progress.currentXP,
+										goal: progress.currentXPGoal,
+									})}
+								</span>
+							</span>
+							{progress.streakCount > 0 && (
+								<span
+									aria-hidden='true'
+									className='flex items-center gap-1 text-xs font-semibold tabular-nums text-streak'
+								>
+									<Flame className='size-3.5' />
+									{t('tbStreakCompact', { count: progress.streakCount })}
+								</span>
+							)}
+						</Link>
 					)}
 
 					<div className='relative'>

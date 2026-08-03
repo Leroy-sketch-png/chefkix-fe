@@ -236,12 +236,10 @@ export const RecipeCreateAiFlow = ({
 }: RecipeCreateAiFlowProps) => {
 	const t = useTranslations('recipe')
 	const tShared = useTranslations('shared')
-	const cuisineOptions: ComboboxOption[] = CUISINE_OPTION_SPECS.map(
-		option => ({
-			value: option.value,
-			label: tShared(option.labelKey),
-		}),
-	)
+	const cuisineOptions: ComboboxOption[] = CUISINE_OPTION_SPECS.map(option => ({
+		value: option.value,
+		label: tShared(option.labelKey),
+	}))
 	// If resuming a manual draft from localStorage, start in manual mode
 	const [method, setMethod] = useState<CreateMethod>(
 		initialManualDraft ? 'manual' : 'ai',
@@ -406,8 +404,7 @@ export const RecipeCreateAiFlow = ({
 						? [{ name: 'Techniques', xp: breakdown.techniques }]
 						: [],
 					total: breakdown.total,
-					isValidated: true,
-					confidence: 1,
+					isValidated: false,
 				})
 			}
 		}
@@ -767,8 +764,7 @@ export const RecipeCreateAiFlow = ({
 						]
 					: [],
 				total: aiBreakdown.total,
-				isValidated: true,
-				confidence: 95,
+				isValidated: false,
 			})
 			setStep('xp-preview')
 			return
@@ -840,40 +836,24 @@ export const RecipeCreateAiFlow = ({
 						})) || [],
 					total: data.xpBreakdown.total,
 					isValidated: data.xpValidated,
-					confidence: data.validationConfidence,
+					confidence: Number.isFinite(data.validationConfidence)
+						? Math.round(
+								Math.max(0, Math.min(1, data.validationConfidence)) * 100,
+							)
+						: undefined,
 				})
 				setStep('xp-preview')
 			} else {
 				logDevWarn('[handlePreviewXp] calculateMetas failed:', response)
 				toast.error(t('aiFlowXpCalcFailed'), {
-					description: response.message || 'Using default values',
+					description: response.message || t('aiFlowTryAgain'),
 				})
-				setXpBreakdown({
-					base: 0,
-					steps: 0,
-					time: 0,
-					techniques: [],
-					total: 0,
-					isValidated: false,
-					confidence: 0,
-				})
-				setStep('xp-preview')
 			}
 		} catch (err) {
 			logDevError('[handlePreviewXp] XP calculation error:', err)
 			toast.error(t('aiFlowXpCalcFailedDesc'), {
 				description: t('aiFlowTryAgain'),
 			})
-			setXpBreakdown({
-				base: 0,
-				steps: 0,
-				time: 0,
-				techniques: [],
-				total: 0,
-				isValidated: false,
-				confidence: 0,
-			})
-			setStep('xp-preview')
 		} finally {
 			setIsCalculatingXp(false)
 		}
@@ -1555,7 +1535,9 @@ export const RecipeCreateAiFlow = ({
 								<span className='text-3xl'>✨</span>
 								<div>
 									<strong className='text-sm text-success'>
-										{t('aiFlowParsedSuccess')}
+										{method === 'ai'
+											? t('aiFlowParsedSuccess')
+											: t('aiFlowReadyForReview')}
 									</strong>
 									<span className='block text-xs text-text-secondary'>
 										{needsRecalculation

@@ -6,6 +6,7 @@
 export type PrivacyType = 'PUBLIC' | 'PRIVATE'
 export type MemberRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'MEMBER'
 export type MemberStatus = 'ACTIVE' | 'PENDING' | 'BANNED'
+export type GroupMembershipStatus = MemberStatus | 'NONE'
 
 export interface GroupMember {
 	userId: string
@@ -32,7 +33,7 @@ export interface Group {
 
 	// Contextual fields for frontend rendering
 	myRole?: MemberRole
-	myStatus?: MemberStatus
+	myStatus?: GroupMembershipStatus
 	isJoined?: boolean
 	isBanned?: boolean
 	hasPendingRequest?: boolean
@@ -59,8 +60,7 @@ export interface JoinGroupRequest {
 
 export interface JoinGroupResponse {
 	groupId: string
-	userId: string
-	status: MemberStatus // 'PENDING' for private groups, 'ACTIVE' for public
+	membershipStatus: MemberStatus
 	message: string
 }
 
@@ -78,8 +78,7 @@ export interface PendingRequest {
 export interface GroupExploreQuery {
 	searchTerm?: string
 	privacyType?: PrivacyType
-	sortBy?: 'LATEST' | 'MEMBERS' | 'TRENDING' // Default: LATEST
-	tags?: string[]
+	sortBy?: 'LATEST' | 'MEMBERS'
 	currentUserId?: string
 }
 

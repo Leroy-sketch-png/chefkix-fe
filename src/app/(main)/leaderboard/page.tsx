@@ -83,8 +83,8 @@ export default function LeaderboardRoute() {
 				rank: number
 				xpThisWeek: number
 				recipesCooked: number
-				xpToNextRank: number
-				nextRankPosition: number
+				xpToNextRank?: number
+				nextRankPosition?: number
 		  }
 		| undefined
 	>(undefined)
@@ -106,33 +106,38 @@ export default function LeaderboardRoute() {
 
 				if (cancelled) return
 
-				if (response.success && response.data) {
-					// Transform API response to component format
-					setEntries(
-						response.data.entries.map(e => ({
-							rank: e.rank,
-							userId: e.userId,
-							username: e.username,
-							displayName: e.displayName,
-							avatarUrl: e.avatarUrl,
-							level: e.level,
-							xpThisWeek: e.xpThisWeek,
-							recipesCooked: e.recipesCooked,
-							streak: e.streak,
-							topBadges: e.topBadges ?? [],
-						})),
-					)
-
-					if (response.data.myRank) {
-						setMyRank({
-							rank: response.data.myRank.rank,
-							xpThisWeek: response.data.myRank.xpThisWeek,
-							recipesCooked: response.data.myRank.recipesCooked ?? 0,
-							xpToNextRank: response.data.myRank.xpToNextRank ?? 0,
-							nextRankPosition: response.data.myRank.nextRankPosition ?? 0,
-						})
-					}
+				if (!response.success || !response.data) {
+					throw new Error(response.message || 'Leaderboard request failed')
 				}
+
+				setEntries(
+					response.data.entries.map(e => ({
+						rank: e.rank,
+						userId: e.userId,
+						username: e.username,
+						displayName: e.displayName,
+						avatarUrl: e.avatarUrl,
+						level: e.level,
+						xpThisWeek: e.xpThisWeek,
+						recipesCooked: e.recipesCooked,
+						streak: e.streak,
+						topBadges: e.topBadges ?? [],
+						isCurrentUser: e.userId === user?.userId,
+					})),
+				)
+
+				const rank = response.data.myRank
+				setMyRank(
+					rank && rank.rank > 0
+						? {
+								rank: rank.rank,
+								xpThisWeek: rank.xpThisWeek,
+								recipesCooked: rank.recipesCooked ?? 0,
+								xpToNextRank: rank.xpToNextRank,
+								nextRankPosition: rank.nextRankPosition,
+							}
+						: undefined,
+				)
 			} catch (err) {
 				if (cancelled) return
 				logDevError('Failed to fetch leaderboard:', err)
@@ -146,7 +151,7 @@ export default function LeaderboardRoute() {
 		return () => {
 			cancelled = true
 		}
-	}, [type, timeframe, retryKey])
+	}, [type, timeframe, retryKey, user?.userId])
 
 	// Auto-refresh leaderboard every 60s for live competition feel
 	useAutoRefresh({
@@ -199,7 +204,6 @@ export default function LeaderboardRoute() {
 				>
 					<SurfaceSectionHeader
 						eyebrow={t('competitionEyebrow')}
-						chipText={t('chefCount', { count: entries.length })}
 						className='mb-3'
 					/>
 					<LeaderboardPage

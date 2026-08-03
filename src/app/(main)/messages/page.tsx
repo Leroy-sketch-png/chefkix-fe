@@ -53,6 +53,12 @@ import {
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
+import {
+	createClientMessageId,
+	createOptimisticMessage,
+	reconcileChatMessage,
+	removePendingMessage,
+} from '@/lib/optimistic-chat'
 
 function MessageBubble({
 	message,
@@ -211,10 +217,7 @@ function MessagesContent() {
 
 	// Handle incoming WebSocket messages
 	const handleIncomingMessage = useCallback((message: ChatMessageType) => {
-		setMessages(prev => {
-			if (prev.some(m => m.id === message.id)) return prev
-			return [...prev, message]
-		})
+		setMessages(prev => reconcileChatMessage(prev, message))
 	}, [])
 
 	// Handle new conversation notifications via WebSocket
@@ -228,11 +231,7 @@ function MessagesContent() {
 	}, [])
 
 	// WebSocket connection
-	const {
-		sendMessage: sendMessageWs,
-		isConnected,
-		error: wsError,
-	} = useChatWebSocket({
+	const { isConnected, error: wsError } = useChatWebSocket({
 		conversationId: selectedConversation?.id ?? null,
 		onMessage: handleIncomingMessage,
 		onNewConversation: handleNewConversation,
@@ -374,34 +373,46 @@ function MessagesContent() {
 
 		const messageText = newMessage.trim()
 		const replyToId = replyingTo?.id
+		const clientMessageId = createClientMessageId()
+		const optimisticMessage = createOptimisticMessage({
+			clientMessageId,
+			conversationId: selectedConversation.id,
+			message: messageText,
+			sender: {
+				userId: user?.userId ?? '',
+				username: user?.username ?? '',
+				firstName: user?.firstName ?? '',
+				lastName: user?.lastName ?? '',
+				avatar: user?.avatarUrl ?? '',
+			},
+		})
+		setMessages(prev => reconcileChatMessage(prev, optimisticMessage))
 		setNewMessage('')
 		setReplyingTo(null)
 		taggedUserIdsRef.current = []
 
-		if (isConnected) {
-			sendMessageWs(messageText, replyToId)
-		} else {
-			// Fallback to REST
-			setIsSending(true)
-			try {
-				const response = await sendMessageRest({
-					conversationId: selectedConversation.id,
-					message: messageText,
-					replyToId,
-				})
-				if (response.success && response.data) {
-					setMessages(prev => [...prev, response.data!])
-				} else {
-					setNewMessage(messageText)
-					toast.error(t('failedToSend'))
-				}
-			} catch (err) {
-				logDevError('Failed to send message:', err)
+		setIsSending(true)
+		try {
+			const response = await sendMessageRest({
+				conversationId: selectedConversation.id,
+				message: messageText,
+				replyToId,
+				clientMessageId,
+			})
+			if (response.success && response.data) {
+				setMessages(prev => reconcileChatMessage(prev, response.data!))
+			} else {
+				setMessages(prev => removePendingMessage(prev, clientMessageId))
 				setNewMessage(messageText)
 				toast.error(t('failedToSend'))
-			} finally {
-				setIsSending(false)
 			}
+		} catch (err) {
+			logDevError('Failed to send message:', err)
+			setMessages(prev => removePendingMessage(prev, clientMessageId))
+			setNewMessage(messageText)
+			toast.error(t('failedToSend'))
+		} finally {
+			setIsSending(false)
 		}
 	}
 

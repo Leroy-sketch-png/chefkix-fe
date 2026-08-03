@@ -34,7 +34,6 @@ import { PATHS, isUserProfileRoutePath } from '@/constants'
 import { Portal } from '@/components/ui/portal'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
-import { useScrollDirection } from '@/hooks/useScrollDirection'
 
 interface NavItem {
 	href: string
@@ -122,8 +121,6 @@ export const MobileBottomNav = () => {
 	const [drawerQuery, setDrawerQuery] = useState('')
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
-	const scrollDirection = useScrollDirection()
-	const isHidden = scrollDirection === 'down'
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
@@ -195,10 +192,7 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className={cn(
-					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 transition-transform duration-300 md:hidden',
-					isHidden && 'translate-y-full',
-				)}
+				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
 				<div
@@ -258,7 +252,7 @@ export const MobileBottomNav = () => {
 									<Link
 										href={href}
 										aria-label={t('signUp')}
-										className='flex h-9 w-full items-center justify-center gap-1 rounded-lg bg-brand px-2.5 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+										className='flex h-11 w-full items-center justify-center gap-1 rounded-lg bg-brand px-2.5 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
 										<Icon className='size-3.5' />
 										<span className='truncate text-2xs font-semibold leading-none'>

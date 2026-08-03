@@ -154,7 +154,7 @@ export function AiAssistPanel({
 										<div className='space-y-2'>
 											<h4 className='flex items-center gap-1.5 text-sm font-medium text-text-secondary'>
 												<Lightbulb className='size-4 text-warning' />
-												Tips
+												{t('aiTips')}
 											</h4>
 											<ul className='space-y-1.5'>
 												{result.tips.map((tip, i) => (
@@ -246,11 +246,11 @@ export function AiAssistPanel({
 									<kbd className='rounded bg-bg-elevated px-1 py-0.5 font-mono'>
 										Enter
 									</kbd>{' '}
-									to ask ·{' '}
+									{t('aiEnterToAsk')} ·{' '}
 									<kbd className='rounded bg-bg-elevated px-1 py-0.5 font-mono'>
 										Esc
 									</kbd>{' '}
-									to close
+									{t('aiEscToClose')}
 								</p>
 							</div>
 						)}

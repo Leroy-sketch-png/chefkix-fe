@@ -40,7 +40,6 @@ describe('demo credibility guardrails', () => {
 	it('keeps unsupported proof claims out of user-facing copy', () => {
 		const userFacingCopy = [
 			'messages/en.json',
-			'src/components/onboarding/FirstVisitHints.tsx',
 			'src/app/(main)/explore/layout.tsx',
 		]
 			.map(readWorkspaceFile)

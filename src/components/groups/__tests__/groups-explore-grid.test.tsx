@@ -31,8 +31,31 @@ jest.mock('framer-motion', () => ({
 	},
 }))
 jest.mock('../GroupCard', () => ({
-	GroupCard: ({ group }: { group: { name: string } }) => (
-		<div>{group.name}</div>
+	GroupCard: ({
+		group,
+		onMembershipChange,
+	}: {
+		group: Group
+		onMembershipChange?: (group: Group) => void
+	}) => (
+		<div>
+			<span>{group.name}</span>
+			<span>{group.myStatus}</span>
+			<button
+				type='button'
+				aria-label={`request-${group.id}`}
+				onClick={() =>
+					onMembershipChange?.({
+						...group,
+						myStatus: 'PENDING',
+						isJoined: false,
+						hasPendingRequest: true,
+					})
+				}
+			>
+				Request
+			</button>
+		</div>
 	),
 }))
 jest.mock('../CreateGroupModal', () => ({ CreateGroupModal: () => null }))
@@ -116,5 +139,23 @@ describe('GroupsExploreGrid', () => {
 
 		await waitFor(() => expect(screen.queryByText('Old Result')).toBeNull())
 		expect(screen.getByText('New Result')).toBeTruthy()
+	})
+
+	it('persists a pending membership without promoting it to joined', async () => {
+		mockedExploreGroups.mockResolvedValueOnce({
+			content: [groupFixture('private', 'Private Bakers')],
+			totalElements: 1,
+			totalPages: 1,
+			currentPage: 0,
+			pageSize: 12,
+			hasNext: false,
+			hasPrevious: false,
+		})
+
+		render(<GroupsExploreGrid currentUserId='cook-1' />)
+		await screen.findByText('Private Bakers')
+		fireEvent.click(screen.getByRole('button', { name: 'request-private' }))
+
+		expect(screen.getByText('PENDING')).toBeTruthy()
 	})
 })

@@ -61,7 +61,7 @@ const CreateStoryCard = ({
 					<div className='flex size-10 items-center justify-center rounded-xl border border-brand/15 bg-bg-card shadow-card'>
 						<Image
 							src={avatarUrl}
-							alt='Your story avatar'
+							alt={t('yourStoryAvatarAlt')}
 							width={32}
 							height={32}
 							className='size-8 rounded-xl object-cover'

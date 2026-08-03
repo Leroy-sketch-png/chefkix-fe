@@ -17,7 +17,7 @@ export default function ViewStoryPage({
 	const { userId } = use(params)
 	const { startAt } = use(searchParams)
 	const startAtStoryId = Array.isArray(startAt) ? startAt[0] : startAt
-	const handleClose = useCallback(() => router.push('/'), [router])
+	const handleClose = useCallback(() => router.push('/feed'), [router])
 
 	return (
 		<div className='fixed inset-0 z-modal bg-black'>

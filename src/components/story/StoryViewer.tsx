@@ -11,6 +11,7 @@ import {
 	Pause,
 	Play,
 	RefreshCw,
+	ChefHat,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -31,6 +32,7 @@ import { Heart, Smile, Zap, Frown, ThumbsDown } from 'lucide-react'
 import FlyingReaction from './FlyingReaction'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 import { isAxiosError } from 'axios'
+import { useRouter } from 'next/navigation'
 
 export interface FlyingReactionState {
 	id: number
@@ -56,7 +58,13 @@ interface StoryViewerProps {
 
 const STORY_DURATION = 7000 // 7 seconds per story
 
-const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
+const StoryItemContent = ({
+	item,
+	stickerAlt,
+}: {
+	item: StoryItemDto
+	stickerAlt: string
+}) => {
 	const itemData = item.data || {}
 
 	return (
@@ -75,13 +83,15 @@ const StoryItemContent = ({ item }: { item: StoryItemDto }) => {
 			{item.type === 'TEXT' && (
 				<span className='font-bold drop-shadow-lg'>{itemData.text}</span>
 			)}
-			{(item.type === 'STICKER' || item.type === 'EMOJI') && (
-				<span style={{ fontSize: '4rem' }}>{itemData.emoji}</span>
-			)}
-			{item.type === 'IMAGE_STICKER' && (
+			{(item.type === 'STICKER' || item.type === 'EMOJI') &&
+				!itemData.imageUrl && (
+					<span style={{ fontSize: '4rem' }}>{itemData.emoji}</span>
+				)}
+			{(item.type === 'IMAGE_STICKER' ||
+				(item.type === 'STICKER' && itemData.imageUrl)) && (
 				<img
 					src={itemData.imageUrl}
-					alt='sticker'
+					alt={stickerAlt}
 					className='w-full h-full object-contain'
 				/>
 			)}
@@ -114,6 +124,7 @@ export function StoryViewer({
 		[],
 	)
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
+	const router = useRouter()
 	const { user: currentUser } = useAuth()
 	const t = useTranslations('story')
 
@@ -420,7 +431,9 @@ export function StoryViewer({
 					) : (
 						<div className='absolute inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-900 px-8 text-center text-white'>
 							<ImageOff className='size-10 text-white/65' aria-hidden='true' />
-							<p className='text-sm font-medium'>{t('storyMediaUnavailable')}</p>
+							<p className='text-sm font-medium'>
+								{t('storyMediaUnavailable')}
+							</p>
 						</div>
 					)}
 
@@ -485,15 +498,9 @@ export function StoryViewer({
 									aria-label={
 										isManuallyPaused ? t('playButton') : t('pauseButton')
 									}
-									title={
-										isManuallyPaused ? t('playButton') : t('pauseButton')
-									}
+									title={isManuallyPaused ? t('playButton') : t('pauseButton')}
 								>
-									{isManuallyPaused ? (
-										<Play size={20} />
-									) : (
-										<Pause size={20} />
-									)}
+									{isManuallyPaused ? <Play size={20} /> : <Pause size={20} />}
 								</button>
 								<button
 									type='button'
@@ -510,7 +517,11 @@ export function StoryViewer({
 
 					<div className='absolute inset-0'>
 						{(currentStory.items || []).map((item, index) => (
-							<StoryItemContent key={index} item={item} />
+							<StoryItemContent
+								key={index}
+								item={item}
+								stickerAlt={t('storyStickerAlt')}
+							/>
 						))}
 					</div>
 
@@ -526,21 +537,39 @@ export function StoryViewer({
 						))}
 					</div>
 
-					{!isMe && (
-						<div className='absolute bottom-0 left-0 right-0 p-4 z-40'>
-							<StoryInteractionBar
-								onReact={handleReact}
-								onComposingChange={setIsComposing}
-								onReply={async (content: string) => {
-									try {
-										await sendStoryReply(currentStory.id, content)
-										toast.success(t('replyPrompt'))
-									} catch (err) {
-										logDevError('Failed to send Story reply', err)
-										throw err
-									}
-								}}
-							/>
+					{(currentStory.linkedRecipeId || !isMe) && (
+						<div className='absolute bottom-0 left-0 right-0 z-40 flex flex-col gap-3 p-4'>
+							{currentStory.linkedRecipeId ? (
+								<button
+									type='button'
+									onPointerDown={event => event.stopPropagation()}
+									onClick={event => {
+										event.stopPropagation()
+										setIsManuallyPaused(true)
+										router.push(`/recipes/${currentStory.linkedRecipeId}`)
+									}}
+									className='inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-neutral-950 shadow-card transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+								>
+									<ChefHat className='size-4' aria-hidden='true' />
+									{t('cookLinkedRecipe')}
+								</button>
+							) : null}
+
+							{!isMe ? (
+								<StoryInteractionBar
+									onReact={handleReact}
+									onComposingChange={setIsComposing}
+									onReply={async (content: string) => {
+										try {
+											await sendStoryReply(currentStory.id, content)
+											toast.success(t('replyPrompt'))
+										} catch (err) {
+											logDevError('Failed to send Story reply', err)
+											throw err
+										}
+									}}
+								/>
+							) : null}
 						</div>
 					)}
 				</div>

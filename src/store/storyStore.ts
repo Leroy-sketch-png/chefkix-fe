@@ -29,10 +29,11 @@ export const useStoryStore = create<StoryStore>(set => ({
 
 	fetchStoryFeed: async () => {
 		try {
-			const res = await getStoryFeed()
-			if (res.data && Array.isArray(res.data)) {
+			const response = await getStoryFeed()
+			const stories = response.data.data
+			if (Array.isArray(stories)) {
 				set({
-					storyUsers: res.data
+					storyUsers: stories
 						.map(formatStoryUser)
 						.filter(story => Boolean(story.userId)),
 				})
@@ -46,9 +47,7 @@ export const useStoryStore = create<StoryStore>(set => ({
 		try {
 			set(state => ({
 				storyUsers: state.storyUsers.map(user =>
-					user.userId === userId
-						? { ...user, hasUnseenStory: false }
-						: user,
+					user.userId === userId ? { ...user, hasUnseenStory: false } : user,
 				),
 			}))
 		} catch (err) {

@@ -38,6 +38,7 @@ export interface RecipeSearchDoc {
 	tags: string[]
 	authorId: string
 	authorName?: string
+	authorAvatarUrl?: string
 	coverImageUrl: string
 	createdAt: number
 	xpReward: number
@@ -59,11 +60,12 @@ export interface PostSearchDoc {
 	id: string
 	content: string
 	authorId: string
-	authorName: string
+	authorName?: string
+	authorAvatarUrl?: string
 	recipeTitle: string
 	likeCount: number
 	commentCount: number
-	photoUrl: string
+	photoUrl?: string
 }
 
 export interface IngredientSearchDoc {

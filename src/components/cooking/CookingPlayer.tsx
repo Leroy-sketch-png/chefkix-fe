@@ -482,7 +482,7 @@ export const CookingPlayer = () => {
 		useReducedMotionPreference()
 	const t = useTranslations('cooking')
 	const isOpen = cookingMode === 'expanded'
-	const { showImmediateRewards, showLevelUp } = useCelebration()
+	const { showImmediateRewards, showLevelUp, showFirstCook } = useCelebration()
 
 	// Cooking store state
 	const {
@@ -1298,15 +1298,52 @@ export const CookingPlayer = () => {
 				}
 
 				diag.modal('cooking', 'REWARDS_MODAL', true, 'session_completed')
-				showImmediateRewards({
-					sessionId: session?.sessionId ?? '',
-					recipeName: recipe?.title ?? t('recipeFallback'),
-					recipeImageUrl: recipe?.coverImageUrl?.[0],
-					immediateXp: completionResult.baseXpAwarded,
-					pendingXp: completionResult.pendingXp,
-					xpBreakdown: completionResult.xpBreakdown,
-					postDeadlineHours: 336, // 14 days in hours
-				})
+				// Keep completion usable during a rolling deploy. Missing delivery facts
+				// must degrade to the conservative "processing" state, never "earned".
+				const recipeXpAwarded =
+					completionResult.recipeXpAwarded ?? completionResult.baseXpAwarded
+				const completedChallengeRewards =
+					completionResult.completedChallengeRewards ?? []
+
+				// First cook gets the richer FirstCook journey modal instead of the
+				// standard rewards sheet. Guarded by stats + one-time localStorage flag
+				// so a stale stats read never re-triggers it.
+				const stats = useAuthStore.getState().user?.statistics
+				const firstCookKey = 'chefkix:first-cook-celebrated'
+				// recipesCooked may be 0 for pre-migration users; fall back to
+				// completionCount (same pattern as UserProfile.tsx)
+				const recipesCooked =
+					stats?.recipesCooked ?? stats?.completionCount ?? 0
+				const isFirstCook =
+					recipesCooked === 0 &&
+					typeof window !== 'undefined' &&
+					!localStorage.getItem(firstCookKey)
+
+				if (isFirstCook) {
+					localStorage.setItem(firstCookKey, '1')
+					showFirstCook({
+						sessionId: session?.sessionId ?? '',
+						recipeName: recipe?.title ?? t('recipeFallback'),
+						recipeImageUrl: recipe?.coverImageUrl?.[0] ?? '',
+						xpEarned: recipeXpAwarded,
+					})
+				} else {
+					showImmediateRewards({
+						sessionId: session?.sessionId ?? '',
+						recipeName: recipe?.title ?? t('recipeFallback'),
+						recipeImageUrl: recipe?.coverImageUrl?.[0],
+						immediateXp: completionResult.baseXpAwarded,
+						recipeXpAwarded,
+						coOpBonusXp: completionResult.coOpBonusXp ?? 0,
+						pendingXp: completionResult.pendingXp,
+						completedChallengeRewards,
+						xpDeliveryStatus: completionResult.xpDeliveryStatus ?? 'QUEUED',
+						xpMultiplier: completionResult.xpMultiplier,
+						xpMultiplierReason: completionResult.xpMultiplierReason,
+						xpBreakdown: completionResult.xpBreakdown,
+						postDeadlineHours: 336, // 14 days in hours
+					})
+				}
 
 				setShowCompletion(false)
 				closeCookingPanel()
@@ -1322,6 +1359,7 @@ export const CookingPlayer = () => {
 			clearSession,
 			showImmediateRewards,
 			showLevelUp,
+			showFirstCook,
 			recipe,
 			session,
 			isCompletingSession,
@@ -1842,12 +1880,7 @@ export const CookingPlayer = () => {
 													}
 													ingredientChecklistComponent={
 														step.ingredients && step.ingredients.length > 0 ? (
-															<motion.div
-																initial={{ opacity: 0, y: 20 }}
-																animate={{ opacity: 1, y: 0 }}
-																transition={{ delay: 0.35 }}
-																className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'
-															>
+															<div className='mx-auto w-full max-w-md rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card'>
 																<h4 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
 																	<span className='text-lg'>🧾</span>{' '}
 																	{t('ingredientsForStep')}
@@ -1865,12 +1898,11 @@ export const CookingPlayer = () => {
 																				}}
 																				isChecked={!!checkedIngredients[id]}
 																				onToggle={() => toggleIngredient(id)}
-																				index={idx}
 																			/>
 																		)
 																	})}
 																</div>
-															</motion.div>
+															</div>
 														) : undefined
 													}
 												/>
