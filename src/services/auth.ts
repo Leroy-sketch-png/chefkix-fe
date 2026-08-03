@@ -10,6 +10,7 @@ import {
 	ForgotPasswordDto,
 	VerifyOtpPasswordDto,
 	ChangePasswordDto,
+	OtpDeliveryTiming,
 } from '@/lib/types'
 import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
@@ -41,16 +42,18 @@ export const signIn = async (
 }
 
 // Sign-up function
-export const signUp = async (data: SignUpDto): Promise<ApiResponse<string>> => {
+export const signUp = async (
+	data: SignUpDto,
+): Promise<ApiResponse<OtpDeliveryTiming>> => {
 	try {
-		const response = await api.post<ApiResponse<string>>(
+		const response = await api.post<ApiResponse<OtpDeliveryTiming>>(
 			API_ENDPOINTS.AUTH.REGISTER,
 			data,
 		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<string>>
+		const axiosError = error as AxiosError<ApiResponse<OtpDeliveryTiming>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}
@@ -115,15 +118,15 @@ export const logout = async (): Promise<ApiResponse<string>> => {
  */
 export const resendOtp = async (
 	data: SendOtpDto,
-): Promise<ApiResponse<string>> => {
+): Promise<ApiResponse<OtpDeliveryTiming>> => {
 	try {
-		const response = await api.post<ApiResponse<string>>(
+		const response = await api.post<ApiResponse<OtpDeliveryTiming>>(
 			`${API_ENDPOINTS.AUTH.RESEND_OTP}?email=${encodeURIComponent(data.email)}`,
 		)
 		return response.data
 	} catch (error) {
 		logDevError('response failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<string>>
+		const axiosError = error as AxiosError<ApiResponse<OtpDeliveryTiming>>
 		if (axiosError.response) {
 			return axiosError.response.data
 		}

@@ -24,21 +24,26 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS } from '@/constants'
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import { triggerSuccessConfetti } from '@/lib/confetti'
 import { Clock, AlertTriangle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { LazyLottie } from '@/components/shared/LazyLottie'
 import { finalizeAuthSession } from '@/lib/auth-session'
+import {
+	clearOtpDeliveryTiming,
+	isOtpDeliveryTiming,
+	readOtpDeliveryTiming,
+	saveOtpDeliveryTiming,
+} from '@/lib/otp-delivery'
+import type { OtpDeliveryTiming } from '@/lib/types'
 
 function createOtpSchema(t: (key: string) => string) {
 	return z
 		.object({
 			otp: z.string().length(6, { message: t('validationOtpExact') }),
-			password: z
-				.string()
-				.min(8, { message: t('validationNewPasswordMin') }),
+			password: z.string().min(8, { message: t('validationNewPasswordMin') }),
 			confirmPassword: z.string(),
 		})
 		.refine(values => values.password === values.confirmPassword, {
@@ -47,12 +52,6 @@ function createOtpSchema(t: (key: string) => string) {
 		})
 }
 
-// OTP expires after 10 minutes (from spec)
-const OTP_EXPIRY_SECONDS = 10 * 60 // 600 seconds
-
-/**
- * Format seconds into MM:SS display
- */
 function formatTime(seconds: number): string {
 	const mins = Math.floor(seconds / 60)
 	const secs = seconds % 60
@@ -79,63 +78,34 @@ export const VerifyOtpForm = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
 
-	// OTP Expiry countdown
-	const [timeRemaining, setTimeRemaining] = useState(OTP_EXPIRY_SECONDS)
-	const [isExpired, setIsExpired] = useState(false)
-	const timerRef = useRef<NodeJS.Timeout | null>(null)
+	const [delivery, setDelivery] = useState<OtpDeliveryTiming | null>(null)
+	const [now, setNow] = useState(() => Date.now())
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: { otp: '', password: '', confirmPassword: '' },
 	})
 
-	// Start/restart the countdown timer
-	const startTimer = useCallback(() => {
-		// Clear any existing timer
-		if (timerRef.current) {
-			clearInterval(timerRef.current)
-		}
-
-		setTimeRemaining(OTP_EXPIRY_SECONDS)
-		setIsExpired(false)
-		setError(null)
-
-		timerRef.current = setInterval(() => {
-			setTimeRemaining(prev => {
-				if (prev <= 1) {
-					// Time's up
-					clearInterval(timerRef.current!)
-					setIsExpired(true)
-					return 0
-				}
-				return prev - 1
-			})
-		}, 1000)
-	}, [])
-
-	// Initialize timer on mount
 	useEffect(() => {
-		if (email) {
-			startTimer()
-		}
-		return () => {
-			if (timerRef.current) {
-				clearInterval(timerRef.current)
-			}
-		}
-	}, [email, startTimer])
+		setDelivery(email ? readOtpDeliveryTiming(email) : null)
+		setNow(Date.now())
+	}, [email])
+
+	const timeRemaining = delivery
+		? Math.max(0, Math.ceil((Date.parse(delivery.expiresAt) - now) / 1000))
+		: null
+	const isExpired = timeRemaining === 0
+
+	useEffect(() => {
+		if (!delivery || Date.parse(delivery.expiresAt) <= Date.now()) return
+		const interval = window.setInterval(() => setNow(Date.now()), 1000)
+		return () => clearInterval(interval)
+	}, [delivery])
 
 	const onSubmit = async (values: z.infer<typeof formSchema>) => {
-		// Don't allow submission if expired
-		if (isExpired) {
-			toast.error(t('expiredResend'))
-			return
-		}
-
 		if (!email) {
 			const errorMsg = t('emailNotFound')
 			setError(errorMsg)
-			toast.error(errorMsg)
 			return
 		}
 
@@ -146,11 +116,7 @@ export const VerifyOtpForm = () => {
 		})
 
 		if (response.success) {
-			// Stop the timer
-			if (timerRef.current) {
-				clearInterval(timerRef.current)
-			}
-
+			clearOtpDeliveryTiming(email)
 			setSuccess(t('verificationSuccess'))
 			setError(null)
 			triggerSuccessConfetti()
@@ -177,35 +143,34 @@ export const VerifyOtpForm = () => {
 			}
 			router.push(signInPath)
 		} else {
-			const errorMsg = response.message || t('invalidOtp')
+			const errorMsg = t('invalidOtp')
 			setError(errorMsg)
 			setSuccess(null)
-			toast.error(errorMsg)
 		}
 	}
 
-	const handleResendOtp = async () => {
+	const handleResendOtp = async (): Promise<OtpDeliveryTiming | null> => {
 		if (!email) {
 			const errorMsg = t('emailNotFoundForResend')
 			setError(errorMsg)
-			toast.error(errorMsg)
-			return
+			return null
 		}
 		const response = await resendOtp({ email })
-		if (response.success) {
+		if (response.success && isOtpDeliveryTiming(response.data)) {
 			const successMsg = t('resendSuccess')
 			setSuccess(null)
 			setError(null)
 			toast.success(successMsg)
-			// Restart the timer on successful resend
-			startTimer()
-			// Clear the OTP input
-			form.reset()
+			saveOtpDeliveryTiming(email, response.data)
+			setDelivery(response.data)
+			setNow(Date.now())
+			form.resetField('otp')
+			return response.data
 		} else {
-			const errorMsg = response.message || t('resendFailed')
+			const errorMsg = t('resendFailed')
 			setError(errorMsg)
 			setSuccess(null)
-			toast.error(errorMsg)
+			return null
 		}
 	}
 
@@ -223,7 +188,7 @@ export const VerifyOtpForm = () => {
 	}
 
 	// Calculate urgency styling
-	const isUrgent = timeRemaining <= 60 && !isExpired // Last minute
+	const isUrgent = timeRemaining !== null && timeRemaining <= 60 && !isExpired
 	const timerColor = isExpired
 		? 'text-destructive'
 		: isUrgent
@@ -248,11 +213,18 @@ export const VerifyOtpForm = () => {
 						<AlertTriangle className='size-4' />
 						<span className='text-sm font-medium'>{t('codeExpired')}</span>
 					</>
-				) : (
+				) : timeRemaining !== null ? (
 					<>
 						<Clock className='size-4' />
 						<span className='text-sm font-medium'>
 							{t('codeExpiresIn', { time: formatTime(timeRemaining) })}
+						</span>
+					</>
+				) : (
+					<>
+						<Clock className='size-4' />
+						<span className='text-sm font-medium'>
+							{t('codeValidityServerManaged')}
 						</span>
 					</>
 				)}
@@ -272,7 +244,7 @@ export const VerifyOtpForm = () => {
 								<FormLabel>{t('otpLabel')}</FormLabel>
 								<FormControl>
 									<div className='flex justify-center'>
-										<InputOTP maxLength={6} {...field} disabled={isExpired}>
+										<InputOTP maxLength={6} {...field}>
 											<InputOTPGroup>
 												<InputOTPSlot index={0} />
 												<InputOTPSlot index={1} />
@@ -358,16 +330,18 @@ export const VerifyOtpForm = () => {
 						className='w-full'
 						isLoading={form.formState.isSubmitting}
 						loadingText={t('verifying')}
-						disabled={isExpired}
-						shine={!isExpired}
+						shine
 					>
-						{isExpired ? t('codeExpiredBtn') : t('verifyAndCreateAccount')}
+						{t('verifyAndCreateAccount')}
 					</AnimatedButton>
 				</form>
 			</Form>
 			<div className='mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary'>
 				<span>{isExpired ? t('getNewCode') : t('didntReceive')}</span>
-				<ResendOtpButton onResend={handleResendOtp} />
+				<ResendOtpButton
+					onResend={handleResendOtp}
+					resendAvailableAt={delivery?.resendAvailableAt}
+				/>
 			</div>
 		</div>
 	)

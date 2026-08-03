@@ -1,84 +1,74 @@
 'use client'
 
-import app from '@/configs/app'
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
+import type { OtpDeliveryTiming } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface ResendOtpButtonProps {
-	onResend: () => void
+	onResend: () => Promise<OtpDeliveryTiming | null>
+	resendAvailableAt?: string | null
 	className?: string
 }
 
 export const ResendOtpButton = ({
 	onResend,
+	resendAvailableAt = null,
 	className,
 }: ResendOtpButtonProps) => {
-	const [cooldown, setCooldown] = useState(0)
+	const t = useTranslations('auth')
+	const [availableAt, setAvailableAt] = useState(resendAvailableAt)
+	const [now, setNow] = useState(() => Date.now())
+	const [isResending, setIsResending] = useState(false)
+	const cooldown = availableAt
+		? Math.max(0, Math.ceil((Date.parse(availableAt) - now) / 1000))
+		: 0
 
-	const handleClick = () => {
-		if (cooldown > 0) return
-		onResend()
-
-		const endTime = Date.now() + app.OTP_COOLDOWN_SECONDS * 1000
+	const handleClick = async () => {
+		if (cooldown > 0 || isResending) return
+		setIsResending(true)
 		try {
-			localStorage.setItem(app.OTP_STORAGE_KEY, endTime.toString())
-		} catch {
-			/* restricted */
+			const delivery = await onResend()
+			if (delivery) {
+				setAvailableAt(delivery.resendAvailableAt)
+				setNow(Date.now())
+			}
+		} finally {
+			setIsResending(false)
 		}
-		setCooldown(app.OTP_COOLDOWN_SECONDS)
 	}
 
 	useEffect(() => {
-		try {
-			const savedTime = localStorage.getItem(app.OTP_STORAGE_KEY)
-			if (savedTime) {
-				const parsed = parseInt(savedTime)
-				if (isNaN(parsed)) {
-					localStorage.removeItem(app.OTP_STORAGE_KEY)
-					return
-				}
-				const remaining = Math.floor((parsed - Date.now()) / 1000)
-				if (remaining > 0) setCooldown(remaining)
-				else localStorage.removeItem(app.OTP_STORAGE_KEY)
-			}
-		} catch {
-			/* ignored: storage access non-critical */
-		}
+		setAvailableAt(resendAvailableAt)
+		setNow(Date.now())
+	}, [resendAvailableAt])
 
-		if (cooldown === 0) return
-
-		const interval = setInterval(() => {
-			setCooldown(prev => {
-				if (prev <= 1) {
-					try {
-						localStorage.removeItem(app.OTP_STORAGE_KEY)
-					} catch {
-						/* ignored: storage access non-critical */
-					}
-					clearInterval(interval)
-					return 0
-				}
-				return prev - 1
-			})
-		}, 1000)
-
+	useEffect(() => {
+		if (!availableAt || Date.parse(availableAt) <= Date.now()) return
+		const interval = window.setInterval(() => setNow(Date.now()), 1000)
 		return () => clearInterval(interval)
-	}, [cooldown])
+	}, [availableAt])
+
+	const isDisabled = cooldown > 0 || isResending
 
 	return (
 		<button
 			type='button'
 			onClick={handleClick}
-			disabled={cooldown > 0}
+			disabled={isDisabled}
 			className={cn(
 				'text-xs font-medium transition-colors hover:underline',
-				cooldown > 0
-					? 'text-brand/50 cursor-not-allowed pointer-events-none'
-					: 'text-brand hover:text-brand/80 cursor-pointer',
+				isDisabled
+					? 'pointer-events-none cursor-not-allowed text-text-secondary'
+					: 'cursor-pointer text-brand hover:text-brand/80',
 				className,
 			)}
 		>
-			{cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP?'}
+			{isResending
+				? t('resendingCode')
+				: cooldown > 0
+					? t('resendAvailableIn', { seconds: cooldown })
+					: t('resendCode')}
 		</button>
 	)
 }

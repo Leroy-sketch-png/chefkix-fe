@@ -107,7 +107,10 @@ describe('signUp', () => {
 				success: true,
 				statusCode: 201,
 				message: 'Account created successfully!',
-				data: 'User registered successfully. Please check your email for verification.',
+				data: {
+					expiresAt: '2026-08-03T10:10:00Z',
+					resendAvailableAt: '2026-08-03T10:01:00Z',
+				},
 			},
 		}
 		mockedApi.post.mockResolvedValue(mockApiResponse)
@@ -118,7 +121,7 @@ describe('signUp', () => {
 		// Assert
 		expect(response.success).toBe(true)
 		expect(response.statusCode).toBe(201)
-		expect(typeof response.data).toBe('string')
+		expect(response.data?.expiresAt).toBe('2026-08-03T10:10:00Z')
 		expect(mockedApi.post).toHaveBeenCalledWith(
 			'/api/v1/auth/register',
 			newUserData,
@@ -170,7 +173,10 @@ describe('resendOtp', () => {
 				success: true,
 				statusCode: 200,
 				message: 'OTP sent successfully.',
-				data: 'OTP has been sent to your email.',
+				data: {
+					expiresAt: '2026-08-03T10:10:00Z',
+					resendAvailableAt: '2026-08-03T10:02:00Z',
+				},
 			},
 		}
 		mockedApi.post.mockResolvedValue(mockApiResponse)
@@ -182,6 +188,7 @@ describe('resendOtp', () => {
 		expect(response.success).toBe(true)
 		expect(response.statusCode).toBe(200)
 		expect(response.message).toBe('OTP sent successfully.')
+		expect(response.data?.resendAvailableAt).toBe('2026-08-03T10:02:00Z')
 		expect(mockedApi.post).toHaveBeenCalledWith(
 			`${API_ENDPOINTS.AUTH.RESEND_OTP}?email=${encodeURIComponent(otpRequest.email)}`,
 		)
@@ -223,7 +230,10 @@ describe('sendOtp', () => {
 				success: true,
 				statusCode: 200,
 				message: 'OTP sent successfully.',
-				data: 'OTP has been sent to your email.',
+				data: {
+					expiresAt: '2026-08-03T10:10:00Z',
+					resendAvailableAt: '2026-08-03T10:02:00Z',
+				},
 			},
 		}
 		mockedApi.post.mockResolvedValue(mockApiResponse)

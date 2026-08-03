@@ -33,6 +33,7 @@ import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { forgotPassword, verifyOtpPassword } from '@/services/auth'
 import { ArrowLeft } from 'lucide-react'
+import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 
 type Step = 'email' | 'reset'
 
@@ -107,9 +108,8 @@ export const ForgotPasswordDialog = ({
 			return
 		}
 
-		const errorMessage = response.message || t('forgotSendFailed')
+		const errorMessage = t('forgotSendFailed')
 		emailForm.setError('email', { type: 'manual', message: errorMessage })
-		toast.error(errorMessage)
 	}
 
 	const handleResetSubmit = async (values: z.infer<typeof resetSchema>) => {
@@ -133,18 +133,21 @@ export const ForgotPasswordDialog = ({
 			return
 		}
 
-		const errorMessage = response.message || t('forgotUpdateFailed')
+		const errorMessage = t('forgotUpdateFailed')
 		resetForm.setError('otp', { type: 'manual', message: errorMessage })
-		toast.error(errorMessage)
 	}
 
 	const handleResend = async () => {
 		const response = await forgotPassword({ email })
 		if (response.success) {
 			toast.success(t('resetResendSuccess'))
-			return
+			return null
 		}
-		toast.error(t('forgotResendFailed'))
+		resetForm.setError('otp', {
+			type: 'manual',
+			message: t('forgotResendFailed'),
+		})
+		return null
 	}
 
 	const handleBack = () => {
@@ -251,14 +254,7 @@ export const ForgotPasswordDialog = ({
 												</div>
 											</FormControl>
 											<FormDescription className='text-center'>
-												<Button
-													variant='link'
-													type='button'
-													onClick={handleResend}
-													className='h-auto p-0 text-xs'
-												>
-													{t('resetResendButton')}
-												</Button>
+												<ResendOtpButton onResend={handleResend} />
 											</FormDescription>
 											<FormMessage />
 										</FormItem>

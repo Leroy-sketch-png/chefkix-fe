@@ -56,6 +56,11 @@ export interface SendOtpDto {
 	email: string
 }
 
+export interface OtpDeliveryTiming {
+	expiresAt: string
+	resendAvailableAt: string
+}
+
 export interface ForgotPasswordDto {
 	email: string
 }

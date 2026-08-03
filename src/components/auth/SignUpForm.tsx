@@ -24,6 +24,7 @@ import { signUp, checkUsernameAvailability } from '@/services/auth'
 import { PATHS } from '@/constants'
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton'
 import { toast } from 'sonner'
+import { isOtpDeliveryTiming, saveOtpDeliveryTiming } from '@/lib/otp-delivery'
 import { useTranslations } from '@/i18n/hooks'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -134,6 +135,15 @@ export function SignUpForm() {
 			})
 
 			if (response.success) {
+				if (!isOtpDeliveryTiming(response.data)) {
+					form.setError('root', {
+						type: 'manual',
+						message: t('signUpTimingMissing'),
+					})
+					setIsSubmitting(false)
+					return
+				}
+				saveOtpDeliveryTiming(values.email, response.data)
 				toast.success(t('accountCreatedCheckEmail'))
 				const otpUrl = `${PATHS.AUTH.VERIFY_OTP}?email=${encodeURIComponent(values.email)}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`
 				router.push(otpUrl)
@@ -149,19 +159,20 @@ export function SignUpForm() {
 							message: message,
 						})
 					})
-					toast.error(t('fixFormErrors'))
 				} else {
-					const errorMsg = response.message || t('signUpFailed')
+					const errorMsg = t('signUpFailed')
 					form.setError('root', {
 						type: 'manual',
 						message: errorMsg,
 					})
-					toast.error(errorMsg)
 				}
 				setIsSubmitting(false)
 			}
 		} catch {
-			toast.error(t('unexpectedError'))
+			form.setError('root', {
+				type: 'manual',
+				message: t('unexpectedError'),
+			})
 			setIsSubmitting(false)
 		}
 	}
@@ -390,7 +401,6 @@ export function SignUpForm() {
 										type: 'manual',
 										message: errorMessage,
 									})
-									toast.error(errorMessage)
 								}
 							}}
 						/>

@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface AuthLayoutProps {
 	children: ReactNode
@@ -18,6 +19,7 @@ export function AuthLayout({
 	formSide = 'left',
 	className,
 }: AuthLayoutProps) {
+	const t = useTranslations('auth')
 	if (variant === 'split') {
 		return (
 			<div className={cn('flex min-h-screen', className)}>
@@ -61,7 +63,7 @@ export function AuthLayout({
 				<div className='mx-auto mb-6 flex max-w-md items-center justify-center'>
 					<div className='inline-flex items-center gap-2 rounded-full border border-border-subtle/80 bg-bg-card/88 px-4 py-2 text-2xs font-semibold uppercase tracking-widest text-text-secondary shadow-card'>
 						<span className='size-2 rounded-full bg-brand' />
-						Social media for food
+						{t('productPositioning')}
 					</div>
 				</div>
 				<div className={cn('relative mx-auto w-full max-w-md', className)}>

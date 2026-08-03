@@ -72,7 +72,7 @@ function getReadableErrorMessage(
 	if (!message || message === 'An unknown error occurred.') {
 		return fallback
 	}
-	return message
+	return fallback
 }
 
 export function SignInForm() {
@@ -83,6 +83,16 @@ export function SignInForm() {
 	const t = useTranslations('auth')
 	const formSchema = useMemo(() => createFormSchema(t), [t])
 	const authErrorMap = useMemo(() => createAuthErrorMap(t), [t])
+	const allowedRedirectErrors = useMemo(
+		() =>
+			new Set([
+				t('googleSignInFailed'),
+				t('googleStateInvalid'),
+				t('errorProfileFetchFailed'),
+				t('sessionExpired'),
+			]),
+		[t],
+	)
 	const [verifiedEmail] = useState(() =>
 		typeof window !== 'undefined'
 			? sessionStorage.getItem('verified-email')
@@ -124,13 +134,15 @@ export function SignInForm() {
 		if (!oauthError) {
 			return
 		}
+		const safeError = allowedRedirectErrors.has(oauthError)
+			? oauthError
+			: t('errorDefault')
 
 		form.setError('root', {
 			type: 'manual',
-			message: oauthError,
+			message: safeError,
 		})
-		toast.error(oauthError)
-	}, [oauthError, form])
+	}, [allowedRedirectErrors, oauthError, form, t])
 
 	async function handleSuccessfulLogin(
 		response: ApiResponse<LoginSuccessResponse>,
@@ -143,7 +155,6 @@ export function SignInForm() {
 				type: 'manual',
 				message: errorMsg,
 			})
-			toast.error(errorMsg)
 			return false
 		}
 
@@ -168,7 +179,6 @@ export function SignInForm() {
 				type: 'manual',
 				message: errorMsg,
 			})
-			toast.error(errorMsg)
 			return false
 		}
 	}
@@ -193,16 +203,19 @@ export function SignInForm() {
 				// If success, keep spinner going until redirect happens
 			} else {
 				// Login failed - show user-friendly error
+				const rawMessage = response.message || ''
 				const readableError = getReadableErrorMessage(
-					response.message || '',
+					rawMessage,
 					authErrorMap,
 					t('errorSignInFailed'),
 				)
+				if (rawMessage && readableError === t('errorSignInFailed')) {
+					logDevError('Unmapped sign-in response:', rawMessage)
+				}
 				form.setError('root', {
 					type: 'manual',
 					message: readableError,
 				})
-				toast.error(readableError)
 				setIsSubmitting(false)
 			}
 		} catch (error) {
@@ -212,7 +225,6 @@ export function SignInForm() {
 				type: 'manual',
 				message: errorMsg,
 			})
-			toast.error(errorMsg)
 			setIsSubmitting(false)
 		}
 	}
@@ -326,7 +338,6 @@ export function SignInForm() {
 										type: 'manual',
 										message: errorMessage,
 									})
-									toast.error(errorMessage)
 								}
 							}}
 						/>
