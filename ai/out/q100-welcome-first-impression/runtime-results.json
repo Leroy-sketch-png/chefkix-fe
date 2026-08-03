@@ -1,0 +1,42 @@
+[
+  {
+    "viewport": {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    "status": 200,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "title": "Welcome | Chefkix",
+    "h1": "ChefKix",
+    "h1Count": 1,
+    "brandTextCount": 6,
+    "promiseVisible": true,
+    "exploreHref": "/explore",
+    "signupHref": "/auth/sign-up",
+    "overflow": 0,
+    "ogImage": "http://localhost:3000/images/hero/cacio-e-pepe.png",
+    "twitterImage": "http://localhost:3000/images/hero/cacio-e-pepe.png"
+  },
+  {
+    "viewport": {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    "status": 200,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "title": "Welcome | Chefkix",
+    "h1": "ChefKix",
+    "h1Count": 1,
+    "brandTextCount": 6,
+    "promiseVisible": true,
+    "exploreHref": "/explore",
+    "signupHref": "/auth/sign-up",
+    "overflow": 0,
+    "ogImage": "http://localhost:3000/images/hero/cacio-e-pepe.png",
+    "twitterImage": "http://localhost:3000/images/hero/cacio-e-pepe.png"
+  }
+]

@@ -70,4 +70,15 @@ describe('route metadata guardrails', () => {
 			expect(page).toContain('follow: false')
 		}
 	})
+
+	it('gives the public welcome route one canonical large-card image', () => {
+		const page = readWorkspaceFile('src/app/welcome/page.tsx')
+		const imagePath = '/images/hero/cacio-e-pepe.png'
+
+		expect(page).toContain("card: 'summary_large_image'")
+		expect(
+			page.match(new RegExp(imagePath.replaceAll('/', '\\/'), 'g')),
+		).toHaveLength(2)
+		expect(page).toContain("alt: 'Cacio e Pepe shared on Chefkix'")
+	})
 })

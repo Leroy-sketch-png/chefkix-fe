@@ -5,6 +5,9 @@ const source = fs.readFileSync(
 	path.join(process.cwd(), 'src/app/welcome/WelcomeClient.tsx'),
 	'utf8',
 )
+const messages = JSON.parse(
+	fs.readFileSync(path.join(process.cwd(), 'messages/en.json'), 'utf8'),
+) as { welcome: Record<string, string> }
 
 describe('WelcomeClient product contract', () => {
 	it('keeps the public actions truthful and centrally navigated', () => {
@@ -19,10 +22,17 @@ describe('WelcomeClient product contract', () => {
 	it('uses a stable food-first hero without fabricated proof or decorative motion systems', () => {
 		expect(source).toContain("src='/images/hero/cacio-e-pepe.png'")
 		expect(source).toContain("className='relative isolate flex min-h-[88svh]")
+		expect(source).toContain("{t('heroPromise')}")
+		expect(messages.welcome.heroPromise).toBe(
+			"Scroll what is worth saving. Cook when you're ready.",
+		)
+		expect(source.match(/>\s*ChefKix\s*</g)).toHaveLength(1)
 		expect(source).not.toMatch(
 			/WordRotate|ScrollVelocity|MagicCard|StackedCards|WavyBackground|AuroraBackground|ShinyButton|AnimatedGradientText/,
 		)
-		expect(source).not.toMatch(/socialProofRating|socialProofStreaks/)
+		expect(source).not.toMatch(
+			/socialProofRating|socialProofStreaks|heroTitle1|heroTitle2|heroTitleGamer/,
+		)
 		expect(source).not.toContain('repeat: Infinity')
 	})
 

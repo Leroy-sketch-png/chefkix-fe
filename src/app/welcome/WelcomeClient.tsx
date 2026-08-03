@@ -94,12 +94,9 @@ const HeroSection = () => {
 
 			<div className='container relative z-10 mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 lg:px-12'>
 				<div className='max-w-3xl'>
-					<div className='mb-8 flex flex-wrap items-center gap-3 text-sm font-semibold'>
-						<span className='rounded-full bg-brand px-4 py-2 text-white'>
-							ChefKix
-						</span>
-						<span className='text-white/85'>{t('heroTagline')}</span>
-					</div>
+					<p className='mb-8 text-sm font-semibold text-white/85'>
+						{t('heroTagline')}
+					</p>
 
 					<h1
 						id='welcome-title'
@@ -108,8 +105,7 @@ const HeroSection = () => {
 						ChefKix
 					</h1>
 					<p className='mt-5 max-w-2xl text-2xl font-bold leading-snug text-white sm:text-3xl'>
-						{t('heroTitle1')} {t('heroPro')}. {t('heroTitle2')}{' '}
-						{t('heroTitleGamer')}.
+						{t('heroPromise')}
 					</p>
 					<p className='mt-5 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg'>
 						{t('heroDescription')}
