@@ -40,6 +40,7 @@ import {
 	ZoomIn,
 	ZoomOut,
 	BookOpen,
+	ListChecks,
 	Camera,
 	Hand,
 } from 'lucide-react'
@@ -55,6 +56,7 @@ import { KitchenAudioControl } from './KitchenAudioControl'
 import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { OfflineBanner } from './OfflineBanner'
 import { AiAssistPanel } from './AiAssistPanel'
+import { FullIngredientListDialog } from './FullIngredientListDialog'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
@@ -540,9 +542,14 @@ export const CookingPlayer = () => {
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [showAiAssist, setShowAiAssist] = useState(false)
+	const [showIngredientList, setShowIngredientList] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
 	const [kitchenMode, setKitchenMode] = useState(true) // Auto-enabled: 28px+ text, 64px+ targets
 	const [liveAnnouncement, setLiveAnnouncement] = useState('') // aria-live region text
+
+	useEffect(() => {
+		if (!isOpen) setShowIngredientList(false)
+	}, [isOpen])
 
 	// Auto-enable kitchen-distance mode when entering MESSY_HANDS
 	useEffect(() => {
@@ -1118,6 +1125,9 @@ export const CookingPlayer = () => {
 			// This allows users to type in the rating form (e.g., notes with spaces)
 			if (showCompletion) return
 
+			// Radix owns focus and Escape while the ingredient reference is open.
+			if (showIngredientList) return
+
 			// Guard: When AI assist or abandon confirmation is showing, don't capture
 			if (showAiAssist) return
 
@@ -1166,6 +1176,7 @@ export const CookingPlayer = () => {
 		handlePrevStep,
 		showCompletion,
 		showAiAssist,
+		showIngredientList,
 		showAbandonConfirm,
 		kitchenMode,
 		instructionDetail,
@@ -1480,6 +1491,8 @@ export const CookingPlayer = () => {
 	const activeTimer = localTimers.get(currentStepNumber)
 	const timerRunning = !!activeTimer
 	const timerRemaining = activeTimer?.remaining ?? step?.timerSeconds ?? 0
+	const fullIngredients = recipe.fullIngredientList ?? []
+	const hasFullIngredients = fullIngredients.length > 0
 
 	return (
 		<Portal>
@@ -1709,18 +1722,35 @@ export const CookingPlayer = () => {
 
 								{/* Progress Section */}
 								<div className='border-b border-border-subtle/60 bg-gradient-to-r from-bg-elevated via-bg-card to-bg-elevated px-6 py-4'>
-									<div className='mb-3 flex items-center justify-between'>
-										<span
-											className={cn(
-												'font-medium tabular-nums text-text-secondary',
-												kitchenMode ? 'text-base' : 'text-sm',
+									<div className='mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+										<div className='flex items-center justify-between gap-3'>
+											<span
+												className={cn(
+													'font-medium tabular-nums text-text-secondary',
+													kitchenMode ? 'text-base' : 'text-sm',
+												)}
+											>
+												{t('stepOf', {
+													current: currentStepNumber,
+													total: totalSteps,
+												})}
+											</span>
+											{hasFullIngredients && (
+												<button
+													type='button'
+													onClick={() => setShowIngredientList(true)}
+													className={cn(
+														'inline-flex items-center gap-2 rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
+														kitchenMode
+															? 'min-h-14 px-4 text-base'
+															: 'min-h-11 px-3 text-sm',
+													)}
+												>
+													<ListChecks className='size-4' />
+													{t('allIngredients')}
+												</button>
 											)}
-										>
-											{t('stepOf', {
-												current: currentStepNumber,
-												total: totalSteps,
-											})}
-										</span>
+										</div>
 										<StepDots
 											totalSteps={totalSteps}
 											currentStep={currentStepNumber}
@@ -1780,27 +1810,20 @@ export const CookingPlayer = () => {
 																{t('youllNeed')}
 															</p>
 															<ul className='space-y-1'>
-																{recipe.fullIngredientList
-																	.slice(0, 8)
-																	.map((ing, i) => (
-																		<li
-																			key={i}
-																			className='flex items-center gap-2 text-sm text-text-primary'
-																		>
-																			<span className='size-1.5 rounded-full bg-brand flex-shrink-0' />
-																			<span>
-																				{ing.quantity} {ing.unit} {ing.name}
-																			</span>
-																		</li>
-																	))}
-																{recipe.fullIngredientList.length > 8 && (
-																	<li className='text-xs text-text-muted'>
-																		{t('moreIngredients', {
-																			count:
-																				recipe.fullIngredientList.length - 8,
-																		})}
+																{recipe.fullIngredientList.map((ing, i) => (
+																	<li
+																		key={`${ing.name}-${i}`}
+																		className='flex items-center gap-2 text-sm text-text-primary'
+																	>
+																		<span className='size-1.5 rounded-full bg-brand flex-shrink-0' />
+																		<span>
+																			{[ing.quantity, ing.unit, ing.name]
+																				.map(value => value?.trim())
+																				.filter(Boolean)
+																				.join(' ')}
+																		</span>
 																	</li>
-																)}
+																))}
 															</ul>
 														</div>
 													)}
@@ -2130,6 +2153,12 @@ export const CookingPlayer = () => {
 				recipeTitle={recipe?.title ?? t('recipeFallback')}
 				currentStep={step?.description ?? ''}
 				stepNumber={currentStepNumber}
+			/>
+			<FullIngredientListDialog
+				open={showIngredientList}
+				onOpenChange={setShowIngredientList}
+				ingredients={fullIngredients}
+				recipeTitle={recipe.title}
 			/>
 
 			{/* Abandon Confirmation Modal - Separate Portal (outside main modal container) */}
