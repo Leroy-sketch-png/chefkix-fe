@@ -127,4 +127,30 @@ describe('content-first onboarding contract', () => {
 			skillExpert: 'Expert',
 		})
 	})
+
+	it('uses color only for selection and exposes the pressed state', async () => {
+		render(<InterestPicker editMode onComplete={jest.fn()} />)
+
+		const italian = await screen.findByRole('button', { name: 'Italian' })
+		expect(italian.getAttribute('aria-pressed')).toBe('false')
+		expect(italian.innerHTML).toContain('bg-bg-elevated')
+
+		fireEvent.click(italian)
+
+		expect(italian.getAttribute('aria-pressed')).toBe('true')
+		expect(italian.innerHTML).toContain('bg-brand/15')
+		expect(screen.getByRole('button', { name: 'Save (1)' })).toBeTruthy()
+
+		const pickerSource = readWorkspaceFile(
+			'src/components/onboarding/InterestPicker.tsx',
+		)
+		const tileDefinitions = pickerSource.slice(
+			pickerSource.indexOf('const INTEREST_TILES'),
+			pickerSource.indexOf('const INTEREST_IDS'),
+		)
+		expect(tileDefinitions).not.toMatch(
+			/gradient|error|warning|success|info|streak|accent-teal/,
+		)
+		expect(pickerSource).not.toContain('tile.gradient')
+	})
 })

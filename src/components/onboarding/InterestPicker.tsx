@@ -35,7 +35,7 @@ export function dismissInterestPicker(): void {
 }
 
 // ============================================
-// CUISINE/INTEREST TILES - Using emoji + gradients (no external CDNs for privacy)
+// CUISINE/INTEREST TILES - Emoji keeps the choices recognizable without external media.
 // ============================================
 
 const INTEREST_TILES = [
@@ -43,73 +43,61 @@ const INTEREST_TILES = [
 		id: 'italian',
 		labelKey: 'ipItalian' as const,
 		emoji: '🍝',
-		gradient: 'from-error to-success',
 	},
 	{
 		id: 'asian',
 		labelKey: 'ipAsian' as const,
 		emoji: '🍜',
-		gradient: 'from-warning to-error',
 	},
 	{
 		id: 'mexican',
 		labelKey: 'ipMexican' as const,
 		emoji: '🌮',
-		gradient: 'from-success to-error',
 	},
 	{
 		id: 'bbq',
 		labelKey: 'ipBBQ' as const,
 		emoji: '🔥',
-		gradient: 'from-streak to-error',
 	},
 	{
 		id: 'vegan',
 		labelKey: 'ipPlantBased' as const,
 		emoji: '🥗',
-		gradient: 'from-success to-success',
 	},
 	{
 		id: 'quick-meals',
 		labelKey: 'ipQuickMeals' as const,
 		emoji: '⚡',
-		gradient: 'from-warning to-streak',
 	},
 	{
 		id: 'baking',
 		labelKey: 'ipBaking' as const,
 		emoji: '🥐',
-		gradient: 'from-warning to-warning',
 	},
 	{
 		id: 'comfort-food',
 		labelKey: 'ipComfortFood' as const,
 		emoji: '🍲',
-		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'healthy',
 		labelKey: 'ipHealthy' as const,
 		emoji: '🥬',
-		gradient: 'from-success to-success',
 	},
 	{
 		id: 'indian',
 		labelKey: 'ipIndian' as const,
 		emoji: '🍛',
-		gradient: 'from-streak to-warning',
 	},
 	{
 		id: 'mediterranean',
 		labelKey: 'ipMediterranean' as const,
 		emoji: '🫒',
-		gradient: 'from-info to-accent-teal',
 	},
 	{
 		id: 'seafood',
 		labelKey: 'ipSeafood' as const,
 		emoji: '🦐',
-		gradient: 'from-accent-teal to-info',
 	},
 ] as const
 
@@ -360,6 +348,7 @@ export function InterestPicker({
 										animate={{ opacity: 1, y: 0 }}
 										transition={{ delay: 0.03 * i }}
 										onClick={() => toggleInterest(tile.id)}
+										aria-pressed={isSelected}
 										className={cn(
 											'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											isSelected
@@ -367,14 +356,13 @@ export function InterestPicker({
 												: 'border-transparent hover:border-border-medium',
 										)}
 									>
-										{/* Gradient background with emoji */}
+										{/* Selection owns color; cuisine identity comes from content. */}
 										<div
 											className={cn(
-												'absolute inset-0 bg-gradient-to-br transition-all duration-300',
-												tile.gradient,
+												'absolute inset-0 transition-colors duration-300',
 												isSelected
-													? 'opacity-100'
-													: 'opacity-80 group-hover:opacity-90',
+													? 'bg-brand/15'
+													: 'bg-bg-elevated group-hover:bg-bg-hover',
 											)}
 										/>
 
