@@ -89,8 +89,16 @@ interface FeedCardProps extends RecipeCardBase {
 	onCookNow?: () => void
 }
 
-interface GridCardProps extends RecipeCardBase {
+interface GridCardProps
+	extends Omit<
+		RecipeCardBase,
+		'cookTimeMinutes' | 'difficulty' | 'cookCount' | 'rating'
+	> {
 	variant: 'grid'
+	cookTimeMinutes?: number
+	difficulty?: Difficulty
+	cookCount?: number
+	rating?: number
 	onCook?: () => void
 	onSave?: () => void
 	isSaved?: boolean
@@ -404,7 +412,7 @@ const FeedCard = ({
 	onCookNow,
 }: FeedCardProps) => {
 	const t = useTranslations('recipe')
-	const formattedCookCount = formatPositiveSocialCount(cookCount)
+	const formattedCookCount = formatPositiveSocialCount(cookCount ?? 0)
 	return (
 		<motion.article
 			whileHover={CARD_FEED_HOVER}
@@ -531,7 +539,10 @@ const GridCard = ({
 	isSaved,
 }: GridCardProps) => {
 	const t = useTranslations('recipe')
-	const formattedCookCount = formatPositiveSocialCount(cookCount)
+	const formattedCookCount = formatPositiveSocialCount(cookCount ?? 0)
+	const hasRating = rating !== undefined && rating > 0
+	const hasStats =
+		cookTimeMinutes !== undefined || Boolean(formattedCookCount) || hasRating
 
 	return (
 		<motion.article
@@ -562,7 +573,9 @@ const GridCard = ({
 						/>
 						<XPBadge xp={xpReward} />
 						{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
-						<DifficultyIndicator difficulty={difficulty} showLabel />
+						{difficulty && (
+							<DifficultyIndicator difficulty={difficulty} showLabel />
+						)}
 						{/* Quality badge - only show Foolproof tier */}
 						{qualityTier === 'Foolproof' && (
 							<div className='absolute right-3 top-3'>
@@ -604,27 +617,30 @@ const GridCard = ({
 							</div>
 						)}
 
-						{/* Stats row with cook count */}
-						<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
-							<div className='flex items-center gap-3'>
-								<span className='flex items-center gap-1'>
-									<Clock className='size-3.5' />
-									{formatCookingTime(cookTimeMinutes)}
-								</span>
-								{formattedCookCount && (
-									<span className='flex items-center gap-1 text-success tabular-nums'>
-										<ChefHat className='size-3.5' />
-										{formattedCookCount}
+						{/* Stats row only exists when the source supplied proof. */}
+						{hasStats && (
+							<div className='mb-3 flex items-center justify-between text-sm text-text-muted'>
+								<div className='flex items-center gap-3'>
+									{cookTimeMinutes !== undefined && (
+										<span className='flex items-center gap-1'>
+											<Clock className='size-3.5' />
+											{formatCookingTime(cookTimeMinutes)}
+										</span>
+									)}
+									{formattedCookCount && (
+										<span className='flex items-center gap-1 text-success tabular-nums'>
+											<ChefHat className='size-3.5' />
+											{formattedCookCount}
+										</span>
+									)}
+								</div>
+								{rating !== undefined && rating > 0 && (
+									<span className='flex items-center gap-1 text-warning tabular-nums'>
+										⭐ {rating.toFixed(1)}
 									</span>
 								)}
 							</div>
-							{/* Only show rating if it exists and > 0 */}
-							{rating > 0 && (
-								<span className='flex items-center gap-1 text-warning tabular-nums'>
-									⭐ {rating.toFixed(1)}
-								</span>
-							)}
-						</div>
+						)}
 
 						{/* Author - only show if valid author data exists */}
 						{author && (

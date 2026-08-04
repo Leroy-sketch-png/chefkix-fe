@@ -29,6 +29,10 @@ import {
 } from '@/services/search'
 import type { UnifiedRecipeSearchFilters } from '@/services/search'
 import type { RecipeSearchDoc } from '@/lib/types/search'
+import {
+	toRecipeSearchResult,
+	type RecipeSearchResult,
+} from '@/lib/search-result'
 import { trackEvent } from '@/lib/eventTracker'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -60,6 +64,7 @@ import {
 import { toast } from 'sonner'
 import { TRANSITION_SPRING, BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
 import type { Difficulty } from '@/lib/types/gamification'
+import { difficultyToApi } from '@/lib/apiUtils'
 import Image from 'next/image'
 import { logDevError } from '@/lib/dev-log'
 import { settleOptimisticMutation } from '@/lib/optimistic-mutation'
@@ -142,50 +147,47 @@ function buildBrowseFilterParams(
 	return filterParams
 }
 
-/** Map a Typesense RecipeSearchDoc hit to a minimal Recipe shape for cards. */
-function mapRecipeDocToRecipe(doc: RecipeSearchDoc): Recipe {
+interface ExploreRecipeCard extends Omit<RecipeSearchResult, 'difficulty'> {
+	difficulty?: Difficulty
+	skillTags?: string[]
+	badges?: string[]
+}
+
+function toExploreSearchCard(doc: RecipeSearchDoc): ExploreRecipeCard {
+	const result = toRecipeSearchResult(doc)
 	return {
-		id: doc.id,
-		title: doc.title,
-		description: doc.description,
-		coverImageUrl: doc.coverImageUrl ? [doc.coverImageUrl] : [],
-		videoUrl: [],
-		difficulty: (doc.difficulty as Recipe['difficulty']) || 'Beginner',
-		prepTimeMinutes: 0,
-		cookTimeMinutes: 0,
-		totalTimeMinutes: doc.totalTime ?? 0,
-		servings: 0,
-		cuisineType: doc.cuisine || '',
-		dietaryTags: doc.tags ?? [],
-		fullIngredientList: (doc.ingredients ?? []).map(name => ({
-			name,
-			quantity: '',
-			unit: '',
-		})),
-		steps: [],
-		xpReward: doc.xpReward ?? 0,
-		difficultyMultiplier: 1,
-		rewardBadges: [],
-		skillTags: [],
-		likeCount: 0,
-		saveCount: 0,
-		viewCount: 0,
-		cookCount: doc.cookCount ?? 0,
-		averageRating: doc.avgRating ?? 0,
-		author: {
-			userId: doc.authorId,
-			username: doc.authorName ?? '',
-			displayName: doc.authorName ?? undefined,
-			avatarUrl: undefined,
-		},
-		recipeStatus: 'PUBLISHED',
-		createdAt: doc.createdAt
-			? new Date(doc.createdAt * 1000).toISOString()
-			: '',
-		updatedAt: '',
-		isLiked: false,
-		isSaved: false,
-	} as Recipe
+		...result,
+		difficulty: result.difficulty
+			? difficultyToApi(result.difficulty)
+			: undefined,
+	}
+}
+
+function toExploreBrowseCard(recipe: Recipe): ExploreRecipeCard {
+	const totalTime = getTotalTime(recipe)
+	return {
+		id: recipe.id,
+		title: recipe.title,
+		description: recipe.description || undefined,
+		imageUrl: getRecipeImage(recipe),
+		rating:
+			recipe.averageRating && recipe.averageRating > 0
+				? recipe.averageRating
+				: undefined,
+		cookTimeMinutes: totalTime > 0 ? totalTime : undefined,
+		difficulty: recipe.difficulty || undefined,
+		author: recipe.author?.displayName
+			? {
+					id: recipe.author.userId,
+					name: recipe.author.displayName,
+					avatarUrl: recipe.author.avatarUrl || undefined,
+				}
+			: undefined,
+		cookCount: Math.max(0, recipe.cookCount ?? 0),
+		xpReward: recipe.xpReward > 0 ? recipe.xpReward : undefined,
+		skillTags: recipe.skillTags,
+		badges: recipe.rewardBadges,
+	}
 }
 
 interface HeroRecipeProps {
@@ -469,7 +471,7 @@ function ExploreContent() {
 	const t = useTranslations('explore')
 
 	// State
-	const [recipes, setRecipes] = useState<Recipe[]>([])
+	const [recipes, setRecipes] = useState<ExploreRecipeCard[]>([])
 	const [featuredRecipe, setFeaturedRecipe] = useState<Recipe | null>(null)
 	const [trendingPosts, setTrendingPosts] = useState<Post[]>([])
 	const [isLoading, setIsLoading] = useState(true)
@@ -743,7 +745,7 @@ function ExploreContent() {
 					if (searchRes.data?.recipes?.hits) {
 						const recipesResult = searchRes.data.recipes
 						const allRecipes = recipesResult.hits.map(h =>
-							mapRecipeDocToRecipe(h.document),
+							toExploreSearchCard(h.document),
 						)
 						setFeaturedRecipe(null)
 						setSavedRecipes(new Set<string>())
@@ -793,7 +795,7 @@ function ExploreContent() {
 						})
 						setSavedRecipes(saved)
 
-						setRecipes(allRecipes)
+						setRecipes(allRecipes.map(toExploreBrowseCard))
 						const pagination = response.pagination
 						if (pagination) {
 							setTotalCount(pagination.totalElements)
@@ -883,7 +885,7 @@ function ExploreContent() {
 
 				const recipesResult = searchRes.data.recipes
 				const newRecipes = recipesResult.hits.map(h =>
-					mapRecipeDocToRecipe(h.document),
+					toExploreSearchCard(h.document),
 				)
 				setRecipes(prev => {
 					const existingIds = new Set(prev.map(r => r.id))
@@ -915,7 +917,7 @@ function ExploreContent() {
 					throw new Error(response.message || 'Recipe page request failed')
 				}
 
-				const newRecipes = response.data
+				const newRecipes = response.data.map(toExploreBrowseCard)
 
 				response.data.forEach(recipe => {
 					if (recipe.isSaved) {
@@ -1495,21 +1497,19 @@ function ExploreContent() {
 													id={recipe.id}
 													title={recipe.title}
 													description={recipe.description}
-													imageUrl={getRecipeImage(recipe)}
-													cookTimeMinutes={getTotalTime(recipe)}
-													difficulty={
-														(recipe.difficulty as Difficulty) || 'Beginner'
-													}
-													xpReward={recipe.xpReward ?? 0}
-													rating={recipe.averageRating ?? 0}
-													cookCount={recipe.cookCount ?? 0}
+													imageUrl={recipe.imageUrl}
+													cookTimeMinutes={recipe.cookTimeMinutes}
+													difficulty={recipe.difficulty}
+													xpReward={recipe.xpReward}
+													rating={recipe.rating}
+													cookCount={recipe.cookCount}
 													skillTags={recipe.skillTags}
-													badges={recipe.rewardBadges}
+													badges={recipe.badges}
 													author={
-														recipe.author?.displayName
+														recipe.author
 															? {
-																	id: recipe.author.userId,
-																	name: recipe.author.displayName,
+																	id: recipe.author.id,
+																	name: recipe.author.name,
 																	avatarUrl:
 																		recipe.author.avatarUrl ||
 																		'/placeholder-avatar.svg',
@@ -1517,9 +1517,7 @@ function ExploreContent() {
 																}
 															: undefined
 													}
-													isSaved={
-														recipe.isSaved ?? savedRecipes.has(recipe.id)
-													}
+													isSaved={savedRecipes.has(recipe.id)}
 													onCook={() => handleCook(recipe.id)}
 													onSave={() => handleSave(recipe.id)}
 												/>

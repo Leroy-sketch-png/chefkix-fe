@@ -48,8 +48,24 @@ jest.mock('framer-motion', () => {
 			{
 				get:
 					(_target, tag: string) =>
-					({ children, ...props }: React.HTMLAttributes<HTMLElement>) =>
-						React.createElement(tag, props, children),
+					({ children, ...props }: React.HTMLAttributes<HTMLElement>) => {
+						const domProps = { ...props } as Record<string, unknown>
+						for (const key of [
+							'animate',
+							'exit',
+							'initial',
+							'layout',
+							'transition',
+							'variants',
+							'whileFocus',
+							'whileHover',
+							'whileInView',
+							'whileTap',
+						]) {
+							delete domProps[key]
+						}
+						return React.createElement(tag, domProps, children)
+					},
 			},
 		),
 		useMotionValue: (value = 0) => createMotionValue(value),
@@ -64,8 +80,9 @@ jest.mock('framer-motion', () => {
 })
 
 jest.mock('@/components/ui/image-with-fallback', () => ({
-	ImageWithFallback: () => {
-		throw new Error('recipe-card-boom')
+	ImageWithFallback: ({ src, alt }: { src: string; alt: string }) => {
+		if (src === '/crash.jpg') throw new Error('recipe-card-boom')
+		return <img src={src} alt={alt} />
 	},
 }))
 
@@ -80,7 +97,7 @@ describe('RecipeCardEnhanced', () => {
 				variant='grid'
 				id='recipe-1'
 				title='Saffron Rice'
-				imageUrl='/recipe.jpg'
+				imageUrl='/crash.jpg'
 				cookTimeMinutes={25}
 				difficulty='Beginner'
 				cookCount={42}
@@ -94,5 +111,40 @@ describe('RecipeCardEnhanced', () => {
 		expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
 
 		consoleErrorSpy.mockRestore()
+	})
+
+	it('omits metadata rows that a sparse grid result cannot prove', () => {
+		render(
+			<RecipeCardEnhanced
+				variant='grid'
+				id='recipe-sparse'
+				title='Weeknight noodles'
+				imageUrl='/noodles.jpg'
+			/>,
+		)
+
+		expect(screen.getByText('Weeknight noodles')).toBeTruthy()
+		expect(screen.queryByText('0 min')).toBeNull()
+		expect(screen.queryByText('Beginner')).toBeNull()
+		expect(screen.queryByText('0.0')).toBeNull()
+	})
+
+	it('retains supplied grid proof', () => {
+		render(
+			<RecipeCardEnhanced
+				variant='grid'
+				id='recipe-rich'
+				title='Saffron Rice'
+				imageUrl='/rice.jpg'
+				cookTimeMinutes={25}
+				difficulty='Beginner'
+				cookCount={42}
+				rating={4.8}
+			/>,
+		)
+
+		expect(screen.getByText('25 min')).toBeTruthy()
+		expect(screen.getByText('diffBeginner')).toBeTruthy()
+		expect(screen.getByText(/4.8/)).toBeTruthy()
 	})
 })
