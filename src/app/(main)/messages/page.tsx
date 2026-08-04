@@ -24,7 +24,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/hooks/useAuth'
-import { MentionInput, MentionInputRef } from '@/components/shared/MentionInput'
 import { useChatWebSocket } from '@/hooks/useChatWebSocket'
 import VideoCall from '@/components/chat/VideoCall'
 import AvatarImage from '@/components/messages/AvatarImage'
@@ -203,16 +202,13 @@ function MessagesContent() {
 	// Reply state
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null)
 
-	// @mention tagged users (captured for future backend support)
-	const taggedUserIdsRef = useRef<string[]>([])
-
 	// Mobile: show chat panel when conversation selected
 	const [showMobileChat, setShowMobileChat] = useState(false)
 
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const messagesContainerRef = useRef<HTMLDivElement>(null)
 	const isNearBottomRef = useRef(true)
-	const inputRef = useRef<MentionInputRef>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 	const hasHandledUserIdRef = useRef(false)
 
 	// Handle incoming WebSocket messages
@@ -389,7 +385,6 @@ function MessagesContent() {
 		setMessages(prev => reconcileChatMessage(prev, optimisticMessage))
 		setNewMessage('')
 		setReplyingTo(null)
-		taggedUserIdsRef.current = []
 
 		setIsSending(true)
 		try {
@@ -841,18 +836,20 @@ function MessagesContent() {
 								</div>
 							)}
 							<div className='flex items-center gap-3'>
-								<MentionInput
+								<Input
 									ref={inputRef}
 									placeholder={t('typeMessage')}
 									aria-label={t('ariaMessageInput')}
 									value={newMessage}
-									onChange={setNewMessage}
-									onTaggedUsersChange={ids => {
-										taggedUserIdsRef.current = ids
+									onChange={event => setNewMessage(event.target.value)}
+									onKeyDown={event => {
+										if (event.key === 'Enter' && !event.shiftKey) {
+											event.preventDefault()
+											handleSendMessage()
+										}
 									}}
-									onSubmit={handleSendMessage}
 									disabled={isSending}
-									className='bg-bg-elevated'
+									className='flex-1 bg-bg-elevated'
 									maxLength={4000}
 								/>
 								<Button

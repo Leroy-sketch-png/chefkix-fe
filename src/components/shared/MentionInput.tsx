@@ -20,6 +20,12 @@ import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
 import { Portal } from '@/components/ui/portal'
+import {
+	createMentionToken,
+	haveSameMentionIds,
+	reconcileSelectedMentions,
+	type SelectedMention,
+} from '@/lib/mentions'
 
 export interface MentionInputProps {
 	value: string
@@ -47,7 +53,7 @@ interface MentionSuggestion {
 	userId: string
 	displayName: string
 	avatarUrl?: string
-	username?: string
+	username: string
 }
 
 /**
@@ -89,7 +95,9 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		const [selectedIndex, setSelectedIndex] = useState(0)
 		const [mentionQuery, setMentionQuery] = useState('')
 		const [mentionStartIndex, setMentionStartIndex] = useState(-1)
-		const [taggedUserIds, setTaggedUserIds] = useState<Set<string>>(new Set())
+		const [selectedMentions, setSelectedMentions] = useState<SelectedMention[]>(
+			[],
+		)
 		const [dropdownPosition, setDropdownPosition] = useState({
 			top: 0,
 			left: 0,
@@ -113,10 +121,19 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			focus: () => inputRef.current?.focus(),
 			clear: () => {
 				onChange('')
-				setTaggedUserIds(new Set())
+				setSelectedMentions([])
 				onTaggedUsersChange([])
 			},
 		}))
+
+		useEffect(() => {
+			setSelectedMentions(current => {
+				const reconciled = reconcileSelectedMentions(value, current)
+				if (haveSameMentionIds(current, reconciled)) return current
+				onTaggedUsersChange(reconciled.map(mention => mention.userId))
+				return reconciled
+			})
+		}, [onTaggedUsersChange, value])
 
 		// Load following list once for mention suggestions
 		const loadSuggestions = useCallback(async () => {
@@ -126,14 +143,18 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 				const response = await getFollowing()
 				if (response.success && response.data) {
 					setSuggestions(
-						response.data.map((profile: Profile) => {
+						response.data.flatMap((profile: Profile) => {
 							const displayName = getProfileDisplayName(profile)
-							return {
-								userId: profile.userId,
-								displayName,
-								avatarUrl: profile.avatarUrl,
-								username: displayName.toLowerCase().replace(/\s+/g, ''),
-							}
+							const username = profile.username?.trim()
+							if (!username) return []
+							return [
+								{
+									userId: profile.userId,
+									displayName,
+									avatarUrl: profile.avatarUrl,
+									username,
+								},
+							]
 						}),
 					)
 				}
@@ -174,25 +195,33 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 				try {
 					const res = await autocompleteSearch(mentionQuery, 'users', 5)
 					if (res.success && res.data?.users?.hits) {
-						const searchResults: MentionSuggestion[] = res.data.users.hits.map(
-							(h: {
-								document: {
-									id: string
-									username: string
-									displayName?: string
-									firstName?: string
-									avatarUrl?: string
-								}
-							}) => ({
-								userId: h.document.id,
-								displayName:
-									h.document.displayName ||
-									h.document.firstName ||
-									h.document.username,
-								avatarUrl: h.document.avatarUrl || '/placeholder-avatar.svg',
-								username: h.document.username,
-							}),
-						)
+						const searchResults: MentionSuggestion[] =
+							res.data.users.hits.flatMap(
+								(h: {
+									document: {
+										id: string
+										username: string
+										displayName?: string
+										firstName?: string
+										avatarUrl?: string
+									}
+								}) => {
+									const username = h.document.username?.trim()
+									if (!username) return []
+									return [
+										{
+											userId: h.document.id,
+											displayName:
+												h.document.displayName ||
+												h.document.firstName ||
+												username,
+											avatarUrl:
+												h.document.avatarUrl || '/placeholder-avatar.svg',
+											username,
+										},
+									]
+								},
+							)
 						// Merge: following matches first, then unique search results
 						const followingIds = new Set(followingMatches.map(f => f.userId))
 						const merged = [
@@ -222,6 +251,11 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 				: e.target.value
 			const cursorPos = e.target.selectionStart ?? newValue.length
 			onChange(newValue)
+			const reconciled = reconcileSelectedMentions(newValue, selectedMentions)
+			if (!haveSameMentionIds(selectedMentions, reconciled)) {
+				setSelectedMentions(reconciled)
+				onTaggedUsersChange(reconciled.map(mention => mention.userId))
+			}
 
 			// Find if we're in a mention context
 			const textBeforeCursor = newValue.slice(0, cursorPos)
@@ -255,20 +289,24 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 		const selectUser = (user: MentionSuggestion) => {
 			if (mentionStartIndex === -1) return
 
-			// Replace @query with @displayName
+			// Keep the visible token tied to the canonical account identity.
 			const beforeMention = value.slice(0, mentionStartIndex)
 			const afterMention = value.slice(
 				mentionStartIndex + mentionQuery.length + 1,
 			)
-			const newValue = `${beforeMention}@${user.displayName} ${afterMention}`
+			const token = createMentionToken(user.username)
+			const newValue = `${beforeMention}${token} ${afterMention}`
 
 			onChange(newValue)
 
 			// Track tagged user
-			const newTaggedIds = new Set(taggedUserIds)
-			newTaggedIds.add(user.userId)
-			setTaggedUserIds(newTaggedIds)
-			onTaggedUsersChange(Array.from(newTaggedIds))
+			const newSelectedMentions = selectedMentions.some(
+				mention => mention.userId === user.userId,
+			)
+				? selectedMentions
+				: [...selectedMentions, { userId: user.userId, token }]
+			setSelectedMentions(newSelectedMentions)
+			onTaggedUsersChange(newSelectedMentions.map(mention => mention.userId))
 
 			// Close suggestions
 			setShowSuggestions(false)
@@ -278,7 +316,7 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 			// Focus input and move cursor after inserted mention
 			setTimeout(() => {
 				inputRef.current?.focus()
-				const newCursorPos = beforeMention.length + user.displayName.length + 2
+				const newCursorPos = beforeMention.length + token.length + 1
 				inputRef.current?.setSelectionRange(newCursorPos, newCursorPos)
 			}, 0)
 		}
@@ -446,8 +484,11 @@ export const MentionInput = forwardRef<MentionInputRef, MentionInputProps>(
 														</AvatarFallback>
 													</Avatar>
 													<div className='min-w-0 flex-1'>
-														<span className='text-sm font-medium'>
+														<span className='block text-sm font-medium'>
 															{user.displayName}
+														</span>
+														<span className='block text-xs text-text-muted'>
+															@{user.username}
 														</span>
 													</div>
 												</button>

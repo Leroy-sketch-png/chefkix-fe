@@ -75,6 +75,19 @@ describe('optimistic chat reconciliation', () => {
 		expect(drawer).toContain('reconcileChatMessage(prev, message)')
 		expect(hook).not.toContain("destination: '/app/chat.sendMessage'")
 	})
+
+	it('keeps the chat composer truthful while preserving keyboard submission', () => {
+		const page = fs.readFileSync(
+			path.join(process.cwd(), 'src', 'app', '(main)', 'messages', 'page.tsx'),
+			'utf8',
+		)
+
+		expect(page).not.toContain("from '@/components/shared/MentionInput'")
+		expect(page).not.toContain('taggedUserIdsRef')
+		expect(page).toContain("event.key === 'Enter' && !event.shiftKey")
+		expect(page).toContain('handleSendMessage()')
+		expect(page).toContain("aria-label={t('ariaMessageInput')}")
+	})
 })
 import fs from 'fs'
 import path from 'path'
