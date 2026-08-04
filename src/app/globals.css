@@ -639,7 +639,11 @@
 	/* ============ BRAND COLORS ============ */
 	--color-brand: var(--color-brand);
 	--color-brand-hover: var(--color-brand-hover);
+	--color-brand-text: var(--color-brand-text);
 	--color-brand-subtle: var(--color-brand-subtle);
+	--color-accent-purple: var(--color-accent-purple);
+	--color-accent-purple-subtle: var(--color-accent-purple-subtle);
+	--color-accent-teal: var(--color-accent-teal);
 
 	/* ============ SEMANTIC COLORS ============ */
 	--color-success: var(--color-success);
@@ -653,8 +657,18 @@
 	--color-info: var(--color-info);
 	--color-info-vivid: var(--color-info-vivid);
 	--color-streak: var(--color-streak);
+	--color-streak-text: var(--color-streak-text);
 	--color-streak-urgent: var(--color-streak-urgent);
+	--color-xp: var(--color-xp);
+	--color-xp-text: var(--color-xp-text);
+	--color-bonus: var(--color-bonus);
+	--color-level: var(--color-level);
+	--color-level-text: var(--color-level-text);
+	--color-badge: var(--color-badge);
+	--color-badge-text: var(--color-badge-text);
 	--color-rare: var(--color-rare);
+	--color-combo: var(--color-combo);
+	--color-legendary: var(--color-legendary);
 	--color-medal-bronze: var(--color-medal-bronze);
 	--color-medal-bronze-glow: var(--color-medal-bronze-glow);
 	--color-medal-silver: var(--color-medal-silver);
