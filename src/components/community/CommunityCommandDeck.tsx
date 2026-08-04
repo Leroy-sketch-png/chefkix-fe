@@ -3,6 +3,10 @@ import { useTranslations } from 'next-intl'
 import { Compass, Trophy, UserPlus, Users, UsersRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SlideTabs } from '@/components/ui/slide-tabs'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 type CommunityTab = 'discover' | 'friends' | 'groups' | 'leaderboard'
 
@@ -28,14 +32,9 @@ function StatCard({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'xp' | 'social' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'xp' | 'success' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		social: 'border-error/20 bg-error/8 text-error',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
@@ -183,7 +182,7 @@ export function CommunityCommandDeck({
 						label={t('friends')}
 						value={counts.friends.toString()}
 						icon={Users}
-						tone='social'
+						tone={counts.friends > 0 ? 'success' : 'muted'}
 					/>
 					<StatCard
 						label={t('statFollowBacks')}

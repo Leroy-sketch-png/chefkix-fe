@@ -3,12 +3,16 @@
 import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 export interface StatCardProps {
 	label: string
 	value: string | number
 	icon?: ReactNode
-	tone?: 'brand' | 'info' | 'success' | 'xp' | 'streak' | 'error' | 'muted'
+	tone?: CommandStatTone
 }
 
 interface CommandDeckBaseProps {
@@ -29,15 +33,7 @@ export function CommandDeckStatCard({
 	icon,
 	tone = 'muted',
 }: StatCardProps) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		info: 'border-info/20 bg-info/8 text-info',
-		success: 'border-success/20 bg-success/8 text-success',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		streak: 'border-streak/20 bg-streak/8 text-streak',
-		error: 'border-error/20 bg-error/8 text-error',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>

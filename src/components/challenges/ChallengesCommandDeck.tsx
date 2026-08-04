@@ -5,6 +5,10 @@ import { Clock, Leaf, Sparkles, Trophy, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import { NumberTicker } from '@/components/ui/number-ticker'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 interface ChallengesCommandDeckProps {
 	counts: {
@@ -25,14 +29,9 @@ function DeckStat({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'xp' | 'social' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'xp' | 'success' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		social: 'border-error/20 bg-error/8 text-error',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-xl border border-border-subtle/50 bg-bg-card/40 backdrop-blur-sm p-3 shadow-card'>
@@ -74,9 +73,7 @@ export function ChallengesCommandDeck({
 				className,
 			)}
 		>
-			<div
-				className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-4 md:p-5'
-			>
+			<div className='rounded-2xl bg-bg-card/75 backdrop-blur-md p-4 md:p-5'>
 				<div className='relative z-10 w-full'>
 					<div className='mb-4 flex items-center justify-between gap-3'>
 						<div>
@@ -116,7 +113,7 @@ export function ChallengesCommandDeck({
 							label={t('community')}
 							value={counts.community.toString()}
 							icon={Users}
-							tone='social'
+							tone={counts.community > 0 ? 'success' : 'muted'}
 						/>
 						<DeckStat
 							label={t('seasonal')}

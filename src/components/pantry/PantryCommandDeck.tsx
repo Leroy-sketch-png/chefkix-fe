@@ -2,6 +2,10 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, Package, Search, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 interface PantryCommandDeckProps {
 	itemCount: number
@@ -27,13 +31,9 @@ function StatCard({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'warning' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'warning' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		warning: 'border-warning/20 bg-warning/8 text-warning',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-radius border border-border-subtle bg-bg-card p-2.5 shadow-card sm:rounded-xl sm:p-3'>

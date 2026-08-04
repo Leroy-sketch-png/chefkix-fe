@@ -11,6 +11,10 @@ import {
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 export type SettingsTabId =
 	| 'account'
@@ -53,14 +57,9 @@ function StatCard({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'xp' | 'social' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'xp' | 'success' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		social: 'border-success/20 bg-success/8 text-success',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
@@ -133,7 +132,7 @@ export function SettingsCommandDeck({
 					label={t('cmdStatAlerts')}
 					value={counts.notificationsEnabled ? t('cmdStatOn') : t('cmdStatOff')}
 					icon={Bell}
-					tone={counts.notificationsEnabled ? 'social' : 'muted'}
+					tone={counts.notificationsEnabled ? 'success' : 'muted'}
 				/>
 				<StatCard
 					label={t('cmdStatVerification')}

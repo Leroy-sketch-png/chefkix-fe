@@ -3,6 +3,10 @@ import { motion } from 'framer-motion'
 import { Bell, Compass, Flame, Sparkles, Users, ArrowRight } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 interface NotificationsContextRailProps {
 	counts: {
@@ -23,14 +27,9 @@ function RailStat({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'xp' | 'social' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'xp' | 'success' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		xp: 'border-xp/20 bg-xp/8 text-xp',
-		social: 'border-error/20 bg-error/8 text-error',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-lg border border-border-subtle bg-bg-card p-3'>
@@ -124,7 +123,7 @@ export function NotificationsContextRail({
 						label={t('cmdCardSocial')}
 						value={counts.social.toString()}
 						icon={Users}
-						tone='social'
+						tone={counts.social > 0 ? 'success' : 'muted'}
 					/>
 					<RailStat
 						label={t('cmdCardTotal')}

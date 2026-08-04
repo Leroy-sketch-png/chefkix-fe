@@ -2,6 +2,10 @@ import { motion } from 'framer-motion'
 import { CalendarDays, FileText, ShoppingCart, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
+import {
+	getCommandStatToneClass,
+	type CommandStatTone,
+} from '@/components/layout/command-stat-tone'
 
 interface ShoppingListsCommandDeckProps {
 	variant: 'list' | 'detail'
@@ -27,13 +31,9 @@ function StatCard({
 	label: string
 	value: string
 	icon: React.ComponentType<{ className?: string }>
-	tone: 'brand' | 'info' | 'muted'
+	tone: Extract<CommandStatTone, 'brand' | 'info' | 'muted'>
 }) {
-	const toneClass = {
-		brand: 'border-brand/20 bg-brand/8 text-brand',
-		info: 'border-info/20 bg-info/8 text-info',
-		muted: 'border-border-subtle bg-bg-elevated text-text-muted',
-	}[tone]
+	const toneClass = getCommandStatToneClass(tone)
 
 	return (
 		<div className='rounded-xl border border-border-subtle bg-bg-card p-3 shadow-card'>
