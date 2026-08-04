@@ -5228,7 +5228,7 @@
 		"startCooking": "Start cooking to unlock achievements!",
 		"noAchievements": "No achievements yet.",
 		"unlocked": "Achievements Unlocked",
-		"tabAll": "All ({n})",
+		"tabAllPaths": "All paths ({n})",
 		"complete": "Complete",
 		"failedToLoadAchievements": "Failed to load achievements",
 		"failedToLoadSkillTree": "Failed to load skill tree",

@@ -198,7 +198,7 @@ const ReplyItem = ({
 						type='button'
 						onClick={handleLike}
 						disabled={isLikeLoading}
-						className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
+						className='flex items-center gap-1 transition-colors hover:text-error disabled:opacity-50'
 						aria-label={isLiked ? t('unlikeReply') : t('likeReply')}
 					>
 						<motion.div
@@ -207,7 +207,7 @@ const ReplyItem = ({
 							initial={false}
 						>
 							<Heart
-								className={`size-2.5 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
+								className={`size-2.5 transition-all ${isLiked ? 'fill-error text-error' : 'text-text-muted hover:text-error'}`}
 							/>
 						</motion.div>
 						{likes > 0 && (
@@ -539,7 +539,7 @@ export const Comment = ({
 										<DropdownMenuItem
 											onClick={handleDeleteClick}
 											disabled={isDeleting}
-											className='text-color-error focus:text-color-error'
+											className='text-error focus:text-error'
 										>
 											{isDeleting ? (
 												<Loader2 className='mr-2 size-4 animate-spin' />
@@ -561,7 +561,7 @@ export const Comment = ({
 							type='button'
 							onClick={handleLike}
 							disabled={isLikeLoading}
-							className='flex items-center gap-1 transition-colors hover:text-color-error disabled:opacity-50'
+							className='flex items-center gap-1 transition-colors hover:text-error disabled:opacity-50'
 							aria-label={isLiked ? t('unlikeComment') : t('likeComment')}
 						>
 							<motion.div
@@ -570,7 +570,7 @@ export const Comment = ({
 								initial={false}
 							>
 								<Heart
-									className={`size-3 transition-all ${isLiked ? 'fill-color-error text-color-error' : 'text-text-muted hover:text-color-error'}`}
+									className={`size-3 transition-all ${isLiked ? 'fill-error text-error' : 'text-text-muted hover:text-error'}`}
 								/>
 							</motion.div>
 							{likes > 0 && (

@@ -81,10 +81,10 @@ const TIER_LABEL_KEYS = [
 ] as const
 
 const TIER_COLORS: Record<number, string> = {
-	1: 'from-warning to-warning',
-	2: 'from-text-muted to-text-muted',
-	3: 'from-warning to-warning',
-	4: 'from-accent-teal to-info',
+	1: 'from-medal-bronze-glow to-medal-bronze',
+	2: 'from-medal-silver-glow to-medal-silver',
+	3: 'from-medal-gold-glow to-medal-gold',
+	4: 'from-rare to-info',
 }
 
 // ============================================
@@ -135,7 +135,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 	if (hasError) {
 		return (
 			<div className='flex h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border'>
-				<AlertTriangle className='size-8 text-color-error' />
+				<AlertTriangle className='size-8 text-error' />
 				<p className='mt-2 text-text-muted'>{t('failedToLoadAchievements')}</p>
 				<button
 					type='button'
@@ -228,7 +228,7 @@ export function SkillTree({ userId, isOwnProfile = false }: SkillTreeProps) {
 							: 'bg-bg-elevated text-text-secondary hover:bg-bg-card',
 					)}
 				>
-					{t('tabAll', { n: data.paths.length })}
+					{t('tabAllPaths', { n: data.paths.length })}
 				</button>
 				{categories.map(cat => {
 					const meta = CATEGORY_META[cat]

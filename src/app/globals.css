@@ -654,6 +654,13 @@
 	--color-info-vivid: var(--color-info-vivid);
 	--color-streak: var(--color-streak);
 	--color-streak-urgent: var(--color-streak-urgent);
+	--color-rare: var(--color-rare);
+	--color-medal-bronze: var(--color-medal-bronze);
+	--color-medal-bronze-glow: var(--color-medal-bronze-glow);
+	--color-medal-silver: var(--color-medal-silver);
+	--color-medal-silver-glow: var(--color-medal-silver-glow);
+	--color-medal-gold: var(--color-medal-gold);
+	--color-medal-gold-glow: var(--color-medal-gold-glow);
 
 	/* ============ BACKGROUND COLORS ============ */
 	--color-bg: var(--bg);
