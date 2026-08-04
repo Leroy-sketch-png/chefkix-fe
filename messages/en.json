@@ -1364,6 +1364,8 @@
 		"ctYou": "You",
 		"ctStepOf": "Step {current} of {total}",
 		"ctLeave": "Leave",
+		"ctLeaving": "Leaving...",
+		"ctLeaveFailed": "Could not leave the room. Try again.",
 		"ctLiveActivity": "Live Activity",
 		"ctWaitingActivity": "Waiting for activity...",
 		"ctRecipeInfo": "{steps} steps • {minutes} min",
@@ -1489,6 +1491,7 @@
 		"storeNetworkError": "Network error while completing session. Please try again.",
 		"storeFailedCreateRoom": "Failed to create room",
 		"storeFailedJoinRoom": "Failed to join room",
+		"storeFailedLeaveRoom": "Failed to leave room",
 		"storeSessionNotFound": "Session not found"
 	},
 	"gamification": {

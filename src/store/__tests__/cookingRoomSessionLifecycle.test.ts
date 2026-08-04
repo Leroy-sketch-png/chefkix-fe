@@ -329,4 +329,78 @@ describe('co-cook room session lifecycle', () => {
 		expect(state.participants).toEqual([cookParticipant])
 		expect(state.isInRoom).toBe(true)
 	})
+
+	it('clears room membership only after the leave command succeeds', async () => {
+		useCookingStore.setState({
+			roomCode: 'ROOM42',
+			participants: [cookParticipant],
+			isInRoom: true,
+			isHost: true,
+			error: 'Old room warning',
+		})
+
+		await expect(useCookingStore.getState().leaveRoom()).resolves.toBe(true)
+
+		expect(mockLeaveRoom).toHaveBeenCalledWith('ROOM42')
+		expect(useCookingStore.getState()).toMatchObject({
+			roomCode: null,
+			participants: [],
+			isInRoom: false,
+			isHost: false,
+			error: null,
+		})
+	})
+
+	it('preserves room membership when the leave command is rejected', async () => {
+		const rejection = {
+			success: false,
+			statusCode: 503,
+			message: 'Room service unavailable',
+		}
+		mockLeaveRoom.mockResolvedValue(rejection)
+		useCookingStore.setState({
+			roomCode: 'ROOM42',
+			participants: [cookParticipant],
+			isInRoom: true,
+			isHost: true,
+		})
+
+		await expect(useCookingStore.getState().leaveRoom()).resolves.toBe(false)
+
+		expect(useCookingStore.getState()).toMatchObject({
+			roomCode: 'ROOM42',
+			participants: [cookParticipant],
+			isInRoom: true,
+			isHost: true,
+			error: 'Room service unavailable',
+		})
+		expect(mockLogDevError).toHaveBeenCalledWith(
+			'[cookingStore] leaveRoom failed:',
+			rejection,
+		)
+	})
+
+	it('preserves room membership when the leave command throws', async () => {
+		const failure = new Error('network dropped')
+		mockLeaveRoom.mockRejectedValue(failure)
+		useCookingStore.setState({
+			roomCode: 'ROOM42',
+			participants: [cookParticipant],
+			isInRoom: true,
+			isHost: false,
+		})
+
+		await expect(useCookingStore.getState().leaveRoom()).resolves.toBe(false)
+
+		expect(useCookingStore.getState()).toMatchObject({
+			roomCode: 'ROOM42',
+			participants: [cookParticipant],
+			isInRoom: true,
+			error: 'Failed to leave room',
+		})
+		expect(mockLogDevError).toHaveBeenCalledWith(
+			'[cookingStore] leaveRoom failed:',
+			failure,
+		)
+	})
 })

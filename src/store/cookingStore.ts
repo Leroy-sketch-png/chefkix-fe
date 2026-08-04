@@ -133,7 +133,7 @@ interface CookingState {
 	// Co-cooking room actions
 	createRoom: (recipeId: string) => Promise<string | null>
 	joinRoom: (roomCode: string, role?: string) => Promise<boolean>
-	leaveRoom: () => Promise<void>
+	leaveRoom: () => Promise<boolean>
 	refreshRoom: () => Promise<void>
 	handleRoomEvent: (event: RoomEvent) => void
 	clearRoom: () => void
@@ -1078,12 +1078,21 @@ export const useCookingStore = create<CookingState>()(
 
 				leaveRoom: async () => {
 					const { roomCode } = get()
-					if (!roomCode) return
+					if (!roomCode) return true
 
 					try {
-						await apiLeaveRoom(roomCode)
-					} catch (e) {
-						logDevError('leaveRoom failed', e)
+						const response = await apiLeaveRoom(roomCode)
+						if (!response.success) {
+							logDevError('[cookingStore] leaveRoom failed:', response)
+							set({
+								error: response.message || ct('storeFailedLeaveRoom'),
+							})
+							return false
+						}
+					} catch (error) {
+						logDevError('[cookingStore] leaveRoom failed:', error)
+						set({ error: ct('storeFailedLeaveRoom') })
+						return false
 					}
 
 					set({
@@ -1091,7 +1100,9 @@ export const useCookingStore = create<CookingState>()(
 						participants: [],
 						isInRoom: false,
 						isHost: false,
+						error: null,
 					})
+					return true
 				},
 
 				refreshRoom: async () => {

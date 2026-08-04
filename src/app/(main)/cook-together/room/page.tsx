@@ -46,10 +46,12 @@ export default function CookingRoomPage() {
 	const [activityFeed, setActivityFeed] = useState<ActivityItem[]>([])
 	const [isUpgrading, setIsUpgrading] = useState(false)
 	const [isRecoveringSession, setIsRecoveringSession] = useState(false)
+	const [isLeaving, setIsLeaving] = useState(false)
 	const [storeHydrated, setStoreHydrated] = useState(() =>
 		useCookingStore.persist.hasHydrated(),
 	)
 	const activityFeedRef = useRef<HTMLDivElement>(null)
+	const isLeavingRef = useRef(false)
 	const { openCookingPanel, expandCookingPanel } = useUiStore()
 	const currentUserId = useAuthStore(s => s.user?.userId)
 	const authHydrated = useAuthStore(s => s.isHydrated)
@@ -276,9 +278,20 @@ export default function CookingRoomPage() {
 	}, [isRecoveringSession, loadSession, recoverySessionId, t])
 
 	const handleLeave = useCallback(async () => {
-		await leaveRoom()
+		if (isLeavingRef.current) return
+
+		isLeavingRef.current = true
+		setIsLeaving(true)
+		const leftRoom = await leaveRoom()
+		if (!leftRoom) {
+			isLeavingRef.current = false
+			setIsLeaving(false)
+			toast.error(t('ctLeaveFailed'))
+			return
+		}
+
 		router.replace('/cook-together')
-	}, [leaveRoom, router])
+	}, [leaveRoom, router, t])
 
 	if (!authHydrated || !storeHydrated) {
 		return null
@@ -361,10 +374,11 @@ export default function CookingRoomPage() {
 							<div className='flex min-w-0 items-start gap-3'>
 								<motion.button
 									type='button'
-									onClick={() => router.push('/cook-together')}
+									onClick={handleLeave}
+									disabled={isLeaving}
 									whileTap={BUTTON_TAP}
-									className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
-									aria-label={t('ctLeave')}
+									className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-wait disabled:opacity-60'
+									aria-label={t(isLeaving ? 'ctLeaving' : 'ctLeave')}
 								>
 									<LogOut className='size-4' />
 								</motion.button>
@@ -594,12 +608,16 @@ export default function CookingRoomPage() {
 								<motion.button
 									type='button'
 									onClick={handleLeave}
+									disabled={isLeaving}
 									whileHover={BUTTON_HOVER}
 									whileTap={BUTTON_TAP}
-									className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5 focus-visible:ring-2 focus-visible:ring-brand/50'
+									className='flex items-center gap-2 rounded-xl border-2 border-error/30 px-5 py-4 font-semibold text-error transition-all hover:border-error hover:bg-error/5 focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-wait disabled:opacity-60'
+									aria-label={t(isLeaving ? 'ctLeaving' : 'ctLeave')}
 								>
 									<LogOut className='size-5' />
-									<span className='hidden sm:inline'>{t('ctLeave')}</span>
+									<span className='hidden sm:inline'>
+										{t(isLeaving ? 'ctLeaving' : 'ctLeave')}
+									</span>
 								</motion.button>
 							</div>
 						</motion.div>
