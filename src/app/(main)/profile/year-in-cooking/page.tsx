@@ -94,7 +94,7 @@ function buildRecapCards(stats: {
 			value: stats.currentXP.toLocaleString(),
 			subtitleKey: 'yicCardSubXp',
 			subtitleParams: { level: stats.currentLevel, title: stats.title },
-			gradient: 'from-gaming-xp to-accent-purple',
+			gradient: 'from-xp to-accent-purple',
 			icon: <Zap className='size-8' />,
 		})
 	}
@@ -117,7 +117,7 @@ function buildRecapCards(stats: {
 			valueKey: 'yicCardValueDays',
 			valueParams: { count: bestStreak },
 			subtitleKey: `yicCardSubStreak_${tier}`,
-			gradient: 'from-gaming-streak to-error',
+			gradient: 'from-streak to-error',
 			icon: <Flame className='size-8' />,
 		})
 	}
@@ -202,7 +202,7 @@ function buildRecapCards(stats: {
 		value: stats.title,
 		subtitleKey: 'yicCardSubLevel',
 		subtitleParams: { level: stats.currentLevel },
-		gradient: 'from-gaming-level to-warning',
+		gradient: 'from-level to-warning',
 		icon: <Trophy className='size-8' />,
 	})
 

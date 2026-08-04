@@ -1048,7 +1048,7 @@ function RecipeDetailContent() {
 											<TooltipProvider delayDuration={100}>
 												<Tooltip>
 													<TooltipTrigger asChild>
-														<span className='inline-flex items-center gap-1 rounded-full bg-gaming-xp/10 px-2 py-0.5 text-xs font-medium text-gaming-xp'>
+														<span className='inline-flex items-center gap-1 rounded-full bg-xp/10 px-2 py-0.5 text-xs font-medium text-xp'>
 															<Sparkles className='size-3' />
 															{t('aiLabel')}
 															{calibration.predictedDifficulty}

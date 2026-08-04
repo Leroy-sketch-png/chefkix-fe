@@ -951,7 +951,7 @@ export const UserProfile = ({
 											<div
 												className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
 											>
-														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10'>
+														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-combo/5 to-xp/10'>
 															{coverImageDelivery ? (
 																<Image
 																	src={coverImageDelivery.src}
@@ -967,7 +967,7 @@ export const UserProfile = ({
 																</div>
 															)}
 															<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent' />
-															<div className='absolute left-3 top-3 rounded-full bg-white/90 px-2 py-1 text-2xs font-semibold text-text-primary'>
+													<div className='absolute left-3 top-3 rounded-full bg-black/65 px-2 py-1 text-2xs font-semibold text-white'>
 																{typeLabel}
 															</div>
 														</div>

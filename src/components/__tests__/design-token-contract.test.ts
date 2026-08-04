@@ -53,4 +53,16 @@ describe('component design-token contract', () => {
 			expect(themeColors).toContain(color)
 		}
 	})
+
+	it('uses canonical color utilities with stable foreground/background pairing', () => {
+		const source = productionSources(join(process.cwd(), 'src'))
+			.map(sourcePath => readFileSync(sourcePath, 'utf8'))
+			.join('\n')
+		const invalidUtilityPattern =
+			/\b(?:bg|border|fill|from|ring|shadow|stroke|text|to|via)-(?:gaming-(?:xp|streak|level)|pink)(?=\/|\s|'|"|`|\)|\]|:|$)/
+
+		expect(source).not.toMatch(invalidUtilityPattern)
+		expect(source).not.toMatch(/bg-white\/\d+[^'"\n]*text-text-/)
+		expect(source).not.toMatch(/text-text-[^'"\n]*bg-white\/\d+/)
+	})
 })

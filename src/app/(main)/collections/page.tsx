@@ -127,7 +127,7 @@ export default function CollectionsPage() {
 				return {
 					label: t('typeCollection'),
 					icon: FolderHeart,
-					className: 'bg-pink/10 text-pink',
+					className: 'bg-combo/10 text-combo',
 				}
 		}
 	}
@@ -362,7 +362,7 @@ export default function CollectionsPage() {
 																unoptimized={coverImageDelivery.unoptimized}
 															/>
 														) : (
-															<div className='flex size-full items-center justify-center bg-gradient-to-br from-brand/10 via-pink/5 to-xp/10 dark:from-brand/20 dark:via-pink/10 dark:to-xp/15 relative overflow-hidden'>
+															<div className='flex size-full items-center justify-center bg-gradient-to-br from-brand/10 via-combo/5 to-xp/10 dark:from-brand/20 dark:via-combo/10 dark:to-xp/15 relative overflow-hidden'>
 																<GridPattern
 																	size={16}
 																	color='var(--color-brand)'

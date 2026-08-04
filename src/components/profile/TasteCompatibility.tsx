@@ -134,7 +134,7 @@ export function TasteCompatibility({
 			initial={{ opacity: 0, y: 10 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={TRANSITION_SPRING}
-			className='rounded-2xl border border-border-subtle bg-gradient-to-r from-brand/5 via-bg-card to-gaming-xp/5 p-4 shadow-card'
+			className='rounded-2xl border border-border-subtle bg-gradient-to-r from-brand/5 via-bg-card to-xp/5 p-4 shadow-card'
 		>
 			<div className='flex items-center gap-3'>
 				<div className='relative grid size-12 place-items-center'>
@@ -176,7 +176,7 @@ export function TasteCompatibility({
 
 				<div className='flex-1'>
 					<div className='flex items-center gap-1.5'>
-						<Sparkles className='size-3.5 text-gaming-xp' />
+						<Sparkles className='size-3.5 text-xp' />
 						<span className='text-sm font-semibold text-text-primary'>
 							{t('tasteCompatibility')}
 						</span>

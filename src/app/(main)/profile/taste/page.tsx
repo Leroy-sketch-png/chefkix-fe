@@ -565,7 +565,7 @@ export default function TasteProfilePage() {
 						className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 					>
 						<h2 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
-							<Zap className='size-5 text-gaming-xp' />
+							<Zap className='size-5 text-xp' />
 							{t('tasteInterestsTitle')}
 						</h2>
 						<div className='flex flex-wrap gap-2'>
@@ -610,14 +610,14 @@ export default function TasteProfilePage() {
 						{cookingPrefs.dietaryRestrictions.length > 0 && (
 							<div className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
 								<h3 className='mb-3 flex items-center gap-2 text-sm font-semibold text-text-primary'>
-									<Trophy className='size-4 text-gaming-xp' />
+									<Trophy className='size-4 text-xp' />
 									{t('tasteDietaryPreferencesTitle')}
 								</h3>
 								<div className='flex flex-wrap gap-2'>
 									{cookingPrefs.dietaryRestrictions.map(d => (
 										<span
 											key={d}
-											className='rounded-full bg-gaming-xp/10 px-3 py-1 text-xs font-medium text-gaming-xp'
+											className='rounded-full bg-xp/10 px-3 py-1 text-xs font-medium text-xp'
 										>
 											{d}
 										</span>
@@ -640,7 +640,7 @@ export default function TasteProfilePage() {
 							<motion.div
 								whileHover={CARD_FEATURED_HOVER}
 								whileTap={BUTTON_SUBTLE_TAP}
-								className='group flex items-center gap-4 rounded-2xl border border-border-subtle bg-gradient-to-r from-brand/5 to-gaming-xp/5 p-5 shadow-card transition-all hover:shadow-warm'
+								className='group flex items-center gap-4 rounded-2xl border border-border-subtle bg-gradient-to-r from-brand/5 to-xp/5 p-5 shadow-card transition-all hover:shadow-warm'
 							>
 								<div className='grid size-12 place-items-center rounded-xl bg-brand/10 text-brand transition-colors group-hover:bg-brand/20'>
 									<Calendar className='size-6' />

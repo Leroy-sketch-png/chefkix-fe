@@ -151,7 +151,7 @@ export function LearningNarrative({
 			className='rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 		>
 			<h3 className='mb-4 flex items-center gap-2 font-semibold text-text-primary'>
-				<BookOpen className='size-5 text-gaming-xp' />
+				<BookOpen className='size-5 text-xp' />
 				{t('cookingJourney')}
 			</h3>
 
