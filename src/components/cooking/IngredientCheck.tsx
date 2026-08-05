@@ -49,13 +49,12 @@ export const IngredientCheck = ({
 		{/* Custom checkbox visual */}
 		<motion.div
 			aria-hidden='true'
-			animate={{
-				backgroundColor: isChecked ? 'var(--color-success)' : 'transparent',
-				borderColor: isChecked
-					? 'var(--color-success)'
-					: 'var(--border-medium)',
-			}}
-			className='grid size-6 flex-shrink-0 place-items-center rounded-xl border-2'
+			className={cn(
+				'grid size-6 flex-shrink-0 place-items-center rounded-xl border-2 transition-colors',
+				isChecked
+					? 'border-success bg-success'
+					: 'border-border-medium bg-transparent',
+			)}
 		>
 			<AnimatePresence>
 				{isChecked && (

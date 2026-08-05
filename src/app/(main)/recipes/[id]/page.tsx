@@ -4,7 +4,12 @@ import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
-import { Recipe, getRecipeImage, getTotalTime } from '@/lib/types/recipe'
+import {
+	Recipe,
+	getRecipeImage,
+	getTotalTime,
+	type Difficulty,
+} from '@/lib/types/recipe'
 import {
 	getRecipeById,
 	toggleLikeRecipe,
@@ -107,6 +112,13 @@ import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { settleOptimisticMutation } from '@/lib/optimistic-mutation'
 import { generateRecipeJsonLd, jsonLd } from '@/lib/seo'
+
+const DIFFICULTY_BADGE_CLASSES: Record<Difficulty, string> = {
+	Beginner: 'bg-success/80',
+	Intermediate: 'bg-warning/80',
+	Advanced: 'bg-error/80',
+	Expert: 'bg-xp/80',
+}
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -726,26 +738,9 @@ function RecipeDetailContent() {
 
 	const totalTime = getTotalTime(recipe)
 
-	// Difficulty config for styling
-	const difficultyConfig: Record<
-		string,
-		{ color: string; bg: string; glow: string }
-	> = {
-		Beginner: {
-			color: 'text-success',
-			bg: 'bg-success',
-			glow: 'shadow-success/40',
-		},
-		Intermediate: {
-			color: 'text-warning',
-			bg: 'bg-warning',
-			glow: 'shadow-warning/40',
-		},
-		Advanced: { color: 'text-error', bg: 'bg-error', glow: 'shadow-error/40' },
-		Expert: { color: 'text-xp', bg: 'bg-xp', glow: 'shadow-xp/40' },
-	}
-	const diffConfig =
-		difficultyConfig[recipe.difficulty] || difficultyConfig.Beginner
+	const difficultyBadgeClass =
+		DIFFICULTY_BADGE_CLASSES[recipe.difficulty] ??
+		DIFFICULTY_BADGE_CLASSES.Beginner
 	const recipeJsonLd = generateRecipeJsonLd({
 		id: recipe.id,
 		title: recipe.title,
@@ -846,7 +841,7 @@ function RecipeDetailContent() {
 								transition={{ delay: 0.4, ...TRANSITION_SPRING }}
 								className={cn(
 									'absolute right-6 top-6 rounded-full px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md border border-white/20',
-									diffConfig.bg.replace('bg-', 'bg-').concat('/80'),
+									difficultyBadgeClass,
 								)}
 							>
 								{recipe.difficulty}
