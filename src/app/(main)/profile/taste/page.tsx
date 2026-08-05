@@ -225,7 +225,6 @@ function TasteRadar({ dimensions }: { dimensions: TasteDimension[] }) {
 							fill='var(--color-brand)'
 							initial={{ opacity: 0, scale: 0 }}
 							animate={{ opacity: 1, scale: 1 }}
-							transition={{ delay: 0.3 + i * 0.1 }}
 						/>
 					)
 				})}
@@ -386,7 +385,6 @@ export default function TasteProfilePage() {
 					<motion.div
 						initial={{ opacity: 0, scale: 0.95 }}
 						animate={{ opacity: 1, scale: 1 }}
-						transition={{ delay: 0.2 }}
 						className='mb-8'
 					>
 						<EmptyStateGamified
@@ -415,7 +413,7 @@ export default function TasteProfilePage() {
 						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
-							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
+							transition={TRANSITION_SPRING}
 							className='mx-auto max-w-lg rounded-2xl border border-border-subtle bg-bg-card p-2.5 shadow-card sm:p-6'
 						>
 							<TasteRadar dimensions={dimensions} />
@@ -459,12 +457,11 @@ export default function TasteProfilePage() {
 							className='mb-3'
 						/>
 						<div className='space-y-3'>
-							{dimensions.map((dim, i) => (
+							{dimensions.map(dim => (
 								<motion.div
 									key={dim.label}
 									initial={{ opacity: 0, x: -20 }}
 									animate={{ opacity: 1, x: 0 }}
-									transition={{ delay: 0.4 + i * 0.08 }}
 									whileHover={CARD_HOVER}
 									className='rounded-xl border border-border-subtle bg-bg-card p-4 shadow-card'
 								>
@@ -488,7 +485,6 @@ export default function TasteProfilePage() {
 											initial={{ width: 0 }}
 											animate={{ width: `${dim.value}%` }}
 											transition={{
-												delay: 0.6 + i * 0.08,
 												duration: DURATION_S.slow,
 												ease: 'easeOut',
 											}}
@@ -518,7 +514,6 @@ export default function TasteProfilePage() {
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.7 }}
 								className='rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 							>
 								<h2 className='mb-4 flex items-center gap-2 font-semibold text-text-primary'>
@@ -561,7 +556,6 @@ export default function TasteProfilePage() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.8 }}
 						className='mt-8 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'
 					>
 						<h2 className='mb-3 flex items-center gap-2 font-semibold text-text-primary'>
@@ -586,7 +580,6 @@ export default function TasteProfilePage() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.9 }}
 						className='mt-4 grid gap-4 sm:grid-cols-2'
 					>
 						{cookingPrefs.preferredCuisines.length > 0 && (
@@ -633,7 +626,6 @@ export default function TasteProfilePage() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 1.0 }}
 						className='mt-8'
 					>
 						<Link href='/profile/year-in-cooking'>

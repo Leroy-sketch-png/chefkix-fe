@@ -51,7 +51,7 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 16 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.55, duration: DURATION_S.smooth }}
+			transition={{ duration: DURATION_S.smooth }}
 			className='mb-8 rounded-2xl border border-brand/15 bg-gradient-to-br from-brand/5 via-transparent to-success/5 p-5 shadow-card'
 		>
 			{/* Header */}
@@ -124,7 +124,6 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 										<motion.div
 											initial={{ opacity: 0, scale: 0.6 }}
 											animate={{ opacity: 1, scale: 1 }}
-											transition={{ delay: 0.6 + i * 0.08 }}
 											className='relative'
 											style={{ zIndex: maxVisible - i }}
 										>
@@ -166,7 +165,6 @@ export function SocialProof({ recipeId }: SocialProofProps) {
 							<motion.div
 								initial={{ opacity: 0, scale: 0.6 }}
 								animate={{ opacity: 1, scale: 1 }}
-								transition={{ delay: 0.6 + visibleCookers.length * 0.08 }}
 								className='relative grid size-8 place-items-center rounded-full bg-bg-elevated ring-2 ring-bg-card'
 								style={{ zIndex: 0 }}
 							>

@@ -823,7 +823,7 @@ function RecipeDetailContent() {
 								<motion.div
 									initial={{ scale: 0, opacity: 0 }}
 									animate={{ scale: 1, opacity: 1 }}
-									transition={{ delay: 0.3, ...TRANSITION_SPRING }}
+									transition={TRANSITION_SPRING}
 									className='absolute left-6 top-6 flex items-center gap-2 rounded-full bg-black/40 backdrop-blur-md border border-white/20 px-4 py-2 text-sm font-bold text-white shadow-xl'
 								>
 									<Zap className='size-4 text-streak' />
@@ -837,7 +837,7 @@ function RecipeDetailContent() {
 							<motion.div
 								initial={{ scale: 0, opacity: 0 }}
 								animate={{ scale: 1, opacity: 1 }}
-								transition={{ delay: 0.4, ...TRANSITION_SPRING }}
+								transition={TRANSITION_SPRING}
 								className={cn(
 									'absolute right-6 top-6 rounded-full px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md border border-white/20',
 									difficultyBadgeClass,
@@ -888,7 +888,6 @@ function RecipeDetailContent() {
 								<motion.h1
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: 0.2 }}
 									className='mb-4 text-3xl font-black leading-[1.1] tracking-tight text-white drop-shadow-lg md:text-4xl'
 								>
 									{recipe.title}
@@ -896,7 +895,6 @@ function RecipeDetailContent() {
 								<motion.p
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
-									transition={{ delay: 0.3 }}
 									className='mb-2 line-clamp-3 max-w-3xl text-lg font-medium leading-relaxed text-white/90 drop-shadow-md md:line-clamp-none'
 								>
 									{recipe.description}
@@ -910,7 +908,6 @@ function RecipeDetailContent() {
 									<motion.div
 										initial={{ opacity: 0, x: -10 }}
 										animate={{ opacity: 1, x: 0 }}
-										transition={{ delay: 0.4 }}
 									>
 										<Link
 											href={`/${recipe.author.userId}`}
@@ -1157,7 +1154,6 @@ function RecipeDetailContent() {
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.5 }}
 								className='-order-1 mb-6 space-y-3 md:order-none md:mb-0'
 							>
 								{/* Primary cooking action */}
@@ -1410,7 +1406,6 @@ function RecipeDetailContent() {
 								<motion.div
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
-									transition={{ delay: 0.6 }}
 									className='mt-6 flex flex-wrap gap-2'
 								>
 									{recipe.cuisineType && (
@@ -1442,7 +1437,6 @@ function RecipeDetailContent() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.5 }}
 					>
 						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
@@ -1525,7 +1519,6 @@ function RecipeDetailContent() {
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ delay: 0.5 }}
 					>
 						<div className='mb-8 rounded-2xl border border-xp/20 bg-bg-card p-6 shadow-card'>
 							<h2 className='mb-4 flex items-center gap-2 text-xl font-bold text-text-primary'>
@@ -1565,7 +1558,6 @@ function RecipeDetailContent() {
 					<motion.div
 						initial={{ opacity: 0, x: -20 }}
 						animate={{ opacity: 1, x: 0 }}
-						transition={{ delay: 0.4 }}
 						className='lg:col-span-1'
 					>
 						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
 	BUTTON_SUBTLE_HOVER,
 	BUTTON_TAP,
-	TRANSITION_SPRING,
 	staggerContainer,
 	staggerItem,
 } from '@/lib/motion'
@@ -154,7 +153,6 @@ export function RecipeReviews({ recipeId }: RecipeReviewsProps) {
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ delay: 0.6 }}
 			className='mb-8 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-6 shadow-card'
 		>
 			{/* Header with aggregate stats */}
