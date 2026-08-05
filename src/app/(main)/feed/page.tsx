@@ -502,11 +502,7 @@ export default function FeedPage() {
 							</PullToRefresh>
 						</ColdStartExperience>
 
-						<FeedContextRail
-							postCount={posts.length}
-							feedMode={feedMode}
-							showFriendsOnline={Boolean(user)}
-						/>
+						<FeedContextRail showFriendsOnline={Boolean(user)} />
 					</div>
 				</div>
 			</PageContainer>
