@@ -46,7 +46,6 @@ export const FollowSuggestionCard = ({
 }: FollowSuggestionCardProps) => {
 	const t = useTranslations('social')
 	const [isFollowing, setIsFollowing] = useState(false)
-	const [isDismissing, setIsDismissing] = useState(false)
 	const displayName = getProfileDisplayName(profile)
 	const { requireAuth } = useAuthActionGuard()
 
@@ -57,9 +56,11 @@ export const FollowSuggestionCard = ({
 		try {
 			const response = await toggleFollow(profile.userId)
 
-			if (response.success) {
+			if (response.success && response.data?.isFollowing === true) {
 				toast.success(t('nowFollowing', { name: displayName }))
-				triggerMutualFollowConfetti()
+				if (response.data.isFollowedBy) {
+					triggerMutualFollowConfetti()
+				}
 				onFollowBack?.(profile.userId)
 			} else {
 				toast.error(t('failedFollowUser'))
@@ -72,11 +73,7 @@ export const FollowSuggestionCard = ({
 	}
 
 	const handleDismiss = () => {
-		setIsDismissing(true)
-		// Just remove from suggestions UI - no API call needed
-		// User can still follow them from their profile page later
 		onDismiss?.(profile.userId)
-		setIsDismissing(false)
 	}
 
 	return (
@@ -131,7 +128,7 @@ export const FollowSuggestionCard = ({
 						whileHover={BUTTON_HOVER}
 						whileTap={BUTTON_TAP}
 						onClick={handleFollowBack}
-						disabled={isFollowing || isDismissing}
+						disabled={isFollowing}
 						className='flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white shadow-glow transition-all hover:bg-brand/90 hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed'
 					>
 						{isFollowing ? (
@@ -148,15 +145,11 @@ export const FollowSuggestionCard = ({
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						onClick={handleDismiss}
-						disabled={isFollowing || isDismissing}
+						disabled={isFollowing}
 						aria-label={t('dismissSuggestion')}
 						className='flex size-9 items-center justify-center rounded-xl border border-border-subtle text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:opacity-50'
 					>
-						{isDismissing ? (
-							<Loader2 className='size-4 animate-spin' />
-						) : (
-							<X className='size-4' />
-						)}
+						<X className='size-4' />
 					</motion.button>
 				</div>
 			</motion.div>

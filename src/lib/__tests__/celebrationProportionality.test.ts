@@ -37,12 +37,16 @@ describe('celebration proportionality contract', () => {
 		}
 	})
 
-	it('names the mutual-connection effect explicitly', () => {
+	it('gates the mutual-connection effect on authoritative reciprocity', () => {
 		const followSuggestion = read(
 			'src/components/social/FollowSuggestionCard.tsx',
 		)
 
 		expect(followSuggestion).toContain('triggerMutualFollowConfetti()')
+		expect(followSuggestion).toContain('if (response.data.isFollowedBy)')
+		expect(followSuggestion).toContain(
+			'response.success && response.data?.isFollowing === true',
+		)
 		expect(followSuggestion).not.toContain('triggerLikeConfetti')
 	})
 })
