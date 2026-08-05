@@ -68,12 +68,12 @@ export const Modal = ({
 			<div
 				role='dialog'
 				aria-modal='true'
-				className='fixed inset-0 z-modal flex animate-fadeIn items-center justify-center bg-foreground/80 p-6'
+				className='fixed inset-0 z-modal flex animate-fade-in items-center justify-center bg-foreground/80 p-6'
 				onClick={closeOnOverlayClick ? onClose : undefined}
 			>
 				<div
 					className={cn(
-						'relative flex max-h-modal w-full animate-scaleIn flex-col overflow-hidden rounded-2xl bg-bg-card shadow-glow',
+						'relative flex max-h-modal w-full animate-scale-in flex-col overflow-hidden rounded-2xl bg-bg-card shadow-glow',
 						sizeClasses[size],
 						className,
 					)}

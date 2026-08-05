@@ -277,7 +277,7 @@ export function CommunityPageView({
 							/>
 
 							{activeTab === 'discover' && (
-								<div className='space-y-6 animate-fadeIn'>
+								<div className='space-y-6 animate-fade-in'>
 									{pulsePosts.length > 0 && (
 										<section className='space-y-3'>
 											<SurfaceSectionHeader
@@ -302,7 +302,7 @@ export function CommunityPageView({
 							)}
 
 							{isAuthenticated && activeTab === 'friends' && (
-								<div className='space-y-8 animate-fadeIn'>
+								<div className='space-y-8 animate-fade-in'>
 									<section>
 										<SurfaceSectionHeader
 											className='mb-4'
@@ -402,13 +402,13 @@ export function CommunityPageView({
 							)}
 
 							{isAuthenticated && activeTab === 'groups' && (
-								<div className='animate-fadeIn'>
+								<div className='animate-fade-in'>
 									<GroupsExploreGrid currentUserId={user?.userId} />
 								</div>
 							)}
 
 							{activeTab === 'leaderboard' && (
-								<div className='animate-fadeIn'>
+								<div className='animate-fade-in'>
 									<FriendsLeaderboard
 										entries={leaderboardEntries}
 										totalFriends={friends.length}

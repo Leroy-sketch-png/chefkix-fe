@@ -52,7 +52,12 @@ export function BorderBeam({
 					strokeDasharray={`${beamSize} 1000`}
 					strokeLinecap='round'
 					className='animate-border-beam'
-					style={{ animationDuration: `${duration}s` }}
+					style={
+						{
+							animationDuration: `${duration}s`,
+							'--border-beam-offset': -(1000 + beamSize),
+						} as React.CSSProperties
+					}
 					pathLength={1000 + beamSize}
 					rx='var(--radius)'
 					ry='var(--radius)'

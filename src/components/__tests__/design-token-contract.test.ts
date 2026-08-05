@@ -65,4 +65,41 @@ describe('component design-token contract', () => {
 		expect(source).not.toMatch(/bg-white\/\d+[^'"\n]*text-text-/)
 		expect(source).not.toMatch(/text-text-[^'"\n]*bg-white\/\d+/)
 	})
+
+	it('keeps source animation requests in the active CSS authority', () => {
+		const globals = readFileSync(
+			join(process.cwd(), 'src/app/globals.css'),
+			'utf8',
+		)
+		const source = productionSources(join(process.cwd(), 'src'))
+			.map(sourcePath => readFileSync(sourcePath, 'utf8'))
+			.join('\n')
+		const requiredAnimations = [
+			'fade-in',
+			'scale-in',
+			'slide-in-down',
+			'slide-in-up',
+			'marquee',
+			'border-beam',
+		]
+
+		expect(source).not.toMatch(/\banimate-[a-z0-9-]*[A-Z][A-Za-z0-9-]*/)
+		for (const animation of requiredAnimations) {
+			expect(globals).toContain(`.animate-${animation}`)
+			expect(globals).toContain(`@keyframes ${animation}`)
+		}
+		expect(globals).toMatch(
+			/@keyframes border-beam[\s\S]*?stroke-dashoffset:[\s\S]*?\.animate-border-beam/,
+		)
+		expect(globals).not.toMatch(
+			/@keyframes border-beam[\s\S]*?offset-distance:[\s\S]*?\.animate-border-beam/,
+		)
+		expect(globals).toContain('@media (prefers-reduced-motion: reduce)')
+
+		const borderBeam = readFileSync(
+			join(process.cwd(), 'src/components/ui/border-beam.tsx'),
+			'utf8',
+		)
+		expect(borderBeam).toContain("'--border-beam-offset': -(1000 + beamSize)")
+	})
 })

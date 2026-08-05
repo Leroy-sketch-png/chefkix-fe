@@ -1477,6 +1477,50 @@ select {
 
 /* ============ PREMIUM KEYFRAMES ============ */
 
+/* Bounded entrances shared by CSS-only primitives and content switches */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.2s ease-out both;
+}
+
+@keyframes slide-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-slide-in-down {
+	animation: slide-in-down 0.2s ease-out both;
+}
+
+@keyframes slide-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-slide-in-up {
+	animation: slide-in-up 0.2s ease-out both;
+}
+
 /* Shine sweep — for loading and highlight effects */
 @keyframes shine-sweep {
 	0% {
@@ -1542,12 +1586,30 @@ select {
 
 /* Border beam — animated glow border for premium elements */
 @keyframes border-beam {
-	0% {
-		offset-distance: 0%;
+	from {
+		stroke-dashoffset: 0;
 	}
-	100% {
-		offset-distance: 100%;
+	to {
+		stroke-dashoffset: var(--border-beam-offset, -1080);
 	}
+}
+
+.animate-border-beam {
+	animation: border-beam 6s linear infinite;
+}
+
+@keyframes marquee {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(calc(-100% - var(--marquee-gap, 1rem)));
+	}
+}
+
+.animate-marquee {
+	animation: marquee var(--marquee-duration, 20s) linear
+		var(--marquee-direction, normal) infinite;
 }
 
 /* Fade up for staggered content reveals */
