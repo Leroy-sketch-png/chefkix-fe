@@ -7,8 +7,8 @@ import {
 	Cloud,
 	Image as ImageIcon,
 	Loader2,
+	Play,
 	Plus,
-	Rocket,
 	Save,
 	Send,
 	Timer,
@@ -1319,8 +1319,8 @@ export const RecipeFormDetailed = ({
 										}}
 										className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 rounded-md'
 									>
-										<Rocket className='size-3.5' />
-										{t('formTestPlay')}
+										<Play className='size-3.5' />
+										{t('previewCooking')}
 									</button>
 								)}
 							</div>

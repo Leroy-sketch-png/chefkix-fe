@@ -45,7 +45,6 @@ import {
 	Zap,
 	Check,
 	Edit3,
-	Rocket,
 	Info,
 	Timer,
 	ArrowLeft,
@@ -1380,8 +1379,8 @@ function RecipeDetailContent() {
 													}}
 													className='cursor-pointer gap-2 text-sm'
 												>
-													<Rocket className='size-4' />
-													{t('testCookPreview')}
+													<Play className='size-4' />
+													{t('previewCooking')}
 												</DropdownMenuItem>
 												<DropdownMenuItem
 													onClick={() =>

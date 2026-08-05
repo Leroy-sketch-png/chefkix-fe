@@ -22,8 +22,8 @@ import {
 	ListOrdered,
 	Loader2,
 	Lock,
+	Play,
 	Plus,
-	Rocket,
 	ShoppingBasket,
 	Signal,
 	Sparkles,
@@ -1823,10 +1823,10 @@ export const RecipeCreateAiFlow = ({
 													.startPreviewCooking(previewRecipe)
 												useUiStore.getState().expandCookingPanel()
 											}}
-											className='flex items-center gap-1.5 text-sm font-medium text-brand/70 transition-colors hover:text-brand'
+											className='flex items-center gap-1.5 rounded-md text-sm font-medium text-brand/70 transition-colors hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
 										>
-											<Rocket className='size-3.5' />
-											{t('aiFlowTestPlay')}
+											<Play className='size-3.5' />
+											{t('previewCooking')}
 										</button>
 									)}
 								</div>
