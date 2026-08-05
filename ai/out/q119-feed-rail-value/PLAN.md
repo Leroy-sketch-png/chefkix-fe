@@ -15,6 +15,14 @@ content behavior.
 5. Run catalog, focused, application, build, source-sweep, and desktop runtime
    gates.
 
+## Pass 3 Correction
+
+SCOPE's concurrent sweep found the same client-mounted count in FeedCommandDeck
+and the feed section header after the rail checkpoint. Q119 was reopened. The
+corrected boundary removes the deck status row, its three presentation-only
+props, the duplicate section count, and the two newly orphaned feed strings while
+retaining the bottom end-of-feed lifecycle.
+
 ## Risks
 
 - Removing the entire rail would erase useful navigation and presence value.

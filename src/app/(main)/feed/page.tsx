@@ -319,9 +319,6 @@ export default function FeedPage() {
 										feedMode={feedMode}
 										onFeedModeChange={setFeedMode}
 										availableModes={availableModes}
-										postCount={posts.length}
-										hasMore={hasMore}
-										isLoading={isLoading}
 										className='mb-4 sm:mb-6'
 									/>
 
@@ -434,7 +431,6 @@ export default function FeedPage() {
 											<SurfaceSectionHeader
 												className='mb-3'
 												eyebrow={t('latestPosts')}
-												chipText={t('postsCount', { count: posts.length })}
 											/>
 											<div className='space-y-4'>
 												{posts.map(post => (

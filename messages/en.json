@@ -716,8 +716,6 @@
 		"emptyExploreAction": "Explore trending",
 		"emptyFindAction": "Find chefs to follow",
 		"latestPosts": "Latest posts",
-		"postsCount": "{count, plural, one {# post} other {# posts}}",
-		"loadMore": "Load more",
 		"commandEyebrow": "Feed Controls",
 		"commandHeading": "Pick Your Stream",
 		"commandChip": "Public stream",

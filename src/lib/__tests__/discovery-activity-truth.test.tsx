@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { ExploreContextRail } from '@/components/explore/ExploreContextRail'
-import { FeedCommandDeck } from '@/components/social/FeedCommandDeck'
 
 jest.mock('next-intl', () => ({
 	useTranslations: () => (key: string) => key,
@@ -63,35 +62,6 @@ jest.mock('@/components/explore/SeasonsBest', () => ({
 }))
 
 describe('discovery activity truth', () => {
-	it('describes an exhausted feed as complete rather than live', () => {
-		render(
-			<FeedCommandDeck
-				feedMode='latest'
-				onFeedModeChange={jest.fn()}
-				availableModes={['latest']}
-				postCount={4}
-				hasMore={false}
-			/>,
-		)
-
-		expect(screen.getByText('endOfFeed')).toBeTruthy()
-		expect(screen.queryByText('liveFeed')).toBeNull()
-	})
-
-	it('keeps the load-more status while more posts are available', () => {
-		render(
-			<FeedCommandDeck
-				feedMode='latest'
-				onFeedModeChange={jest.fn()}
-				availableModes={['latest']}
-				postCount={4}
-				hasMore
-			/>,
-		)
-
-		expect(screen.getByText('loadMore')).toBeTruthy()
-	})
-
 	it('omits Hot Queries when no trending data exists', () => {
 		render(
 			<ExploreContextRail
