@@ -115,6 +115,7 @@ export default function PostDetailPage() {
 
 					<PostCard
 						post={post}
+						contentDisplay='full'
 						onUpdate={handlePostUpdate}
 						onDelete={handlePostDelete}
 						currentUserId={user?.userId}

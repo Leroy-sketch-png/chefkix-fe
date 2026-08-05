@@ -85,6 +85,10 @@ import {
 	socialCardHeaderPadding,
 	POST_TYPE_TO_TONE,
 } from '@/components/social/socialCardStyles'
+import {
+	PostCaption,
+	type PostCaptionMode,
+} from '@/components/social/PostCaption'
 
 const EDIT_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
@@ -125,6 +129,7 @@ interface PostCardProps {
 	onUpdate?: (post: Post) => void
 	onDelete?: (postId: string) => void
 	currentUserId?: string
+	contentDisplay?: PostCaptionMode
 }
 
 const POST_TYPE_BADGE_STYLES: Record<string, string> = {
@@ -187,6 +192,7 @@ const PostCardContent = ({
 	onUpdate,
 	onDelete,
 	currentUserId,
+	contentDisplay = 'preview',
 }: PostCardProps) => {
 	const [post, setPost] = useState<Post>(initialPost)
 	const [isLiking, setIsLiking] = useState(false)
@@ -949,9 +955,7 @@ const PostCardContent = ({
 					) : (
 						<>
 							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
-								<p className='whitespace-pre-wrap text-label leading-[1.65] tracking-normal text-text-primary'>
-									{post.content}
-								</p>
+								<PostCaption content={post.content} mode={contentDisplay} />
 								{(post.tags ?? []).length > 0 && (
 									<div className='flex flex-wrap gap-1.5'>
 										{post.tags?.map(tag => (

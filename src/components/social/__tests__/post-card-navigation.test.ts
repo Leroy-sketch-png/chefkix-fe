@@ -5,6 +5,10 @@ const source = readFileSync(
 	join(process.cwd(), 'src/components/social/PostCard.tsx'),
 	'utf8',
 )
+const detailSource = readFileSync(
+	join(process.cwd(), 'src/app/(main)/post/[id]/page.tsx'),
+	'utf8',
+)
 
 describe('PostCard navigation semantics', () => {
 	it('uses a real permalink without turning the interactive card into a link', () => {
@@ -20,5 +24,13 @@ describe('PostCard navigation semantics', () => {
 			"href={post.userId ? `/${post.userId}` : '/dashboard'}",
 		)
 		expect(source).toContain('href={`/post/${post.id}`}')
+	})
+
+	it('defaults cards to caption previews while detail remains complete', () => {
+		expect(source).toContain("contentDisplay = 'preview'")
+		expect(source).toContain(
+			'<PostCaption content={post.content} mode={contentDisplay} />',
+		)
+		expect(detailSource).toContain("contentDisplay='full'")
 	})
 })
