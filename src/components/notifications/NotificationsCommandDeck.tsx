@@ -7,12 +7,7 @@ import { cn } from '@/lib/utils'
 type NotificationFilter = 'all' | 'gamified' | 'social' | 'unread'
 
 interface NotificationsCommandDeckProps {
-	counts: {
-		all: number
-		gamified: number
-		social: number
-		unread: number
-	}
+	unreadCount: number | null
 	activeFilter: NotificationFilter
 	onFilterChange: (filter: NotificationFilter) => void
 	onMarkAllRead: () => void
@@ -21,7 +16,7 @@ interface NotificationsCommandDeckProps {
 }
 
 export function NotificationsCommandDeck({
-	counts,
+	unreadCount,
 	activeFilter,
 	onFilterChange,
 	onMarkAllRead,
@@ -40,7 +35,8 @@ export function NotificationsCommandDeck({
 		{ id: 'unread', label: t('filterUnread'), icon: Filter },
 	]
 
-	const hasUnread = counts.unread > 0
+	const unreadCountKnown = unreadCount !== null
+	const hasUnread = unreadCountKnown && unreadCount > 0
 
 	return (
 		<motion.section
@@ -62,52 +58,40 @@ export function NotificationsCommandDeck({
 					<h2 className='text-base font-black text-text-primary sm:mt-1 sm:text-lg'>
 						{t('cmdTitle')}
 					</h2>
-					<div className='mt-2 inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1 text-xs font-semibold text-text-secondary'>
-						{hasUnread ? (
-							<Flame className='size-3.5 text-warning' />
-						) : (
-							<Bell className='size-3.5 text-brand' />
-						)}
-						{hasUnread
-							? `${counts.unread} ${t('filterUnread').toLowerCase()}`
-							: t('noUnread')}
-					</div>
-				</div>
-				<Button
-					variant={hasUnread ? 'brand' : 'outline'}
-					size='sm'
-					onClick={onMarkAllRead}
-					disabled={isMarkingAllRead || !hasUnread}
-					className={cn(
-						'h-9 self-start rounded-full gap-2 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm',
-						hasUnread && 'shadow-warm',
+					{unreadCountKnown && (
+						<div className='mt-2 inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-bg-elevated px-2.5 py-1 text-xs font-semibold text-text-secondary'>
+							{hasUnread ? (
+								<Flame className='size-3.5 text-warning' />
+							) : (
+								<Bell className='size-3.5 text-brand' />
+							)}
+							{hasUnread
+								? `${unreadCount} ${t('filterUnread').toLowerCase()}`
+								: t('noUnread')}
+						</div>
 					)}
-				>
-					<CheckCheck className='size-3.5 sm:size-4' />
-					{isMarkingAllRead ? t('markingAllRead') : t('markAllRead')}
-				</Button>
-			</div>
-
-			<div className='relative mt-3 flex flex-wrap items-center gap-2 sm:mt-4'>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
-					<Bell className='size-3' />
-					{counts.all}
-				</span>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
-					<Sparkles className='size-3 text-xp' />
-					{counts.gamified}
-				</span>
-				<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-card px-2 py-1 text-2xs font-semibold text-text-muted'>
-					<Users className='size-3 text-brand' />
-					{counts.social}
-				</span>
+				</div>
+				{unreadCountKnown && (
+					<Button
+						variant={hasUnread ? 'brand' : 'outline'}
+						size='sm'
+						onClick={onMarkAllRead}
+						disabled={isMarkingAllRead || !hasUnread}
+						className={cn(
+							'h-9 self-start rounded-full gap-2 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm',
+							hasUnread && 'shadow-warm',
+						)}
+					>
+						<CheckCheck className='size-3.5 sm:size-4' />
+						{isMarkingAllRead ? t('markingAllRead') : t('markAllRead')}
+					</Button>
+				)}
 			</div>
 
 			<div className='relative mt-3 flex flex-wrap gap-2 sm:mt-4'>
 				{filters.map(filter => {
 					const Icon = filter.icon
 					const isActive = activeFilter === filter.id
-					const count = counts[filter.id]
 					return (
 						<button
 							type='button'
@@ -122,11 +106,6 @@ export function NotificationsCommandDeck({
 						>
 							<Icon className='size-3.5' />
 							<span>{filter.label}</span>
-							{count > 0 && (
-								<span className='rounded-full bg-bg-card px-1.5 py-0.5 text-2xs font-bold tabular-nums text-text-muted sm:text-2xs'>
-									{count}
-								</span>
-							)}
 						</button>
 					)
 				})}

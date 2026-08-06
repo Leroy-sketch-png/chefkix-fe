@@ -20,7 +20,6 @@ const consumers = [
 	'layout/CommandDeckBase.tsx',
 	'community/CommunityCommandDeck.tsx',
 	'challenges/ChallengesCommandDeck.tsx',
-	'notifications/NotificationsContextRail.tsx',
 	'settings/SettingsCommandDeck.tsx',
 	'pantry/PantryCommandDeck.tsx',
 	'shopping-lists/ShoppingListsCommandDeck.tsx',
@@ -57,8 +56,5 @@ describe('command-stat tone authority', () => {
 		expect(readComponent('challenges/ChallengesCommandDeck.tsx')).toContain(
 			"tone={counts.community > 0 ? 'success' : 'muted'}",
 		)
-		expect(
-			readComponent('notifications/NotificationsContextRail.tsx'),
-		).toContain("tone={counts.social > 0 ? 'success' : 'muted'}")
 	})
 })

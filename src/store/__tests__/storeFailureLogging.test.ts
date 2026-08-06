@@ -85,13 +85,29 @@ describe('store failure logging', () => {
 		const error = new Error('network down')
 		mockGetUnreadCount.mockRejectedValueOnce(error)
 
-		await useNotificationStore.getState().fetchUnreadCount()
+		const result = await useNotificationStore.getState().fetchUnreadCount()
 
 		expect(mockLogDevError).toHaveBeenCalledWith(
 			'[notificationStore] fetchUnreadCount failed:',
 			error,
 		)
 		expect(useNotificationStore.getState().unreadCount).toBe(0)
+		expect(result).toBeNull()
+	})
+
+	it('returns and stores the authoritative unread count after settlement', async () => {
+		mockGetUnreadCount.mockResolvedValueOnce({
+			success: true,
+			data: 7,
+		})
+
+		const result = await useNotificationStore.getState().fetchUnreadCount()
+
+		expect(result).toBe(7)
+		expect(useNotificationStore.getState().unreadCount).toBe(7)
+		expect(useNotificationStore.getState().lastFetched).toEqual(
+			expect.any(Number),
+		)
 	})
 
 	it('marks blocked-user state loaded and logs fetch failures', async () => {
@@ -143,8 +159,12 @@ describe('store failure logging', () => {
 		mockCreateRoom.mockRejectedValueOnce(createError)
 		mockJoinRoom.mockRejectedValueOnce(joinError)
 
-		await expect(useCookingStore.getState().createRoom('recipe-1')).resolves.toBeNull()
-		await expect(useCookingStore.getState().joinRoom('ROOM42')).resolves.toBe(false)
+		await expect(
+			useCookingStore.getState().createRoom('recipe-1'),
+		).resolves.toBeNull()
+		await expect(useCookingStore.getState().joinRoom('ROOM42')).resolves.toBe(
+			false,
+		)
 
 		expect(mockLogDevError).toHaveBeenCalledWith(
 			'[cookingStore] createRoom failed:',

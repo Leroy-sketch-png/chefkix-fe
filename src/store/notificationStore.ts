@@ -12,7 +12,7 @@ interface NotificationState {
 	incrementUnreadCount: () => void
 	decrementUnreadCount: () => void
 	clearUnreadCount: () => void
-	fetchUnreadCount: () => Promise<void>
+	fetchUnreadCount: () => Promise<number | null>
 	startPolling: () => void
 	stopPolling: () => void
 }
@@ -43,11 +43,17 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 			const response = await getUnreadCount()
 			if (response.success && response.data !== undefined) {
 				set({ unreadCount: response.data, lastFetched: Date.now() })
+				return response.data
 			} else {
-				logDevError('[notificationStore] fetchUnreadCount returned failure:', response)
+				logDevError(
+					'[notificationStore] fetchUnreadCount returned failure:',
+					response,
+				)
+				return null
 			}
 		} catch (error) {
 			logDevError('[notificationStore] fetchUnreadCount failed:', error)
+			return null
 		}
 	},
 

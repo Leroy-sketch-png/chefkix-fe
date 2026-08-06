@@ -267,6 +267,7 @@ export default function NotificationsPage() {
 	const t = useTranslations('notifications')
 	const router = useRouter()
 	const {
+		unreadCount,
 		setUnreadCount,
 		fetchUnreadCount,
 		incrementUnreadCount,
@@ -285,6 +286,7 @@ export default function NotificationsPage() {
 	const [retryKey, setRetryKey] = useState(0)
 	const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
 	const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
+	const [isUnreadCountReady, setIsUnreadCountReady] = useState(false)
 
 	// Fetch notifications and sync unread count
 	useEffect(() => {
@@ -292,6 +294,7 @@ export default function NotificationsPage() {
 		const fetchNotifications = async () => {
 			setIsLoading(true)
 			setError(false)
+			setIsUnreadCountReady(false)
 			try {
 				const response = await getNotifications({ size: 50 })
 				if (cancelled) return
@@ -302,7 +305,9 @@ export default function NotificationsPage() {
 
 					setGamifiedNotifications(gamified)
 					setSocialNotifications(social)
-					void fetchUnreadCount()
+					const settledUnreadCount = await fetchUnreadCount()
+					if (cancelled) return
+					setIsUnreadCountReady(settledUnreadCount !== null)
 				} else {
 					logDevError('Failed to fetch notifications:', response)
 					setError(true)
@@ -321,16 +326,6 @@ export default function NotificationsPage() {
 			cancelled = true
 		}
 	}, [fetchUnreadCount, retryKey])
-
-	// Calculate counts
-	const counts = {
-		all: gamifiedNotifications.length + socialNotifications.length,
-		gamified: gamifiedNotifications.length,
-		social: socialNotifications.length,
-		unread:
-			gamifiedNotifications.filter(n => !n.isRead).length +
-			socialNotifications.filter(n => !n.read).length,
-	}
 
 	// Mark all as read
 	const handleMarkAllRead = async () => {
@@ -469,7 +464,7 @@ export default function NotificationsPage() {
 					<div className='grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start xl:gap-6'>
 						<div className='space-y-3 sm:space-y-4'>
 							<NotificationsCommandDeck
-								counts={counts}
+								unreadCount={isUnreadCountReady ? unreadCount : null}
 								activeFilter={activeFilter}
 								onFilterChange={setActiveFilter}
 								onMarkAllRead={handleMarkAllRead}
@@ -583,7 +578,7 @@ export default function NotificationsPage() {
 							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-20))] md:pb-8' />
 						</div>
 
-						<NotificationsContextRail counts={counts} className='xl:w-72' />
+						<NotificationsContextRail className='xl:w-72' />
 					</div>
 				</div>
 			</PageContainer>
