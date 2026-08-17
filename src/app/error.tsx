@@ -12,7 +12,7 @@ export default function RootError({
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
-	const t = useTranslations('common')
+	const t = useTranslations('nav')
 
 	useEffect(() => {
 		logDevError('[RootError]', error)
