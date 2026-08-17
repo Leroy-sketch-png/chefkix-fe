@@ -25,6 +25,7 @@ const DEV_ONLY_PUBLIC_ROUTES =
 
 // Dynamic route prefixes that don't require authentication (matched with startsWith)
 export const PUBLIC_ROUTE_PREFIXES = [
+	'/explore/', // Intelligence showcase pages are safe to view as a guest
 	'/recipes/', // Recipe detail pages: /recipes/[id]
 	'/collections/', // Collection detail pages: /collections/[id]
 	'/post/', // Single post pages: /post/[id]

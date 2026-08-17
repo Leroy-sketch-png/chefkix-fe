@@ -292,11 +292,7 @@ export const API_ENDPOINTS = {
 		BASE: `${API_PREFIX}/cook-plans`,
 		CURRENT: `${API_PREFIX}/cook-plans/current`,
 		GET: (id: string) => `${API_PREFIX}/cook-plans/${id}`,
-		SWAP: (
-			id: string,
-			batchId: string,
-			dishRecipeId: string,
-		) =>
+		SWAP: (id: string, batchId: string, dishRecipeId: string) =>
 			`${API_PREFIX}/cook-plans/${id}/batches/${batchId}/dishes/${dishRecipeId}`,
 	},
 	// Shopping Lists (standalone persistent lists)
@@ -347,6 +343,7 @@ export const API_ENDPOINTS = {
 		TRENDING: `${API_PREFIX}/search/trending`,
 	},
 	KNOWLEDGE: {
+		GRAPH: `${API_PREFIX}/knowledge/graph`,
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
 		INGREDIENT: (name: string) => `${API_PREFIX}/knowledge/ingredients/${name}`,
 		SUBSTITUTIONS: (name: string) =>
