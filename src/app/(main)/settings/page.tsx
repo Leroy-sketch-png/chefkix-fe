@@ -1852,9 +1852,17 @@ export default function SettingsPage() {
 										onChange={allergies => handleUpdateCooking({ allergies })}
 									/>
 									{settings.cooking.allergies.length > 0 && (
-										<div className='mt-3 flex items-center gap-2 rounded-xl bg-warning/10 p-3 text-warning'>
-											<AlertTriangle className='size-4' />
-											<span className='text-sm'>
+										<div
+											role='note'
+											className='mt-3 flex items-center gap-3 rounded-2xl border border-warning/20 bg-gradient-to-r from-warning/12 via-warning/8 to-transparent px-3.5 py-3 text-warning shadow-sm'
+										>
+											<span className='flex size-8 shrink-0 items-center justify-center rounded-full bg-warning/15'>
+												<AlertTriangle
+													className='size-4.5'
+													aria-hidden='true'
+												/>
+											</span>
+											<span className='min-w-0 text-sm font-medium leading-5 text-warning-vivid'>
 												{t('allergyWarning', {
 													allergies: settings.cooking.allergies
 														.map(allergenLabel)
