@@ -20,6 +20,7 @@ export type TrackingEventType =
 	| 'POST_CREATED'
 	| 'RECIPE_CREATED'
 	| 'BATTLE_VOTE'
+	| 'SUBSTITUTION_FEEDBACK'
 
 export interface TrackingEvent {
 	eventType: TrackingEventType

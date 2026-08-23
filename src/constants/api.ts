@@ -163,6 +163,8 @@ export const API_ENDPOINTS = {
 		FRIENDS_ACTIVE: `${API_PREFIX}/cooking-sessions/friends-active`,
 		COOK_CARD: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/cook-card`,
+		SUBSTITUTION_FEEDBACK: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/substitution-feedback`,
 	},
 	// Co-Cooking Rooms per spec (18-co-cooking.txt, 24-advanced-multiplayer.txt)
 	COOKING_ROOMS: {
