@@ -9,6 +9,8 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { AllergenSafetyIndicator } from './AllergenSafetyIndicator'
+import { resolveAllergenSafety } from '@/lib/allergen-safety'
 import { CompoundComparison, CompoundExplanation } from './CompoundExplanation'
 import {
 	suggestSubstitutions,
@@ -178,12 +180,17 @@ export function SubstitutionButton({
 										<CompoundComparison
 											originalIngredient={ingredientName}
 											substitutions={substitutions}
+											allergenFlags={user?.allergenFlags}
 										/>
 										<ul className='space-y-2'>
 											{substitutions.map(sub => (
 												<li
 													key={sub.name}
-													className='rounded-xl bg-bg-elevated p-2.5'
+													className={cn(
+														'rounded-xl bg-bg-elevated p-2.5',
+														resolveAllergenSafety(sub, user?.allergenFlags)
+															.status === 'blocked' && 'opacity-75',
+													)}
 												>
 													<div className='flex items-center justify-between'>
 														<span className='text-sm font-medium text-text-primary'>
@@ -209,6 +216,12 @@ export function SubstitutionButton({
 															{sub.notes}
 														</p>
 													)}
+													<AllergenSafetyIndicator
+														safety={resolveAllergenSafety(
+															sub,
+															user?.allergenFlags,
+														)}
+													/>
 													<CompoundExplanation
 														originalIngredient={ingredientName}
 														substitution={sub}

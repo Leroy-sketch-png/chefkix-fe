@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Substitution } from '@/services/ai'
+import { AllergenSafetyIndicator } from './AllergenSafetyIndicator'
+import { resolveAllergenSafety } from '@/lib/allergen-safety'
 import {
 	getCompoundExplanation,
 	type NutritionProfile,
@@ -274,6 +276,7 @@ export const CompoundExplanation = ({
 interface CompoundComparisonProps {
 	originalIngredient: string
 	substitutions: Substitution[]
+	allergenFlags?: string[]
 }
 
 const ComparisonMetric = ({
@@ -297,6 +300,7 @@ const ComparisonMetric = ({
 export const CompoundComparison = ({
 	originalIngredient,
 	substitutions,
+	allergenFlags,
 }: CompoundComparisonProps) => {
 	const rows = substitutions.map(substitution => ({
 		substitution,
@@ -365,8 +369,9 @@ export const CompoundComparison = ({
 								unit='g'
 							/>
 						</div>
-						<SafetyStatus
-							safe={insight?.allergenSafe ?? substitution.allergenSafe ?? null}
+						<AllergenSafetyIndicator
+							safety={resolveAllergenSafety(substitution, allergenFlags)}
+							compact
 						/>
 					</div>
 				))}
