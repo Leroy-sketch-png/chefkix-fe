@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
@@ -41,10 +42,12 @@ import {
 	ZoomOut,
 	BookOpen,
 	ListChecks,
+	ScanLine,
 	Camera,
 	Hand,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants/paths'
 import { SessionRatingForm } from './SessionRatingForm'
 import { IngredientCheck } from './IngredientCheck'
 import { StepV2Renderer } from './StepV2Renderer'
@@ -1723,7 +1726,7 @@ export const CookingPlayer = () => {
 								{/* Progress Section */}
 								<div className='border-b border-border-subtle/60 bg-gradient-to-r from-bg-elevated via-bg-card to-bg-elevated px-6 py-4'>
 									<div className='mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-										<div className='flex items-center justify-between gap-3'>
+										<div className='flex flex-wrap items-center justify-between gap-3'>
 											<span
 												className={cn(
 													'font-medium tabular-nums text-text-secondary',
@@ -1735,21 +1738,36 @@ export const CookingPlayer = () => {
 													total: totalSteps,
 												})}
 											</span>
-											{hasFullIngredients && (
-												<button
-													type='button'
-													onClick={() => setShowIngredientList(true)}
+											<div className='flex flex-wrap items-center gap-2'>
+												{hasFullIngredients && (
+													<button
+														type='button'
+														onClick={() => setShowIngredientList(true)}
+														className={cn(
+															'inline-flex items-center gap-2 rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
+															kitchenMode
+																? 'min-h-14 px-4 text-base'
+																: 'min-h-11 px-3 text-sm',
+														)}
+													>
+														<ListChecks className='size-4' />
+														{t('allIngredients')}
+													</button>
+												)}
+												<Link
+													href={PATHS.SCAN}
 													className={cn(
 														'inline-flex items-center gap-2 rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
 														kitchenMode
 															? 'min-h-14 px-4 text-base'
 															: 'min-h-11 px-3 text-sm',
 													)}
+													aria-label={t('scanIngredients')}
 												>
-													<ListChecks className='size-4' />
-													{t('allIngredients')}
-												</button>
-											)}
+													<ScanLine className='size-4' />
+													{t('scanIngredients')}
+												</Link>
+											</div>
 										</div>
 										<StepDots
 											totalSteps={totalSteps}

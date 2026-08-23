@@ -217,6 +217,10 @@ export interface Substitution {
 	ratio: string
 	notes: string
 	confidenceScore: number
+	/** Optional Lead compound-engine payload; kept additive for old responses. */
+	compoundExplanation?: unknown
+	source?: 'chemistry' | 'llm' | 'hybrid'
+	allergenSafe?: boolean | null
 }
 
 export interface SubstitutionResponse {

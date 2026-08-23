@@ -17,6 +17,7 @@ export const PATHS = {
 	MESSAGES: '/messages',
 	CREATE: '/create',
 	COOK: '/cook',
+	SCAN: '/scan',
 	CREATE_POST: '/post/new',
 	PROFILE: '/profile',
 	SETTINGS: '/settings',
