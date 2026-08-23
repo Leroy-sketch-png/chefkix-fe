@@ -1,0 +1,34 @@
+{
+	"version": "placeholder-v1",
+	"updatedAt": "2026-08-23",
+	"benchmarkDescription": "Head-to-head allergen violation evaluation across known unsafe substitution cases.",
+	"models": [
+		{
+			"id": "iron-chef",
+			"name": "IRON CHEF allergen guard",
+			"status": "placeholder",
+			"violationRate": 0,
+			"caughtViolations": 10,
+			"totalCases": 10,
+			"note": "Illustrative layout value — replace with Lead export"
+		},
+		{
+			"id": "gpt-4o",
+			"name": "GPT-4o",
+			"status": "placeholder",
+			"violationRate": 30,
+			"caughtViolations": 7,
+			"totalCases": 10,
+			"note": "Illustrative layout value — replace with controlled comparison run"
+		},
+		{
+			"id": "gemini",
+			"name": "Gemini",
+			"status": "placeholder",
+			"violationRate": 20,
+			"caughtViolations": 8,
+			"totalCases": 10,
+			"note": "Illustrative layout value — replace with controlled comparison run"
+		}
+	]
+}
