@@ -9,6 +9,7 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { CompoundComparison, CompoundExplanation } from './CompoundExplanation'
 import {
 	suggestSubstitutions,
 	type Substitution,
@@ -52,7 +53,7 @@ export function SubstitutionButton({
 			const rect = buttonRef.current.getBoundingClientRect()
 			setPos({
 				top: rect.bottom + 8,
-				left: Math.min(rect.left, window.innerWidth - 320),
+				left: Math.max(8, Math.min(rect.left, window.innerWidth - 520)),
 			})
 		}
 	}, [open])
@@ -116,8 +117,11 @@ export function SubstitutionButton({
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
 								transition={{ duration: DURATION_S.fast }}
-								className='fixed w-72 rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
-								style={{ top: pos.top, left: pos.left }}
+								className='fixed max-h-[min(42rem,calc(100vh-1rem))] w-[min(32rem,calc(100vw-1rem))] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
+								style={{
+									top: Math.min(pos.top, window.innerHeight - 16),
+									left: pos.left,
+								}}
 								role='dialog'
 								aria-label={t('findSubstituteFor', {
 									ingredient: ingredientName,
@@ -170,39 +174,49 @@ export function SubstitutionButton({
 										{error}
 									</p>
 								) : substitutions && substitutions.length > 0 ? (
-									<ul className='max-h-64 space-y-2 overflow-y-auto'>
-										{substitutions.map(sub => (
-											<li
-												key={sub.name}
-												className='rounded-xl bg-bg-elevated p-2.5'
-											>
-												<div className='flex items-center justify-between'>
-													<span className='text-sm font-medium text-text-primary'>
-														{sub.name}
-													</span>
-													<span
-														className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
-															sub.confidenceScore >= 0.8
-																? 'bg-success/15 text-success'
-																: sub.confidenceScore >= 0.5
-																	? 'bg-warning/15 text-warning'
-																	: 'bg-destructive/15 text-destructive'
-														}`}
-													>
-														{Math.round(sub.confidenceScore * 100)}%
-													</span>
-												</div>
-												<p className='mt-0.5 text-xs text-brand/80'>
-													{sub.ratio}
-												</p>
-												{sub.notes && (
-													<p className='mt-0.5 text-xs text-text-muted'>
-														{sub.notes}
+									<div className='space-y-3'>
+										<CompoundComparison
+											originalIngredient={ingredientName}
+											substitutions={substitutions}
+										/>
+										<ul className='space-y-2'>
+											{substitutions.map(sub => (
+												<li
+													key={sub.name}
+													className='rounded-xl bg-bg-elevated p-2.5'
+												>
+													<div className='flex items-center justify-between'>
+														<span className='text-sm font-medium text-text-primary'>
+															{sub.name}
+														</span>
+														<span
+															className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
+																sub.confidenceScore >= 0.8
+																	? 'bg-success/15 text-success'
+																	: sub.confidenceScore >= 0.5
+																		? 'bg-warning/15 text-warning'
+																		: 'bg-destructive/15 text-destructive'
+															}`}
+														>
+															{Math.round(sub.confidenceScore * 100)}%
+														</span>
+													</div>
+													<p className='mt-0.5 text-xs text-brand/80'>
+														{sub.ratio}
 													</p>
-												)}
-											</li>
-										))}
-									</ul>
+													{sub.notes && (
+														<p className='mt-0.5 text-xs text-text-muted'>
+															{sub.notes}
+														</p>
+													)}
+													<CompoundExplanation
+														originalIngredient={ingredientName}
+														substitution={sub}
+													/>
+												</li>
+											))}
+										</ul>
+									</div>
 								) : (
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{t('noSubstitutionsFound')}
