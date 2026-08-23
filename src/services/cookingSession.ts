@@ -96,6 +96,26 @@ export interface StartSessionResponse {
 	recipe: CookingSessionRecipe
 }
 
+export type SubstitutionFeedbackChoice = 'accept' | 'reject' | 'skip'
+export type SubstitutionTasteFeedback = 'up' | 'neutral' | 'down'
+
+export interface SubstitutionFeedbackRequest {
+	originalIngredient: string
+	substituteIngredient?: string
+	choice: SubstitutionFeedbackChoice
+	technique?: string
+	cuisine?: string
+	sessionCompleted?: boolean
+	userRating?: number
+	tasteFeedback?: SubstitutionTasteFeedback
+	shared?: boolean
+}
+
+export interface SubstitutionFeedbackResponse {
+	recorded: boolean
+	eventId?: string
+}
+
 export interface CompleteSessionResponse {
 	sessionId: string
 	status: 'completed'
@@ -128,6 +148,17 @@ export interface CompleteSessionResponse {
 	// Co-op multiplier — only set when cooking in a room with 2+ cooks
 	xpMultiplier?: number // 1.2 (duo) or 1.1 (group), null if solo
 	xpMultiplierReason?: string // "CO_OP_DUO" or "CO_OP_GROUP"
+}
+
+export async function submitSubstitutionFeedback(
+	sessionId: string,
+	request: SubstitutionFeedbackRequest,
+): Promise<ApiResponse<SubstitutionFeedbackResponse>> {
+	const response = await api.post<ApiResponse<SubstitutionFeedbackResponse>>(
+		API_ENDPOINTS.COOKING_SESSIONS.SUBSTITUTION_FEEDBACK(sessionId),
+		request,
+	)
+	return response.data
 }
 
 export interface CompletedChallengeReward {
