@@ -219,6 +219,7 @@ export interface Substitution {
 	confidenceScore: number
 	/** Optional Lead compound-engine payload; kept additive for old responses. */
 	compoundExplanation?: unknown
+	allergenSafety?: unknown
 	source?: 'chemistry' | 'llm' | 'hybrid'
 	allergenSafe?: boolean | null
 }

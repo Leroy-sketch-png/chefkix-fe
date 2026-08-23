@@ -75,6 +75,7 @@ import { SocialProof } from '@/components/recipe/SocialProof'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { RecipeIngredientChecklistItem } from '@/components/recipe/RecipeIngredientChecklistItem'
+import { RecipeAllergenBanner } from '@/components/recipe/RecipeAllergenBanner'
 import { RecipeStepCompletionControl } from '@/components/recipe/RecipeStepCompletionControl'
 import {
 	QualityBadge,
@@ -1561,6 +1562,10 @@ function RecipeDetailContent() {
 						className='lg:col-span-1'
 					>
 						<div className='sticky top-4 rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card'>
+							<RecipeAllergenBanner
+								ingredients={recipe.fullIngredientList}
+								allergenFlags={user?.allergenFlags}
+							/>
 							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text-primary'>
 								<ChefHat className='size-6 text-brand' /> {t('ingredients')}
 							</h2>
