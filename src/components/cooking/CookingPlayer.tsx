@@ -49,6 +49,8 @@ import {
 import { cn } from '@/lib/utils'
 import { PATHS } from '@/constants/paths'
 import { SessionRatingForm } from './SessionRatingForm'
+import { SubstitutionOutcomeCard } from './SubstitutionOutcomeCard'
+import { CookingSubstitutionButton } from './CookingSubstitutionButton'
 import { IngredientCheck } from './IngredientCheck'
 import { StepV2Renderer } from './StepV2Renderer'
 import type { StepRenderMode } from './StepV2Renderer'
@@ -66,6 +68,12 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useWakeLock } from '@/hooks/useWakeLock'
 import { useStepPhotos } from '@/hooks/useStepPhotos'
 import { useClapDetection } from '@/hooks/useClapDetection'
+import {
+	submitSubstitutionFeedback,
+	type SubstitutionFeedbackChoice,
+	type SubstitutionFeedbackRequest,
+	type SubstitutionTasteFeedback,
+} from '@/services/cookingSession'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -114,6 +122,14 @@ const stepVariants = {
 		scale: 0.9,
 		transition: { duration: DURATION_S.normal },
 	}),
+}
+
+interface SessionSubstitutionFeedbackDraft {
+	stepNumber: number
+	originalIngredient: string
+	substituteIngredient?: string
+	choice: SubstitutionFeedbackChoice
+	technique?: string
 }
 
 // Step Progress Dots (Interactive)
@@ -545,6 +561,17 @@ export const CookingPlayer = () => {
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [showAiAssist, setShowAiAssist] = useState(false)
+	const [substitutionFeedbacks, setSubstitutionFeedbacks] = useState<
+		SessionSubstitutionFeedbackDraft[]
+	>([])
+	const [substitutionTasteFeedback, setSubstitutionTasteFeedback] = useState<
+		SubstitutionTasteFeedback | undefined
+	>()
+
+	useEffect(() => {
+		setSubstitutionFeedbacks([])
+		setSubstitutionTasteFeedback(undefined)
+	}, [session?.sessionId])
 	const [showIngredientList, setShowIngredientList] = useState(false)
 	const [isNavigating, setIsNavigating] = useState(false)
 	const [kitchenMode, setKitchenMode] = useState(true) // Auto-enabled: 28px+ text, 64px+ targets
@@ -1231,6 +1258,75 @@ export const CookingPlayer = () => {
 		if (isInRoom) sendTimerCompleted(currentStepNumber)
 	}, [currentStepNumber, isInRoom, sendTimerCompleted])
 
+	const handleSubstitutionChoice = useCallback(
+		async (
+			feedback: Omit<SessionSubstitutionFeedbackDraft, 'stepNumber'>,
+		): Promise<boolean> => {
+			const sessionId = session?.sessionId
+			if (!sessionId) return false
+
+			const request: SubstitutionFeedbackRequest = {
+				originalIngredient: feedback.originalIngredient,
+				...(feedback.substituteIngredient && {
+					substituteIngredient: feedback.substituteIngredient,
+				}),
+				choice: feedback.choice,
+				technique: feedback.technique,
+				sessionCompleted: false,
+			}
+
+			try {
+				const response = await submitSubstitutionFeedback(sessionId, request)
+				if (!response.success) {
+					toast.error(response.message || t('substitutionFeedbackFailed'))
+					return false
+				}
+
+				setSubstitutionFeedbacks(previous => [
+					...previous.filter(
+						item => item.originalIngredient !== feedback.originalIngredient,
+					),
+					{ ...feedback, stepNumber: currentStepNumber },
+				])
+				toast.success(t('substitutionRecorded'))
+				return true
+			} catch {
+				toast.error(t('substitutionFeedbackFailed'))
+				return false
+			}
+		},
+		[session?.sessionId, currentStepNumber, t],
+	)
+
+	const submitSessionSubstitutionOutcomes = useCallback(
+		async (rating?: number) => {
+			if (!session?.sessionId || substitutionFeedbacks.length === 0) return
+
+			const results = await Promise.allSettled(
+				substitutionFeedbacks.map(feedback =>
+					submitSubstitutionFeedback(session.sessionId, {
+						originalIngredient: feedback.originalIngredient,
+						substituteIngredient: feedback.substituteIngredient,
+						choice: feedback.choice,
+						technique: feedback.technique,
+						sessionCompleted: true,
+						userRating: rating,
+						tasteFeedback: substitutionTasteFeedback,
+					}),
+				),
+			)
+
+			if (
+				results.some(
+					result => result.status === 'rejected' || !result.value.success,
+				)
+			) {
+				toast.warning(t('substitutionFeedbackFailed'))
+			}
+		},
+		[session, substitutionFeedbacks, substitutionTasteFeedback, t],
+	)
+
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
 	const handleComplete = useCallback(
@@ -1276,6 +1372,8 @@ export const CookingPlayer = () => {
 					toast.error(errorMsg || t('failedComplete'))
 					return
 				}
+
+				await submitSessionSubstitutionOutcomes(rating)
 
 				// Broadcast session completion to co-cooking room
 				if (isInRoom) sendSessionCompleted(rating)
@@ -1382,6 +1480,7 @@ export const CookingPlayer = () => {
 			isPreviewMode,
 			exitPreview,
 			totalSteps,
+			submitSessionSubstitutionOutcomes,
 			t,
 		],
 	)
@@ -1930,16 +2029,39 @@ export const CookingPlayer = () => {
 																	{step.ingredients.map((ing, idx) => {
 																		const id = `${currentStepNumber}-${idx}`
 																		return (
-																			<IngredientCheck
-																				key={id}
-																				ingredient={{
-																					name: ing.name,
-																					quantity: ing.quantity ?? '',
-																					unit: ing.unit ?? '',
-																				}}
-																				isChecked={!!checkedIngredients[id]}
-																				onToggle={() => toggleIngredient(id)}
-																			/>
+																			<div key={id} className='space-y-1'>
+																				<IngredientCheck
+																					ingredient={{
+																						name: ing.name,
+																						quantity: ing.quantity ?? '',
+																						unit: ing.unit ?? '',
+																					}}
+																					isChecked={!!checkedIngredients[id]}
+																					onToggle={() => toggleIngredient(id)}
+																				/>
+																				{!checkedIngredients[id] &&
+																					!isPreviewMode && (
+																						<div className='pl-12'>
+																							<CookingSubstitutionButton
+																								ingredientName={ing.name}
+																								recipeTitle={recipe.title}
+																								stepContext={step.description}
+																								onChoice={(
+																									choice,
+																									substituteIngredient,
+																								) =>
+																									handleSubstitutionChoice({
+																										originalIngredient:
+																											ing.name,
+																										substituteIngredient,
+																										choice,
+																										technique: step.action,
+																									})
+																								}
+																							/>
+																						</div>
+																					)}
+																			</div>
 																		)
 																	})}
 																</div>
@@ -2149,15 +2271,28 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-modal ring-1 ring-white/10'
+								className='mx-4 max-h-[85vh] max-w-lg overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-modal ring-1 ring-white/10'
 							>
-								<SessionRatingForm
-									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
-									recipeTitle={recipe.title}
-									onSubmit={handleComplete}
-									onSkip={() => handleComplete()}
-									isSubmitting={isCompletingSession}
-								/>
+								<div className='space-y-4'>
+									{substitutionFeedbacks.length > 0 && (
+										<SubstitutionOutcomeCard
+											value={substitutionTasteFeedback}
+											onChange={setSubstitutionTasteFeedback}
+										/>
+									)}
+									<SessionRatingForm
+										xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
+										recipeTitle={recipe.title}
+										onSubmit={handleComplete}
+										onSkip={() => handleComplete()}
+										isSubmitting={isCompletingSession}
+										canSubmit={
+											substitutionFeedbacks.length === 0 ||
+											!!substitutionTasteFeedback
+										}
+										submitDisabledMessage={t('substitutionOutcomeRequired')}
+									/>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>

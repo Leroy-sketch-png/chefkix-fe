@@ -21,6 +21,8 @@ interface SessionRatingFormProps {
 	onSubmit: (rating: number, notes?: string) => void
 	onSkip?: () => void
 	isSubmitting?: boolean
+	canSubmit?: boolean
+	submitDisabledMessage?: string
 }
 
 interface StarRatingProps {
@@ -134,6 +136,8 @@ export function SessionRatingForm({
 	onSubmit,
 	onSkip,
 	isSubmitting = false,
+	canSubmit = true,
+	submitDisabledMessage,
 }: SessionRatingFormProps) {
 	const t = useTranslations('cooking')
 	const [rating, setRating] = useState(0)
@@ -143,8 +147,9 @@ export function SessionRatingForm({
 
 	const handleSubmit = useCallback(() => {
 		if (rating === 0) return
+		if (!canSubmit) return
 		onSubmit(rating, notes.trim() || undefined)
-	}, [rating, notes, onSubmit])
+	}, [canSubmit, rating, notes, onSubmit])
 
 	const displayLabelKey =
 		RATING_LABEL_KEYS[hoverRating] || RATING_LABEL_KEYS[rating]
@@ -262,12 +267,12 @@ export function SessionRatingForm({
 			<motion.button
 				type='button'
 				onClick={handleSubmit}
-				disabled={rating === 0 || isSubmitting}
-				whileHover={rating > 0 ? BUTTON_HOVER : undefined}
-				whileTap={rating > 0 ? BUTTON_TAP : undefined}
+				disabled={rating === 0 || !canSubmit || isSubmitting}
+				whileHover={rating > 0 && canSubmit ? BUTTON_HOVER : undefined}
+				whileTap={rating > 0 && canSubmit ? BUTTON_TAP : undefined}
 				className={cn(
 					'w-full rounded-full py-3 font-bold text-white transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
-					rating > 0
+					rating > 0 && canSubmit
 						? 'bg-brand shadow-glow hover:bg-brand/90 hover:shadow-glow'
 						: 'cursor-not-allowed bg-border text-text-muted',
 					isSubmitting && 'opacity-70',
@@ -283,8 +288,10 @@ export function SessionRatingForm({
 						</motion.span>
 						{t('saving')}
 					</span>
-				) : rating > 0 ? (
+				) : rating > 0 && canSubmit ? (
 					t('completeCooking')
+				) : rating > 0 && submitDisabledMessage ? (
+					submitDisabledMessage
 				) : (
 					t('tapToRate')
 				)}
