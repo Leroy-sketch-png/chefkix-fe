@@ -142,6 +142,13 @@ export async function POST(
 				'Content-Type':
 					request.headers.get('content-type') || 'application/json',
 				'X-AI-Service-Key': apiKey,
+				...(request.headers.get('x-chefkix-allergen-flags')
+					? {
+							'X-ChefKix-Allergen-Flags': request.headers.get(
+								'x-chefkix-allergen-flags',
+							) as string,
+						}
+					: {}),
 			},
 			body: requestBody,
 			cache: 'no-store',

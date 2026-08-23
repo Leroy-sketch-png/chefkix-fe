@@ -107,6 +107,8 @@ import {
 import { isTrackingOptedOut, setTrackingOptOut } from '@/lib/eventTracker'
 import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
 import { useTranslations } from '@/i18n/hooks'
+import { AllergenProfileSelector } from '@/components/settings/AllergenProfileSelector'
+import { allergenLabel, normalizeAllergenFlags } from '@/lib/allergen-profile'
 
 // ============================================
 // TYPES
@@ -229,18 +231,6 @@ const DIETARY_KEYS = [
 	{ value: 'paleo', labelKey: 'dietPaleo' },
 	{ value: 'halal', labelKey: 'dietHalal' },
 	{ value: 'kosher', labelKey: 'dietKosher' },
-]
-
-const ALLERGY_KEYS = [
-	{ value: 'nuts', labelKey: 'allergyNuts' },
-	{ value: 'peanuts', labelKey: 'allergyPeanuts' },
-	{ value: 'dairy', labelKey: 'allergyDairy' },
-	{ value: 'eggs', labelKey: 'allergyEggs' },
-	{ value: 'shellfish', labelKey: 'allergyShellfish' },
-	{ value: 'fish', labelKey: 'allergyFish' },
-	{ value: 'soy', labelKey: 'allergySoy' },
-	{ value: 'wheat', labelKey: 'allergyWheat' },
-	{ value: 'sesame', labelKey: 'allergySesame' },
 ]
 
 const CUISINE_KEYS = [
@@ -445,17 +435,12 @@ export default function SettingsPage() {
 	const { user, setUser, logout } = useAuth()
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { applyPreferences: applyRuntimePreferences } =
-		useRuntimePreferences()
+	const { applyPreferences: applyRuntimePreferences } = useRuntimePreferences()
 	const t = useTranslations('settings')
 
 	const dietaryOptions = DIETARY_KEYS.map(d => ({
 		value: d.value,
 		label: t(d.labelKey),
-	}))
-	const allergyOptions = ALLERGY_KEYS.map(a => ({
-		value: a.value,
-		label: t(a.labelKey),
 	}))
 	const cuisineOptions = CUISINE_KEYS.map(c => ({
 		value: c.value,
@@ -571,6 +556,15 @@ export default function SettingsPage() {
 					}
 					const normalizedSettings = {
 						...response.data,
+						cooking: {
+							...DEFAULT_USER_SETTINGS.cooking,
+							...response.data.cooking,
+							allergies: normalizeAllergenFlags(
+								response.data.cooking?.allergies?.length
+									? response.data.cooking.allergies
+									: user.allergenFlags,
+							),
+						},
 						app: {
 							...DEFAULT_USER_SETTINGS.app,
 							...response.data.app,
@@ -822,7 +816,7 @@ export default function SettingsPage() {
 				toast.error(t('toastNotificationsFailed'))
 			}
 		},
-		[settings, t],
+		[setUser, settings, t, user],
 	)
 
 	const handleUpdateCooking = useCallback(
@@ -835,6 +829,12 @@ export default function SettingsPage() {
 			try {
 				const response = await updateCookingPreferences(updates)
 				if (response.success) {
+					if (updates.allergies && user) {
+						setUser({
+							...user,
+							allergenFlags: normalizeAllergenFlags(updates.allergies),
+						})
+					}
 					toast.success(t('toastCookingPrefsUpdated'))
 				} else {
 					setSettings(previousSettings)
@@ -1847,24 +1847,18 @@ export default function SettingsPage() {
 									title={t('allergies')}
 									description={t('allergiesDesc')}
 								>
-									<ChipSelect
-										options={allergyOptions}
+									<AllergenProfileSelector
 										selected={settings.cooking.allergies}
-										onToggle={opt =>
-											handleUpdateCooking({
-												allergies: toggleArrayItem(
-													settings.cooking.allergies,
-													opt,
-												),
-											})
-										}
+										onChange={allergies => handleUpdateCooking({ allergies })}
 									/>
 									{settings.cooking.allergies.length > 0 && (
 										<div className='mt-3 flex items-center gap-2 rounded-xl bg-warning/10 p-3 text-warning'>
 											<AlertTriangle className='size-4' />
 											<span className='text-sm'>
 												{t('allergyWarning', {
-													allergies: settings.cooking.allergies.join(', '),
+													allergies: settings.cooking.allergies
+														.map(allergenLabel)
+														.join(', '),
 												})}
 											</span>
 										</div>
