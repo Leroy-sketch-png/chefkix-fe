@@ -8,6 +8,7 @@ import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 import {
 	suggestSubstitutions,
 	type Substitution,
@@ -25,6 +26,7 @@ export function SubstitutionButton({
 	recipeTitle,
 	className,
 }: SubstitutionButtonProps) {
+	const { user } = useAuth()
 	const t = useTranslations('recipe')
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
@@ -64,6 +66,8 @@ export function SubstitutionButton({
 				ingredientName,
 				r,
 				recipeTitle ? `Recipe: ${recipeTitle}` : undefined,
+				undefined,
+				user?.allergenFlags,
 			)
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)

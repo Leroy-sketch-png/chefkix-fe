@@ -35,13 +35,14 @@ export function useKeyboardShortcuts(
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			const key = typeof event.key === 'string' ? event.key : ''
+
 			if (disableInInputs) {
 				const target = event.target as HTMLElement
 				const tag = target.tagName.toLowerCase()
 				const isInput =
 					tag === 'input' || tag === 'textarea' || target.isContentEditable
-				if (isInput && event.key !== 'Escape' && !event.key.startsWith('F'))
-					return
+				if (isInput && key !== 'Escape' && !key.startsWith('F')) return
 			}
 
 			for (const shortcut of shortcutsRef.current) {
@@ -53,7 +54,7 @@ export function useKeyboardShortcuts(
 				const shiftMatch = shortcut.shift ? event.shiftKey : !event.shiftKey
 				const altMatch = shortcut.alt ? event.altKey : !event.altKey
 				const keyMatch =
-					event.key.toLowerCase() === shortcut.key.toLowerCase() ||
+					key.toLowerCase() === shortcut.key.toLowerCase() ||
 					event.code.toLowerCase() === `key${shortcut.key.toLowerCase()}`
 
 				if (keyMatch && ctrlMatch && shiftMatch && altMatch) {

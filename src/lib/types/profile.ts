@@ -62,6 +62,8 @@ export interface Profile {
 	accountType: 'normal' | 'chef' | 'admin'
 	location: string
 	preferences: string[]
+	/** Private safety profile; returned for the signed-in user's own profile. */
+	allergenFlags?: string[]
 	statistics: Statistics
 	createdAt: string
 	updatedAt: string

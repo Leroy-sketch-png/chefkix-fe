@@ -208,6 +208,7 @@ export interface SubstitutionRequest {
 	ingredient: string
 	reason: SubstitutionReason
 	dietaryTags?: string[]
+	allergenFlags?: string[]
 	recipeContext?: string
 }
 
@@ -399,6 +400,7 @@ export const suggestSubstitutions = async (
 	reason: SubstitutionReason,
 	recipeContext?: string,
 	dietaryTags?: string[],
+	allergenFlags?: string[],
 ): Promise<ApiResponse<SubstitutionResponse>> => {
 	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
 	if (preflightFailure) return preflightFailure
@@ -411,6 +413,12 @@ export const suggestSubstitutions = async (
 				reason,
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
+				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
+			},
+			{
+				headers: allergenFlags?.length
+					? { 'X-ChefKix-Allergen-Flags': JSON.stringify(allergenFlags) }
+					: undefined,
 			},
 		)
 		return response.data
