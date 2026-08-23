@@ -1,5 +1,7 @@
 import type { IngredientDetectionResult } from '@/lib/types/ingredient-detection'
 
+// Keep the browser contract stable. The same-origin route owns mock/real
+// provider selection so the UI never needs to know where the model runs.
 const DETECTION_ENDPOINT = '/api/ingredient-detection'
 
 interface DetectionApiResponse {
@@ -10,7 +12,8 @@ interface DetectionApiResponse {
 
 /**
  * Keeps the scanner UI independent from the detector implementation.
- * Replace the endpoint here when the YOLO service is ready.
+ * Configure INGREDIENT_DETECTION_BACKEND_URL on the frontend server when the
+ * YOLO service is ready; the route adapts the upstream response to this shape.
  */
 export async function detectIngredients(
 	image: Blob,

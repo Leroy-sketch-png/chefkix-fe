@@ -1,4 +1,5 @@
 export interface IngredientBoundingBox {
+	/** Coordinates are normalized from 0 to 1 relative to the captured image. */
 	x: number
 	y: number
 	width: number
