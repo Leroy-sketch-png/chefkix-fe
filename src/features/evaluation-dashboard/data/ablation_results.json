@@ -1,0 +1,35 @@
+{
+	"version": "placeholder-v1",
+	"updatedAt": "2026-08-23",
+	"metric": "hitAt1",
+	"results": [
+		{
+			"id": "chemical",
+			"label": "Chemical",
+			"hitAt1": 18.4,
+			"status": "placeholder",
+			"note": "Illustrative layout value — replace with Lead export"
+		},
+		{
+			"id": "nutritional",
+			"label": "Nutritional",
+			"hitAt1": 14.8,
+			"status": "placeholder",
+			"note": "Illustrative layout value — replace with Lead export"
+		},
+		{
+			"id": "semantic",
+			"label": "Semantic",
+			"hitAt1": 16.2,
+			"status": "placeholder",
+			"note": "Illustrative layout value — replace with Lead export"
+		},
+		{
+			"id": "all-signals",
+			"label": "All signals",
+			"hitAt1": 24.7,
+			"status": "placeholder",
+			"note": "Illustrative layout value — replace with Lead export"
+		}
+	]
+}

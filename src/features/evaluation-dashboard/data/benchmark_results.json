@@ -1,0 +1,45 @@
+{
+	"version": "placeholder-v1",
+	"updatedAt": "2026-08-23",
+	"metricDefinitions": {
+		"hitAt1": "Correct substitute appears first",
+		"hitAt5": "Correct substitute appears in top five",
+		"hitAt10": "Correct substitute appears in top ten",
+		"mrr": "Mean reciprocal rank",
+		"ndcg": "Normalized discounted cumulative gain"
+	},
+	"models": [
+		{
+			"id": "iron-chef",
+			"name": "IRON CHEF HGAT v2",
+			"shortName": "IRON CHEF",
+			"status": "pending",
+			"metrics": {},
+			"note": "Awaiting Lead Epic 3 benchmark export"
+		},
+		{
+			"id": "gismo",
+			"name": "GISMo",
+			"shortName": "GISMo",
+			"status": "published",
+			"metrics": { "hitAt1": 20.56 },
+			"note": "Published Hit@1 baseline from backlog"
+		},
+		{
+			"id": "mistral",
+			"name": "Fine-tuned Mistral",
+			"shortName": "Mistral",
+			"status": "published",
+			"metrics": { "hitAt1": 21.75 },
+			"note": "Published Hit@1 baseline from backlog"
+		},
+		{
+			"id": "gemini",
+			"name": "Gemini zero-shot",
+			"shortName": "Gemini",
+			"status": "pending",
+			"metrics": {},
+			"note": "Awaiting reproducible evaluation run"
+		}
+	]
+}

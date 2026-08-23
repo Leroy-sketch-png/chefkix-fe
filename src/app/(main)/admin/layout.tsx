@@ -3,12 +3,13 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Shield, FileWarning, Ban, Scale } from 'lucide-react'
+import { Shield, FileWarning, Ban, Scale, BarChart3 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 
 const adminNavItems = [
+	{ href: '/admin/evaluation', label: 'Evaluation', icon: BarChart3 },
 	{ href: '/admin/reports', labelKey: 'navReports', icon: FileWarning },
 	{ href: '/admin/bans', labelKey: 'navBans', icon: Ban },
 	{ href: '/admin/appeals', labelKey: 'navAppeals', icon: Scale },
@@ -76,7 +77,7 @@ export default function AdminLayout({
 							)}
 						>
 							<item.icon className='size-4' />
-							{t(item.labelKey)}
+							{'labelKey' in item ? t(item.labelKey) : item.label}
 						</Link>
 					)
 				})}
