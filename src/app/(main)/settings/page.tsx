@@ -816,7 +816,7 @@ export default function SettingsPage() {
 				toast.error(t('toastNotificationsFailed'))
 			}
 		},
-		[setUser, settings, t, user],
+		[settings, t],
 	)
 
 	const handleUpdateCooking = useCallback(
@@ -846,7 +846,7 @@ export default function SettingsPage() {
 				toast.error(t('toastCookingPrefsFailed'))
 			}
 		},
-		[settings, t],
+		[setUser, settings, t, user],
 	)
 
 	const handleUpdateApp = useCallback(
