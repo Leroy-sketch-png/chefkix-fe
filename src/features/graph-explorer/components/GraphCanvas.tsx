@@ -10,6 +10,7 @@ import {
 import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
 import type { GraphData, GraphSignal } from '../types'
+import { GraphEdgeDetailPanel, GraphNodeDetailPanel } from './GraphDetailPanel'
 
 const width = 760
 const height = 540
@@ -45,6 +46,7 @@ export function GraphCanvas({
 	searchTargetId,
 	searchPosition,
 	searchMatchCount,
+	onNodeSelect,
 }: {
 	data: GraphData
 	query: string
@@ -52,6 +54,7 @@ export function GraphCanvas({
 	searchTargetId?: string
 	searchPosition: number
 	searchMatchCount: number
+	onNodeSelect?: (nodeId: string) => void
 }) {
 	const [selected, setSelected] = useState<string | null>(null)
 	const [selectedEdge, setSelectedEdge] = useState<
@@ -259,10 +262,12 @@ export function GraphCanvas({
 									event.currentTarget.setPointerCapture(event.pointerId)
 									setSelectedEdge(null)
 									setSelected(node.id)
+									onNodeSelect?.(node.id)
 								}}
 								onClick={() => {
 									setSelectedEdge(null)
 									setSelected(node.id)
+									onNodeSelect?.(node.id)
 								}}
 								className={
 									isDimmed
@@ -365,56 +370,19 @@ export function GraphCanvas({
 			{selected &&
 				(() => {
 					const node = data.nodes.find(item => item.id === selected)
-					if (!node) return null
-					return (
-						<div className='border-t border-border-subtle p-4 text-sm'>
-							<div className='font-semibold'>{node.name}</div>
-							<div className='mt-1 text-text-muted'>
-								Category: {node.category} · Connections:{' '}
-								{degree.get(node.id) ?? 0}
-							</div>
-							<div className='mt-1 text-text-muted'>
-								Allergens: {node.allergenFlags.join(', ') || 'none recorded'}
-							</div>
-							<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
-								<div className='font-medium'>Compound profile</div>
-								<div className='mt-1 text-text-muted'>
-									Primary compounds:{' '}
-									{node.compoundData?.primaryCompounds.join(', ') ||
-										'Pending chemistry dataset'}
-								</div>
-								<div className='mt-1 text-text-muted'>
-									Flavor profile:{' '}
-									{node.compoundData?.flavorProfile ||
-										'Pending chemistry dataset'}
-								</div>
-							</div>
-						</div>
-					)
+					return node ? (
+						<GraphNodeDetailPanel
+							node={node}
+							connectionCount={degree.get(node.id) ?? 0}
+						/>
+					) : null
 				})()}
 			{selectedEdge && (
-				<div className='border-t border-border-subtle p-4 text-sm'>
-					<div className='font-semibold'>
-						{signalLabels[selectedEdge.type]} relationship
-					</div>
-					<div className='mt-1 text-text-muted'>
-						{nodeNames.get(selectedEdge.source)} →{' '}
-						{nodeNames.get(selectedEdge.target)}
-					</div>
-					<div className='mt-1 text-text-muted'>
-						Confidence: {(selectedEdge.confidence * 100).toFixed(0)}% · Context:{' '}
-						{selectedEdge.context || 'general'}
-					</div>
-					<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
-						<div className='font-medium'>Chemistry overlay</div>
-						<div className='mt-1 text-text-muted'>
-							Compound overlap:{' '}
-							{selectedEdge.compoundOverlap === undefined
-								? 'Pending chemistry dataset'
-								: `${(selectedEdge.compoundOverlap * 100).toFixed(0)}%`}
-						</div>
-					</div>
-				</div>
+				<GraphEdgeDetailPanel
+					edge={selectedEdge}
+					sourceName={nodeNames.get(selectedEdge.source)}
+					targetName={nodeNames.get(selectedEdge.target)}
+				/>
 			)}
 		</div>
 	)
