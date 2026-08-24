@@ -16,7 +16,10 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 import { detectIngredients } from '@/services/ingredient-detection'
-import type { IngredientDetection } from '@/lib/types/ingredient-detection'
+import type {
+	IngredientDetection,
+	IngredientDetectionResult,
+} from '@/lib/types/ingredient-detection'
 import { IngredientDetectionOverlay } from './IngredientDetectionOverlay'
 
 type CameraStatus = 'idle' | 'requesting' | 'ready' | 'denied' | 'unsupported'
@@ -24,6 +27,7 @@ type CameraFacingMode = 'environment' | 'user'
 
 interface IngredientScannerProps {
 	className?: string
+	onScanComplete?: (result: IngredientDetectionResult, image: Blob) => void
 }
 
 const getCameraError = (error: unknown) => {
@@ -42,7 +46,10 @@ const getCameraError = (error: unknown) => {
 	return 'scanCameraUnavailable'
 }
 
-export function IngredientScanner({ className }: IngredientScannerProps) {
+export function IngredientScanner({
+	className,
+	onScanComplete,
+}: IngredientScannerProps) {
 	const t = useTranslations('cooking')
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
@@ -162,6 +169,7 @@ export function IngredientScanner({ className }: IngredientScannerProps) {
 			try {
 				const result = await detectIngredients(image)
 				setDetections(result.detections)
+				onScanComplete?.(result, image)
 				toast.success(
 					t('scanFoundResults', { count: result.detections.length }),
 				)
@@ -171,7 +179,7 @@ export function IngredientScanner({ className }: IngredientScannerProps) {
 				setIsScanning(false)
 			}
 		},
-		[stopCamera, t],
+		[onScanComplete, stopCamera, t],
 	)
 
 	const captureFrame = useCallback(() => {

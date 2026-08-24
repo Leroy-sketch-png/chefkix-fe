@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { ArrowLeft, Camera, ScanLine, ShieldCheck } from 'lucide-react'
-import { IngredientScanner } from '@/components/scan/IngredientScanner'
+import { DishPhotoRetrievalPanel } from '@/components/scan/DishPhotoRetrievalPanel'
+import { ScanIngredientWorkspace } from '@/components/scan/ScanIngredientWorkspace'
 import { PATHS } from '@/constants/paths'
 
 export default async function ScanIngredientsPage() {
@@ -54,7 +55,7 @@ export default async function ScanIngredientsPage() {
 							</p>
 						</div>
 					</div>
-					<IngredientScanner />
+					<ScanIngredientWorkspace />
 				</div>
 
 				<aside className='rounded-3xl border border-border-subtle bg-bg-elevated p-5 sm:p-6'>
@@ -85,6 +86,10 @@ export default async function ScanIngredientsPage() {
 						{t('scanSafetyDisclaimer')}
 					</div>
 				</aside>
+			</div>
+
+			<div className='mt-6'>
+				<DishPhotoRetrievalPanel />
 			</div>
 		</main>
 	)
