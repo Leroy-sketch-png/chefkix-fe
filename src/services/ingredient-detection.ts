@@ -8,6 +8,7 @@ interface DetectionApiResponse {
 	success: boolean
 	message?: string
 	data?: IngredientDetectionResult
+	meta?: { source?: 'real' | 'mock'; model?: string }
 }
 
 /**
@@ -31,5 +32,11 @@ export async function detectIngredients(
 		throw new Error(payload.message || 'Ingredient detection failed')
 	}
 
-	return payload.data
+	return {
+		...payload.data,
+		...(payload.meta && {
+			source: payload.meta.source === 'real' ? 'backend' : 'mock',
+			...(payload.meta.model ? { model: payload.meta.model } : {}),
+		}),
+	}
 }

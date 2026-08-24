@@ -15,4 +15,7 @@ export interface IngredientDetection {
 
 export interface IngredientDetectionResult {
 	detections: IngredientDetection[]
+	/** Indicates whether the configured detector or local demo fallback answered. */
+	source?: 'backend' | 'mock'
+	model?: string
 }
