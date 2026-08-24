@@ -14,6 +14,9 @@ import {
 } from 'lucide-react'
 import { getEvaluationDashboardData } from '../services/evaluationDashboardService'
 import type { BenchmarkMetric, EvaluationDashboardData } from '../types'
+import { BehavioralLearningCard } from './BehavioralLearningCard'
+import { MetricBarChart } from './MetricBarChart'
+import { StatusPill } from './StatusPill'
 
 const metricLabels: Record<BenchmarkMetric, string> = {
 	hitAt1: 'Hit@1',
@@ -39,16 +42,6 @@ function statusClass(status: string) {
 	if (status === 'published' || status === 'complete') return 'text-emerald-600'
 	if (status === 'placeholder') return 'text-amber-600'
 	return 'text-text-muted'
-}
-
-function StatusPill({ status }: { status: string }) {
-	return (
-		<span
-			className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${status === 'published' || status === 'complete' ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700' : status === 'placeholder' ? 'border-amber-500/25 bg-amber-500/10 text-amber-700' : 'border-border-subtle bg-bg-elevated text-text-muted'}`}
-		>
-			{status}
-		</span>
-	)
 }
 
 function Surface({
@@ -114,7 +107,7 @@ export function EvaluationDashboard() {
 		)
 	}, [data])
 	const readiness = useMemo(() => {
-		if (!data) return { ready: 0, total: 3 }
+		if (!data) return { ready: 0, total: 4 }
 		const benchmarkReady = data.benchmarks.models.some(
 			model => model.id === 'iron-chef' && model.status !== 'pending',
 		)
@@ -124,12 +117,20 @@ export function EvaluationDashboard() {
 		const allergenReady = data.allergen.models.some(
 			model => model.status === 'complete',
 		)
+		const behavioralReady = data.behavioral.status === 'complete'
 		return {
-			ready: [benchmarkReady, ablationReady, allergenReady].filter(Boolean)
-				.length,
-			total: 3,
+			ready: [
+				benchmarkReady,
+				ablationReady,
+				allergenReady,
+				behavioralReady,
+			].filter(Boolean).length,
+			total: 4,
 		}
 	}, [data])
+	const safetyBenchmark = data?.allergen.models.find(
+		model => model.id === 'iron-chef',
+	)
 
 	if (error)
 		return (
@@ -172,7 +173,7 @@ export function EvaluationDashboard() {
 				<div className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-xs text-text-muted'>
 					<Database className='size-4' /> Dataset status:{' '}
 					<span className='font-semibold text-amber-600'>
-						Awaiting Epic 3–5 exports
+						Awaiting leader exports
 					</span>
 				</div>
 			</div>
@@ -186,6 +187,7 @@ export function EvaluationDashboard() {
 					['benchmarks', 'Benchmarks'],
 					['ablation', 'Ablation'],
 					['safety', 'Safety'],
+					['behavioral', 'Behavioral'],
 				].map(([id, label]) => (
 					<a
 						key={id}
@@ -198,7 +200,10 @@ export function EvaluationDashboard() {
 				))}
 			</nav>
 
-			<div id='overview' className='scroll-mt-20 grid gap-4 sm:grid-cols-3'>
+			<div
+				id='overview'
+				className='scroll-mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'
+			>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
 					<p className='text-xs text-text-muted'>Models tracked</p>
 					<p className='mt-2 text-2xl font-bold text-text-primary'>
@@ -221,9 +226,26 @@ export function EvaluationDashboard() {
 				</div>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
 					<p className='text-xs text-text-muted'>Safety benchmark</p>
-					<p className='mt-2 text-2xl font-bold text-amber-600'>Pending</p>
+					<p
+						className={`mt-2 text-2xl font-bold ${safetyBenchmark?.violationRate === undefined ? 'text-amber-600' : safetyBenchmark.violationRate === 0 ? 'text-emerald-600' : 'text-destructive'}`}
+					>
+						{safetyBenchmark?.violationRate === undefined
+							? 'Pending'
+							: `${safetyBenchmark.violationRate.toFixed(2)}%`}
+					</p>
 					<p className='mt-1 text-xs text-text-muted'>
 						Controlled violation study
+					</p>
+				</div>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<p className='text-xs text-text-muted'>Feedback MRR delta</p>
+					<p className='mt-2 text-2xl font-bold text-text-primary'>
+						{data.behavioral.mrrDelta === undefined
+							? 'Pending'
+							: `${data.behavioral.mrrDelta.toFixed(2)}%`}
+					</p>
+					<p className='mt-1 text-xs text-text-muted'>
+						Static HGAT → feedback HGAT
 					</p>
 				</div>
 			</div>
@@ -256,7 +278,7 @@ export function EvaluationDashboard() {
 						style={{ width: `${(readiness.ready / readiness.total) * 100}%` }}
 					/>
 				</div>
-				<div className='mt-3 grid gap-2 text-xs sm:grid-cols-3'>
+				<div className='mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4'>
 					{[
 						[
 							'Benchmark results',
@@ -274,6 +296,7 @@ export function EvaluationDashboard() {
 							'Allergen results',
 							data.allergen.models.some(model => model.status === 'complete'),
 						],
+						['Behavioral results', data.behavioral.status === 'complete'],
 					].map(([label, complete]) => (
 						<div
 							key={label as string}
@@ -369,33 +392,28 @@ export function EvaluationDashboard() {
 							title='Which signal matters most?'
 							description='Compare chemical, nutritional, semantic, and combined features once the Leader exports ablation results.'
 						/>
-						<div className='space-y-4'>
+						<MetricBarChart
+							data={data.ablation.results.map(result => ({
+								id: result.id,
+								label: result.label,
+								value: result.hitAt1,
+								status: result.status,
+							}))}
+							ariaLabel='Ablation Hit@1 comparison by signal'
+							fileName='chefkix-ablation-hit-at-1'
+							valueLabel='Hit@1'
+						/>
+						<div className='mt-4 space-y-2'>
 							{data.ablation.results.map(result => (
-								<div key={result.id}>
-									<div className='mb-1 flex justify-between text-sm'>
-										<span className='font-medium text-text-primary'>
-											{result.label}
-										</span>
-										<span
-											className={
-												result.hitAt1 === undefined
-													? 'text-text-muted'
-													: 'font-semibold text-text-primary'
-											}
-										>
-											{formatMetric(result.hitAt1)}
-										</span>
-									</div>
-									<div className='h-3 overflow-hidden rounded-full bg-bg-elevated'>
-										<div
-											className='h-full rounded-full bg-primary transition-all'
-											style={{ width: `${result.hitAt1 ?? 0}%` }}
-										/>
-									</div>
-									<p className='mt-1 text-[11px] text-text-muted'>
-										{result.note ?? 'Ready for comparison'}
-									</p>
-								</div>
+								<p
+									key={result.id}
+									className='text-[11px] leading-5 text-text-muted'
+								>
+									<span className='font-semibold text-text-primary'>
+										{result.label}:
+									</span>{' '}
+									{result.note ?? 'Ready for comparison'}
+								</p>
 							))}
 						</div>
 					</Surface>
@@ -407,6 +425,17 @@ export function EvaluationDashboard() {
 							eyebrow='Safety evidence'
 							title='Allergen violation comparison'
 							description={data.allergen.benchmarkDescription}
+						/>
+						<MetricBarChart
+							data={data.allergen.models.map(model => ({
+								id: model.id,
+								label: model.name,
+								value: model.violationRate,
+								status: model.status,
+							}))}
+							ariaLabel='Allergen violation rates by model'
+							fileName='chefkix-allergen-violation-rates'
+							valueLabel='Violation rate'
 						/>
 						<div className='space-y-3'>
 							{data.allergen.models.map(model => (
@@ -447,6 +476,10 @@ export function EvaluationDashboard() {
 						</div>
 					</Surface>
 				</div>
+			</div>
+
+			<div id='behavioral' className='scroll-mt-20'>
+				<BehavioralLearningCard data={data.behavioral} />
 			</div>
 
 			<div className='flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-bg-elevated/50 px-4 py-3 text-xs text-text-muted'>
