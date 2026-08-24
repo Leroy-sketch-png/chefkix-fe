@@ -48,8 +48,20 @@ export interface AllergenBenchmarkResults {
 	models: AllergenBenchmarkModel[]
 }
 
+export interface BehavioralLearningResults {
+	version: string
+	updatedAt: string
+	status: 'placeholder' | 'pending' | 'complete'
+	metric: 'mrr'
+	staticMrr?: number
+	feedbackMrr?: number
+	mrrDelta?: number
+	note?: string
+}
+
 export interface EvaluationDashboardData {
 	benchmarks: BenchmarkResults
 	ablation: AblationResults
 	allergen: AllergenBenchmarkResults
+	behavioral: BehavioralLearningResults
 }
