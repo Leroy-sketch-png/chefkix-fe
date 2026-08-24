@@ -1,13 +1,18 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ChevronLeft,
 	ChevronRight,
 	Search,
 	SlidersHorizontal,
 } from 'lucide-react'
-import { getGraphData } from '../services/graphExplorerService'
+import {
+	getGraphData,
+	getGraphNodeDetail,
+	getGraphNeighborhood,
+	mergeGraphData,
+} from '../services/graphExplorerService'
 import { GraphCanvas } from './GraphCanvas'
 import type { GraphData, GraphSignal } from '../types'
 
@@ -20,14 +25,56 @@ const signals: Array<{ value: GraphSignal | 'all'; label: string }> = [
 
 export function GraphExplorer() {
 	const [data, setData] = useState<GraphData | null>(null)
+	const [error, setError] = useState<string | null>(null)
+	const [loadingNeighborhood, setLoadingNeighborhood] = useState(false)
+	const [loadedRoots, setLoadedRoots] = useState<Set<string>>(new Set())
 	const [query, setQuery] = useState('')
 	const [searchIndex, setSearchIndex] = useState(0)
 	const [visibleSignals, setVisibleSignals] = useState<GraphSignal[]>(
 		signals.slice(1).map(item => item.value as GraphSignal),
 	)
-	useEffect(() => {
-		getGraphData().then(setData)
+	const loadGraph = useCallback(() => {
+		setError(null)
+		getGraphData()
+			.then(setData)
+			.catch(() => setError('The ingredient graph could not be loaded.'))
 	}, [])
+	useEffect(() => {
+		void loadGraph()
+	}, [loadGraph])
+	const loadNeighborhood = useCallback(
+		async (nodeId: string) => {
+			if (loadedRoots.has(nodeId)) return
+			setLoadingNeighborhood(true)
+			setError(null)
+			try {
+				const [neighborhood, detail] = await Promise.all([
+					getGraphNeighborhood(nodeId),
+					getGraphNodeDetail(nodeId).catch(() => undefined),
+				])
+				setData(previous =>
+					previous
+						? mergeGraphData(
+								mergeGraphData(previous, neighborhood),
+								detail
+									? {
+											nodes: [detail],
+											edges: [],
+											source: neighborhood.source,
+										}
+									: { nodes: [], edges: [] },
+							)
+						: neighborhood,
+				)
+				setLoadedRoots(previous => new Set(previous).add(nodeId))
+			} catch {
+				setError('This ingredient neighborhood could not be loaded.')
+			} finally {
+				setLoadingNeighborhood(false)
+			}
+		},
+		[loadedRoots],
+	)
 	const shown = useMemo(
 		() =>
 			data?.nodes.filter(
@@ -40,6 +87,18 @@ export function GraphExplorer() {
 	}, [data, query])
 	const activeSearchId = shown[searchIndex]?.id
 
+	if (error && !data)
+		return (
+			<div
+				className='rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive'
+				role='alert'
+			>
+				{error}{' '}
+				<button type='button' onClick={loadGraph} className='underline'>
+					Retry
+				</button>
+			</div>
+		)
 	if (!data)
 		return (
 			<div className='rounded-2xl border border-border-subtle p-8 text-sm text-text-muted'>
@@ -125,7 +184,10 @@ export function GraphExplorer() {
 				</div>
 			</div>
 			<div className='flex flex-wrap gap-3 text-xs text-text-muted'>
-				<span>{data.nodes.length} ingredients</span>
+				<span>
+					Showing {data.nodes.length} of{' '}
+					{data.totalNodeCount ?? data.nodes.length} ingredients
+				</span>
 				<span>•</span>
 				<span>{data.edges.length} graph relationships</span>
 				{query && (
@@ -136,12 +198,30 @@ export function GraphExplorer() {
 				)}
 				<span>•</span>
 				<span>
-					Mock mode:{' '}
-					{process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK !== 'false'
-						? 'ON'
-						: 'OFF'}
+					Data source:{' '}
+					{data.source === 'leader-api' ? 'Leader API' : 'Local sample'}
 				</span>
+				{data.hasMore && (
+					<>
+						<span>•</span>
+						<span>Neighborhoods load as you explore</span>
+					</>
+				)}
+				{loadingNeighborhood && (
+					<>
+						<span>•</span>
+						<span role='status'>Loading neighborhood…</span>
+					</>
+				)}
 			</div>
+			{error && (
+				<div
+					className='rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-text-muted'
+					role='status'
+				>
+					{error} The current graph remains available.
+				</div>
+			)}
 			<GraphCanvas
 				data={data}
 				query={query}
@@ -149,6 +229,7 @@ export function GraphExplorer() {
 				searchTargetId={activeSearchId}
 				searchPosition={shown.length ? searchIndex + 1 : 0}
 				searchMatchCount={shown.length}
+				onNodeSelect={loadNeighborhood}
 			/>
 		</div>
 	)

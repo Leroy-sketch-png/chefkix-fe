@@ -11,8 +11,8 @@ export default function PublicGraphExplorerPage() {
 					Ingredient Knowledge Graph
 				</h1>
 				<p className='mt-2 max-w-2xl text-sm text-text-muted'>
-					Explore ingredient substitutions, confidence signals, and allergen
-					context using the showcase graph.
+					Explore substitution, chemistry, and co-occurrence neighborhoods with
+					compound, nutrition, allergen, and cooking-validation context.
 				</p>
 			</div>
 			<GraphExplorer />
