@@ -1,7 +1,7 @@
 import { getEvaluationDashboardData } from '../services/evaluationDashboardService'
 
 describe('evaluation dashboard data contract', () => {
-	it('loads every Epic 2 data surface from the JSON exports', async () => {
+	it('loads every Epic 9 data surface from the JSON exports', async () => {
 		const data = await getEvaluationDashboardData()
 
 		expect(data.benchmarks.models.map(model => model.id)).toEqual([
@@ -20,6 +20,8 @@ describe('evaluation dashboard data contract', () => {
 		).toBe(21.75)
 		expect(data.ablation.results).toHaveLength(4)
 		expect(data.allergen.models).toHaveLength(3)
+		expect(data.behavioral.metric).toBe('mrr')
+		expect(data.behavioral.status).toBe('pending')
 	})
 
 	it('keeps illustrative values visibly distinguishable from published results', async () => {
