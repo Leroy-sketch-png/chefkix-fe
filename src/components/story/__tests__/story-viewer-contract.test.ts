@@ -13,7 +13,9 @@ describe('Story viewer trust contract', () => {
 		)
 		expect(route).toContain('startAtStoryId={startAtStoryId || null}')
 		expect(route).not.toMatch(/\bname\b.*searchParams|searchParams.*\bname\b/)
-		expect(route).not.toMatch(/\bavatar\b.*searchParams|searchParams.*\bavatar\b/)
+		expect(route).not.toMatch(
+			/\bavatar\b.*searchParams|searchParams.*\bavatar\b/,
+		)
 	})
 
 	it('uses profile authority and contains no photo-only audio control', () => {
@@ -40,7 +42,11 @@ describe('Story viewer trust contract', () => {
 			'isAxiosError(err) && err.response?.status === 404',
 		)
 		expect(viewer).toContain('setLoadAttempt(attempt => attempt + 1)')
-		expect(viewer).toContain('onError={() => setMediaFailed(true)}')
+		expect(viewer).toContain(
+			'onError={() => markStoryMediaFailed(currentStory.id)}',
+		)
+		expect(viewer).toContain('failedMediaStoryIds.has(currentStory.id)')
+		expect(viewer).toContain('recordedViewStoryIdsRef.current.has(storyId)')
 		expect(viewer).toContain(
 			"className='pointer-events-auto flex items-center gap-1'",
 		)

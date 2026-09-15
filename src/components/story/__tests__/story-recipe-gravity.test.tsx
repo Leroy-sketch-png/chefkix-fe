@@ -4,7 +4,7 @@ import type { AsyncComboboxOption } from '@/components/ui/async-combobox'
 import { StoryRecipePicker } from '@/components/story/StoryRecipePicker'
 import { StoryViewer } from '@/components/story/StoryViewer'
 import { autocompleteSearch } from '@/services/search'
-import { getStoriesByUserId } from '@/services/story'
+import { getStoriesByUserId, recordStoryView } from '@/services/story'
 
 const push = jest.fn()
 
@@ -213,5 +213,139 @@ describe('Story recipe gravity', () => {
 		expect(
 			(await screen.findByAltText('storyStickerAlt')).getAttribute('src'),
 		).toBe('/uploaded-sticker.webp')
+	})
+
+	it('isolates a failed image to its story while preserving failure on return', async () => {
+		jest.mocked(getStoriesByUserId).mockResolvedValue({
+			data: {
+				success: true,
+				statusCode: 200,
+				data: [
+					{
+						id: 'broken-story',
+						userId: 'creator',
+						mediaUrl: '/broken.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+					{
+						id: 'healthy-story',
+						userId: 'creator',
+						mediaUrl: '/healthy.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+				],
+			},
+		} as never)
+
+		render(<StoryViewer userId='creator' onClose={jest.fn()} />)
+
+		fireEvent.error(await screen.findByAltText('storyMediaAlt'))
+		expect(await screen.findByText('storyMediaUnavailable')).toBeTruthy()
+
+		fireEvent.click(screen.getByRole('button', { name: 'nextStory' }))
+		await waitFor(() =>
+			expect(screen.getByAltText('storyMediaAlt').getAttribute('src')).toBe(
+				'/healthy.webp',
+			),
+		)
+		expect(screen.queryByText('storyMediaUnavailable')).toBeNull()
+
+		fireEvent.click(screen.getByRole('button', { name: 'previousStory' }))
+		expect(await screen.findByText('storyMediaUnavailable')).toBeTruthy()
+	})
+
+	it('records each story at most once when navigating backward', async () => {
+		jest.mocked(getStoriesByUserId).mockResolvedValue({
+			data: {
+				success: true,
+				statusCode: 200,
+				data: [
+					{
+						id: 'story-one',
+						userId: 'creator',
+						mediaUrl: '/one.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+					{
+						id: 'story-two',
+						userId: 'creator',
+						mediaUrl: '/two.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+				],
+			},
+		} as never)
+
+		render(<StoryViewer userId='creator' onClose={jest.fn()} />)
+
+		await waitFor(() =>
+			expect(recordStoryView).toHaveBeenCalledWith('story-one'),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'nextStory' }))
+		await waitFor(() =>
+			expect(recordStoryView).toHaveBeenCalledWith('story-two'),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'previousStory' }))
+
+		await waitFor(() => expect(recordStoryView).toHaveBeenCalledTimes(2))
+	})
+
+	it('releases a failed view reservation so returning can retry it', async () => {
+		jest
+			.mocked(recordStoryView)
+			.mockRejectedValueOnce(new Error('temporary view failure'))
+			.mockResolvedValue(undefined)
+		jest.mocked(getStoriesByUserId).mockResolvedValue({
+			data: {
+				success: true,
+				statusCode: 200,
+				data: [
+					{
+						id: 'retry-story',
+						userId: 'creator',
+						mediaUrl: '/retry.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+					{
+						id: 'next-story',
+						userId: 'creator',
+						mediaUrl: '/next.webp',
+						mediaType: 'IMAGE',
+						items: [],
+						createdAt: new Date().toISOString(),
+						expiresAt: new Date(Date.now() + 60_000).toISOString(),
+					},
+				],
+			},
+		} as never)
+
+		render(<StoryViewer userId='creator' onClose={jest.fn()} />)
+
+		await waitFor(() =>
+			expect(recordStoryView).toHaveBeenCalledWith('retry-story'),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'nextStory' }))
+		await waitFor(() =>
+			expect(recordStoryView).toHaveBeenCalledWith('next-story'),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'previousStory' }))
+
+		await waitFor(() => expect(recordStoryView).toHaveBeenCalledTimes(3))
+		expect(recordStoryView).toHaveBeenLastCalledWith('retry-story')
 	})
 })
