@@ -1,0 +1,461 @@
+{
+  "almond": [
+    {
+      "name": "benzaldehyde",
+      "concentration": 0.3,
+      "category": "aldehyde"
+    },
+    {
+      "name": "oleic acid",
+      "concentration": 35.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "amygdalin",
+      "concentration": 0.05,
+      "category": "glycoside"
+    }
+  ],
+  "almond milk": [
+    {
+      "name": "benzaldehyde",
+      "concentration": 0.1,
+      "category": "aldehyde"
+    },
+    {
+      "name": "amygdalin",
+      "concentration": 0.05,
+      "category": "glycoside"
+    },
+    {
+      "name": "oleic acid",
+      "concentration": 5.0,
+      "category": "fatty_acid"
+    }
+  ],
+  "applesauce": [
+    {
+      "name": "malic acid",
+      "concentration": 0.9,
+      "category": "organic_acid"
+    },
+    {
+      "name": "quercetin",
+      "concentration": 0.004,
+      "category": "flavonoid"
+    },
+    {
+      "name": "pectin",
+      "concentration": 1.0,
+      "category": "polysaccharide"
+    }
+  ],
+  "butter": [
+    {
+      "name": "butyric acid",
+      "concentration": 3.5,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "caprylic acid",
+      "concentration": 1.2,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "diacetyl",
+      "concentration": 0.08,
+      "category": "ketone"
+    },
+    {
+      "name": "acetaldehyde",
+      "concentration": 0.04,
+      "category": "aldehyde"
+    }
+  ],
+  "buttermilk": [
+    {
+      "name": "lactic acid",
+      "concentration": 0.8,
+      "category": "organic_acid"
+    },
+    {
+      "name": "diacetyl",
+      "concentration": 0.0004,
+      "category": "ketone"
+    },
+    {
+      "name": "carbon dioxide",
+      "concentration": 0.1,
+      "category": "gas"
+    }
+  ],
+  "cashew": [
+    {
+      "name": "oleic acid",
+      "concentration": 28.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "anacardic acid",
+      "concentration": 0.5,
+      "category": "phenolic"
+    },
+    {
+      "name": "cardanol",
+      "concentration": 0.3,
+      "category": "phenol"
+    }
+  ],
+  "cinnamon": [
+    {
+      "name": "cinnamaldehyde",
+      "concentration": 1.8,
+      "category": "aldehyde"
+    },
+    {
+      "name": "eugenol",
+      "concentration": 0.4,
+      "category": "phenol"
+    },
+    {
+      "name": "coumarin",
+      "concentration": 0.07,
+      "category": "lactone"
+    }
+  ],
+  "coconut oil": [
+    {
+      "name": "caprylic acid",
+      "concentration": 8.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "capric acid",
+      "concentration": 6.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "lauric acid",
+      "concentration": 50.0,
+      "category": "fatty_acid"
+    }
+  ],
+  "egg": [
+    {
+      "name": "lecithin",
+      "concentration": 1.2,
+      "category": "phospholipid"
+    },
+    {
+      "name": "lysozyme",
+      "concentration": 0.35,
+      "category": "protein"
+    },
+    {
+      "name": "ovomucin",
+      "concentration": 0.3,
+      "category": "protein"
+    },
+    {
+      "name": "cholesterol",
+      "concentration": 0.37,
+      "category": "sterol"
+    }
+  ],
+  "flaxseed": [
+    {
+      "name": "alpha-linolenic acid",
+      "concentration": 20.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "lignans",
+      "concentration": 0.3,
+      "category": "polyphenol"
+    },
+    {
+      "name": "mucilage",
+      "concentration": 6.0,
+      "category": "polysaccharide"
+    }
+  ],
+  "flaxseed meal": [
+    {
+      "name": "alpha-linolenic acid",
+      "concentration": 20.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "lignans",
+      "concentration": 0.3,
+      "category": "polyphenol"
+    },
+    {
+      "name": "mucilage",
+      "concentration": 6.0,
+      "category": "polysaccharide"
+    }
+  ],
+  "flour": [
+    {
+      "name": "gluten",
+      "concentration": 10.0,
+      "category": "protein"
+    },
+    {
+      "name": "starch",
+      "concentration": 70.0,
+      "category": "polysaccharide"
+    },
+    {
+      "name": "ferulic acid",
+      "concentration": 0.06,
+      "category": "phenolic"
+    }
+  ],
+  "garlic": [
+    {
+      "name": "allicin",
+      "concentration": 0.5,
+      "category": "organosulfur"
+    },
+    {
+      "name": "diallyl disulfide",
+      "concentration": 0.3,
+      "category": "organosulfur"
+    },
+    {
+      "name": "quercetin",
+      "concentration": 0.047,
+      "category": "flavonoid"
+    }
+  ],
+  "ghee": [
+    {
+      "name": "butyric acid",
+      "concentration": 3.8,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "caprylic acid",
+      "concentration": 1.1,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "diacetyl",
+      "concentration": 0.1,
+      "category": "ketone"
+    }
+  ],
+  "honey": [
+    {
+      "name": "fructose",
+      "concentration": 40.0,
+      "category": "monosaccharide"
+    },
+    {
+      "name": "glucose",
+      "concentration": 31.0,
+      "category": "monosaccharide"
+    },
+    {
+      "name": "hydrogen peroxide",
+      "concentration": 0.001,
+      "category": "peroxide"
+    },
+    {
+      "name": "gluconic acid",
+      "concentration": 0.57,
+      "category": "organic_acid"
+    }
+  ],
+  "lemon": [
+    {
+      "name": "citric acid",
+      "concentration": 6.0,
+      "category": "organic_acid"
+    },
+    {
+      "name": "limonene",
+      "concentration": 0.24,
+      "category": "terpene"
+    },
+    {
+      "name": "vitamin C",
+      "concentration": 0.053,
+      "category": "vitamin"
+    }
+  ],
+  "maple syrup": [
+    {
+      "name": "sucrose",
+      "concentration": 60.0,
+      "category": "carbohydrate"
+    },
+    {
+      "name": "quebecol",
+      "concentration": 0.002,
+      "category": "polyphenol"
+    },
+    {
+      "name": "phenylacetaldehyde",
+      "concentration": 0.001,
+      "category": "aldehyde"
+    }
+  ],
+  "milk": [
+    {
+      "name": "lactose",
+      "concentration": 4.8,
+      "category": "carbohydrate"
+    },
+    {
+      "name": "casein",
+      "concentration": 2.7,
+      "category": "protein"
+    },
+    {
+      "name": "diacetyl",
+      "concentration": 0.002,
+      "category": "ketone"
+    }
+  ],
+  "oat milk": [
+    {
+      "name": "beta-glucan",
+      "concentration": 1.0,
+      "category": "polysaccharide"
+    },
+    {
+      "name": "avenanthramides",
+      "concentration": 0.001,
+      "category": "alkaloid"
+    },
+    {
+      "name": "linoleic acid",
+      "concentration": 1.5,
+      "category": "fatty_acid"
+    }
+  ],
+  "olive oil": [
+    {
+      "name": "oleic acid",
+      "concentration": 70.0,
+      "category": "fatty_acid"
+    },
+    {
+      "name": "squalene",
+      "concentration": 0.7,
+      "category": "hydrocarbon"
+    },
+    {
+      "name": "alpha-tocopherol",
+      "concentration": 0.01,
+      "category": "vitamin"
+    },
+    {
+      "name": "oleuropein",
+      "concentration": 0.05,
+      "category": "polyphenol"
+    }
+  ],
+  "soy milk": [
+    {
+      "name": "genistein",
+      "concentration": 0.02,
+      "category": "isoflavone"
+    },
+    {
+      "name": "daidzein",
+      "concentration": 0.015,
+      "category": "isoflavone"
+    },
+    {
+      "name": "linoleic acid",
+      "concentration": 4.0,
+      "category": "fatty_acid"
+    }
+  ],
+  "sugar": [
+    {
+      "name": "sucrose",
+      "concentration": 99.8,
+      "category": "carbohydrate"
+    }
+  ],
+  "tamari": [
+    {
+      "name": "glutamic acid",
+      "concentration": 1.1,
+      "category": "amino_acid"
+    },
+    {
+      "name": "5-methylfurfural",
+      "concentration": 0.004,
+      "category": "furan"
+    }
+  ],
+  "tofu": [
+    {
+      "name": "genistein",
+      "concentration": 0.03,
+      "category": "isoflavone"
+    },
+    {
+      "name": "daidzein",
+      "concentration": 0.02,
+      "category": "isoflavone"
+    },
+    {
+      "name": "calcium",
+      "concentration": 0.35,
+      "category": "mineral"
+    }
+  ],
+  "vanilla": [
+    {
+      "name": "vanillin",
+      "concentration": 2.0,
+      "category": "phenolic_aldehyde"
+    },
+    {
+      "name": "4-hydroxybenzaldehyde",
+      "concentration": 0.4,
+      "category": "aldehyde"
+    },
+    {
+      "name": "acetic acid",
+      "concentration": 0.5,
+      "category": "organic_acid"
+    }
+  ],
+  "vinegar": [
+    {
+      "name": "acetic acid",
+      "concentration": 5.0,
+      "category": "organic_acid"
+    },
+    {
+      "name": "tartaric acid",
+      "concentration": 0.1,
+      "category": "organic_acid"
+    }
+  ],
+  "yogurt": [
+    {
+      "name": "lactic acid",
+      "concentration": 0.9,
+      "category": "organic_acid"
+    },
+    {
+      "name": "acetaldehyde",
+      "concentration": 0.001,
+      "category": "aldehyde"
+    },
+    {
+      "name": "diacetyl",
+      "concentration": 0.0003,
+      "category": "ketone"
+    }
+  ]
+}

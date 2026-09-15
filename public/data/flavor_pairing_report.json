@@ -1,0 +1,34 @@
+{
+  "schema_version": 2,
+  "state": "VERIFIED_E2_NEGATIVE_RIGHTS_LIMITED",
+  "title": "Global RecipeNLG/FooDB Shared-Compound Test",
+  "research_question": "Do RecipeNLG recipes contain greater FooDB compound-set overlap than a frequency- and profile-density-matched exact-marginal null?",
+  "corpus": {
+    "rows": 2231142,
+    "sha256": "f376ee0bb9f99f323761abf6270d453f4eff2002c3625d04cabcf8b57dca0803",
+    "source_rows": {"Gathered": 1643098, "Recipes1M": 588044},
+    "license": "noncommercial research and educational use only"
+  },
+  "coverage": {
+    "eligible_recipes": 1905776,
+    "eligible_recipe_fraction": 0.8541706444502412,
+    "mapped_profile_occurrences": 8425565,
+    "distinct_fooDB_profiles": 372
+  },
+  "result": {
+    "observed_unweighted_recipe_mean_jaccard": 0.5459900765725983,
+    "matched_null_mean_jaccard": 0.5277329267016719,
+    "observed_minus_null": 0.018257149870926415,
+    "one_sided_permutation_p": 0.23809523809523808,
+    "alpha": 0.05,
+    "primary_hypothesis_supported": false,
+    "source_strata_holm_p": {"Gathered": 0.38095238095238093, "Recipes1M": 0.38095238095238093}
+  },
+  "protocol_sha256": "f27be9d72a14e327063befb6f7171bf98ceae1f074d2a9c8ffdea970f41411b2",
+  "analysis_sha256": "e5d9fb01630ad71f4fe2114df29f807eeb333c2f61e5e8726c7cc5506cc6e897",
+  "claim_boundary": [
+    "RecipeNLG has no verified cuisine-label field; this is not a cuisine-specific Ahn replication.",
+    "Binary compound presence is not concentration, volatility, sensory compatibility, preference, causality, equivalence, or safety.",
+    "RecipeNLG and FooDB evidence does not grant commercial product rights."
+  ]
+}
