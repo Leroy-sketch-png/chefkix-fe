@@ -150,6 +150,8 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}/complete-step`,
 		TIMER_EVENT: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/timer-event`,
+		SUBSTITUTION_FEEDBACK: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/substitution-feedback`,
 		PAUSE: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/pause`,
 		RESUME: (sessionId: string) =>
@@ -259,6 +261,7 @@ export const API_ENDPOINTS = {
 	// Notifications (notification module)
 	NOTIFICATIONS: {
 		GET: `${API_PREFIX}/notification`,
+		PAGE: `${API_PREFIX}/notification/page`,
 		UNREAD_COUNT: `${API_PREFIX}/notification/unread-count`,
 		// PUT /notification with body { notificationIds: [], read: true }
 		UPDATE_READ_STATUS: `${API_PREFIX}/notification`,

@@ -1,13 +1,18 @@
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
-
 import { NextRequest, NextResponse } from 'next/server'
+
+import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
+import {
+	AI_RATE_LIMIT_SUBJECT_HEADER,
+	createAiRateLimitSubject,
+	isAiRateLimitSubjectSecretConfigured,
+} from '@/lib/ai-rate-limit-subject'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const AI_PROXY_ERROR = 'AI proxy request failed'
 const DEFAULT_AI_SERVICE_URL = 'http://localhost:8000'
+const DEFAULT_BACKEND_URL = 'http://localhost:8080'
 const ALLOWED_AI_PATHS = new Set([
 	'process_recipe',
 	'calculate_metas',
@@ -26,13 +31,6 @@ const ALLOWED_AI_PATHS = new Set([
 	'generate_meal_plan',
 	'copilot/query',
 ])
-
-const ENV_FILE_CANDIDATES = [
-	path.resolve(process.cwd(), '.env.local'),
-	path.resolve(process.cwd(), '.env'),
-	path.resolve(process.cwd(), '../chefkix-ai-service/.env'),
-	path.resolve(process.cwd(), '../chefkix-monolith/.env'),
-]
 
 const jsonFailure = (message: string, status: number) =>
 	NextResponse.json(
@@ -60,56 +58,31 @@ const normalizeEnvValue = (value: string) => {
 	return trimmed
 }
 
-const readEnvValueFromContent = (
-	content: string,
-	key: string,
-): string | null => {
-	for (const rawLine of content.split(/\r?\n/)) {
-		const line = rawLine.trim()
-		if (!line || line.startsWith('#')) continue
-
-		const normalizedLine = line.startsWith('export ')
-			? line.slice('export '.length)
-			: line
-
-		if (!normalizedLine.startsWith(`${key}=`)) continue
-
-		return normalizeEnvValue(normalizedLine.slice(key.length + 1))
-	}
-
-	return null
-}
-
-const resolveEnvValue = async (key: string): Promise<string | null> => {
-	for (const candidate of ENV_FILE_CANDIDATES) {
-		try {
-			const content = await readFile(candidate, 'utf8')
-			const value = readEnvValueFromContent(content, key)
-			if (value) return value
-		} catch {
-			continue
-		}
-	}
-
-	return null
-}
-
-const resolveAiConfig = async () => {
-	const apiKey = normalizeEnvValue(
-		process.env.AI_SERVICE_API_KEY ||
-			process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY ||
-			(await resolveEnvValue('AI_SERVICE_API_KEY')) ||
-			'',
-	)
+const resolveAiConfig = () => {
+	const apiKey = normalizeEnvValue(process.env.AI_SERVICE_API_KEY || '')
 	const baseUrl = normalizeEnvValue(
-		process.env.AI_SERVICE_URL ||
-			process.env.NEXT_PUBLIC_AI_SERVICE_URL ||
-			(await resolveEnvValue('NEXT_PUBLIC_AI_SERVICE_URL')) ||
-			(await resolveEnvValue('AI_SERVICE_URL')) ||
-			DEFAULT_AI_SERVICE_URL,
+		process.env.AI_SERVICE_URL || DEFAULT_AI_SERVICE_URL,
+	).replace(/\/+$/, '')
+	const backendUrl = normalizeEnvValue(
+		process.env.BACKEND_URL ||
+			process.env.NEXT_PUBLIC_BASE_URL ||
+			DEFAULT_BACKEND_URL,
 	).replace(/\/+$/, '')
 
-	return { apiKey, baseUrl }
+	const rateLimitSubjectSecret = normalizeEnvValue(
+		process.env.AI_RATE_LIMIT_SUBJECT_SECRET || '',
+	)
+	const rateLimitPseudonymSecret = normalizeEnvValue(
+		process.env.AI_RATE_LIMIT_PSEUDONYM_SECRET || '',
+	)
+
+	return {
+		apiKey,
+		baseUrl,
+		backendUrl,
+		rateLimitSubjectSecret,
+		rateLimitPseudonymSecret,
+	}
 }
 
 export async function POST(
@@ -124,13 +97,39 @@ export async function POST(
 		return jsonFailure('AI route not found', 404)
 	}
 
-	const { apiKey, baseUrl } = await resolveAiConfig()
-	if (!apiKey) {
+	const {
+		apiKey,
+		baseUrl,
+		backendUrl,
+		rateLimitSubjectSecret,
+		rateLimitPseudonymSecret,
+	} = resolveAiConfig()
+	if (
+		!apiKey ||
+		!isAiRateLimitSubjectSecretConfigured(
+			rateLimitPseudonymSecret,
+			rateLimitSubjectSecret,
+			apiKey,
+		)
+	) {
 		return jsonFailure(
-			'AI proxy is missing AI_SERVICE_API_KEY on the server.',
+			'AI proxy trust configuration is incomplete on the server.',
 			503,
 		)
 	}
+
+	const caller = await authenticateAiProxyCaller(
+		request.headers.get('authorization'),
+		backendUrl,
+	)
+	if (caller.authenticated === false) {
+		return jsonFailure(caller.message, caller.status)
+	}
+	const rateLimitSubject = createAiRateLimitSubject(
+		caller.userId,
+		rateLimitPseudonymSecret,
+		rateLimitSubjectSecret,
+	)
 
 	const requestBody = await request.text()
 	const upstreamUrl = `${baseUrl}/api/v1/${targetPath}`
@@ -149,6 +148,7 @@ export async function POST(
 							) as string,
 						}
 					: {}),
+				[AI_RATE_LIMIT_SUBJECT_HEADER]: rateLimitSubject,
 			},
 			body: requestBody,
 			cache: 'no-store',
@@ -164,12 +164,7 @@ export async function POST(
 				'Cache-Control': 'no-store',
 			},
 		})
-	} catch (error) {
-		const message =
-			error instanceof Error && error.message
-				? `${AI_PROXY_ERROR}: ${error.message}`
-				: AI_PROXY_ERROR
-
-		return jsonFailure(message, 503)
+	} catch {
+		return jsonFailure(AI_PROXY_ERROR, 503)
 	}
 }

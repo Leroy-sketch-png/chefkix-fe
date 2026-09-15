@@ -222,6 +222,8 @@ export interface Substitution {
 	allergenSafety?: unknown
 	source?: 'chemistry' | 'llm' | 'hybrid'
 	allergenSafe?: boolean | null
+	suggestionId?: string
+	candidateReceipt?: string
 }
 
 export interface SubstitutionResponse {
@@ -406,6 +408,7 @@ export const suggestSubstitutions = async (
 	recipeContext?: string,
 	dietaryTags?: string[],
 	allergenFlags?: string[],
+	sessionId?: string,
 ): Promise<ApiResponse<SubstitutionResponse>> => {
 	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
 	if (preflightFailure) return preflightFailure
@@ -419,6 +422,7 @@ export const suggestSubstitutions = async (
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
 				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
+				...(sessionId && { session_id: sessionId }),
 			},
 			{
 				headers: allergenFlags?.length

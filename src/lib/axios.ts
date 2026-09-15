@@ -23,6 +23,8 @@ import axios, {
 import {
 	refreshAccessToken,
 	isRefreshInProgress,
+	isTokenExpired,
+	shouldRefreshToken,
 	waitForRefresh,
 } from '@/lib/tokenManager'
 import messages from '../../messages/en.json'
@@ -63,6 +65,25 @@ export const aiApi = axios.create({
 		'Content-Type': 'application/json',
 	},
 	timeout: 60_000, // AI calls can take longer (Gemini processing)
+})
+
+aiApi.interceptors.request.use(async config => {
+	const { accessToken, login, logout } = useAuthStore.getState()
+	let token = accessToken
+
+	if (token && (isTokenExpired(token) || shouldRefreshToken(token))) {
+		const refreshed = await refreshAccessToken(login, logout)
+		token = refreshed.success ? refreshed.token ?? null : null
+	}
+
+	const hasExplicitAuthorization =
+		config.headers.has?.('Authorization') ||
+		config.headers.get?.('Authorization') != null
+	if (token && !hasExplicitAuthorization) {
+		config.headers.set('Authorization', `Bearer ${token}`)
+	}
+
+	return config
 })
 
 // REQUEST INTERCEPTOR
