@@ -407,9 +407,16 @@ export const suggestSubstitutions = async (
 	reason: SubstitutionReason,
 	recipeContext?: string,
 	dietaryTags?: string[],
-	allergenFlags?: string[],
+	allergenFlagsOrSessionId?: string[] | string,
 	sessionId?: string,
 ): Promise<ApiResponse<SubstitutionResponse>> => {
+	const allergenFlags = Array.isArray(allergenFlagsOrSessionId)
+		? allergenFlagsOrSessionId
+		: undefined
+	const resolvedSessionId =
+		typeof allergenFlagsOrSessionId === 'string'
+			? allergenFlagsOrSessionId
+			: sessionId
 	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
 	if (preflightFailure) return preflightFailure
 
@@ -422,7 +429,7 @@ export const suggestSubstitutions = async (
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
 				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
-				...(sessionId && { session_id: sessionId }),
+			...(resolvedSessionId && { session_id: resolvedSessionId }),
 			},
 			{
 				headers: allergenFlags?.length

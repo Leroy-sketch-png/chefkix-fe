@@ -48,7 +48,9 @@ describe('challenge history truth', () => {
 		expect(service).toContain('{ params: { size } }')
 		expect(service).not.toContain('{ params: { limit } }')
 		expect(route).toContain('getChallengeHistory(100)')
-		expect(route).toContain('else {\n\t\t\t\t\tsetFetchError(true)')
+		expect(route.replace(/\r\n/g, '\n')).toContain(
+			'else {\n\t\t\t\t\tsetFetchError(true)',
+		)
 		expect(view).not.toContain('Simple calendar grid placeholder')
 		expect(view).not.toContain('onMonthChange')
 		expect(view).toContain("t('historyEmptyTitle')")

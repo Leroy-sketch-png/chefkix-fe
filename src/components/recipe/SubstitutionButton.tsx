@@ -73,14 +73,23 @@ export function SubstitutionButton({
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await suggestSubstitutions(
-				ingredientName,
-				r,
-				recipeTitle ? `Recipe: ${recipeTitle}` : undefined,
-				undefined,
-				user?.allergenFlags,
-				sessionId,
-			)
+			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
+			const res = user?.allergenFlags?.length
+				? await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						user.allergenFlags,
+						sessionId,
+					)
+				: await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						sessionId,
+					)
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
