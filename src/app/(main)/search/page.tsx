@@ -446,7 +446,7 @@ const transformUserDoc = (doc: UserSearchDoc): PersonResult => ({
 	username: doc.username,
 	avatarUrl: doc.avatarUrl || '/placeholder-avatar.svg',
 	bio: doc.bio || '',
-	isVerified: (doc as UserSearchDoc & { isVerified?: boolean }).isVerified,
+	isVerified: doc.isVerified,
 })
 
 function SearchContent() {
@@ -472,6 +472,11 @@ function SearchContent() {
 		recipes: [],
 		people: [],
 		posts: [],
+	})
+	const [resultCounts, setResultCounts] = useState({
+		recipes: 0,
+		people: 0,
+		posts: 0,
 	})
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -546,6 +551,7 @@ function SearchContent() {
 			setIsLoading(true)
 			setError(false)
 			setResults({ recipes: [], people: [], posts: [] })
+			setResultCounts({ recipes: 0, people: 0, posts: 0 })
 			addRecentSearch(query)
 			setRecentSearches(getRecentSearches())
 			try {
@@ -562,9 +568,15 @@ function SearchContent() {
 					const posts =
 						res.data.posts?.hits?.map(h => toPostSearchResult(h.document)) ?? []
 					setResults({ recipes, people, posts })
+					const counts = {
+						recipes: res.data.recipes?.found ?? recipes.length,
+						people: res.data.users?.found ?? people.length,
+						posts: res.data.posts?.found ?? posts.length,
+					}
+					setResultCounts(counts)
 
 					// Track search query for taste vector building
-					const totalCount = recipes.length + people.length + posts.length
+					const totalCount = counts.recipes + counts.people + counts.posts
 					trackSearch(query, totalCount)
 				} else {
 					throw new Error(res.message || 'Search failed')
@@ -585,26 +597,26 @@ function SearchContent() {
 	}, [query, retryKey])
 
 	const totalResults =
-		results.recipes.length + results.people.length + results.posts.length
+		resultCounts.recipes + resultCounts.people + resultCounts.posts
 
 	const tabs: TabItem<SearchTab>[] = [
 		{
 			key: 'recipes',
 			label: t('tabRecipes'),
 			icon: BookOpen,
-			count: results.recipes.length,
+			count: resultCounts.recipes,
 		},
 		{
 			key: 'people',
 			label: t('tabPeople'),
 			icon: Users,
-			count: results.people.length,
+			count: resultCounts.people,
 		},
 		{
 			key: 'posts',
 			label: t('tabPosts'),
 			icon: ImageIcon,
-			count: results.posts.length,
+			count: resultCounts.posts,
 		},
 	]
 

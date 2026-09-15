@@ -129,4 +129,19 @@ describe('truthful search result mapping', () => {
 		expect(source).toContain("t('cookUnit'")
 		expect(source).toContain("t('likeUnit'")
 	})
+
+	it('uses backend found totals instead of the loaded page size', () => {
+		const source = read('src/app/(main)/search/page.tsx')
+
+		expect(source).toContain('const [resultCounts, setResultCounts]')
+		expect(source).toContain('res.data.recipes?.found ?? recipes.length')
+		expect(source).toContain('res.data.users?.found ?? people.length')
+		expect(source).toContain('res.data.posts?.found ?? posts.length')
+		expect(source).toContain(
+			'resultCounts.recipes + resultCounts.people + resultCounts.posts',
+		)
+		expect(source).not.toContain('count: results.recipes.length')
+		expect(source).not.toContain('count: results.people.length')
+		expect(source).not.toContain('count: results.posts.length')
+	})
 })
