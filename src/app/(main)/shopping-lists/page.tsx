@@ -76,6 +76,12 @@ const SOURCE_CONFIG: Record<
 	Custom: { icon: FileText, color: 'text-success', bg: 'bg-success/10' },
 }
 
+type PendingListMutation =
+	| { type: 'toggle'; itemId: string }
+	| { type: 'add' }
+	| { type: 'remove'; itemId: string }
+	| { type: 'share' }
+
 export default function ShoppingListsPage() {
 	// ── State ──────────────────────────────────────────────────────────
 	const [lists, setLists] = useState<ShoppingListSummary[]>([])
@@ -93,6 +99,9 @@ export default function ShoppingListsPage() {
 	const [isCreating, setIsCreating] = useState(false)
 	const [copySuccess, setCopySuccess] = useState(false)
 	const [shareSuccess, setShareSuccess] = useState(false)
+	const listMutationLockRef = useRef(false)
+	const [pendingListMutation, setPendingListMutation] =
+		useState<PendingListMutation>(null)
 
 	// Auto-reset copy/share success after 2s with proper cleanup
 	useEffect(() => {
@@ -236,61 +245,88 @@ export default function ShoppingListsPage() {
 
 	// ── Item operations ────────────────────────────────────────────────
 
+	const beginListMutation = (mutation: PendingListMutation) => {
+		if (listMutationLockRef.current) return false
+		listMutationLockRef.current = true
+		setPendingListMutation(mutation)
+		return true
+	}
+
+	const endListMutation = () => {
+		listMutationLockRef.current = false
+		setPendingListMutation(null)
+	}
+
+	const applyListResponse = (
+		listId: string,
+		response: ShoppingListResponse,
+	) => {
+		setSelectedList(current => (current?.id === listId ? response : current))
+	}
+
 	const handleToggleItem = async (itemId: string) => {
-		if (!selectedList) return
-		// Optimistic update
+		if (!selectedList || listMutationLockRef.current) return
+		const listId = selectedList.id
+		const originalItem = selectedList.items.find(item => item.itemId === itemId)
+		if (!originalItem || !beginListMutation({ type: 'toggle', itemId })) return
+		const originalChecked = originalItem.checked
+
 		setSelectedList(prev => {
-			if (!prev) return prev
+			if (!prev || prev.id !== listId) return prev
+			const items = prev.items.map(item =>
+				item.itemId === itemId ? { ...item, checked: !originalChecked } : item,
+			)
 			return {
 				...prev,
-				items: prev.items.map(item =>
-					item.itemId === itemId ? { ...item, checked: !item.checked } : item,
-				),
-				checkedItems: prev.items.find(i => i.itemId === itemId)?.checked
-					? prev.checkedItems - 1
-					: prev.checkedItems + 1,
+				items,
+				checkedItems: items.filter(item => item.checked).length,
 			}
 		})
+
 		try {
-			await toggleShoppingItem(selectedList.id, itemId)
+			const updated = await toggleShoppingItem(listId, itemId)
+			applyListResponse(listId, updated)
+			fetchLists()
 		} catch {
-			// Revert on failure
 			try {
-				const fresh = await getShoppingListById(selectedList.id)
-				setSelectedList(fresh)
+				const fresh = await getShoppingListById(listId)
+				applyListResponse(listId, fresh)
 			} catch {
-				// If revert also fails, toggle back locally
 				setSelectedList(prev => {
-					if (!prev) return prev
+					if (!prev || prev.id !== listId) return prev
+					const items = prev.items.map(item =>
+						item.itemId === itemId
+							? { ...item, checked: originalChecked }
+							: item,
+					)
 					return {
 						...prev,
-						items: prev.items.map(item =>
-							item.itemId === itemId
-								? { ...item, checked: !item.checked }
-								: item,
-						),
+						items,
+						checkedItems: items.filter(item => item.checked).length,
 					}
 				})
 			}
 			toast.error(t('failedUpdateItem'))
+		} finally {
+			endListMutation()
 		}
 	}
 
-	const addingItemRef = useRef(false)
 	const handleAddItem = async () => {
 		if (
 			!selectedList ||
 			!newItemForm.ingredient.trim() ||
-			addingItemRef.current
+			listMutationLockRef.current
 		)
 			return
-		addingItemRef.current = true
+		const listId = selectedList.id
+		if (!beginListMutation({ type: 'add' })) return
 		try {
-			const updated = await addCustomItem(selectedList.id, {
+			const updated = await addCustomItem(listId, {
 				...newItemForm,
 				ingredient: newItemForm.ingredient.trim(),
 			})
-			setSelectedList(updated)
+			applyListResponse(listId, updated)
 			setNewItemForm({ ingredient: '' })
 			setShowAddItem(false)
 			fetchLists()
@@ -298,22 +334,22 @@ export default function ShoppingListsPage() {
 		} catch {
 			toast.error(t('failedAddItem'))
 		} finally {
-			addingItemRef.current = false
+			endListMutation()
 		}
 	}
 
-	const removingItemRef = useRef(new Set<string>())
 	const handleRemoveItem = async (itemId: string) => {
-		if (!selectedList || removingItemRef.current.has(itemId)) return
-		removingItemRef.current.add(itemId)
+		if (!selectedList || listMutationLockRef.current) return
+		const listId = selectedList.id
+		if (!beginListMutation({ type: 'remove', itemId })) return
 		try {
-			const updated = await removeShoppingItem(selectedList.id, itemId)
-			setSelectedList(updated)
+			const updated = await removeShoppingItem(listId, itemId)
+			applyListResponse(listId, updated)
 			fetchLists()
 		} catch {
 			toast.error(t('failedRemoveItem'))
 		} finally {
-			removingItemRef.current.delete(itemId)
+			endListMutation()
 		}
 	}
 
@@ -339,15 +375,19 @@ export default function ShoppingListsPage() {
 	}
 
 	const handleShare = async () => {
-		if (!selectedList) return
+		if (!selectedList || listMutationLockRef.current) return
+		const listId = selectedList.id
+		if (!beginListMutation({ type: 'share' })) return
 		try {
-			const updated = await regenerateShareToken(selectedList.id)
-			setSelectedList(updated)
+			const updated = await regenerateShareToken(listId)
+			applyListResponse(listId, updated)
 			const url = `${window.location.origin}/shopping-lists/shared/${updated.shareToken}`
 			await navigator.clipboard.writeText(url)
 			setShareSuccess(true)
 		} catch {
 			toast.error(t('failedShare'))
+		} finally {
+			endListMutation()
 		}
 	}
 
@@ -469,7 +509,8 @@ export default function ShoppingListsPage() {
 								<button
 									type='button'
 									onClick={handleShare}
-									className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated'
+									disabled={pendingListMutation !== null}
+									className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50'
 									title={t('shareList')}
 								>
 									{shareSuccess ? (
@@ -554,7 +595,10 @@ export default function ShoppingListsPage() {
 											<button
 												type='button'
 												onClick={handleAddItem}
-												disabled={!newItemForm.ingredient.trim()}
+												disabled={
+													!newItemForm.ingredient.trim() ||
+													pendingListMutation !== null
+												}
 												className='rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50'
 											>
 												{t('add')}
@@ -575,7 +619,8 @@ export default function ShoppingListsPage() {
 									<motion.button
 										type='button'
 										onClick={() => setShowAddItem(true)}
-										className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50'
+										disabled={pendingListMutation !== null}
+										className='flex w-full items-center gap-2 rounded-xl border border-dashed border-border-subtle p-3 text-sm text-text-muted transition-colors hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50'
 										whileHover={CARD_FEATURED_HOVER}
 										whileTap={LIST_ITEM_TAP}
 									>
@@ -635,6 +680,13 @@ export default function ShoppingListsPage() {
 																	onToggle={handleToggleItem}
 																	onRemove={handleRemoveItem}
 																	removeAriaLabel={t('ariaRemoveItem')}
+																	mutationDisabled={
+																		pendingListMutation !== null
+																	}
+																	togglePending={
+																		pendingListMutation?.type === 'toggle' &&
+																		pendingListMutation.itemId === item.itemId
+																	}
 																/>
 															))}
 														</ul>
