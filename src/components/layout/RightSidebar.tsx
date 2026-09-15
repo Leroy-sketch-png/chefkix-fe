@@ -20,6 +20,11 @@ import { Profile } from '@/lib/types'
 import { logDevError } from '@/lib/dev-log'
 import { cn } from '@/lib/utils'
 import { isStreakAtRisk } from '@/lib/streak-status'
+import {
+	getChallengeRecipeDestination,
+	toChallengeBannerRecipes,
+	type ChallengeBannerRecipe,
+} from '@/lib/challenge-recipes'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
 import { toast } from 'sonner'
 import {
@@ -119,6 +124,7 @@ export const RightSidebar = () => {
 		icon: string
 		bonusXp: number
 		endsAt: Date
+		matchingRecipes: ChallengeBannerRecipe[]
 	} | null>(null)
 
 	useEffect(() => {
@@ -146,9 +152,10 @@ export const RightSidebar = () => {
 							id: data.id,
 							title: data.title,
 							description: data.description,
-							icon: data.icon,
+							icon: data.icon || '🎯',
 							bonusXp: data.bonusXp ?? 0,
 							endsAt: new Date(data.endsAt),
+							matchingRecipes: toChallengeBannerRecipes(data.matchingRecipes),
 						})
 					}
 				}
@@ -377,7 +384,12 @@ export const RightSidebar = () => {
 						<ExpandableDailyChallengeBanner
 							challenge={dailyChallenge}
 							onFindRecipe={() =>
-								router.push(PATHS.EXPLORE_SEARCH(dailyChallenge.title))
+								router.push(
+									getChallengeRecipeDestination(
+										dailyChallenge.matchingRecipes,
+										dailyChallenge.title,
+									),
+								)
 							}
 						/>
 					)}

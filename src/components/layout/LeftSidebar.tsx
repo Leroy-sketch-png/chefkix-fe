@@ -23,6 +23,7 @@ import {
 	Shield,
 	MoreHorizontal,
 	FolderHeart,
+	BarChart3,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
@@ -106,6 +107,12 @@ const secondaryNavItems: NavItem[] = [
 		href: '/collections',
 		icon: FolderHeart,
 		labelKey: 'collections',
+		requiresAuth: true,
+	},
+	{
+		href: PATHS.CREATOR,
+		icon: BarChart3,
+		labelKey: 'creator',
 		requiresAuth: true,
 	},
 	{

@@ -50,8 +50,8 @@ import { cn } from '@/lib/utils'
 import { PATHS } from '@/constants/paths'
 import { SessionRatingForm } from './SessionRatingForm'
 import { SubstitutionOutcomeCard } from './SubstitutionOutcomeCard'
-import { CookingSubstitutionButton } from './CookingSubstitutionButton'
 import { IngredientCheck } from './IngredientCheck'
+import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { StepV2Renderer } from './StepV2Renderer'
 import type { StepRenderMode } from './StepV2Renderer'
 import { VoiceModeButton } from './VoiceModeButton'
@@ -2029,7 +2029,10 @@ export const CookingPlayer = () => {
 																	{step.ingredients.map((ing, idx) => {
 																		const id = `${currentStepNumber}-${idx}`
 																		return (
-																			<div key={id} className='space-y-1'>
+																			<div
+																				key={id}
+																				className='group flex items-center gap-1'
+																			>
 																				<IngredientCheck
 																					ingredient={{
 																						name: ing.name,
@@ -2038,29 +2041,14 @@ export const CookingPlayer = () => {
 																					}}
 																					isChecked={!!checkedIngredients[id]}
 																					onToggle={() => toggleIngredient(id)}
+																					className='min-w-0 flex-1'
 																				/>
-																				{!checkedIngredients[id] &&
-																					!isPreviewMode && (
-																						<div className='pl-12'>
-																							<CookingSubstitutionButton
-																								ingredientName={ing.name}
-																								recipeTitle={recipe.title}
-																								stepContext={step.description}
-																								onChoice={(
-																									choice,
-																									substituteIngredient,
-																								) =>
-																									handleSubstitutionChoice({
-																										originalIngredient:
-																											ing.name,
-																										substituteIngredient,
-																										choice,
-																										technique: step.action,
-																									})
-																								}
-																							/>
-																						</div>
-																					)}
+																				<SubstitutionButton
+																					ingredientName={ing.name}
+																					recipeTitle={recipe.title}
+																					sessionId={session?.sessionId}
+																					className='size-10 flex-shrink-0 opacity-100'
+																				/>
 																			</div>
 																		)
 																	})}

@@ -744,6 +744,7 @@ export function EmptyState({
 	children,
 	className,
 }: EmptyStateProps) {
+	const searchT = useTranslations('search')
 	const defaultIllustration =
 		variant !== 'custom' ? illustrationMap[variant] : null
 	const isSearchVariant = variant === 'search'
@@ -788,25 +789,27 @@ export function EmptyState({
 			</p>
 
 			{/* Search Suggestions */}
-			{searchSuggestions && searchSuggestions.length > 0 && (
-				<div className='mb-5'>
-					<span className='block text-xs text-text-muted mb-2.5'>
-						Did you mean:
-					</span>
-					<div className='flex gap-2 justify-center flex-wrap'>
-						{searchSuggestions.map((suggestion, index) => (
-							<button
-								type='button'
-								key={index}
-								onClick={() => onSuggestionClick?.(suggestion)}
-								className='rounded-full border border-border-subtle px-4 py-2 text-sm text-text-primary transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
-							>
-								{suggestion}
-							</button>
-						))}
+			{searchSuggestions &&
+				searchSuggestions.length > 0 &&
+				onSuggestionClick && (
+					<div className='mb-5'>
+						<span className='block text-xs text-text-muted mb-2.5'>
+							{searchT('didYouMean')}:
+						</span>
+						<div className='flex gap-2 justify-center flex-wrap'>
+							{searchSuggestions.map((suggestion, index) => (
+								<button
+									type='button'
+									key={index}
+									onClick={() => onSuggestionClick(suggestion)}
+									className='rounded-full border border-border-subtle px-4 py-2 text-sm text-text-primary transition-all hover:border-brand/30 hover:bg-brand/8 hover:text-brand'
+								>
+									{suggestion}
+								</button>
+							))}
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 
 			{/* Primary Action */}
 			{primaryAction && (

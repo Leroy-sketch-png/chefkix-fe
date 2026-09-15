@@ -22,6 +22,7 @@ import {
 	Settings,
 	X,
 	UserPlus,
+	BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -110,6 +111,7 @@ const moreMenuItems: NavItem[] = [
 	{ href: '/pantry', icon: Package, labelKey: 'pantry' },
 	{ href: '/meal-planner', icon: CalendarDays, labelKey: 'mealPlan' },
 	{ href: '/shopping-lists', icon: ShoppingCart, labelKey: 'shopping' },
+	{ href: PATHS.CREATOR, icon: BarChart3, labelKey: 'creator' },
 	{ href: '/settings', icon: Settings, labelKey: 'settings' },
 ]
 
@@ -174,7 +176,9 @@ export const MobileBottomNav = () => {
 		},
 		{
 			headingKey: 'moreGroupAccount',
-			items: moreMenuItems.filter(item => ['/settings'].includes(item.href)),
+			items: moreMenuItems.filter(item =>
+				[PATHS.CREATOR, '/settings'].includes(item.href),
+			),
 		},
 	]
 
