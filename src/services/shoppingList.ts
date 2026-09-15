@@ -68,15 +68,22 @@ export async function getUserShoppingLists(): Promise<ShoppingListSummary[]> {
 		const res = await api.get<ApiResponse<ShoppingListSummary[]>>(
 			API_ENDPOINTS.SHOPPING_LISTS.BASE,
 		)
-		const raw = res.data.data
-		if (!raw) return []
+		const response = res.data
+		if (!response.success) {
+			throw new Error(response.message || 'Failed to load shopping lists')
+		}
+
+		const raw = response.data
 		if (Array.isArray(raw)) return raw
-		const page = raw as unknown as { content?: ShoppingListSummary[] }
-		if (page.content && Array.isArray(page.content)) return page.content
-		return []
+		if (raw && typeof raw === 'object') {
+			const page = raw as unknown as { content?: ShoppingListSummary[] }
+			if (Array.isArray(page.content)) return page.content
+		}
+
+		throw new Error('Invalid shopping list response')
 	} catch (err) {
 		logDevError('[ShoppingList] getUserShoppingLists failed:', err)
-		return []
+		throw err
 	}
 }
 

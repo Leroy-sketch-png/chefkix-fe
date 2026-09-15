@@ -71,6 +71,7 @@ import { suggestCategory } from '@/lib/data/ingredients'
 import { createFromRecipe } from '@/services/shoppingList'
 import { relativeExpiry } from '@/lib/relative-time'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
+import { reconcilePantryItems } from '@/lib/pantry-items'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -238,7 +239,7 @@ export default function PantryPage() {
 				return
 			}
 			const newItem = await addPantryItem(req)
-			setItems(prev => [newItem, ...prev])
+			setItems(prev => reconcilePantryItems(prev, newItem, filterCategory))
 			setQuickAddName('')
 			setQuickAddQty('')
 			setQuickAddUnit('')

@@ -12,6 +12,8 @@ interface ShoppingListItemRowProps {
 	onToggle: (itemId: string) => void
 	onRemove: (itemId: string) => void
 	removeAriaLabel: string
+	mutationDisabled: boolean
+	togglePending: boolean
 }
 
 function ShoppingListItemRowFallback({
@@ -59,6 +61,8 @@ function ShoppingListItemRowContent({
 	onToggle,
 	onRemove,
 	removeAriaLabel,
+	mutationDisabled,
+	togglePending,
 }: ShoppingListItemRowProps) {
 	const t = useTranslations('shoppingLists')
 	return (
@@ -66,10 +70,12 @@ function ShoppingListItemRowContent({
 			<button
 				type='button'
 				onClick={() => onToggle(item.itemId)}
+				disabled={mutationDisabled}
 				role='checkbox'
 				aria-checked={item.checked}
+				aria-busy={togglePending}
 				aria-label={`${item.ingredient}`}
-				className='flex-shrink-0'
+				className='flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-60'
 			>
 				{item.checked ? (
 					<CheckCircle2 className='size-5 text-success' />
@@ -103,13 +109,16 @@ function ShoppingListItemRowContent({
 					</div>
 				)}
 				{item.addedManually && (
-					<span className='ml-1 text-2xs text-text-muted'>{t('customLabel')}</span>
+					<span className='ml-1 text-2xs text-text-muted'>
+						{t('customLabel')}
+					</span>
 				)}
 			</div>
 			<button
 				type='button'
 				onClick={() => onRemove(item.itemId)}
-				className='flex size-10 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+				disabled={mutationDisabled}
+				className='flex size-10 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-30'
 				aria-label={removeAriaLabel}
 			>
 				<Trash2 className='size-4' />
