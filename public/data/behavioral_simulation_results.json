@@ -1,0 +1,42 @@
+{
+  "schema_version": 2,
+  "state": "VERIFIED_E3_NEGATIVE_ACCEPTANCE_PROXY",
+  "title": "Full-catalog GISMo exact-pair feedback overlay",
+  "decision": "REJECTED",
+  "accepted": false,
+  "methodology": {
+    "model": "Released GISMo epoch-800 checkpoint with frozen graph, embeddings, scoring layers, contexts, and 6,653-candidate catalog",
+    "feedback_proxy": "49,044 official training substitutions treated as accepted events; these are not users or observed satisfaction",
+    "evaluation": "10,747 official test cases, pessimistic tie ranking, and a frozen 5,000-replicate paired bootstrap",
+    "identity_limit": "The experiment canonicalizes directed source-target pairs; the current runtime key is only lowercased and has no user, session, technique, cuisine, or context identity"
+  },
+  "denominators": {
+    "proxy_train_events": 49044,
+    "unique_feedback_pairs": 23185,
+    "feedback_exposed_sources": 3386,
+    "sources_with_multiple_accepted_targets": 2221,
+    "max_accepted_targets_per_source": 299,
+    "test_cases": 10747,
+    "candidates": 6653
+  },
+  "metrics": {
+    "overall": {"base_mrr": 0.31636465095832145, "overlay_mrr": 0.3194567810450055, "delta_mrr": 0.003092130086684075},
+    "seen_train_pair": {"examples": 6932, "base_mrr": 0.4667638183572231, "overlay_mrr": 0.47272503081149664, "delta_mrr": 0.005961212454273557},
+    "unseen_train_pair": {"examples": 3815, "base_mrr": 0.04308364744346272, "overlay_mrr": 0.040962545820545135, "delta_mrr": -0.002121101622917586},
+    "paired_bootstrap_mrr_delta_95_interval": [0.0014311387032783238, 0.004733150598833951]
+  },
+  "gates": {
+    "overall_positive": true,
+    "unseen_noninferiority_threshold": -0.002,
+    "unseen_noninferiority": false
+  },
+  "conclusion": "The exact-pair overlay raises aggregate MRR through seen-pair memorization but harms unseen-pair MRR beyond the predeclared limit. It is rejected for production ranking.",
+  "claim_boundary": [
+    "Training substitutions are an acceptance proxy, not observed user satisfaction or causal behavioral evidence",
+    "Exact-pair memorization is not generalization, personalization, context awareness, or emergent discovery",
+    "The runtime feedback path remains disconnected from the scorer and cannot be called end-to-end learning"
+  ],
+  "protocol_sha256": "b212c08094fe309569f6b5e9b4f3a92596fc369edc70f0bbe4547cbacb48e28d",
+  "result_sha256": "d7abe5442ba6b1bc66a5b28f2861ebbbc715bb6f84ab0aaa06a60daccff4b98a",
+  "per_case_sha256": "5ba83750ad48dd5224f9de3ff60616bdd3d775b6fe8b06a45cc2f1cf3ef6d63f"
+}
