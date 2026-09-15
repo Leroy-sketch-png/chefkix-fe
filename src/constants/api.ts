@@ -150,6 +150,8 @@ export const API_ENDPOINTS = {
 			`${API_PREFIX}/cooking-sessions/${sessionId}/complete-step`,
 		TIMER_EVENT: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/timer-event`,
+		SUBSTITUTION_FEEDBACK: (sessionId: string) =>
+			`${API_PREFIX}/cooking-sessions/${sessionId}/substitution-feedback`,
 		PAUSE: (sessionId: string) =>
 			`${API_PREFIX}/cooking-sessions/${sessionId}/pause`,
 		RESUME: (sessionId: string) =>
@@ -257,6 +259,7 @@ export const API_ENDPOINTS = {
 	// Notifications (notification module)
 	NOTIFICATIONS: {
 		GET: `${API_PREFIX}/notification`,
+		PAGE: `${API_PREFIX}/notification/page`,
 		UNREAD_COUNT: `${API_PREFIX}/notification/unread-count`,
 		// PUT /notification with body { notificationIds: [], read: true }
 		UPDATE_READ_STATUS: `${API_PREFIX}/notification`,
@@ -292,11 +295,7 @@ export const API_ENDPOINTS = {
 		BASE: `${API_PREFIX}/cook-plans`,
 		CURRENT: `${API_PREFIX}/cook-plans/current`,
 		GET: (id: string) => `${API_PREFIX}/cook-plans/${id}`,
-		SWAP: (
-			id: string,
-			batchId: string,
-			dishRecipeId: string,
-		) =>
+		SWAP: (id: string, batchId: string, dishRecipeId: string) =>
 			`${API_PREFIX}/cook-plans/${id}/batches/${batchId}/dishes/${dishRecipeId}`,
 	},
 	// Shopping Lists (standalone persistent lists)

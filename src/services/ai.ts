@@ -216,6 +216,8 @@ export interface Substitution {
 	ratio: string
 	notes: string
 	confidenceScore: number
+	suggestionId?: string
+	candidateReceipt?: string
 }
 
 export interface SubstitutionResponse {
@@ -399,6 +401,7 @@ export const suggestSubstitutions = async (
 	reason: SubstitutionReason,
 	recipeContext?: string,
 	dietaryTags?: string[],
+	sessionId?: string,
 ): Promise<ApiResponse<SubstitutionResponse>> => {
 	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
 	if (preflightFailure) return preflightFailure
@@ -411,6 +414,7 @@ export const suggestSubstitutions = async (
 				reason,
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
+				...(sessionId && { session_id: sessionId }),
 			},
 		)
 		return response.data
