@@ -83,6 +83,7 @@ export interface Author {
 	username: string
 	displayName?: string | null
 	avatarUrl?: string
+	isVerified?: boolean
 }
 
 /**
