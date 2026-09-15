@@ -174,7 +174,8 @@ describe('demo credibility guardrails', () => {
 		expect(navigationCluster).not.toContain('/explore?difficulty=Beginner')
 		expect(navigationCluster).toContain('PATHS.EXPLORE_SEARCH')
 		expect(navigationCluster).toContain('PATHS.COOK')
-		expect(navigationCluster).toContain('challenge.matchingRecipes.length > 2')
+		expect(navigationCluster).toContain('toChallengeBannerRecipes')
+		expect(navigationCluster).toContain('getChallengeRecipeDestination')
 	})
 
 	it('owns My Groups with a static route before the dynamic group detail route', () => {

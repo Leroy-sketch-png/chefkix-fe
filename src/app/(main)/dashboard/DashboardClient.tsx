@@ -15,7 +15,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { Button } from '@/components/ui/button'
 import { MeshGradient } from '@/components/ui/mesh-gradient'
-import { ResumeCookingBanner } from '@/components/cooking'
+import { FriendsCookingNow, ResumeCookingBanner } from '@/components/cooking'
 import {
 	TonightsPick,
 	SeasonalBanner,
@@ -255,10 +255,12 @@ function RecentActivityList() {
 }
 
 export default function DashboardPage() {
-	const { user } = useAuth()
+	const { user, isAuthenticated, isHydrated, isLoading } = useAuth()
 	const [pendingSessionCount, setPendingSessionCount] = useState<
 		number | undefined
 	>()
+	const canLoadFriendsCooking =
+		isHydrated && !isLoading && isAuthenticated && Boolean(user?.userId)
 
 	useEffect(() => {
 		if (!user?.userId) {
@@ -313,6 +315,8 @@ export default function DashboardPage() {
 						<div>
 							<ResumeCookingBanner className='mb-0' />
 						</div>
+
+						{canLoadFriendsCooking && <FriendsCookingNow />}
 
 						<ActiveChallengesWidget />
 

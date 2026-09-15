@@ -47,6 +47,7 @@ import {
 import { cn } from '@/lib/utils'
 import { SessionRatingForm } from './SessionRatingForm'
 import { IngredientCheck } from './IngredientCheck'
+import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { StepV2Renderer } from './StepV2Renderer'
 import type { StepRenderMode } from './StepV2Renderer'
 import { VoiceModeButton } from './VoiceModeButton'
@@ -1912,16 +1913,27 @@ export const CookingPlayer = () => {
 																	{step.ingredients.map((ing, idx) => {
 																		const id = `${currentStepNumber}-${idx}`
 																		return (
-																			<IngredientCheck
+																			<div
 																				key={id}
-																				ingredient={{
-																					name: ing.name,
-																					quantity: ing.quantity ?? '',
-																					unit: ing.unit ?? '',
-																				}}
-																				isChecked={!!checkedIngredients[id]}
-																				onToggle={() => toggleIngredient(id)}
-																			/>
+																				className='group flex items-center gap-1'
+																			>
+																				<IngredientCheck
+																					ingredient={{
+																						name: ing.name,
+																						quantity: ing.quantity ?? '',
+																						unit: ing.unit ?? '',
+																					}}
+																					isChecked={!!checkedIngredients[id]}
+																					onToggle={() => toggleIngredient(id)}
+																					className='min-w-0 flex-1'
+																				/>
+																				<SubstitutionButton
+																					ingredientName={ing.name}
+																					recipeTitle={recipe.title}
+																					sessionId={session?.sessionId}
+																					className='size-10 flex-shrink-0 opacity-100'
+																				/>
+																			</div>
 																		)
 																	})}
 																</div>

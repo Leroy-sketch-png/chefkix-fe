@@ -16,6 +16,7 @@ export const PATHS = {
 	LEADERBOARD: '/leaderboard',
 	MESSAGES: '/messages',
 	CREATE: '/create',
+	CREATOR: '/creator',
 	COOK: '/cook',
 	CREATE_POST: '/post/new',
 	PROFILE: '/profile',
