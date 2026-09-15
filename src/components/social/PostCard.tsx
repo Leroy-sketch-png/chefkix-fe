@@ -695,15 +695,18 @@ const PostCardContent = ({
 				className='mb-6'
 			>
 				<div
-					className={socialCardSurface({
-						tone: POST_TYPE_TO_TONE[post.postType] ?? 'default',
-					})}
+					className={cn(
+						socialCardSurface({
+							tone: POST_TYPE_TO_TONE[post.postType] ?? 'default',
+						}),
+						'flex flex-col',
+					)}
 				>
 					{/* Warm top-edge accent — barely visible but adds depth */}
-					<div className={socialCardTopAccent} />
+					<div className={cn(socialCardTopAccent, 'order-0')} />
 					{/* Header */}
 					<div
-						className={`flex items-center justify-between ${socialCardHeaderPadding}`}
+						className={`order-1 flex items-center justify-between ${socialCardHeaderPadding}`}
 					>
 						<div className='flex min-w-0 items-center gap-3'>
 							<Link
@@ -905,7 +908,7 @@ const PostCardContent = ({
 
 					{/* Content */}
 					{isEditing ? (
-						<div className='space-y-3 border-t border-border-subtle px-4 py-4 md:px-5'>
+						<div className='order-5 space-y-3 border-t border-border-subtle px-4 py-4 md:px-5'>
 							<textarea
 								value={editContent}
 								onChange={e => setEditContent(e.target.value)}
@@ -954,7 +957,7 @@ const PostCardContent = ({
 						</div>
 					) : (
 						<>
-							<div className='space-y-3 px-4 py-1 pb-3 md:px-5'>
+							<div className='order-5 space-y-3 px-4 py-1 pb-3 md:px-5'>
 								<PostCaption content={post.content} mode={contentDisplay} />
 								{(post.tags ?? []).length > 0 && (
 									<div className='flex flex-wrap gap-1.5'>
@@ -1253,7 +1256,7 @@ const PostCardContent = ({
 							{(post.photoUrl ||
 								(post.photoUrls && post.photoUrls.length > 0)) && (
 								<div
-									className='relative w-full cursor-pointer select-none'
+									className='order-2 relative w-full cursor-pointer select-none'
 									onClick={handleDoubleTap}
 									role='button'
 									tabIndex={0}
@@ -1322,7 +1325,7 @@ const PostCardContent = ({
 							)}
 
 							{post.videoUrl && (
-								<div className='relative aspect-video w-full overflow-hidden bg-bg-elevated'>
+								<div className='order-2 relative aspect-video w-full overflow-hidden bg-bg-elevated'>
 									<video
 										src={post.videoUrl}
 										controls
@@ -1341,7 +1344,7 @@ const PostCardContent = ({
 						post.postType !== 'RECIPE_BATTLE' &&
 						post.postType !== 'RECIPE_REVIEW' &&
 						post.userId !== currentUserId && (
-							<div className='flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
+							<div className='order-4 flex items-center justify-between border-t border-border-subtle bg-bg-elevated/50 px-4 py-2'>
 								<span className='text-xs font-medium text-text-muted'>
 									{t('rateThisPlate')}
 								</span>
@@ -1391,7 +1394,7 @@ const PostCardContent = ({
 						)}
 
 					{/* Actions */}
-					<div className='flex items-stretch gap-0.5 border-t border-border-subtle/70 bg-bg-card/80 px-2 py-1.5'>
+					<div className='order-3 flex items-stretch gap-0.5 border-t border-border-subtle/70 bg-bg-card/80 px-2 py-1.5'>
 						<motion.button
 							type='button'
 							onClick={handleLike}

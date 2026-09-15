@@ -113,7 +113,9 @@ export function StoryViewer({
 		null,
 	)
 	const [loadAttempt, setLoadAttempt] = useState(0)
-	const [mediaFailed, setMediaFailed] = useState(false)
+	const [failedMediaStoryIds, setFailedMediaStoryIds] = useState<Set<string>>(
+		() => new Set(),
+	)
 	const [isManuallyPaused, setIsManuallyPaused] = useState(false)
 	const [isHolding, setIsHolding] = useState(false)
 	const [isComposing, setIsComposing] = useState(false)
@@ -124,11 +126,15 @@ export function StoryViewer({
 		[],
 	)
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
+	const recordedViewStoryIdsRef = useRef(new Set<string>())
 	const router = useRouter()
 	const { user: currentUser } = useAuth()
 	const t = useTranslations('story')
 
 	const currentStory = stories[currentStoryIndex]
+	const mediaFailed = currentStory
+		? failedMediaStoryIds.has(currentStory.id)
+		: false
 	const isMe = currentUser?.userId === userId
 	const isPaused = isManuallyPaused || isHolding || isComposing
 
@@ -200,7 +206,7 @@ export function StoryViewer({
 		const fetchStoriesData = async () => {
 			setIsLoading(true)
 			setLoadError(null)
-			setMediaFailed(false)
+			setFailedMediaStoryIds(new Set())
 			setStories([])
 			setCurrentStoryIndex(0)
 
@@ -281,12 +287,24 @@ export function StoryViewer({
 	}, [currentStoryIndex, stories, isPaused, isLoading, goToNextStory])
 
 	useEffect(() => {
-		if (currentStory?.id) {
-			recordStoryView(currentStory.id).catch(error =>
-				logDevError('Failed to record Story view', error),
-			)
-		}
+		const storyId = currentStory?.id
+		if (!storyId || recordedViewStoryIdsRef.current.has(storyId)) return
+
+		recordedViewStoryIdsRef.current.add(storyId)
+		recordStoryView(storyId).catch(error => {
+			recordedViewStoryIdsRef.current.delete(storyId)
+			logDevError('Failed to record Story view', error)
+		})
 	}, [currentStory?.id])
+
+	const markStoryMediaFailed = useCallback((storyId: string) => {
+		setFailedMediaStoryIds(current => {
+			if (current.has(storyId)) return current
+			const next = new Set(current)
+			next.add(storyId)
+			return next
+		})
+	}, [])
 
 	const handleInteractionStart = () => setIsHolding(true)
 	const handleInteractionEnd = () => setIsHolding(false)
@@ -419,7 +437,7 @@ export function StoryViewer({
 							<img
 								src={currentStory.mediaUrl}
 								alt={t('storyMediaAlt')}
-								onError={() => setMediaFailed(true)}
+								onError={() => markStoryMediaFailed(currentStory.id)}
 								className='w-full h-full object-cover pointer-events-none'
 								style={{
 									transform: `scale(${currentStory.imageScale || 1}) rotate(${currentStory.imageRotation || 0}deg)`,
