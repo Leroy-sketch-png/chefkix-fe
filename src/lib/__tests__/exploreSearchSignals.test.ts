@@ -15,6 +15,11 @@ const commandDeckSource = fs.readFileSync(
 	'utf8',
 )
 
+const emptyStateSource = fs.readFileSync(
+	path.join(process.cwd(), 'src/components/shared/EmptyStateGamified.tsx'),
+	'utf8',
+)
+
 describe('Explore search-signal contract', () => {
 	it('renders only API-backed terms and does not resurrect animated fake trends', () => {
 		expect(source).toContain('getTrendingSearches(8)')
@@ -30,6 +35,22 @@ describe('Explore search-signal contract', () => {
 		expect(source).toContain("type='button'")
 		expect(source).toContain('setSearchQuery(term)')
 		expect(source).toContain('setDebouncedSearch(term)')
+		expect(source).toContain('onSuggestionClick={term => {')
+		expect(source).toContain('setShowAutocomplete(false)')
+	})
+
+	it('localizes the shared suggestion caption', () => {
+		expect(emptyStateSource).toContain("useTranslations('search')")
+		expect(emptyStateSource).toContain("{searchT('didYouMean')}:")
+		expect(emptyStateSource).not.toContain('Did you mean:')
+	})
+
+	it('cannot render active-looking suggestion controls without an action', () => {
+		expect(emptyStateSource).toContain('onSuggestionClick && (')
+		expect(emptyStateSource).toContain(
+			'onClick={() => onSuggestionClick(suggestion)}',
+		)
+		expect(emptyStateSource).not.toContain('onSuggestionClick?.(suggestion)')
 	})
 
 	it('keeps the social trend heading in the translation contract', () => {
