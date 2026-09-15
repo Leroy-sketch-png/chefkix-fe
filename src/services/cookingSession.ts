@@ -178,9 +178,42 @@ export interface LinkPostResponse {
 	creatorBonusAwarded: boolean
 }
 
+export interface SubstitutionFeedbackCommand {
+	clientFeedbackId: string
+	originalIngredient: string
+	substituteIngredient: string
+	candidateReceipt: string
+	accepted: boolean
+	technique?: string
+	cuisine?: string
+	userRating?: number
+}
+
 // ============================================
 // SERVICE FUNCTIONS
 // ============================================
+
+export const submitSubstitutionFeedback = async (
+	sessionId: string,
+	command: SubstitutionFeedbackCommand,
+): Promise<ApiResponse<string>> => {
+	try {
+		const response = await api.post<ApiResponse<string>>(
+			API_ENDPOINTS.COOKING_SESSIONS.SUBSTITUTION_FEEDBACK(sessionId),
+			command,
+		)
+		return response.data
+	} catch (error) {
+		logDevError('substitution feedback failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<string>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to record substitution feedback',
+			statusCode: 500,
+		}
+	}
+}
 
 /**
  * Start a new cooking session for a recipe.
