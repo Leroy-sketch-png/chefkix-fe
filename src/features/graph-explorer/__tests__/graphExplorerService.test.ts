@@ -67,6 +67,26 @@ describe('graph explorer data contract', () => {
 		})
 	})
 
+	it('normalizes the numeric ids and edge labels from the verified Lead sample', () => {
+		const graph = normalizeGraphData(
+			{
+				nodes: [
+					{ id: 4, name: 'acai' },
+					{ id: 5, name: 'acerola' },
+				],
+				edges: [{ source: 4, target: 5, type: 'substitutes', confidence: 0.8 }],
+			},
+			'leader-sample',
+		)
+
+		expect(graph.nodes.map(node => node.id)).toEqual(['4', '5'])
+		expect(graph.edges[0]).toMatchObject({
+			source: '4',
+			target: '5',
+			type: 'substitution',
+		})
+	})
+
 	it('merges neighborhood pages without duplicate nodes or edges', () => {
 		const base = normalizeGraphData(
 			{

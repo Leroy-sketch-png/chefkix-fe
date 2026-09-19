@@ -199,7 +199,11 @@ export function GraphExplorer() {
 				<span>•</span>
 				<span>
 					Data source:{' '}
-					{data.source === 'leader-api' ? 'Leader API' : 'Local sample'}
+					{data.source === 'leader-api'
+						? 'Leader API'
+						: data.source === 'leader-sample'
+							? 'Verified Lead sample'
+							: 'Local demo sample'}
 				</span>
 				{data.hasMore && (
 					<>
