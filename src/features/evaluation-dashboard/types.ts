@@ -4,7 +4,7 @@ export interface BenchmarkModel {
 	id: string
 	name: string
 	shortName: string
-	status: 'published' | 'placeholder' | 'pending'
+	status: 'verified' | 'published' | 'placeholder' | 'pending'
 	metrics: Partial<Record<BenchmarkMetric, number>>
 	note?: string
 }
@@ -20,7 +20,7 @@ export interface AblationResult {
 	id: string
 	label: string
 	hitAt1?: number
-	status: 'placeholder' | 'pending' | 'complete'
+	status: 'verified-negative' | 'placeholder' | 'pending' | 'complete'
 	note?: string
 }
 
@@ -51,7 +51,7 @@ export interface AllergenBenchmarkResults {
 export interface BehavioralLearningResults {
 	version: string
 	updatedAt: string
-	status: 'placeholder' | 'pending' | 'complete'
+	status: 'verified-negative' | 'placeholder' | 'pending' | 'complete'
 	metric: 'mrr'
 	staticMrr?: number
 	feedbackMrr?: number

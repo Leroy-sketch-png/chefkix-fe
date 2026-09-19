@@ -1,35 +1,33 @@
 {
-	"version": "placeholder-v1",
-	"updatedAt": "2026-08-23",
+	"version": "lead-epic3-v11-e3-negative-v1",
+	"updatedAt": "2026-09-15",
 	"metric": "hitAt1",
 	"results": [
 		{
 			"id": "chemical",
 			"label": "Chemical",
-			"hitAt1": 18.4,
-			"status": "placeholder",
-			"note": "Illustrative layout value — replace with Lead export"
+			"status": "pending",
+			"note": "The current verified Lead record does not authorize a standalone chemical value."
 		},
 		{
 			"id": "nutritional",
 			"label": "Nutritional",
-			"hitAt1": 14.8,
-			"status": "placeholder",
-			"note": "Illustrative layout value — replace with Lead export"
+			"status": "pending",
+			"note": "The current verified Lead record does not authorize a standalone nutritional value."
 		},
 		{
 			"id": "semantic",
 			"label": "Semantic",
-			"hitAt1": 16.2,
-			"status": "placeholder",
-			"note": "Illustrative layout value — replace with Lead export"
+			"hitAt1": 0.495,
+			"status": "verified-negative",
+			"note": "Verified v11 semantic slice. Interpretation is confounded by random missing identities and lossy feature linkage."
 		},
 		{
 			"id": "all-signals",
 			"label": "All signals",
-			"hitAt1": 24.7,
-			"status": "placeholder",
-			"note": "Illustrative layout value — replace with Lead export"
+			"hitAt1": 0.252,
+			"status": "verified-negative",
+			"note": "Verified legacy all-signals slice. It is retained as a negative/confounded result, not a product-quality claim."
 		}
 	]
 }

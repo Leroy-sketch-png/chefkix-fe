@@ -13,6 +13,8 @@ The evaluation dashboard is wired to typed JSON adapters so the Lead can replace
 
 The service boundary is `src/features/evaluation-dashboard/services/evaluationDashboardService.ts`. Keep the JSON field names and status values (`pending`, `placeholder`, or `complete`) when replacing an export. Missing metrics intentionally render as `Pending`; placeholder values remain labeled and are not presented as thesis evidence.
 
+For a live Leader manifest, set `NEXT_PUBLIC_EVALUATION_DATA_URL` to a JSON endpoint returning either the dashboard object directly or `{ "data": <dashboard object> }`. The bundled JSON files remain the local handoff fallback when that variable is unset; they are not treated as live evidence unless their statuses are `complete` or `verified`.
+
 All metric values are percentage points from `0` to `100`, including MRR. For example, an MRR delta of `8.4` renders as `8.40%`, not `0.084%`.
 
 ## Expected behavioral export
