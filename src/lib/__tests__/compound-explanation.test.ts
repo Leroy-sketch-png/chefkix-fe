@@ -43,7 +43,8 @@ describe('compound explanation contract', () => {
 		])
 	})
 
-	it('keeps the interim butter demo available until the compound API is live', () => {
+	it('keeps demo chemistry behind an explicit opt-in flag', () => {
+		process.env.NEXT_PUBLIC_COMPOUND_EXPLANATION_MOCK = 'true'
 		const result = getCompoundExplanation('Butter', {
 			name: 'Coconut Oil',
 			compoundExplanation: undefined,
@@ -55,6 +56,17 @@ describe('compound explanation contract', () => {
 			isMock: true,
 		})
 		expect(result?.sharedCompounds).toHaveLength(4)
+		delete process.env.NEXT_PUBLIC_COMPOUND_EXPLANATION_MOCK
+	})
+
+	it('does not fabricate chemistry when the API payload is missing', () => {
+		delete process.env.NEXT_PUBLIC_COMPOUND_EXPLANATION_MOCK
+		expect(
+			getCompoundExplanation('Butter', {
+				name: 'Coconut Oil',
+				compoundExplanation: undefined,
+			}),
+		).toBeNull()
 	})
 
 	it('returns no fabricated chemistry for an unknown pair', () => {

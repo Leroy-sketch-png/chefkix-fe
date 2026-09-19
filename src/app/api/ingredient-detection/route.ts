@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server'
 const getRealDetectionEndpoint = () =>
 	process.env.INGREDIENT_DETECTION_BACKEND_URL?.trim()
 
+const isMockDetectionsEnabled = () =>
+	process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK === 'true'
+
 // Provider handoff contract:
 // - request: multipart/form-data with an `image` field
 // - response: either { detections } or { data: { detections } }
@@ -120,6 +123,18 @@ export async function POST(request: Request) {
 
 	const realResponse = await proxyToRealDetector(image)
 	if (realResponse) return realResponse
+
+	if (!isMockDetectionsEnabled()) {
+		return NextResponse.json(
+			{
+				success: false,
+				code: 'INTEGRATION_PENDING',
+				message:
+					'Ingredient detection is waiting for the configured YOLOv8 service.',
+			},
+			{ status: 503 },
+		)
+	}
 
 	return NextResponse.json({
 		success: true,

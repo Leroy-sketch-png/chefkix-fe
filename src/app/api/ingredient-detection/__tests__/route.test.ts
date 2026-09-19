@@ -2,8 +2,9 @@
 
 import { POST } from '@/app/api/ingredient-detection/route'
 
-describe('ingredient detection mock endpoint', () => {
+describe('ingredient detection endpoint', () => {
 	const originalBackendEndpoint = process.env.INGREDIENT_DETECTION_BACKEND_URL
+	const originalMockFlag = process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK
 
 	afterEach(() => {
 		if (originalBackendEndpoint === undefined) {
@@ -11,10 +12,16 @@ describe('ingredient detection mock endpoint', () => {
 		} else {
 			process.env.INGREDIENT_DETECTION_BACKEND_URL = originalBackendEndpoint
 		}
+		if (originalMockFlag === undefined) {
+			delete process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK
+		} else {
+			process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK = originalMockFlag
+		}
 		jest.restoreAllMocks()
 	})
 
-	it('returns four normalized mock detections for a valid image', async () => {
+	it('returns mock detections only when explicitly enabled', async () => {
+		process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK = 'true'
 		const formData = new FormData()
 		formData.append(
 			'image',
@@ -37,6 +44,25 @@ describe('ingredient detection mock endpoint', () => {
 			source: 'mock',
 			replaceWith: 'YOLOv8 ingredient detector',
 		})
+	})
+
+	it('returns an integration-pending response when no detector is configured', async () => {
+		const formData = new FormData()
+		formData.append(
+			'image',
+			new File(['image'], 'ingredients.jpg', { type: 'image/jpeg' }),
+		)
+
+		const response = await POST({ formData: async () => formData } as Request)
+		const payload = await response.json()
+
+		expect(response.status).toBe(503)
+		expect(payload).toEqual(
+			expect.objectContaining({
+				success: false,
+				code: 'INTEGRATION_PENDING',
+			}),
+		)
 	})
 
 	it('rejects requests without an image file', async () => {
