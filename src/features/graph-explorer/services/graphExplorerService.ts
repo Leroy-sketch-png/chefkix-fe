@@ -352,7 +352,8 @@ export async function getGraphNodeDetail(nodeId: string) {
 			const profile = await aiApi.get(
 				`/api/v1/compound/profile/${encodeURIComponent(node.id)}`,
 			)
-			const result = profile.data
+			const result = unwrapData(profile.data)
+			if (!isRecord(result)) return node
 			if (result?.is_grounded !== true || !Array.isArray(result.compounds)) {
 				return node
 			}
@@ -391,7 +392,8 @@ export async function getGraphCompoundOverlap(
 		original,
 		substitute,
 	})
-	const result = response.data
+	const result = unwrapData(response.data)
+	if (!isRecord(result)) return undefined
 	const overlap = asFraction(result?.overlap_percentage)
 	if (result?.is_compound_grounded !== true || overlap === undefined) {
 		return undefined

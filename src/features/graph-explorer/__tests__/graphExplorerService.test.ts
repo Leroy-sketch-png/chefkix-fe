@@ -276,7 +276,10 @@ describe('live graph API', () => {
 			},
 		})
 		;(aiApi.get as jest.Mock).mockResolvedValue({
-			data: { is_grounded: true, compounds: [{ name: 'butyric acid' }] },
+			data: {
+				success: true,
+				data: { is_grounded: true, compounds: [{ name: 'butyric acid' }] },
+			},
 		})
 
 		const node = await getGraphNodeDetail('butter')
@@ -318,9 +321,12 @@ describe('live graph API', () => {
 		;(aiApi.post as jest.Mock)
 			.mockResolvedValueOnce({
 				data: {
-					is_compound_grounded: true,
-					overlap_percentage: 0.42,
-					overlap_semantics: 'Jaccard of official presence profiles',
+					success: true,
+					data: {
+						is_compound_grounded: true,
+						overlap_percentage: 0.42,
+						overlap_semantics: 'Jaccard of official presence profiles',
+					},
 				},
 			})
 			.mockResolvedValueOnce({

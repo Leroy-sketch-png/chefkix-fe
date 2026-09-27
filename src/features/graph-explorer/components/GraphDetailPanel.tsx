@@ -146,7 +146,7 @@ export function GraphEdgeDetailPanel({
 					<div className='font-medium text-text-primary'>Compound overlap</div>
 					<div className='mt-1 text-text-muted'>
 						{edge.compoundOverlap === undefined
-							? 'Pending FooDB comparison'
+							? 'FooDB comparison unavailable'
 							: `${(edge.compoundOverlap * 100).toFixed(0)}% Jaccard overlap of documented compound presence`}
 					</div>
 					{edge.compoundOverlapSemantics && (
