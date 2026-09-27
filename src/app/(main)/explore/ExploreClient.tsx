@@ -181,6 +181,7 @@ function toExploreBrowseCard(recipe: Recipe): ExploreRecipeCard {
 					id: recipe.author.userId,
 					name: recipe.author.displayName,
 					avatarUrl: recipe.author.avatarUrl || undefined,
+					isVerified: recipe.author.isVerified,
 				}
 			: undefined,
 		cookCount: Math.max(0, recipe.cookCount ?? 0),
@@ -1445,6 +1446,11 @@ function ExploreContent() {
 												: undefined
 											: undefined
 									}
+									onSuggestionClick={term => {
+										setSearchQuery(term)
+										setDebouncedSearch(term)
+										setShowAutocomplete(false)
+									}}
 									primaryAction={
 										activeFiltersCount > 0 || debouncedSearch
 											? {
@@ -1513,7 +1519,7 @@ function ExploreContent() {
 																	avatarUrl:
 																		recipe.author.avatarUrl ||
 																		'/placeholder-avatar.svg',
-																	isVerified: false,
+																	isVerified: recipe.author.isVerified,
 																}
 															: undefined
 													}

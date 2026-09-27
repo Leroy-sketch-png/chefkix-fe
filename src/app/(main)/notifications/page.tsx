@@ -27,7 +27,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING, staggerContainer, staggerItem } from '@/lib/motion'
 import {
-	getNotifications,
+	getNotificationPage,
 	markAllNotificationsRead,
 	markNotificationRead,
 } from '@/services/notification'
@@ -52,6 +52,9 @@ import {
 } from '@/lib/notifications/social'
 import { partitionNotifications } from '@/lib/notifications/presentation'
 import { getGamifiedNotificationCallbacks } from '@/lib/notifications/actions'
+import { appendUniqueById } from '@/lib/notifications/pagination'
+
+const NOTIFICATION_PAGE_SIZE = 50
 
 // Get icon for notification type
 const getNotificationIcon = (type: SocialNotificationType) => {
@@ -284,6 +287,10 @@ export default function NotificationsPage() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(false)
 	const [retryKey, setRetryKey] = useState(0)
+	const [nextPage, setNextPage] = useState(1)
+	const [hasNextPage, setHasNextPage] = useState(false)
+	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadMoreError, setLoadMoreError] = useState(false)
 	const [isMarkingAllRead, setIsMarkingAllRead] = useState(false)
 	const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
 	const [isUnreadCountReady, setIsUnreadCountReady] = useState(false)
@@ -294,9 +301,14 @@ export default function NotificationsPage() {
 		const fetchNotifications = async () => {
 			setIsLoading(true)
 			setError(false)
+			setHasNextPage(false)
+			setLoadMoreError(false)
 			setIsUnreadCountReady(false)
 			try {
-				const response = await getNotifications({ size: 50 })
+				const response = await getNotificationPage({
+					page: 0,
+					size: NOTIFICATION_PAGE_SIZE,
+				})
 				if (cancelled) return
 				if (response.success && response.data) {
 					const { gamified, social } = partitionNotifications(
@@ -305,6 +317,8 @@ export default function NotificationsPage() {
 
 					setGamifiedNotifications(gamified)
 					setSocialNotifications(social)
+					setNextPage(response.data.page + 1)
+					setHasNextPage(response.data.hasNext)
 					const settledUnreadCount = await fetchUnreadCount()
 					if (cancelled) return
 					setIsUnreadCountReady(settledUnreadCount !== null)
@@ -326,6 +340,38 @@ export default function NotificationsPage() {
 			cancelled = true
 		}
 	}, [fetchUnreadCount, retryKey])
+
+	const handleLoadMore = async () => {
+		if (isLoadingMore || !hasNextPage) return
+
+		setIsLoadingMore(true)
+		setLoadMoreError(false)
+		try {
+			const response = await getNotificationPage({
+				page: nextPage,
+				size: NOTIFICATION_PAGE_SIZE,
+			})
+			if (!response.success || !response.data) {
+				setLoadMoreError(true)
+				return
+			}
+
+			const { gamified, social } = partitionNotifications(
+				response.data.notifications,
+			)
+			setGamifiedNotifications(current =>
+				appendUniqueById(current, gamified),
+			)
+			setSocialNotifications(current => appendUniqueById(current, social))
+			setNextPage(response.data.page + 1)
+			setHasNextPage(response.data.hasNext)
+		} catch (err) {
+			logDevError('Failed to load more notifications:', err)
+			setLoadMoreError(true)
+		} finally {
+			setIsLoadingMore(false)
+		}
+	}
 
 	// Mark all as read
 	const handleMarkAllRead = async () => {
@@ -574,6 +620,29 @@ export default function NotificationsPage() {
 										</>
 									)}
 								</motion.div>
+							)}
+
+							{!isLoading && hasNextPage && (
+								<div className='flex flex-col items-center gap-2 pt-2'>
+									<button
+										type='button'
+										onClick={handleLoadMore}
+										disabled={isLoadingMore}
+										className='inline-flex min-h-11 items-center justify-center gap-2 rounded-radius border border-border bg-bg-card px-5 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-60'
+									>
+										{isLoadingMore && <Loader2 className='size-4 animate-spin' />}
+										{isLoadingMore
+											? t('loadingMore')
+											: loadMoreError
+												? t('retryLoadMore')
+												: t('loadMore')}
+									</button>
+									{loadMoreError && (
+										<p role='alert' className='text-sm text-error'>
+											{t('loadingMoreFailed')}
+										</p>
+									)}
+								</div>
 							)}
 							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-20))] md:pb-8' />
 						</div>

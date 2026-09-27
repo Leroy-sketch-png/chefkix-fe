@@ -76,7 +76,7 @@ import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { RecipeIngredientChecklistItem } from '@/components/recipe/RecipeIngredientChecklistItem'
 import { RecipeAllergenBanner } from '@/components/recipe/RecipeAllergenBanner'
-import { RecipeStepCompletionControl } from '@/components/recipe/RecipeStepCompletionControl'
+import { RecipeStepPreviewHeader } from '@/components/recipe/RecipeStepPreviewHeader'
 import {
 	QualityBadge,
 	getTierDescription,
@@ -203,31 +203,6 @@ function RecipeDetailContent() {
 	const [checkedIngredients, setCheckedIngredients] = useState<
 		Record<number, boolean>
 	>({})
-	const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>(
-		{},
-	)
-
-	const toggleStep = useCallback(
-		(stepIndex: number) => {
-			setCompletedSteps(prev => {
-				const nextState = { ...prev, [stepIndex]: !prev[stepIndex] }
-				if (nextState[stepIndex] && recipe?.steps) {
-					const totalStepsCount = recipe.steps.length
-					const completedCount = Object.keys(nextState).filter(
-						k => nextState[parseInt(k)],
-					).length
-					if (completedCount === totalStepsCount) {
-						toast.success(t('toastAllStepsCompleted'), {
-							description: t('toastAllStepsCompletedDesc'),
-							duration: 5000,
-						})
-					}
-				}
-				return nextState
-			})
-		},
-		[recipe?.steps, t],
-	)
 
 	// Check if current user is the recipe owner
 	const isOwner = user?.userId === recipe?.author?.userId
@@ -1612,25 +1587,16 @@ function RecipeDetailContent() {
 							{t('instructions')}
 						</h2>
 						<div className='space-y-4'>
-							{recipe.steps
+							{[...recipe.steps]
 								.sort((a, b) => a.stepNumber - b.stepNumber)
 								.map((step, index) => (
 									<motion.div
 										key={`step-${step.stepNumber}`}
 										variants={staggerItem}
 										whileHover={STAT_ITEM_HOVER}
-										className={cn(
-											'group relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-all duration-300 hover:shadow-warm',
-											completedSteps[index] &&
-												'bg-bg-card/45 border-success/20 shadow-none scale-[0.98]',
-										)}
+										className='group relative overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-6 shadow-card transition-all duration-300 hover:shadow-warm'
 									>
-										<RecipeStepCompletionControl
-											step={step}
-											stepIndex={index}
-											isCompleted={Boolean(completedSteps[index])}
-											onToggle={() => toggleStep(index)}
-										/>
+										<RecipeStepPreviewHeader step={step} stepIndex={index} />
 										{step.videoUrl ? (
 											<div className='relative mb-4 aspect-video overflow-hidden rounded-xl'>
 												<video
@@ -1656,12 +1622,7 @@ function RecipeDetailContent() {
 												/>
 											</div>
 										) : null}
-										<p
-											className={cn(
-												'leading-relaxed text-text-secondary transition-all duration-300',
-												completedSteps[index] && 'text-text-muted/60',
-											)}
-										>
+										<p className='leading-relaxed text-text-secondary'>
 											{step.description}
 										</p>
 									</motion.div>

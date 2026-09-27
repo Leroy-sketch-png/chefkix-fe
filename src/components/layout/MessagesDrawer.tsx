@@ -375,17 +375,27 @@ export const MessagesDrawer = () => {
 								<div className='flex flex-col items-center justify-center gap-2 py-8 text-center text-text-secondary'>
 									<MessageSquare className='size-8' />
 									<p className='text-sm'>
-										{searchTerm
+										{searchTerm.trim()
 											? t('noConversationsFound')
 											: t('noConversationsYet')}
 									</p>
-									<Link
-										href={PATHS.COMMUNITY}
-										onClick={toggleMessagesDrawer}
-										className='text-xs text-brand hover:underline'
-									>
-										{t('findPeopleToChat')}
-									</Link>
+									{searchTerm.trim() ? (
+										<button
+											type='button'
+											onClick={() => setSearchTerm('')}
+											className='text-xs text-brand hover:underline'
+										>
+											{t('clearSearch')}
+										</button>
+									) : (
+										<Link
+											href={PATHS.COMMUNITY}
+											onClick={toggleMessagesDrawer}
+											className='text-xs text-brand hover:underline'
+										>
+											{t('findPeopleToChat')}
+										</Link>
+									)}
 								</div>
 							) : (
 								<div className='flex flex-col gap-1'>

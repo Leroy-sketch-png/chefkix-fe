@@ -5,6 +5,7 @@ interface SearchAuthor {
 	id: string
 	name: string
 	avatarUrl?: string
+	isVerified?: boolean
 }
 
 export interface RecipeSearchResult {
@@ -39,6 +40,7 @@ function toAuthor(
 	id: string,
 	name: string | null | undefined,
 	avatarUrl: string | null | undefined,
+	isVerified?: boolean,
 ): SearchAuthor | undefined {
 	const normalizedName = optionalText(name)
 	if (!normalizedName) return undefined
@@ -47,6 +49,7 @@ function toAuthor(
 		id,
 		name: normalizedName,
 		avatarUrl: optionalText(avatarUrl),
+		...(isVerified !== undefined ? { isVerified } : {}),
 	}
 }
 
@@ -65,7 +68,12 @@ export function toRecipeSearchResult(doc: RecipeSearchDoc): RecipeSearchResult {
 					difficulty as 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert',
 				)
 			: undefined,
-		author: toAuthor(doc.authorId, doc.authorName, doc.authorAvatarUrl),
+		author: toAuthor(
+			doc.authorId,
+			doc.authorName,
+			doc.authorAvatarUrl,
+			doc.authorVerified,
+		),
 		cookCount: Math.max(0, doc.cookCount || 0),
 		xpReward: doc.xpReward > 0 ? doc.xpReward : undefined,
 	}

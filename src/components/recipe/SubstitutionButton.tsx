@@ -7,6 +7,7 @@ import { DURATION_S } from '@/lib/motion'
 import { ArrowLeftRight, Loader2, X } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { AllergenSafetyIndicator } from './AllergenSafetyIndicator'
@@ -17,20 +18,24 @@ import {
 	type Substitution,
 	type SubstitutionReason,
 } from '@/services/ai'
+import { submitSubstitutionFeedback } from '@/services/cookingSession'
 
 interface SubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle?: string
 	className?: string
+	sessionId?: string
 }
 
 export function SubstitutionButton({
 	ingredientName,
 	recipeTitle,
 	className,
+	sessionId,
 }: SubstitutionButtonProps) {
 	const { user } = useAuth()
 	const t = useTranslations('recipe')
+	const { requireAuth } = useAuthActionGuard()
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [substitutions, setSubstitutions] = useState<Substitution[] | null>(
@@ -38,6 +43,9 @@ export function SubstitutionButton({
 	)
 	const [reason, setReason] = useState<SubstitutionReason>('unavailable')
 	const [error, setError] = useState<string | null>(null)
+	const [feedbackState, setFeedbackState] = useState<
+		Record<string, 'submitting' | 'accepted' | 'rejected' | 'error'>
+	>({})
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
 
@@ -65,13 +73,23 @@ export function SubstitutionButton({
 		setLoading(true)
 		setError(null)
 		try {
-			const res = await suggestSubstitutions(
-				ingredientName,
-				r,
-				recipeTitle ? `Recipe: ${recipeTitle}` : undefined,
-				undefined,
-				user?.allergenFlags,
-			)
+			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
+			const res = user?.allergenFlags?.length
+				? await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						user.allergenFlags,
+						sessionId,
+					)
+				: await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						sessionId,
+					)
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
@@ -85,10 +103,38 @@ export function SubstitutionButton({
 	}
 
 	const handleOpen = () => {
+		if (!requireAuth(t('findSubstituteFor', { ingredient: ingredientName }))) {
+			return
+		}
 		setOpen(true)
 		setSubstitutions(null)
 		setError(null)
+		setFeedbackState({})
 		handleFetch('unavailable')
+	}
+
+	const handleFeedback = async (sub: Substitution, accepted: boolean) => {
+		if (!sessionId || !sub.suggestionId || !sub.candidateReceipt) return
+		const actionKey = `${sub.suggestionId}:${accepted ? 'accepted' : 'rejected'}`
+		setFeedbackState(current => ({
+			...current,
+			[sub.suggestionId!]: 'submitting',
+		}))
+		const result = await submitSubstitutionFeedback(sessionId, {
+			clientFeedbackId: `sub:${actionKey}`,
+			originalIngredient: ingredientName,
+			substituteIngredient: sub.name,
+			candidateReceipt: sub.candidateReceipt,
+			accepted,
+		})
+		setFeedbackState(current => ({
+			...current,
+			[sub.suggestionId!]: result.success
+				? accepted
+					? 'accepted'
+					: 'rejected'
+				: 'error',
+		}))
 	}
 
 	return (
@@ -147,23 +193,23 @@ export function SubstitutionButton({
 
 								{/* Reason Tabs */}
 								<div className='mb-3 flex gap-1'>
-									{(
-										['unavailable', 'allergy', 'dietary', 'preference'] as const
-									).map(r => (
-										<button
-											type='button'
-											key={r}
-											onClick={() => handleFetch(r)}
-											disabled={loading}
-											className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
-												reason === r
-													? 'bg-brand/15 text-brand'
-													: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
-											}`}
-										>
-											{t(REASON_LABEL_KEYS[r])}
-										</button>
-									))}
+									{(['unavailable', 'allergy', 'preference'] as const).map(
+										r => (
+											<button
+												type='button'
+												key={r}
+												onClick={() => handleFetch(r)}
+												disabled={loading}
+												className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
+													reason === r
+														? 'bg-brand/15 text-brand'
+														: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
+												}`}
+											>
+												{t(REASON_LABEL_KEYS[r])}
+											</button>
+										),
+									)}
 								</div>
 
 								{/* Content */}
@@ -182,10 +228,10 @@ export function SubstitutionButton({
 											substitutions={substitutions}
 											allergenFlags={user?.allergenFlags}
 										/>
-										<ul className='space-y-2'>
+										<ul className='max-h-64 space-y-2 overflow-y-auto'>
 											{substitutions.map(sub => (
 												<li
-													key={sub.name}
+													key={sub.suggestionId ?? sub.name}
 													className={cn(
 														'rounded-xl bg-bg-elevated p-2.5',
 														resolveAllergenSafety(sub, user?.allergenFlags)
@@ -224,8 +270,43 @@ export function SubstitutionButton({
 													/>
 													<CompoundExplanation
 														originalIngredient={ingredientName}
-														substitution={sub}
+														 substitution={sub}
 													/>
+													{sessionId &&
+														sub.candidateReceipt &&
+														sub.suggestionId && (
+															<div className='mt-2 flex items-center gap-2'>
+																<button
+																	type='button'
+																	disabled={['submitting', 'accepted', 'rejected'].includes(
+																		feedbackState[sub.suggestionId] ?? '',
+																	)}
+																	onClick={() => handleFeedback(sub, true)}
+																	className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
+																>
+																	{feedbackState[sub.suggestionId] === 'accepted'
+																		? t('feedbackRecorded')
+																		: t('substitutionWorks')}
+																</button>
+																<button
+																	type='button'
+																	disabled={['submitting', 'accepted', 'rejected'].includes(
+																		feedbackState[sub.suggestionId] ?? '',
+																	)}
+																	onClick={() => handleFeedback(sub, false)}
+																	className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
+																>
+																	{feedbackState[sub.suggestionId] === 'rejected'
+																		? t('feedbackRecorded')
+																		: t('substitutionDoesNotWork')}
+																</button>
+															</div>
+														)}
+													{feedbackState[sub.suggestionId ?? ''] === 'error' && (
+														<p role='status' className='mt-1 text-xs text-error'>
+															{t('feedbackFailed')}
+														</p>
+													)}
 												</li>
 											))}
 										</ul>

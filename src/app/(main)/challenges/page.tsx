@@ -33,7 +33,6 @@ import {
 	getWeeklyChallenge,
 	getCommunityChallenges,
 	getSeasonalChallenges,
-	DailyChallenge,
 	WeeklyChallenge,
 	CommunityChallenge,
 	SeasonalChallenge,
@@ -42,6 +41,11 @@ import { TRANSITION_SPRING, DURATION_S } from '@/lib/motion'
 import { formatEventTimeRemaining } from '@/lib/challenge-time'
 import { logDevError } from '@/lib/dev-log'
 import { PATHS } from '@/constants'
+import {
+	getChallengeRecipeDestination,
+	toChallengeBannerRecipes,
+	type ChallengeBannerRecipe,
+} from '@/lib/challenge-recipes'
 
 // ============================================
 // PAGE
@@ -59,6 +63,7 @@ export default function ChallengesPage() {
 		bonusXp: number
 		endsAt: Date
 		completed: boolean
+		matchingRecipes: ChallengeBannerRecipe[]
 	} | null>(null)
 	const [weeklyChallenge, setWeeklyChallenge] =
 		useState<WeeklyChallenge | null>(null)
@@ -108,6 +113,7 @@ export default function ChallengesPage() {
 					bonusXp: data.bonusXp,
 					endsAt: new Date(data.endsAt),
 					completed: data.completed,
+					matchingRecipes: toChallengeBannerRecipes(data.matchingRecipes),
 				})
 			}
 			if (weeklyRes?.success && weeklyRes.data) {
@@ -263,7 +269,10 @@ export default function ChallengesPage() {
 											onFindRecipe={() =>
 												startNavigationTransition(() => {
 													router.push(
-														PATHS.EXPLORE_SEARCH(dailyChallenge.title),
+														getChallengeRecipeDestination(
+															dailyChallenge.matchingRecipes,
+															dailyChallenge.title,
+														),
 													)
 												})
 											}
@@ -364,7 +373,8 @@ export default function ChallengesPage() {
 																onClick={() =>
 																	startNavigationTransition(() => {
 																		router.push(
-																			PATHS.EXPLORE_SEARCH(
+																			getChallengeRecipeDestination(
+																				weeklyChallenge.matchingRecipes,
 																				weeklyChallenge.title,
 																			),
 																		)

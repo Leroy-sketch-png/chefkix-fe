@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "artifact_type": "external_product_label_concordance_audit",
+  "snapshot_sha256": "2e4b392da792e2b9186e231be747b2ce2fb1e1a492d18152a651294499dd9072",
+  "source_products_sha256": "4ea5c7a7730ffdc7d3f8932b9a433d6f7f74cdba60dc41dae4f5ea7f729fcd1c",
+  "source_repository_commit": "2952c1a9ba2d7494981c72c49c4bae321de22e4c",
+  "policy_source_sha256": "84216cd3140905b8706482fc138b9d2f258bb5314aa8f308be0094206996334b",
+  "evidence_boundary": "External community-label concordance only. No specificity estimate because absent tags are not verified negatives; no clinical, diagnosis, dose, label-currentness, or cross-contact safety claim; full-label input differs from runtime ingredient-phrase input.",
+  "split_contract": "sha256(product code) first byte <128 is development; all other products are held-out test",
+  "summaries": {
+    "development": {
+      "products": 217,
+      "products_with_scored_declared_labels": 216,
+      "declared_label_recall": {
+        "found": 365,
+        "total": 375,
+        "rate": 0.9733333333333334,
+        "wilson_95": [
+          0.9516155099404913,
+          0.9854519406629596
+        ]
+      },
+      "product_complete_declared_recall": {
+        "complete": 209,
+        "total": 216,
+        "rate": 0.9675925925925926,
+        "wilson_95": [
+          0.9346291122425139,
+          0.9842148632459955
+        ]
+      },
+      "trace_label_recall_diagnostic": {
+        "found": 23,
+        "total": 45,
+        "rate": 0.5111111111111111,
+        "wilson_95": [
+          0.3700446464458318,
+          0.650429762471215
+        ]
+      },
+      "products_with_extra_detected_groups": 17
+    },
+    "test": {
+      "products": 241,
+      "products_with_scored_declared_labels": 235,
+      "declared_label_recall": {
+        "found": 400,
+        "total": 408,
+        "rate": 0.9803921568627451,
+        "wilson_95": [
+          0.9617909304368467,
+          0.9900316498407434
+        ]
+      },
+      "product_complete_declared_recall": {
+        "complete": 228,
+        "total": 235,
+        "rate": 0.9702127659574468,
+        "wilson_95": [
+          0.9398023654537878,
+          0.9854976268139354
+        ]
+      },
+      "trace_label_recall_diagnostic": {
+        "found": 22,
+        "total": 40,
+        "rate": 0.55,
+        "wilson_95": [
+          0.39829091798932054,
+          0.6929469218909508
+        ]
+      },
+      "products_with_extra_detected_groups": 31
+    },
+    "all": {
+      "products": 458,
+      "products_with_scored_declared_labels": 451,
+      "declared_label_recall": {
+        "found": 765,
+        "total": 783,
+        "rate": 0.9770114942528736,
+        "wilson_95": [
+          0.9639553086519007,
+          0.9854100198090477
+        ]
+      },
+      "product_complete_declared_recall": {
+        "complete": 437,
+        "total": 451,
+        "rate": 0.9689578713968958,
+        "wilson_95": [
+          0.9485739924631567,
+          0.9814203864502078
+        ]
+      },
+      "trace_label_recall_diagnostic": {
+        "found": 45,
+        "total": 85,
+        "rate": 0.5294117647058824,
+        "wilson_95": [
+          0.4243417305015005,
+          0.6319382998623788
+        ]
+      },
+      "products_with_extra_detected_groups": 48
+    }
+  },
+  "interpretation": "Declared-label recall is not a safety-violation rate. Trace recall is a diagnostic, and specificity is not estimable from unreviewed absent tags."
+}

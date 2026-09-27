@@ -15,8 +15,8 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { PATHS } from '@/constants'
 import { formatVerboseTimeRemaining } from '@/lib/challenge-time'
+import type { ChallengeBannerRecipe } from '@/lib/challenge-recipes'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -30,12 +30,6 @@ import {
 // TYPES
 // ============================================
 
-interface MatchingRecipe {
-	id: string
-	title: string
-	imageUrl: string
-}
-
 interface ChallengeBase {
 	id: string
 	title: string
@@ -43,7 +37,7 @@ interface ChallengeBase {
 	icon: string
 	bonusXp: number
 	endsAt: Date
-	matchingRecipes?: MatchingRecipe[]
+	matchingRecipes?: ChallengeBannerRecipe[]
 }
 
 interface ActiveChallengeProps {
@@ -206,10 +200,10 @@ const ActiveChallengeBanner = ({
 							{t('tryThese')}
 						</span>
 						<div className='-mr-5 flex gap-2 overflow-x-auto hkx-x-rail pb-1 pr-5'>
-							{challenge.matchingRecipes.slice(0, 2).map(recipe => (
+							{challenge.matchingRecipes.map(recipe => (
 								<Link
 									key={recipe.id}
-									href={`/recipes/${recipe.id}`}
+									href={`/recipes/${encodeURIComponent(recipe.id)}`}
 									className='flex flex-shrink-0 items-center gap-2 rounded-full border border-border bg-bg-elevated py-1.5 pl-1.5 pr-3 text-sm font-medium transition-colors hover:border-brand hover:bg-border'
 								>
 									<Image
@@ -222,16 +216,6 @@ const ActiveChallengeBanner = ({
 									<span>{recipe.title}</span>
 								</Link>
 							))}
-							{challenge.matchingRecipes.length > 2 && (
-								<Link
-									href={PATHS.EXPLORE_SEARCH(challenge.title)}
-									className='flex flex-shrink-0 items-center rounded-full border border-accent-purple/30 bg-accent-purple/10 px-3.5 py-2 text-sm font-medium text-accent-purple transition-colors hover:bg-accent-purple/20'
-								>
-									{t('plusMore', {
-										count: challenge.matchingRecipes.length - 2,
-									})}
-								</Link>
-							)}
 						</div>
 					</div>
 				)}

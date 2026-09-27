@@ -82,16 +82,22 @@ export interface Notification {
 	data?: Record<string, string>
 }
 
-export interface NotificationPagination {
+export interface NotificationPage {
+	notifications: Notification[]
 	page: number
 	size: number
-	total: number
+	hasNext: boolean
+}
+
+interface BackendNotificationSlice {
+	content: Notification[]
+	number: number
+	size: number
+	last: boolean
 }
 
 export interface NotificationsResponse {
 	notifications: Notification[]
-	unreadCount: number
-	pagination: NotificationPagination
 }
 
 export interface NotificationParams {
@@ -117,26 +123,30 @@ export const getNotifications = async (
 		// BE returns an array directly here, so `response.data.data` will be Notification[].
 		const response = await api.get<Notification[]>(
 			API_ENDPOINTS.NOTIFICATIONS.GET,
-			{ params: { limit: params?.size ?? 20 } },
+			{
+				params: {
+					limit: params?.size ?? 20,
+					unreadOnly: params?.unreadOnly ?? false,
+				},
+			},
 		)
 
 		const wrapped = response.data as unknown as ApiResponse<unknown>
 		const raw = wrapped.data
-		const notifications: Notification[] = Array.isArray(raw)
-			? (raw as Notification[])
-			: []
+		if (!Array.isArray(raw)) {
+			return {
+				success: false,
+				message: 'Invalid notification response',
+				statusCode: 502,
+			}
+		}
+		const notifications = raw as Notification[]
 
 		return {
 			success: true,
 			statusCode: wrapped.statusCode ?? 200,
 			data: {
 				notifications,
-				unreadCount: notifications.filter(n => !n.isRead).length,
-				pagination: {
-					page: params?.page ?? 0,
-					size: params?.size ?? 20,
-					total: notifications.length,
-				},
 			},
 		}
 	} catch (error) {
@@ -146,6 +156,65 @@ export const getNotifications = async (
 		return {
 			success: false,
 			message: 'Failed to fetch notifications',
+			statusCode: 500,
+		}
+	}
+}
+
+/**
+ * Get one truthful notification-history slice. The legacy list endpoint remains
+ * available for bounded consumers such as the header popup.
+ */
+export const getNotificationPage = async (
+	params?: NotificationParams,
+): Promise<ApiResponse<NotificationPage>> => {
+	try {
+		const response = await api.get<BackendNotificationSlice>(
+			API_ENDPOINTS.NOTIFICATIONS.PAGE,
+			{
+				params: {
+					page: params?.page ?? 0,
+					size: params?.size ?? 20,
+					unreadOnly: params?.unreadOnly ?? false,
+				},
+			},
+		)
+
+		const wrapped = response.data as unknown as ApiResponse<unknown>
+		const raw = wrapped.data
+		if (
+			typeof raw !== 'object' ||
+			raw === null ||
+			!Array.isArray((raw as BackendNotificationSlice).content) ||
+			typeof (raw as BackendNotificationSlice).number !== 'number' ||
+			typeof (raw as BackendNotificationSlice).size !== 'number' ||
+			typeof (raw as BackendNotificationSlice).last !== 'boolean'
+		) {
+			return {
+				success: false,
+				message: 'Invalid notification page response',
+				statusCode: 502,
+			}
+		}
+
+		const page = raw as BackendNotificationSlice
+		return {
+			success: true,
+			statusCode: wrapped.statusCode ?? 200,
+			data: {
+				notifications: page.content,
+				page: page.number,
+				size: page.size,
+				hasNext: !page.last,
+			},
+		}
+	} catch (error) {
+		logDevError('notification page failed:', error)
+		const axiosError = error as AxiosError<ApiResponse<NotificationPage>>
+		if (axiosError.response) return axiosError.response.data
+		return {
+			success: false,
+			message: 'Failed to fetch notification history',
 			statusCode: 500,
 		}
 	}

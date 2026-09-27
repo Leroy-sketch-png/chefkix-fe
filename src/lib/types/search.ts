@@ -39,6 +39,7 @@ export interface RecipeSearchDoc {
 	authorId: string
 	authorName?: string
 	authorAvatarUrl?: string
+	authorVerified?: boolean
 	coverImageUrl: string
 	createdAt: number
 	xpReward: number
@@ -52,6 +53,7 @@ export interface UserSearchDoc {
 	lastName: string
 	bio: string
 	avatarUrl: string
+	isVerified?: boolean
 	followerCount: number
 	recipeCount: number
 }

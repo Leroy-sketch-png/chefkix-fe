@@ -4,16 +4,29 @@ import DashboardPage from '@/app/(main)/dashboard/DashboardClient'
 
 const mockGetPendingSessions = jest.fn()
 const mockGetFeedPosts = jest.fn()
+let mockAuthUser: {
+	userId: string
+	statistics: {
+		streakCount: number
+		hoursUntilStreakBreaks: number
+	}
+} | null = {
+	userId: 'user-1',
+	statistics: {
+		streakCount: 3,
+		hoursUntilStreakBreaks: 12,
+	},
+}
+let mockIsAuthenticated = true
+let mockIsHydrated = true
+let mockIsAuthLoading = false
 
 jest.mock('@/hooks/useAuth', () => ({
 	useAuth: () => ({
-		user: {
-			userId: 'user-1',
-			statistics: {
-				streakCount: 3,
-				hoursUntilStreakBreaks: 12,
-			},
-		},
+		user: mockAuthUser,
+		isAuthenticated: mockIsAuthenticated,
+		isHydrated: mockIsHydrated,
+		isLoading: mockIsAuthLoading,
 	}),
 }))
 
@@ -50,6 +63,7 @@ jest.mock('@/components/dashboard', () => ({
 
 jest.mock('@/components/cooking', () => ({
 	ResumeCookingBanner: () => null,
+	FriendsCookingNow: () => <div data-testid='friends-cooking-now' />,
 }))
 
 jest.mock('@/components/layout/PageContainer', () => ({
@@ -74,6 +88,16 @@ jest.mock('@/i18n/hooks', () => ({
 
 beforeEach(() => {
 	jest.clearAllMocks()
+	mockAuthUser = {
+		userId: 'user-1',
+		statistics: {
+			streakCount: 3,
+			hoursUntilStreakBreaks: 12,
+		},
+	}
+	mockIsAuthenticated = true
+	mockIsHydrated = true
+	mockIsAuthLoading = false
 	mockGetFeedPosts.mockResolvedValue({
 		success: true,
 		statusCode: 200,
@@ -82,6 +106,33 @@ beforeEach(() => {
 })
 
 describe('dashboard signal truth', () => {
+	it('waits for validated auth before surfacing live friend cooking', async () => {
+		mockGetPendingSessions.mockResolvedValue({
+			success: true,
+			statusCode: 200,
+			data: [],
+		})
+		mockIsHydrated = false
+		mockIsAuthLoading = true
+
+		const { rerender } = render(<DashboardPage />)
+
+		expect(screen.queryByTestId('friends-cooking-now')).toBeNull()
+
+		mockIsHydrated = true
+		mockIsAuthLoading = false
+		rerender(<DashboardPage />)
+
+		expect(screen.getByTestId('friends-cooking-now')).toBeTruthy()
+		await screen.findByText('recentActivityEmptyTitle')
+
+		mockAuthUser = null
+		mockIsAuthenticated = false
+		rerender(<DashboardPage />)
+
+		expect(screen.queryByTestId('friends-cooking-now')).toBeNull()
+	})
+
 	it('passes completed sessions and backend streak urgency to the command deck', async () => {
 		mockGetPendingSessions.mockResolvedValue({
 			success: true,

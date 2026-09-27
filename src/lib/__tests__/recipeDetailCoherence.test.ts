@@ -6,11 +6,8 @@ const pageSource = fs.readFileSync(
 	'utf8',
 )
 
-const stepCompletionSource = fs.readFileSync(
-	path.join(
-		process.cwd(),
-		'src/components/recipe/RecipeStepCompletionControl.tsx',
-	),
+const stepPreviewSource = fs.readFileSync(
+	path.join(process.cwd(), 'src/components/recipe/RecipeStepPreviewHeader.tsx'),
 	'utf8',
 )
 
@@ -31,21 +28,21 @@ describe('recipe detail coherence contract', () => {
 		expect(pageSource).toContain('onRetry={fetchRecipe}')
 	})
 
-	it('keeps visible navigation and completion feedback in the message catalog', () => {
+	it('keeps recipe detail in PREP and routes completion through CookingPlayer', () => {
 		expect(pageSource).toContain("{ label: t('explore'), href: '/explore' }")
-		expect(stepCompletionSource).toContain("{t('done')}")
-		expect(pageSource).toContain("toast.success(t('toastAllStepsCompleted')")
-		expect(pageSource).not.toContain('Master chef status unlocked')
-		expect(pageSource).not.toContain('prepared this recipe beautifully')
+		expect(pageSource).toContain('<RecipeStepPreviewHeader')
+		expect(stepPreviewSource).toContain("<h3 className='text-lg font-bold")
+		expect(stepPreviewSource).not.toContain("type='checkbox'")
+		expect(pageSource).not.toContain('completedSteps')
+		expect(pageSource).not.toContain('toastAllStepsCompleted')
+		expect(pageSource).toContain('onClick={handleStartCooking}')
+		expect(pageSource).toContain("{t('continueCooking')}")
+		expect(pageSource).toContain("{t('startCooking')}")
+		expect(pageSource).toContain('{[...recipe.steps]')
 
 		expect(messages.recipeDetail.explore).toBe('Explore')
-		expect(messages.recipeDetail.done).toBe('Done')
-		expect(messages.recipeDetail.toastAllStepsCompleted).toBe(
-			'All steps checked',
-		)
-		expect(messages.recipeDetail.toastAllStepsCompletedDesc).toBe(
-			"You're ready to plate and serve.",
-		)
+		expect(messages.recipeDetail.startCooking).toBe('Start Cooking')
+		expect(messages.recipeDetail.continueCooking).toBe('Continue Cooking')
 	})
 
 	it('keeps the mobile desire-to-cook action inside the first viewport', () => {

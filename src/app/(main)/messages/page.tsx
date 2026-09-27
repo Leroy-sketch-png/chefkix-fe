@@ -40,6 +40,7 @@ import {
 } from '@/services/chat'
 import { ChatMessage } from '@/components/messages/ChatMessage'
 import { MessagesConversationListItem } from './MessagesConversationListItem'
+import { ConversationListEmptyState } from './ConversationListEmptyState'
 import type { Message } from '@/components/messages/ChatMessage'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
@@ -101,25 +102,6 @@ function MessageBubble({
 			onReply={onReply}
 			onCopy={onCopy}
 		/>
-	)
-}
-
-function EmptyConversations() {
-	const t = useTranslations('messages')
-	return (
-		<div className='flex h-full items-center justify-center p-6'>
-			<EmptyState
-				variant='custom'
-				title={t('noConversations')}
-				description={t('noConversationsDesc')}
-				emoji='💬'
-				primaryAction={{
-					label: t('discoverChefs'),
-					href: '/community',
-					icon: <Users className='size-4' />,
-				}}
-			/>
-		</div>
 	)
 }
 
@@ -598,7 +580,10 @@ function MessagesContent() {
 							</Button>
 						</div>
 					) : filteredConversations.length === 0 ? (
-						<EmptyConversations />
+						<ConversationListEmptyState
+							query={searchQuery}
+							onClearSearch={() => setSearchQuery('')}
+						/>
 					) : (
 						<div className='flex flex-col gap-1'>
 							<AnimatePresence initial={false} mode='popLayout'>

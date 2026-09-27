@@ -419,7 +419,7 @@ export default function CollectionDetailPage({
 																		avatarUrl:
 																			recipe.author.avatarUrl ||
 																			'/placeholder-avatar.svg',
-																		isVerified: false,
+																		isVerified: recipe.author.isVerified,
 																	}
 																: undefined
 														}

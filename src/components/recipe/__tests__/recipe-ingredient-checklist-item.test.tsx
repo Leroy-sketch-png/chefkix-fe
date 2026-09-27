@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { RecipeIngredientChecklistItem } from '../RecipeIngredientChecklistItem'
-import { RecipeStepCompletionControl } from '../RecipeStepCompletionControl'
+import { RecipeStepPreviewHeader } from '../RecipeStepPreviewHeader'
 
 jest.mock('next-intl', () => ({
 	useTranslations: () => (key: string, values?: { name?: string }) =>
@@ -73,12 +73,10 @@ describe('RecipeIngredientChecklistItem', () => {
 	})
 })
 
-describe('RecipeStepCompletionControl', () => {
-	it('exposes step completion as one named native checkbox', () => {
-		const onToggle = jest.fn()
-
+describe('RecipeStepPreviewHeader', () => {
+	it('presents step identity and timing without claiming completion', () => {
 		render(
-			<RecipeStepCompletionControl
+			<RecipeStepPreviewHeader
 				step={{
 					stepNumber: 2,
 					title: 'Toast the spices',
@@ -86,18 +84,13 @@ describe('RecipeStepCompletionControl', () => {
 					timerSeconds: 120,
 				}}
 				stepIndex={1}
-				isCompleted={false}
-				onToggle={onToggle}
 			/>,
 		)
 
-		const checkbox = screen.getByRole('checkbox', {
-			name: 'Toast the spices: done',
-		})
-		expect((checkbox as HTMLInputElement).checked).toBe(false)
+		expect(
+			screen.getByRole('heading', { name: 'Toast the spices' }),
+		).toBeTruthy()
 		expect(screen.getByText('2 minTimer')).toBeTruthy()
-
-		fireEvent.click(screen.getByText('Toast the spices'))
-		expect(onToggle).toHaveBeenCalledTimes(1)
+		expect(screen.queryByRole('checkbox')).toBeNull()
 	})
 })

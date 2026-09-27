@@ -47,6 +47,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { IngredientCheck } from './IngredientCheck'
+import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import {
 	Dialog,
 	DialogContent,
@@ -643,16 +644,24 @@ export const CookingPanel = () => {
 							{step.ingredients.map((ing, idx) => {
 								const id = `${currentStepNumber}-${idx}`
 								return (
-									<IngredientCheck
-										key={id}
-										ingredient={{
-											name: ing.name,
-											quantity: ing.quantity ?? '',
-											unit: ing.unit ?? '',
-										}}
-										isChecked={!!checkedIngredients[id]}
-										onToggle={() => toggleIngredient(id)}
-									/>
+									<div key={id} className='group flex items-center gap-1'>
+										<IngredientCheck
+											ingredient={{
+												name: ing.name,
+												quantity: ing.quantity ?? '',
+												unit: ing.unit ?? '',
+											}}
+											isChecked={!!checkedIngredients[id]}
+											onToggle={() => toggleIngredient(id)}
+											className='min-w-0 flex-1'
+										/>
+										<SubstitutionButton
+											ingredientName={ing.name}
+											recipeTitle={recipe.title}
+											sessionId={session?.sessionId}
+											className='size-10 flex-shrink-0 opacity-100'
+										/>
+									</div>
 								)
 							})}
 						</div>

@@ -18,6 +18,7 @@ const customJestConfig = {
 		'<rootDir>/node_modules/',
 		'<rootDir>/.next/',
 		'<rootDir>/tests/visual/',
+		'visual[\\\\/]visual-runner\\.spec\\.ts$',
 	],
 	collectCoverageFrom: [
 		'src/**/*.{js,jsx,ts,tsx}',
