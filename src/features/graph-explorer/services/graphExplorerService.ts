@@ -11,6 +11,17 @@ import type {
 } from '../types'
 
 const SAMPLE_LIMIT = 500
+const LEAD_GRAPH_SAMPLE_URL = '/data/graph_sample.json'
+const LEAD_COMPOUND_INDEX_URL = '/data/ingredient_compound_index.json'
+
+type LeadCompoundIndex = Record<
+	string,
+	Array<{
+		name?: unknown
+		concentration?: unknown
+		unit?: unknown
+	}>
+>
 
 export interface GraphQuery {
 	rootId?: string
@@ -29,7 +40,9 @@ function unwrapData(value: unknown): unknown {
 }
 
 function asString(value: unknown, fallback = '') {
-	return typeof value === 'string' ? value : fallback
+	if (typeof value === 'string') return value
+	if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+	return fallback
 }
 
 function asNumber(value: unknown) {
@@ -40,6 +53,21 @@ function asStringArray(value: unknown) {
 	return Array.isArray(value)
 		? value.filter(item => typeof item === 'string')
 		: []
+}
+
+function normalizeIngredientKey(value: string) {
+	return value.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ')
+}
+
+function normalizeEdgeType(value: unknown): GraphEdge['type'] {
+	const type = asString(value).toLowerCase()
+	if (type === 'chemical_similarity' || type === 'chemical-similarity') {
+		return 'chemical_similarity'
+	}
+	if (type === 'co_occurrence' || type === 'co-occurrence') {
+		return 'co_occurrence'
+	}
+	return 'substitution'
 }
 
 function normalizeNutrition(value: unknown): NutritionSnapshot | undefined {
@@ -94,8 +122,8 @@ export function normalizeGraphNode(value: unknown): GraphNode {
 			: undefined
 	const compounds = compound?.primaryCompounds ?? compound?.primary_compounds
 	return {
-		id: asString(node.id || node.canonicalName || node.canonical_name),
-		name: asString(node.name || node.canonicalName || node.canonical_name),
+		id: asString(node.id ?? node.canonicalName ?? node.canonical_name),
+		name: asString(node.name ?? node.canonicalName ?? node.canonical_name),
 		category: asString(node.category, 'ingredient'),
 		allergenFlags: asStringArray(node.allergenFlags ?? node.allergen_flags),
 		compoundData: compound
@@ -123,10 +151,10 @@ export function normalizeGraphNode(value: unknown): GraphNode {
 export function normalizeGraphEdge(value: unknown): GraphEdge {
 	const edge = isRecord(value) ? value : {}
 	const source = isRecord(edge.source)
-		? asString(edge.source.id || edge.source.canonicalName)
+		? asString(edge.source.id ?? edge.source.canonicalName)
 		: asString(edge.source)
 	const target = isRecord(edge.target)
-		? asString(edge.target.id || edge.target.canonicalName)
+		? asString(edge.target.id ?? edge.target.canonicalName)
 		: asString(edge.target)
 	const comparison = isRecord(edge.nutritionalComparison)
 		? edge.nutritionalComparison
@@ -136,7 +164,7 @@ export function normalizeGraphEdge(value: unknown): GraphEdge {
 	return {
 		source,
 		target,
-		type: asString(edge.type, 'substitution') as GraphEdge['type'],
+		type: normalizeEdgeType(edge.type),
 		confidence: Math.max(0, Math.min(1, asNumber(edge.confidence) ?? 0)),
 		context: asString(edge.context) || undefined,
 		compoundOverlap: asNumber(edge.compoundOverlap ?? edge.compound_overlap),
@@ -252,35 +280,120 @@ export function mergeGraphData(
 
 const useMock = process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK === 'true'
 
-function getMockData(query?: GraphQuery): GraphData {
-	const graph = normalizeGraphData(mockGraph, 'local-sample', query)
-	if (!query?.rootId) return graph
-	const connectedIds = new Set([query.rootId])
-	graph.edges.forEach(edge => {
-		if (edge.source === query.rootId) connectedIds.add(edge.target)
-		if (edge.target === query.rootId) connectedIds.add(edge.source)
+function scopeGraphData(graph: GraphData, query?: GraphQuery): GraphData {
+	const bounded = normalizeGraphData(
+		graph,
+		graph.source ?? 'leader-sample',
+		query,
+	)
+	if (!query?.rootId) return bounded
+
+	const rootId = String(query.rootId)
+	const connectedIds = new Set([rootId])
+	bounded.edges.forEach(edge => {
+		if (edge.source === rootId) connectedIds.add(edge.target)
+		if (edge.target === rootId) connectedIds.add(edge.source)
 	})
 	return {
-		...graph,
-		nodes: graph.nodes.filter(node => connectedIds.has(node.id)),
-		edges: graph.edges.filter(
+		...bounded,
+		nodes: bounded.nodes.filter(node => connectedIds.has(node.id)),
+		edges: bounded.edges.filter(
 			edge => connectedIds.has(edge.source) && connectedIds.has(edge.target),
 		),
-		loadedRootId: query.rootId,
+		loadedRootId: rootId,
 	}
+}
+
+function enrichWithLeadCompoundIndex(
+	graph: GraphData,
+	index: LeadCompoundIndex,
+): GraphData {
+	return {
+		...graph,
+		nodes: graph.nodes.map(node => {
+			const keyCandidates = [node.name, node.id].map(normalizeIngredientKey)
+			const compounds = keyCandidates
+				.map(key => index[key])
+				.find(entries => Array.isArray(entries) && entries.length > 0)
+			if (!compounds || node.compoundData) return node
+			return {
+				...node,
+				compoundData: {
+					primaryCompounds: compounds.slice(0, 5).map(compound => ({
+						name: asString(compound.name),
+						concentration: asNumber(compound.concentration),
+						unit: asString(compound.unit) || undefined,
+					})),
+					flavorProfile: '',
+					source: 'FooDB bounded Lead export',
+				},
+				detailStatus: 'complete',
+			}
+		}),
+	}
+}
+
+let leadSamplePromise: Promise<GraphData> | undefined
+
+async function loadLeadSample(): Promise<GraphData> {
+	if (!leadSamplePromise) {
+		leadSamplePromise = (async () => {
+			const graphResponse = await fetch(LEAD_GRAPH_SAMPLE_URL, {
+				cache: 'no-store',
+			})
+			if (!graphResponse.ok) {
+				throw new Error(`Lead graph sample failed with ${graphResponse.status}`)
+			}
+
+			const graph = normalizeGraphData(
+				await graphResponse.json(),
+				'leader-sample',
+			)
+			try {
+				const compoundResponse = await fetch(LEAD_COMPOUND_INDEX_URL, {
+					cache: 'no-store',
+				})
+				if (!compoundResponse.ok) return graph
+				return enrichWithLeadCompoundIndex(
+					graph,
+					(await compoundResponse.json()) as LeadCompoundIndex,
+				)
+			} catch {
+				return graph
+			}
+		})().catch(error => {
+			leadSamplePromise = undefined
+			throw error
+		})
+	}
+	return leadSamplePromise
+}
+
+function getLeadSampleData(query?: GraphQuery) {
+	return loadLeadSample().then(graph => scopeGraphData(graph, query))
+}
+
+function getMockData(query?: GraphQuery): GraphData {
+	return scopeGraphData(normalizeGraphData(mockGraph, 'local-sample'), query)
 }
 
 export async function getGraphData(query?: GraphQuery): Promise<GraphData> {
 	if (useMock) return getMockData(query)
-	const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH, {
-		params: {
-			root: query?.rootId,
-			q: query?.query,
-			depth: query?.depth ?? 1,
-			limit: query?.limit ?? SAMPLE_LIMIT,
-		},
-	})
-	return normalizeGraphData(response.data, 'leader-api', query)
+	try {
+		const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH, {
+			params: {
+				root: query?.rootId,
+				q: query?.query,
+				depth: query?.depth ?? 1,
+				limit: query?.limit ?? SAMPLE_LIMIT,
+			},
+		})
+		return normalizeGraphData(response.data, 'leader-api', query)
+	} catch (error) {
+		throw error instanceof Error
+			? error
+			: new Error('The Leader graph API could not be reached.')
+	}
 }
 
 export function getGraphNeighborhood(nodeId: string) {
@@ -292,8 +405,14 @@ export async function getGraphNodeDetail(nodeId: string) {
 		const node = mockGraph.nodes.find(item => item.id === nodeId)
 		return node ? normalizeGraphNode(node) : undefined
 	}
-	const response = await api.get(
-		API_ENDPOINTS.KNOWLEDGE.INGREDIENT(encodeURIComponent(nodeId)),
-	)
-	return normalizeGraphNode(response.data)
+	try {
+		const response = await api.get(
+			API_ENDPOINTS.KNOWLEDGE.INGREDIENT(encodeURIComponent(nodeId)),
+		)
+		return normalizeGraphNode(response.data)
+	} catch (error) {
+		throw error instanceof Error
+			? error
+			: new Error('The Leader ingredient detail API could not be reached.')
+	}
 }

@@ -12,7 +12,7 @@ HGAT_RECIPE_MATCH_BACKEND_URL=<HGAT ingredient-to-recipe endpoint>
 CROSS_MODAL_RETRIEVAL_BACKEND_URL=<CLIP photo-to-recipe endpoint>
 ```
 
-When an Epic 8 endpoint is not configured, the UI receives a `503` response with `code: INTEGRATION_PENDING` and presents a human-readable waiting state. Detection remains visibly labeled as demo data when only the existing local fallback is active.
+When an Epic 8 endpoint is not configured, the UI receives a `503` response with `code: INTEGRATION_PENDING` and presents a human-readable waiting state. Demo detection is available only when `NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK=true` is explicitly enabled for local demonstrations.
 
 ## HGAT request/response
 

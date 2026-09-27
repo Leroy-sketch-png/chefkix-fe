@@ -3,7 +3,7 @@ export type GraphSignal =
 	| 'chemical_similarity'
 	| 'co_occurrence'
 
-export type GraphDataSource = 'leader-api' | 'local-sample'
+export type GraphDataSource = 'leader-api' | 'leader-sample' | 'local-sample'
 
 export interface CompoundMolecule {
 	name: string

@@ -231,6 +231,9 @@ export const getCompoundExplanation = (
 		substituteName: substitution.name,
 	})
 	if (parsed) return parsed
+	if (process.env.NEXT_PUBLIC_COMPOUND_EXPLANATION_MOCK !== 'true') {
+		return null
+	}
 
 	const key = `${originalIngredient.trim().toLowerCase()}::${substitution.name.trim().toLowerCase()}`
 	return DEMO_COMPOUND_EXPLANATIONS[key] ?? null

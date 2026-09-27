@@ -70,6 +70,11 @@ export function GraphNodeDetailPanel({
 						Flavor profile: {node.compoundData.flavorProfile}
 					</p>
 				)}
+				{node.compoundData?.source && (
+					<p className='mt-2 text-[11px] text-text-muted'>
+						Source: {node.compoundData.source}
+					</p>
+				)}
 			</div>
 
 			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>

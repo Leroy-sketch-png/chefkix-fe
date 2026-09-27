@@ -40,6 +40,8 @@ function formatMetric(value: number | undefined) {
 
 function statusClass(status: string) {
 	if (status === 'published' || status === 'complete') return 'text-emerald-600'
+	if (status === 'verified') return 'text-sky-600'
+	if (status === 'verified-negative') return 'text-violet-600'
 	if (status === 'placeholder') return 'text-amber-600'
 	return 'text-text-muted'
 }
@@ -166,14 +168,14 @@ export function EvaluationDashboard() {
 					</h1>
 					<p className='mt-2 max-w-2xl text-sm leading-6 text-text-muted'>
 						A single, honest view of model quality, signal contribution, and
-						allergen safety. Published baselines are separated from results
-						still awaiting the Lead’s export.
+						allergen safety. Verified evidence, rejected research results, and
+						open production gates stay visibly separated.
 					</p>
 				</div>
 				<div className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-xs text-text-muted'>
 					<Database className='size-4' /> Dataset status:{' '}
 					<span className='font-semibold text-amber-600'>
-						Awaiting leader exports
+						Verified evidence + pending gates
 					</span>
 				</div>
 			</div>
@@ -221,7 +223,7 @@ export function EvaluationDashboard() {
 							: 'Pending'}
 					</p>
 					<p className='mt-1 text-xs text-text-muted'>
-						Target to beat: GISMo / Mistral
+						Public comparator baseline
 					</p>
 				</div>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
@@ -262,7 +264,8 @@ export function EvaluationDashboard() {
 						</h2>
 					</div>
 					<p className='text-xs text-text-muted'>
-						The shell is ready; exports unlock the final evidence.
+						Verified results are visible; accepted production evidence remains
+						gated.
 					</p>
 				</div>
 				<div
@@ -319,7 +322,7 @@ export function EvaluationDashboard() {
 						icon={BarChart3}
 						eyebrow='Benchmark scoreboard'
 						title='Model comparison'
-						description='The final Leader export will populate every metric without changing this surface.'
+						description='The matched GISMo reproduction is verified; no accepted IRON CHEF production benchmark is being claimed.'
 					/>
 					<div className='overflow-x-auto'>
 						<table className='w-full min-w-[720px] border-separate border-spacing-0 text-left text-sm'>
@@ -376,9 +379,9 @@ export function EvaluationDashboard() {
 						</table>
 					</div>
 					<p className='mt-4 text-xs text-text-muted'>
-						Baseline values currently shown: GISMo Hit@1 20.56% and fine-tuned
-						Mistral Hit@1 21.75%, as recorded in the backlog. All other missing
-						values remain explicitly pending.
+						Verified GISMo reproduction: Hit@1 20.694% and MRR 0.31636 overall;
+						unseen Hit@1 1.206% and MRR 0.04308. Mistral remains a published
+						comparator only. Missing metrics remain explicitly pending.
 					</p>
 				</Surface>
 			</div>
@@ -390,7 +393,7 @@ export function EvaluationDashboard() {
 							icon={FlaskConical}
 							eyebrow='Ablation study'
 							title='Which signal matters most?'
-							description='Compare chemical, nutritional, semantic, and combined features once the Leader exports ablation results.'
+							description='Verified v11 evidence includes a negative/confounded slice; unavailable standalone values remain pending.'
 						/>
 						<MetricBarChart
 							data={data.ablation.results.map(result => ({

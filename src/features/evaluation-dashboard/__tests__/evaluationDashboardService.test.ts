@@ -13,7 +13,7 @@ describe('evaluation dashboard data contract', () => {
 		expect(
 			data.benchmarks.models.find(model => model.id === 'gismo')?.metrics
 				.hitAt1,
-		).toBe(20.56)
+		).toBe(20.6941)
 		expect(
 			data.benchmarks.models.find(model => model.id === 'mistral')?.metrics
 				.hitAt1,
@@ -21,20 +21,22 @@ describe('evaluation dashboard data contract', () => {
 		expect(data.ablation.results).toHaveLength(4)
 		expect(data.allergen.models).toHaveLength(3)
 		expect(data.behavioral.metric).toBe('mrr')
-		expect(data.behavioral.status).toBe('pending')
+		expect(data.behavioral.status).toBe('verified-negative')
 	})
 
 	it('keeps illustrative values visibly distinguishable from published results', async () => {
 		const data = await getEvaluationDashboardData()
 
 		expect(
-			data.ablation.results.every(result => result.status === 'placeholder'),
+			data.ablation.results
+				.filter(result => result.hitAt1 !== undefined)
+				.every(result => result.status === 'verified-negative'),
 		).toBe(true)
 		expect(
-			data.allergen.models.every(model => model.status === 'placeholder'),
+			data.allergen.models.every(model => model.status === 'pending'),
 		).toBe(true)
 		expect(
 			data.benchmarks.models.find(model => model.id === 'gismo')?.status,
-		).toBe('published')
+		).toBe('verified')
 	})
 })

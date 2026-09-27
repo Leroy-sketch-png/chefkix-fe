@@ -32,6 +32,8 @@ function safeValue(value: number | undefined, maxValue: number) {
 
 function barColor(status: string | undefined) {
 	if (status === 'published' || status === 'complete') return '#059669'
+	if (status === 'verified') return '#0284c7'
+	if (status === 'verified-negative') return '#7c3aed'
 	if (status === 'placeholder') return '#f59e0b'
 	return '#94a3b8'
 }
@@ -98,6 +100,14 @@ export function MetricBarChart({
 					<span className='inline-flex items-center gap-1.5'>
 						<span className='size-2.5 rounded-sm bg-emerald-600' /> Published /
 						complete
+					</span>
+					<span className='inline-flex items-center gap-1.5'>
+						<span className='size-2.5 rounded-sm bg-sky-600' /> Verified
+						evidence
+					</span>
+					<span className='inline-flex items-center gap-1.5'>
+						<span className='size-2.5 rounded-sm bg-violet-600' /> Verified
+						negative
 					</span>
 					<span className='inline-flex items-center gap-1.5'>
 						<span className='size-2.5 rounded-sm bg-amber-500' /> Illustrative

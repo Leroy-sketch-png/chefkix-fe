@@ -242,6 +242,8 @@ export const API_ENDPOINTS = {
 		MODERATE: `${API_PREFIX}/moderate`,
 		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
 		REMIX_RECIPE: `${API_PREFIX}/remix_recipe`,
+		// Epic 12 contract; the Leader endpoint can override this path.
+		VOICE_COPILOT: `${API_PREFIX}/voice-copilot`,
 	},
 	// Leaderboard (identity module)
 	LEADERBOARD: {

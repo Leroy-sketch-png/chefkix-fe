@@ -45,8 +45,8 @@ export function BehavioralLearningCard({ data }: BehavioralLearningCardProps) {
 						<StatusPill status={data.status} />
 					</div>
 					<p className='mt-1 text-sm text-text-muted'>
-						Static HGAT versus feedback-updated HGAT on the Lead&apos;s held-out
-						corpus.
+						Verified acceptance-proxy evidence, with rejected production
+						conclusions kept visible.
 					</p>
 				</div>
 			</div>

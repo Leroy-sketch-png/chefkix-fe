@@ -5,6 +5,11 @@ export { getTextToSpeech, isTTSSupported } from './TextToSpeech'
 export { useVoiceMode } from './useVoiceMode'
 export type { UseVoiceModeReturn, VoiceEvent } from './useVoiceMode'
 export {
+	DEFAULT_WAKE_WORD,
+	extractWakeWordCommand,
+	normalizeVoiceText,
+} from './wakeWord'
+export {
 	getKitchenAudioCoordinator,
 	DEFAULT_KITCHEN_AUDIO_PREFERENCES,
 } from './KitchenAudioCoordinator'

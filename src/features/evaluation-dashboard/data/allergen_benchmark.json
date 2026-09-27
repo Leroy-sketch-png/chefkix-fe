@@ -1,34 +1,25 @@
 {
-	"version": "placeholder-v1",
-	"updatedAt": "2026-08-23",
-	"benchmarkDescription": "Head-to-head allergen violation evaluation across known unsafe substitution cases.",
+	"version": "lead-epic5b-awaiting-adjudication-v1",
+	"updatedAt": "2026-09-16",
+	"benchmarkDescription": "No comparative allergen rate is authorized yet. The matched Mistral raw arm is complete, but GPT-4o, Gemini, independent review, and adjudication remain open.",
 	"models": [
 		{
 			"id": "iron-chef",
 			"name": "IRON CHEF allergen guard",
-			"status": "placeholder",
-			"violationRate": 0,
-			"caughtViolations": 10,
-			"totalCases": 10,
-			"note": "Illustrative layout value — replace with Lead export"
+			"status": "pending",
+			"note": "No accepted IRON CHEF safety rate. Do not show the withdrawn zero-violation claim."
 		},
 		{
 			"id": "gpt-4o",
 			"name": "GPT-4o",
-			"status": "placeholder",
-			"violationRate": 30,
-			"caughtViolations": 7,
-			"totalCases": 10,
-			"note": "Illustrative layout value — replace with controlled comparison run"
+			"status": "pending",
+			"note": "GPT-4o matched arm and independent adjudication are not available."
 		},
 		{
 			"id": "gemini",
 			"name": "Gemini",
-			"status": "placeholder",
-			"violationRate": 20,
-			"caughtViolations": 8,
-			"totalCases": 10,
-			"note": "Illustrative layout value — replace with controlled comparison run"
+			"status": "pending",
+			"note": "Gemini matched arm and independent adjudication are not available."
 		}
 	]
 }
