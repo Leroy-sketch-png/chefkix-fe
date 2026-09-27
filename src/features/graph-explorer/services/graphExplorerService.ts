@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { aiApi, api } from '@/lib/axios'
 import { API_ENDPOINTS } from '@/constants'
 import { mockGraph } from '../data/mockGraph'
 import type {
@@ -10,18 +10,8 @@ import type {
 	TechniqueContext,
 } from '../types'
 
-const SAMPLE_LIMIT = 500
-const LEAD_GRAPH_SAMPLE_URL = '/data/graph_sample.json'
-const LEAD_COMPOUND_INDEX_URL = '/data/ingredient_compound_index.json'
-
-type LeadCompoundIndex = Record<
-	string,
-	Array<{
-		name?: unknown
-		concentration?: unknown
-		unit?: unknown
-	}>
->
+const SAMPLE_LIMIT = 100
+const RENDER_LIMIT = 500
 
 export interface GraphQuery {
 	rootId?: string
@@ -49,14 +39,15 @@ function asNumber(value: unknown) {
 	return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+function asFraction(value: unknown) {
+	const number = asNumber(value)
+	return number !== undefined && number >= 0 && number <= 1 ? number : undefined
+}
+
 function asStringArray(value: unknown) {
 	return Array.isArray(value)
 		? value.filter(item => typeof item === 'string')
 		: []
-}
-
-function normalizeIngredientKey(value: string) {
-	return value.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ')
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {
@@ -165,9 +156,13 @@ export function normalizeGraphEdge(value: unknown): GraphEdge {
 		source,
 		target,
 		type: normalizeEdgeType(edge.type),
-		confidence: Math.max(0, Math.min(1, asNumber(edge.confidence) ?? 0)),
+		confidence: asFraction(edge.confidence),
+		substitutionRatio: asNumber(edge.substitutionRatio),
 		context: asString(edge.context) || undefined,
-		compoundOverlap: asNumber(edge.compoundOverlap ?? edge.compound_overlap),
+		compoundOverlap: asFraction(edge.compoundOverlap ?? edge.compound_overlap),
+		compoundOverlapSemantics:
+			asString(edge.compoundOverlapSemantics ?? edge.overlap_semantics) ||
+			undefined,
 		nutritionalComparison: comparison
 			? {
 					summary: asString(comparison.summary) || undefined,
@@ -238,6 +233,7 @@ export function mergeGraphData(
 	const nodes = new Map(base.nodes.map(node => [node.id, node]))
 	addition.nodes.forEach(node => {
 		const previous = nodes.get(node.id)
+		nodes.delete(node.id)
 		nodes.set(node.id, {
 			...previous,
 			...node,
@@ -265,15 +261,22 @@ export function mergeGraphData(
 			...edge,
 		}),
 	)
+	// ponytail: Keep the latest 500 nodes in the force layout; add paging if a larger view is needed.
+	const boundedNodes = [...nodes.values()].slice(-RENDER_LIMIT)
+	const visibleIds = new Set(boundedNodes.map(node => node.id))
 	return {
-		nodes: [...nodes.values()],
-		edges: [...edges.values()],
+		nodes: boundedNodes,
+		edges: [...edges.values()].filter(
+			edge => visibleIds.has(edge.source) && visibleIds.has(edge.target),
+		),
 		source: addition.source ?? base.source,
 		totalNodeCount: Math.max(
 			base.totalNodeCount ?? 0,
 			addition.totalNodeCount ?? 0,
 		),
-		hasMore: addition.hasMore ?? base.hasMore,
+		hasMore: Boolean(
+			base.hasMore || addition.hasMore || nodes.size > RENDER_LIMIT,
+		),
 		loadedRootId: addition.loadedRootId ?? base.loadedRootId,
 	}
 }
@@ -302,75 +305,6 @@ function scopeGraphData(graph: GraphData, query?: GraphQuery): GraphData {
 		),
 		loadedRootId: rootId,
 	}
-}
-
-function enrichWithLeadCompoundIndex(
-	graph: GraphData,
-	index: LeadCompoundIndex,
-): GraphData {
-	return {
-		...graph,
-		nodes: graph.nodes.map(node => {
-			const keyCandidates = [node.name, node.id].map(normalizeIngredientKey)
-			const compounds = keyCandidates
-				.map(key => index[key])
-				.find(entries => Array.isArray(entries) && entries.length > 0)
-			if (!compounds || node.compoundData) return node
-			return {
-				...node,
-				compoundData: {
-					primaryCompounds: compounds.slice(0, 5).map(compound => ({
-						name: asString(compound.name),
-						concentration: asNumber(compound.concentration),
-						unit: asString(compound.unit) || undefined,
-					})),
-					flavorProfile: '',
-					source: 'FooDB bounded Lead export',
-				},
-				detailStatus: 'complete',
-			}
-		}),
-	}
-}
-
-let leadSamplePromise: Promise<GraphData> | undefined
-
-async function loadLeadSample(): Promise<GraphData> {
-	if (!leadSamplePromise) {
-		leadSamplePromise = (async () => {
-			const graphResponse = await fetch(LEAD_GRAPH_SAMPLE_URL, {
-				cache: 'no-store',
-			})
-			if (!graphResponse.ok) {
-				throw new Error(`Lead graph sample failed with ${graphResponse.status}`)
-			}
-
-			const graph = normalizeGraphData(
-				await graphResponse.json(),
-				'leader-sample',
-			)
-			try {
-				const compoundResponse = await fetch(LEAD_COMPOUND_INDEX_URL, {
-					cache: 'no-store',
-				})
-				if (!compoundResponse.ok) return graph
-				return enrichWithLeadCompoundIndex(
-					graph,
-					(await compoundResponse.json()) as LeadCompoundIndex,
-				)
-			} catch {
-				return graph
-			}
-		})().catch(error => {
-			leadSamplePromise = undefined
-			throw error
-		})
-	}
-	return leadSamplePromise
-}
-
-function getLeadSampleData(query?: GraphQuery) {
-	return loadLeadSample().then(graph => scopeGraphData(graph, query))
 }
 
 function getMockData(query?: GraphQuery): GraphData {
@@ -409,10 +343,61 @@ export async function getGraphNodeDetail(nodeId: string) {
 		const response = await api.get(
 			API_ENDPOINTS.KNOWLEDGE.INGREDIENT(encodeURIComponent(nodeId)),
 		)
-		return normalizeGraphNode(response.data)
+		const node = {
+			...normalizeGraphNode(unwrapData(response.data)),
+			detailStatus: 'complete' as const,
+		}
+		if (!node.id) return undefined
+		try {
+			const profile = await aiApi.get(
+				`/api/v1/compound/profile/${encodeURIComponent(node.id)}`,
+			)
+			const result = profile.data
+			if (result?.is_grounded !== true || !Array.isArray(result.compounds)) {
+				return node
+			}
+			const compounds = result.compounds
+				.map((compound: unknown) =>
+					isRecord(compound) ? asString(compound.name) : '',
+				)
+				.filter(Boolean)
+				.slice(0, 5)
+			return compounds.length
+				? {
+						...node,
+						compoundData: {
+							primaryCompounds: compounds,
+							flavorProfile: '',
+							source: 'FooDB official presence profile',
+						},
+						detailStatus: 'complete' as const,
+					}
+				: node
+		} catch {
+			return node
+		}
 	} catch (error) {
 		throw error instanceof Error
 			? error
 			: new Error('The Leader ingredient detail API could not be reached.')
+	}
+}
+
+export async function getGraphCompoundOverlap(
+	original: string,
+	substitute: string,
+) {
+	const response = await aiApi.post('/api/v1/compound/analyze-pair', {
+		original,
+		substitute,
+	})
+	const result = response.data
+	const overlap = asFraction(result?.overlap_percentage)
+	if (result?.is_compound_grounded !== true || overlap === undefined) {
+		return undefined
+	}
+	return {
+		compoundOverlap: overlap,
+		compoundOverlapSemantics: asString(result.overlap_semantics) || undefined,
 	}
 }

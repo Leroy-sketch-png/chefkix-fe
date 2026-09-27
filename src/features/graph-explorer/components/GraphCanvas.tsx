@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
-import type { GraphData, GraphSignal } from '../types'
+import type { GraphData, GraphEdge, GraphSignal } from '../types'
 import { GraphEdgeDetailPanel, GraphNodeDetailPanel } from './GraphDetailPanel'
 
 const width = 760
@@ -38,6 +38,8 @@ const signalLabels: Record<GraphSignal, string> = {
 	co_occurrence: 'Co-occurrence',
 }
 const initialView = { x: 0, y: 0, scale: 1 }
+const edgeKey = (edge: GraphEdge) =>
+	`${edge.source}:${edge.target}:${edge.type}`
 
 export function GraphCanvas({
 	data,
@@ -47,6 +49,7 @@ export function GraphCanvas({
 	searchPosition,
 	searchMatchCount,
 	onNodeSelect,
+	onEdgeSelect,
 }: {
 	data: GraphData
 	query: string
@@ -55,11 +58,13 @@ export function GraphCanvas({
 	searchPosition: number
 	searchMatchCount: number
 	onNodeSelect?: (nodeId: string) => void
+	onEdgeSelect?: (edge: GraphEdge) => void
 }) {
 	const [selected, setSelected] = useState<string | null>(null)
-	const [selectedEdge, setSelectedEdge] = useState<
-		GraphData['edges'][number] | null
-	>(null)
+	const [selectedEdgeKey, setSelectedEdgeKey] = useState<string | null>(null)
+	const selectedEdge = data.edges.find(
+		edge => edgeKey(edge) === selectedEdgeKey,
+	)
 	const [view, setView] = useState(initialView)
 	const dragRef = useRef<string | null>(null)
 	const panRef = useRef<{
@@ -93,21 +98,7 @@ export function GraphCanvas({
 			),
 		[data.edges],
 	)
-	const matchingNodes = useMemo(
-		() =>
-			data.nodes.filter(
-				node => !query || node.name.toLowerCase().includes(query.toLowerCase()),
-			),
-		[data.nodes, query],
-	)
-	const fallbackHighlightedId = query.trim()
-		? matchingNodes.length === 1
-			? matchingNodes[0].id
-			: matchingNodes.find(node =>
-					node.name.toLowerCase().startsWith(query.toLowerCase()),
-				)?.id
-		: undefined
-	const highlightedId = searchTargetId ?? fallbackHighlightedId
+	const highlightedId = searchTargetId
 	const nodeNames = useMemo(
 		() => new Map(data.nodes.map(node => [node.id, node.name])),
 		[data.nodes],
@@ -153,7 +144,19 @@ export function GraphCanvas({
 	function resetView() {
 		setView(initialView)
 		setSelected(null)
-		setSelectedEdge(null)
+		setSelectedEdgeKey(null)
+	}
+
+	function selectNode(nodeId: string) {
+		setSelectedEdgeKey(null)
+		setSelected(nodeId)
+		onNodeSelect?.(nodeId)
+	}
+
+	function selectEdge(edge: GraphEdge) {
+		setSelected(null)
+		setSelectedEdgeKey(edgeKey(edge))
+		onEdgeSelect?.(edge)
 	}
 
 	function changeZoom(delta: number) {
@@ -216,10 +219,16 @@ export function GraphCanvas({
 						if (!source || !target) return null
 						return (
 							<g
-								key={`${edge.source}-${edge.target}-${edge.type}`}
-								onClick={() => {
-									setSelected(null)
-									setSelectedEdge(edge)
+								key={edgeKey(edge)}
+								role='button'
+								tabIndex={0}
+								aria-label={`View ${nodeNames.get(edge.source) ?? edge.source} to ${nodeNames.get(edge.target) ?? edge.target} relationship`}
+								onClick={() => selectEdge(edge)}
+								onKeyDown={event => {
+									if (event.key === 'Enter' || event.key === ' ') {
+										event.preventDefault()
+										selectEdge(edge)
+									}
 								}}
 								className='cursor-pointer'
 							>
@@ -237,13 +246,23 @@ export function GraphCanvas({
 									x2={target.x}
 									y2={target.y}
 									stroke={
-										selectedEdge === edge ? '#fff' : signalColors[edge.type]
+										selectedEdgeKey === edgeKey(edge)
+											? '#fff'
+											: signalColors[edge.type]
 									}
 									strokeOpacity={
-										selectedEdge === edge ? 1 : 0.35 + edge.confidence * 0.6
+										selectedEdgeKey === edgeKey(edge)
+											? 1
+											: edge.confidence === undefined
+												? 0.65
+												: 0.35 + edge.confidence * 0.6
 									}
 									strokeWidth={
-										selectedEdge === edge ? 4 : 1 + edge.confidence * 3
+										selectedEdgeKey === edgeKey(edge)
+											? 4
+											: edge.confidence === undefined
+												? 2
+												: 1 + edge.confidence * 3
 									}
 								/>
 							</g>
@@ -257,17 +276,20 @@ export function GraphCanvas({
 						return (
 							<g
 								key={node.id}
+								role='button'
+								tabIndex={0}
+								aria-label={`Explore ${node.name}`}
 								onPointerDown={event => {
 									dragRef.current = node.id
 									event.currentTarget.setPointerCapture(event.pointerId)
-									setSelectedEdge(null)
-									setSelected(node.id)
-									onNodeSelect?.(node.id)
+									setSelectedEdgeKey(null)
 								}}
-								onClick={() => {
-									setSelectedEdge(null)
-									setSelected(node.id)
-									onNodeSelect?.(node.id)
+								onClick={() => selectNode(node.id)}
+								onKeyDown={event => {
+									if (event.key === 'Enter' || event.key === ' ') {
+										event.preventDefault()
+										selectNode(node.id)
+									}
 								}}
 								className={
 									isDimmed
@@ -335,8 +357,8 @@ export function GraphCanvas({
 				{query && (
 					<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card/90 px-3 py-2 text-xs text-text-muted'>
 						<LocateFixed className='size-3.5' />
-						{matchingNodes.length
-							? `${searchPosition}/${searchMatchCount} matching ingredient${matchingNodes.length === 1 ? '' : 's'}`
+						{searchMatchCount
+							? `${searchPosition}/${searchMatchCount} matching ingredient${searchMatchCount === 1 ? '' : 's'}`
 							: 'No matching ingredient'}
 					</div>
 				)}
@@ -353,7 +375,7 @@ export function GraphCanvas({
 					</span>
 				))}
 				<span>Node size = connections</span>
-				<span>Line thickness = confidence</span>
+				<span>Line thickness reflects reported confidence when available</span>
 			</div>
 			<div className='flex flex-wrap gap-x-4 gap-y-2 border-t border-border-subtle px-4 py-3 text-xs text-text-muted'>
 				<span className='font-medium text-text-primary'>Categories</span>

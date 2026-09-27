@@ -42,17 +42,19 @@ export function GraphNodeDetailPanel({
 			</div>
 
 			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
-				<div className='font-medium text-text-primary'>Allergen flags</div>
+				<div className='font-medium text-text-primary'>
+					Recorded allergen flags
+				</div>
 				<div className='mt-1 text-text-muted'>
 					{node.allergenFlags.length
 						? node.allergenFlags.join(', ')
-						: 'None recorded'}
+						: 'No flag recorded; safety is not established'}
 				</div>
 			</div>
 
 			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
 				<div className='font-medium text-text-primary'>
-					Top flavor molecules
+					Documented compounds
 				</div>
 				{compounds.length ? (
 					<ul className='mt-2 space-y-1 text-text-muted'>
@@ -63,7 +65,9 @@ export function GraphNodeDetailPanel({
 						))}
 					</ul>
 				) : (
-					<p className='mt-1 text-text-muted'>Pending FooDB compound profile</p>
+					<p className='mt-1 text-text-muted'>
+						Official FooDB profile unavailable
+					</p>
 				)}
 				{node.compoundData?.flavorProfile && (
 					<p className='mt-2 text-text-muted'>
@@ -72,7 +76,8 @@ export function GraphNodeDetailPanel({
 				)}
 				{node.compoundData?.source && (
 					<p className='mt-2 text-[11px] text-text-muted'>
-						Source: {node.compoundData.source}
+						Source: {node.compoundData.source}. Presence only; no concentration
+						or safety inference.
 					</p>
 				)}
 			</div>
@@ -120,10 +125,21 @@ export function GraphEdgeDetailPanel({
 			<div className='mt-1 text-text-muted'>
 				{sourceName ?? edge.source} → {targetName ?? edge.target}
 			</div>
-			<div className='mt-1 text-text-muted'>
-				Confidence: {(edge.confidence * 100).toFixed(0)}% · Context:{' '}
-				{edge.context || 'Pending'}
-			</div>
+			{edge.confidence !== undefined && (
+				<div className='mt-1 text-text-muted'>
+					Reported confidence: {(edge.confidence * 100).toFixed(0)}%
+				</div>
+			)}
+			{edge.substitutionRatio !== undefined && (
+				<div className='mt-1 text-text-muted'>
+					Recorded substitution ratio: {edge.substitutionRatio}×
+				</div>
+			)}
+			{edge.context && (
+				<div className='mt-1 text-text-muted'>
+					Recorded context: {edge.context}
+				</div>
+			)}
 
 			<div className='mt-3 grid gap-3 sm:grid-cols-2'>
 				<div className='rounded-xl bg-bg-elevated p-3'>
@@ -131,8 +147,13 @@ export function GraphEdgeDetailPanel({
 					<div className='mt-1 text-text-muted'>
 						{edge.compoundOverlap === undefined
 							? 'Pending FooDB comparison'
-							: `${(edge.compoundOverlap * 100).toFixed(0)}% shared compounds`}
+							: `${(edge.compoundOverlap * 100).toFixed(0)}% Jaccard overlap of documented compound presence`}
 					</div>
+					{edge.compoundOverlapSemantics && (
+						<p className='mt-1 text-xs text-text-muted'>
+							{edge.compoundOverlapSemantics}
+						</p>
+					)}
 				</div>
 				<div className='rounded-xl bg-bg-elevated p-3'>
 					<div className='font-medium text-text-primary'>Cook validation</div>

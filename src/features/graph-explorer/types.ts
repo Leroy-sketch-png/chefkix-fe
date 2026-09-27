@@ -43,9 +43,11 @@ export interface GraphEdge {
 	source: string
 	target: string
 	type: GraphSignal
-	confidence: number
+	confidence?: number
+	substitutionRatio?: number
 	context?: string
 	compoundOverlap?: number
+	compoundOverlapSemantics?: string
 	nutritionalComparison?: {
 		summary?: string
 		caloriesDelta?: number
