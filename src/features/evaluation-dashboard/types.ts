@@ -38,6 +38,12 @@ export interface AllergenBenchmarkModel {
 	violationRate?: number
 	caughtViolations?: number
 	totalCases?: number
+	adjudication?: {
+		protocol: string
+		reviewerCount: number
+		status: 'complete'
+		resultsSha256: string
+	}
 	note?: string
 }
 

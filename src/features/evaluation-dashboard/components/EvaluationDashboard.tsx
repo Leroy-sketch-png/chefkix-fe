@@ -102,16 +102,16 @@ export function EvaluationDashboard() {
 
 	useEffect(load, [])
 
-	const bestPublishedHitAt1 = useMemo(() => {
-		if (!data) return undefined
-		return Math.max(
-			...data.benchmarks.models.map(model => model.metrics.hitAt1 ?? -Infinity),
-		)
-	}, [data])
+	const reproducedHitAt1 = data?.benchmarks.models.find(
+		model => model.id === 'gismo' && model.status === 'verified',
+	)?.metrics.hitAt1
 	const readiness = useMemo(() => {
 		if (!data) return { ready: 0, total: 4 }
 		const benchmarkReady = data.benchmarks.models.some(
-			model => model.id === 'iron-chef' && model.status !== 'pending',
+			model =>
+				model.id === 'iron-chef' &&
+				model.status === 'verified' &&
+				Object.keys(model.metrics).length > 0,
 		)
 		const ablationReady = data.ablation.results.some(
 			result => result.status === 'complete',
@@ -212,18 +212,18 @@ export function EvaluationDashboard() {
 						{data.benchmarks.models.length}
 					</p>
 					<p className='mt-1 text-xs text-text-muted'>
-						Ours + published comparators
+						Research models and comparator status
 					</p>
 				</div>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
-					<p className='text-xs text-text-muted'>Best published Hit@1</p>
+					<p className='text-xs text-text-muted'>GISMo reproduced Hit@1</p>
 					<p className='mt-2 text-2xl font-bold text-text-primary'>
-						{Number.isFinite(bestPublishedHitAt1)
-							? `${bestPublishedHitAt1.toFixed(2)}%`
+						{reproducedHitAt1 !== undefined
+							? `${reproducedHitAt1.toFixed(2)}%`
 							: 'Pending'}
 					</p>
 					<p className='mt-1 text-xs text-text-muted'>
-						Public comparator baseline
+						Matched reproduction; no winner claim
 					</p>
 				</div>
 				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
@@ -260,7 +260,7 @@ export function EvaluationDashboard() {
 						</p>
 						<h2 className='mt-1 font-semibold text-text-primary'>
 							Evidence readiness: {readiness.ready}/{readiness.total} datasets
-							live
+							accepted
 						</h2>
 					</div>
 					<p className='text-xs text-text-muted'>
@@ -286,7 +286,10 @@ export function EvaluationDashboard() {
 						[
 							'Benchmark results',
 							data.benchmarks.models.some(
-								model => model.id === 'iron-chef' && model.status !== 'pending',
+								model =>
+									model.id === 'iron-chef' &&
+									model.status === 'verified' &&
+									Object.keys(model.metrics).length > 0,
 							),
 						],
 						[
@@ -355,21 +358,12 @@ export function EvaluationDashboard() {
 										</th>
 										{data.benchmarks.models.map(model => {
 											const value = model.metrics[metric]
-											const isBest =
-												value !== undefined &&
-												value === bestPublishedHitAt1 &&
-												metric === 'hitAt1'
 											return (
 												<td
 													key={model.id}
-													className={`border-b border-border-subtle px-3 py-3 font-semibold ${isBest ? 'text-primary' : value === undefined ? 'font-normal text-text-muted' : 'text-text-primary'}`}
+													className={`border-b border-border-subtle px-3 py-3 font-semibold ${value === undefined ? 'font-normal text-text-muted' : 'text-text-primary'}`}
 												>
 													{formatMetric(value)}
-													{isBest && (
-														<span className='ml-2 text-[10px] font-normal uppercase text-primary'>
-															best
-														</span>
-													)}
 												</td>
 											)
 										})}
@@ -474,8 +468,8 @@ export function EvaluationDashboard() {
 						</div>
 						<div className='mt-4 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-text-muted'>
 							<AlertTriangle className='mt-0.5 size-4 shrink-0 text-amber-600' />
-							A zero-violation claim must only appear after the controlled
-							benchmark file is supplied.
+							Safety rates require matched model arms, two independent reviews,
+							adjudication, and hash-bound scoring evidence.
 						</div>
 					</Surface>
 				</div>

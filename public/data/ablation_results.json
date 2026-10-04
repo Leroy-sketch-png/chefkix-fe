@@ -1,37 +1,33 @@
 {
-  "description": "Signal ablation: contribution of each feature type to ranking performance",
-  "configs": {
-    "semantic_only": {
-      "hit_at_1": 0.20634920634920634,
-      "hit_at_5": 0.5476190476190477,
-      "hit_at_10": 0.5873015873015873,
-      "mrr": 0.36413681558882005,
-      "ndcg_at_10": 0.49370771375572126,
-      "method": "semantic_only"
-    },
-    "nutritional_only": {
-      "hit_at_1": 0.2857142857142857,
-      "hit_at_5": 0.5396825396825397,
-      "hit_at_10": 0.5952380952380952,
-      "mrr": 0.4134993872500443,
-      "ndcg_at_10": 0.5307373049846841,
-      "method": "nutritional_only"
-    },
-    "chemical_only": {
-      "hit_at_1": 0.19047619047619047,
-      "hit_at_5": 0.5317460317460317,
-      "hit_at_10": 0.626984126984127,
-      "mrr": 0.35597293114334755,
-      "ndcg_at_10": 0.4895272906943871,
-      "method": "chemical_only"
-    },
-    "all_signals": {
-      "hit_at_1": 0.1984126984126984,
-      "hit_at_5": 0.5238095238095238,
-      "hit_at_10": 0.5793650793650794,
-      "mrr": 0.3464077947778127,
-      "ndcg_at_10": 0.4784195871877677,
-      "method": "all_signals"
-    }
-  }
+	"version": "lead-epic3-v11-e3-negative-v1",
+	"updatedAt": "2026-09-15",
+	"metric": "hitAt1",
+	"results": [
+		{
+			"id": "chemical",
+			"label": "Chemical",
+			"status": "pending",
+			"note": "The current verified Lead record does not authorize a standalone chemical value."
+		},
+		{
+			"id": "nutritional",
+			"label": "Nutritional",
+			"status": "pending",
+			"note": "The current verified Lead record does not authorize a standalone nutritional value."
+		},
+		{
+			"id": "semantic",
+			"label": "Semantic",
+			"hitAt1": 0.495,
+			"status": "verified-negative",
+			"note": "Verified v11 semantic slice. Interpretation is confounded by random missing identities and lossy feature linkage."
+		},
+		{
+			"id": "all-signals",
+			"label": "All signals",
+			"hitAt1": 0.252,
+			"status": "verified-negative",
+			"note": "Verified legacy all-signals slice. It is retained as a negative/confounded result, not a product-quality claim."
+		}
+	]
 }
