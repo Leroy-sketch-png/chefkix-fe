@@ -15,7 +15,7 @@ import {
 import { getEvaluationDashboardData } from '../services/evaluationDashboardService'
 import type { BenchmarkMetric, EvaluationDashboardData } from '../types'
 import { BehavioralLearningCard } from './BehavioralLearningCard'
-import { MetricBarChart } from './MetricBarChart'
+import { MetricBarChart, provenanceCaption } from './MetricBarChart'
 import { StatusPill } from './StatusPill'
 
 const metricLabels: Record<BenchmarkMetric, string> = {
@@ -372,6 +372,14 @@ export function EvaluationDashboard() {
 							</tbody>
 						</table>
 					</div>
+					{data.benchmarks.models.map(model => (
+						<p
+							key={model.id}
+							className='mt-3 break-words text-xs text-text-muted'
+						>
+							{model.name}: {provenanceCaption(model.provenance)} {model.note}
+						</p>
+					))}
 					<p className='mt-4 text-xs text-text-muted'>
 						Verified GISMo reproduction: Hit@1 20.694% and MRR 0.31636 overall;
 						unseen Hit@1 1.206% and MRR 0.04308. Mistral remains a published
@@ -395,6 +403,8 @@ export function EvaluationDashboard() {
 								label: result.label,
 								value: result.hitAt1,
 								status: result.status,
+								note: result.note,
+								provenance: result.provenance,
 							}))}
 							ariaLabel='Ablation Hit@1 comparison by signal'
 							fileName='chefkix-ablation-hit-at-1'
@@ -409,7 +419,7 @@ export function EvaluationDashboard() {
 									<span className='font-semibold text-text-primary'>
 										{result.label}:
 									</span>{' '}
-									{result.note ?? 'Ready for comparison'}
+									{result.note ?? 'Detailed evidence pending'}
 								</p>
 							))}
 						</div>
@@ -429,6 +439,8 @@ export function EvaluationDashboard() {
 								label: model.name,
 								value: model.violationRate,
 								status: model.status,
+								note: model.note,
+								provenance: model.provenance,
 							}))}
 							ariaLabel='Allergen violation rates by model'
 							fileName='chefkix-allergen-violation-rates'

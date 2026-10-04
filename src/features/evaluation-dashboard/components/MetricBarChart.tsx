@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import type { ResultProvenance } from '../types'
 import { ChartExportButton } from './ChartExportButton'
 
 export interface MetricBarDatum {
@@ -8,6 +9,8 @@ export interface MetricBarDatum {
 	label: string
 	value?: number
 	status?: string
+	note?: string
+	provenance?: ResultProvenance
 }
 
 interface MetricBarChartProps {
@@ -41,18 +44,19 @@ function barColor(status: string | undefined) {
 function createPngDownload(
 	svg: SVGSVGElement,
 	fileName: string,
+	chartHeight: number,
 ): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const clone = svg.cloneNode(true) as SVGSVGElement
 		clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 		clone.setAttribute('width', String(CHART_WIDTH))
-		clone.setAttribute('height', String(CHART_HEIGHT))
+		clone.setAttribute('height', String(chartHeight))
 		const serialized = new XMLSerializer().serializeToString(clone)
 		const image = new Image()
 		image.onload = () => {
 			const canvas = document.createElement('canvas')
 			canvas.width = CHART_WIDTH * 2
-			canvas.height = CHART_HEIGHT * 2
+			canvas.height = chartHeight * 2
 			const context = canvas.getContext('2d')
 			if (!context) {
 				reject(new Error('Canvas export is unavailable.'))
@@ -60,8 +64,8 @@ function createPngDownload(
 			}
 			context.scale(2, 2)
 			context.fillStyle = '#ffffff'
-			context.fillRect(0, 0, CHART_WIDTH, CHART_HEIGHT)
-			context.drawImage(image, 0, 0, CHART_WIDTH, CHART_HEIGHT)
+			context.fillRect(0, 0, CHART_WIDTH, chartHeight)
+			context.drawImage(image, 0, 0, CHART_WIDTH, chartHeight)
 			canvas.toBlob(blob => {
 				if (!blob) {
 					reject(new Error('The chart image could not be created.'))
@@ -82,6 +86,26 @@ function createPngDownload(
 	})
 }
 
+export function provenanceCaption(provenance?: ResultProvenance): string {
+	if (!provenance)
+		return 'Detailed provenance unavailable: dataset, split, protocol, seeds and hashes await the Lead manifest.'
+	return [
+		'Dataset: ' +
+			provenance.dataset +
+			'; split: ' +
+			provenance.split +
+			'; protocol: ' +
+			provenance.protocol,
+		'Seeds: ' +
+			provenance.seeds.join(', ') +
+			'; decision: ' +
+			provenance.decision,
+		'Source SHA-256: ' + provenance.sourceSha256,
+		'Predictions SHA-256: ' + provenance.predictionsSha256,
+		'Claim limits: ' + provenance.claimLimits,
+	].join(' | ')
+}
+
 /** Accessible SVG bar chart with deterministic PNG export and pending-state support. */
 export function MetricBarChart({
 	data,
@@ -91,6 +115,18 @@ export function MetricBarChart({
 	maxValue = 100,
 }: MetricBarChartProps) {
 	const svgRef = useRef<SVGSVGElement>(null)
+	const captionLines = [
+		ariaLabel,
+		'Different protocols are not a matched comparison. Status is reported, not independently certified.',
+		...data.flatMap(item => [
+			item.label + ' [' + (item.status ?? 'pending') + ']',
+			provenanceCaption(item.provenance),
+			item.note ?? '',
+		]),
+	]
+		.flatMap(line => line.match(/.{1,100}(?:\s|$)|.{1,100}/g) ?? [])
+		.map(line => line.trim())
+	const chartHeight = CHART_HEIGHT + captionLines.length * 16 + 20
 	const step = data.length > 0 ? PLOT_WIDTH / data.length : PLOT_WIDTH
 
 	return (
@@ -121,14 +157,14 @@ export function MetricBarChart({
 				<ChartExportButton
 					onExport={async () => {
 						if (!svgRef.current) throw new Error('Chart is not ready.')
-						await createPngDownload(svgRef.current, fileName)
+						await createPngDownload(svgRef.current, fileName, chartHeight)
 					}}
 				/>
 			</div>
 			<div className='overflow-x-auto rounded-xl border border-border-subtle bg-white p-2'>
 				<svg
 					ref={svgRef}
-					viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
+					viewBox={`0 0 ${CHART_WIDTH} ${chartHeight}`}
 					role='img'
 					aria-label={ariaLabel}
 					className='min-w-[36rem] w-full'
@@ -211,6 +247,18 @@ export function MetricBarChart({
 							</g>
 						)
 					})}
+					{captionLines.map((line, index) => (
+						<text
+							key={index}
+							x='14'
+							y={CHART_HEIGHT + index * 16}
+							fill='#334155'
+							fontFamily='monospace'
+							fontSize='10'
+						>
+							{line}
+						</text>
+					))}
 				</svg>
 			</div>
 		</div>

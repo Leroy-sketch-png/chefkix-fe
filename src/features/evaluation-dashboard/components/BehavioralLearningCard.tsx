@@ -17,12 +17,16 @@ export function BehavioralLearningCard({ data }: BehavioralLearningCardProps) {
 			label: 'Static HGAT',
 			value: data.staticMrr,
 			status: data.status,
+			note: data.note,
+			provenance: data.provenance,
 		},
 		{
 			id: 'feedback',
 			label: 'Feedback HGAT',
 			value: data.feedbackMrr,
 			status: data.status,
+			note: data.note,
+			provenance: data.provenance,
 		},
 	]
 

@@ -20,6 +20,24 @@ const resultStatus = z.enum([
 	'complete',
 ])
 const note = z.string().optional()
+const provenance = z
+	.object({
+		dataset: text,
+		split: text,
+		protocol: text,
+		seeds: z
+			.array(z.number().int().nonnegative())
+			.min(1)
+			.refine(
+				values => new Set(values).size === values.length,
+				'Seeds must be unique',
+			),
+		sourceSha256: z.string().regex(/^[a-f0-9]{64}$/i),
+		predictionsSha256: z.string().regex(/^[a-f0-9]{64}$/i),
+		decision: z.enum(['accepted', 'rejected', 'pending', 'published']),
+		claimLimits: text,
+	})
+	.optional()
 
 const schema = z.object({
 	benchmarks: z.object({
@@ -40,6 +58,7 @@ const schema = z.object({
 					status: z.enum(['verified', 'published', 'placeholder', 'pending']),
 					metrics,
 					note,
+					provenance,
 				}),
 			)
 			.min(1),
@@ -55,6 +74,7 @@ const schema = z.object({
 					hitAt1: percentage.optional(),
 					status: resultStatus,
 					note,
+					provenance,
 				}),
 			)
 			.min(1),
@@ -80,6 +100,7 @@ const schema = z.object({
 						})
 						.optional(),
 					note,
+					provenance,
 				}),
 			)
 			.min(1),
@@ -92,6 +113,7 @@ const schema = z.object({
 		feedbackMrr: percentage.optional(),
 		mrrDelta: z.number().finite().min(-100).max(100).optional(),
 		note,
+		provenance,
 	}),
 })
 

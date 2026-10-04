@@ -54,3 +54,9 @@ All metric values are percentage points from `0` to `100`, including MRR. For ex
 ```
 
 Each chart has an accessible SVG representation and an `Export image` action that downloads a 2x PNG suitable for thesis figures. The chart component owns the export implementation, so future data changes do not need page-level canvas code.
+
+### Per-result provenance and standalone figures
+
+Each benchmark model, ablation result, allergen model and behavioral result may carry `provenance` with required nonempty `dataset`, `split`, `protocol`, `claimLimits`; unique integer `seeds`; full `sourceSha256` and `predictionsSha256`; and `decision` (`accepted`, `rejected`, `pending`, `published`). Missing provenance remains explicitly unavailable. If supplied, the complete object must validate. This is a transport contract, not authentication of scientific evidence. The publisher must independently verify the referenced artifacts and decision.
+
+Every bar-chart export embeds result labels/status, supplied notes, provenance and claim limits inside the SVG used to create the PNG. Export height grows with wrapped captions. Full hashes are retained. Records using different protocols must not be interpreted as a matched comparison. Confidence intervals, abstention and matched strata remain pending until their scored Lead exports arrive.

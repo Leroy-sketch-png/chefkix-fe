@@ -143,3 +143,37 @@ describe('SubstitutionButton feedback evidence', () => {
 		expect(mockedSubmit).not.toHaveBeenCalled()
 	})
 })
+
+it('excludes a blocked candidate from the positive feedback action', async () => {
+	mockedSuggest.mockResolvedValueOnce({
+		success: true,
+		message: 'ok',
+		statusCode: 200,
+		data: {
+			originalIngredient: 'butter',
+			reason: 'unavailable',
+			substitutions: [
+				{
+					name: 'peanut oil',
+					ratio: '1:1',
+					notes: '',
+					confidenceScore: 0.9,
+					suggestionId: 'blocked-1',
+					candidateReceipt: 'receipt',
+					allergenSafety: { status: 'BLOCKED' },
+				},
+			],
+		},
+	})
+	render(<SubstitutionButton ingredientName='butter' sessionId='session-1' />)
+	fireEvent.click(
+		screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+	)
+	const accept = await screen.findByRole('button', {
+		name: 'substitutionWorks',
+	})
+	expect(accept).toBeDisabled()
+	expect(
+		screen.getByRole('button', { name: 'substitutionDoesNotWork' }),
+	).not.toBeDisabled()
+})

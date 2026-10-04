@@ -1,6 +1,18 @@
+export interface ResultProvenance {
+	dataset: string
+	split: string
+	protocol: string
+	seeds: number[]
+	sourceSha256: string
+	predictionsSha256: string
+	decision: 'accepted' | 'rejected' | 'pending' | 'published'
+	claimLimits: string
+}
+
 export type BenchmarkMetric = 'hitAt1' | 'hitAt5' | 'hitAt10' | 'mrr' | 'ndcg'
 
 export interface BenchmarkModel {
+	provenance?: ResultProvenance
 	id: string
 	name: string
 	shortName: string
@@ -17,6 +29,7 @@ export interface BenchmarkResults {
 }
 
 export interface AblationResult {
+	provenance?: ResultProvenance
 	id: string
 	label: string
 	hitAt1?: number
@@ -32,6 +45,7 @@ export interface AblationResults {
 }
 
 export interface AllergenBenchmarkModel {
+	provenance?: ResultProvenance
 	id: string
 	name: string
 	status: 'placeholder' | 'pending' | 'complete'
@@ -55,6 +69,7 @@ export interface AllergenBenchmarkResults {
 }
 
 export interface BehavioralLearningResults {
+	provenance?: ResultProvenance
 	version: string
 	updatedAt: string
 	status: 'verified-negative' | 'placeholder' | 'pending' | 'complete'
