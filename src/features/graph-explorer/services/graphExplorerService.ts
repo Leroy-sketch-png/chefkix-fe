@@ -113,7 +113,7 @@ export function normalizeGraphNode(value: unknown): GraphNode {
 			: undefined
 	const compounds = compound?.primaryCompounds ?? compound?.primary_compounds
 	return {
-		id: asString(node.id ?? node.canonicalName ?? node.canonical_name),
+		id: asString(node.canonicalName ?? node.canonical_name ?? node.id),
 		name: asString(node.name ?? node.canonicalName ?? node.canonical_name),
 		category: asString(node.category, 'ingredient'),
 		allergenFlags: asStringArray(node.allergenFlags ?? node.allergen_flags),

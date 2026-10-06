@@ -28,6 +28,12 @@ it('opens graph nodes and edges from the keyboard', () => {
 				category: 'fat',
 				allergenFlags: [],
 			},
+			{
+				id: 'ginger',
+				name: 'Ginger',
+				category: 'produce',
+				allergenFlags: [],
+			},
 		],
 		edges: [
 			{
@@ -57,6 +63,10 @@ it('opens graph nodes and edges from the keyboard', () => {
 	})
 	expect(onNodeSelect).toHaveBeenCalledWith('butter')
 	expect(screen.getByLabelText('Ingredient details')).toBeTruthy()
+	expect(screen.queryByRole('button', { name: 'Explore Ginger' })).toBeNull()
+	expect(
+		screen.getByRole('button', { name: 'Ginger No link yet' }),
+	).toBeTruthy()
 
 	fireEvent.keyDown(
 		screen.getByRole('button', {

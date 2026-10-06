@@ -269,6 +269,7 @@ describe('live graph API', () => {
 		;(api.get as jest.Mock).mockResolvedValue({
 			data: {
 				data: {
+					id: 'mongo-document-id',
 					canonicalName: 'butter',
 					name: 'Butter',
 					allergenFlags: ['milk'],
