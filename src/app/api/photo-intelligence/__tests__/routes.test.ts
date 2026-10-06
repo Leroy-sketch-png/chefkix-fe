@@ -2,6 +2,11 @@
 
 import { POST as postIngredientMatches } from '@/app/api/photo-intelligence/ingredient-recipes/route'
 import { POST as postDishRetrieval } from '@/app/api/photo-intelligence/dish-retrieval/route'
+import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
+
+jest.mock('@/lib/ai-proxy-auth', () => ({
+	authenticateAiProxyCaller: jest.fn(),
+}))
 
 describe('Epic 8 photo intelligence adapters', () => {
 	const originalHgat = process.env.HGAT_RECIPE_MATCH_BACKEND_URL
@@ -17,6 +22,13 @@ describe('Epic 8 photo intelligence adapters', () => {
 		jest.restoreAllMocks()
 	})
 
+	beforeEach(() => {
+		jest.mocked(authenticateAiProxyCaller).mockResolvedValue({
+			authenticated: true,
+			userId: 'test-user',
+		})
+	})
+
 	it('reports HGAT integration pending instead of returning fabricated matches', async () => {
 		delete process.env.HGAT_RECIPE_MATCH_BACKEND_URL
 		const response = await postIngredientMatches(
@@ -25,7 +37,10 @@ describe('Epic 8 photo intelligence adapters', () => {
 				{
 					method: 'POST',
 					body: JSON.stringify({ ingredients: ['tomato'] }),
-					headers: { 'Content-Type': 'application/json' },
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: 'Bearer user-token',
+					},
 				},
 			),
 		)
@@ -60,6 +75,7 @@ describe('Epic 8 photo intelligence adapters', () => {
 				{
 					method: 'POST',
 					body: JSON.stringify({ ingredients: ['tomato', 'rice'] }),
+					headers: { Authorization: 'Bearer user-token' },
 				},
 			),
 		)
@@ -84,12 +100,55 @@ describe('Epic 8 photo intelligence adapters', () => {
 			'image',
 			new File(['dish'], 'dish.jpg', { type: 'image/jpeg' }),
 		)
-		const response = await postDishRetrieval({
-			formData: async () => formData,
-		} as Request)
+		const response = await postDishRetrieval(
+			new Request('http://localhost/api/photo-intelligence/dish-retrieval', {
+				method: 'POST',
+				body: formData,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
 		expect(response.status).toBe(503)
 		expect(await response.json()).toEqual(
 			expect.objectContaining({ code: 'INTEGRATION_PENDING' }),
 		)
+	})
+
+	it('requires an authenticated caller before photo matching', async () => {
+		jest.mocked(authenticateAiProxyCaller).mockResolvedValue({
+			authenticated: false,
+			status: 401,
+			message: 'Authentication required for AI features.',
+		})
+		const fetchMock = jest.spyOn(global, 'fetch')
+		const response = await postIngredientMatches(
+			new Request(
+				'http://localhost/api/photo-intelligence/ingredient-recipes',
+				{
+					method: 'POST',
+					body: JSON.stringify({ ingredients: ['tomato'] }),
+				},
+			),
+		)
+
+		expect(response.status).toBe(401)
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('rejects invalid ingredient lists instead of forwarding them', async () => {
+		process.env.HGAT_RECIPE_MATCH_BACKEND_URL = 'http://hgat.test/match'
+		const fetchMock = jest.spyOn(global, 'fetch')
+		const response = await postIngredientMatches(
+			new Request(
+				'http://localhost/api/photo-intelligence/ingredient-recipes',
+				{
+					method: 'POST',
+					body: JSON.stringify({ ingredients: ['   '] }),
+					headers: { Authorization: 'Bearer user-token' },
+				},
+			),
+		)
+
+		expect(response.status).toBe(400)
+		expect(fetchMock).not.toHaveBeenCalled()
 	})
 })

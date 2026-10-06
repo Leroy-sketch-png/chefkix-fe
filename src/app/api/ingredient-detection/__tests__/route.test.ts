@@ -1,6 +1,11 @@
 /** @jest-environment node */
 
 import { POST } from '@/app/api/ingredient-detection/route'
+import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
+
+jest.mock('@/lib/ai-proxy-auth', () => ({
+	authenticateAiProxyCaller: jest.fn(),
+}))
 
 describe('ingredient detection endpoint', () => {
 	const originalBackendEndpoint = process.env.INGREDIENT_DETECTION_BACKEND_URL
@@ -20,6 +25,13 @@ describe('ingredient detection endpoint', () => {
 		jest.restoreAllMocks()
 	})
 
+	beforeEach(() => {
+		jest.mocked(authenticateAiProxyCaller).mockResolvedValue({
+			authenticated: true,
+			userId: 'test-user',
+		})
+	})
+
 	it('returns mock detections only when explicitly enabled', async () => {
 		process.env.NEXT_PUBLIC_INGREDIENT_DETECTION_MOCK = 'true'
 		const formData = new FormData()
@@ -28,7 +40,13 @@ describe('ingredient detection endpoint', () => {
 			new File(['image'], 'ingredients.jpg', { type: 'image/jpeg' }),
 		)
 
-		const response = await POST({ formData: async () => formData } as Request)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body: formData,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
 		const payload = await response.json()
 
 		expect(response.status).toBe(200)
@@ -53,7 +71,13 @@ describe('ingredient detection endpoint', () => {
 			new File(['image'], 'ingredients.jpg', { type: 'image/jpeg' }),
 		)
 
-		const response = await POST({ formData: async () => formData } as Request)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body: formData,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
 		const payload = await response.json()
 
 		expect(response.status).toBe(503)
@@ -66,9 +90,13 @@ describe('ingredient detection endpoint', () => {
 	})
 
 	it('rejects requests without an image file', async () => {
-		const response = await POST({
-			formData: async () => new FormData(),
-		} as Request)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body: new FormData(),
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
 
 		expect(response.status).toBe(400)
 		expect((await response.json()).success).toBe(false)
@@ -97,7 +125,13 @@ describe('ingredient detection endpoint', () => {
 			new File(['image'], 'ingredients.jpg', { type: 'image/jpeg' }),
 		)
 
-		const response = await POST({ formData: async () => formData } as Request)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body: formData,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
 		const payload = await response.json()
 
 		expect(fetchMock).toHaveBeenCalledWith(
@@ -111,5 +145,37 @@ describe('ingredient detection endpoint', () => {
 				meta: { source: 'real' },
 			}),
 		)
+	})
+
+	it('rejects unauthenticated scans before calling the detector', async () => {
+		jest.mocked(authenticateAiProxyCaller).mockResolvedValue({
+			authenticated: false,
+			status: 401,
+			message: 'Authentication required for AI features.',
+		})
+		const fetchMock = jest.spyOn(global, 'fetch')
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body: new FormData(),
+			}),
+		)
+
+		expect(response.status).toBe(401)
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('rejects an oversized upload before parsing its body', async () => {
+		const formData = jest.fn()
+		const response = await POST({
+			headers: new Headers({
+				Authorization: 'Bearer user-token',
+				'content-length': String(11 * 1024 * 1024),
+			}),
+			formData,
+		} as unknown as Request)
+
+		expect(response.status).toBe(413)
+		expect(formData).not.toHaveBeenCalled()
 	})
 })
