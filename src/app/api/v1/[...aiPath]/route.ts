@@ -30,6 +30,7 @@ const ALLOWED_AI_PATHS = new Set([
 	'quality/score',
 	'generate_meal_plan',
 	'copilot/query',
+	'compound/analyze-pair',
 ])
 
 const jsonFailure = (message: string, status: number) =>
@@ -85,15 +86,35 @@ const resolveAiConfig = () => {
 	}
 }
 
-export async function POST(
+type ProxyContext = { params: Promise<{ aiPath?: string[] }> }
+
+function allowedPath(parts: string[], method: 'GET' | 'POST') {
+	if (method === 'POST') {
+		const path = parts.join('/')
+		return ALLOWED_AI_PATHS.has(path) ? path : null
+	}
+	const name = parts[2]?.trim()
+	return parts.length === 3 &&
+		parts[0] === 'compound' &&
+		parts[1] === 'profile' &&
+		name &&
+		name.length <= 120 &&
+		!/[\\/]/.test(name) &&
+		name !== '.' &&
+		name !== '..'
+		? `compound/profile/${encodeURIComponent(name)}`
+		: null
+}
+
+async function proxyAiRequest(
 	request: NextRequest,
-	context: { params: Promise<{ aiPath?: string[] }> },
+	context: ProxyContext,
+	method: 'GET' | 'POST',
 ) {
 	const params = await context.params
-	const aiPath = params.aiPath ?? []
-	const targetPath = aiPath.join('/')
+	const targetPath = allowedPath(params.aiPath ?? [], method)
 
-	if (!ALLOWED_AI_PATHS.has(targetPath)) {
+	if (!targetPath) {
 		return jsonFailure('AI route not found', 404)
 	}
 
@@ -131,12 +152,12 @@ export async function POST(
 		rateLimitSubjectSecret,
 	)
 
-	const requestBody = await request.text()
+	const requestBody = method === 'POST' ? await request.text() : undefined
 	const upstreamUrl = `${baseUrl}/api/v1/${targetPath}`
 
 	try {
 		const upstreamResponse = await fetch(upstreamUrl, {
-			method: 'POST',
+			method,
 			headers: {
 				'Content-Type':
 					request.headers.get('content-type') || 'application/json',
@@ -167,4 +188,12 @@ export async function POST(
 	} catch {
 		return jsonFailure(AI_PROXY_ERROR, 503)
 	}
+}
+
+export function GET(request: NextRequest, context: ProxyContext) {
+	return proxyAiRequest(request, context, 'GET')
+}
+
+export function POST(request: NextRequest, context: ProxyContext) {
+	return proxyAiRequest(request, context, 'POST')
 }

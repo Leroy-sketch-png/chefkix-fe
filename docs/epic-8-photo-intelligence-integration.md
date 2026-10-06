@@ -2,6 +2,12 @@
 
 The scan UI is wired to stable same-origin adapters and does not invent recipe matches when the Lead services are unavailable.
 
+## Request protection and limits
+
+The three same-origin photo routes require a bearer token that the monolith validates at its authenticated profile endpoint. The token is not forwarded to the detector or retrieval provider. Photo uploads are capped at 10 MiB; ingredient matching accepts at most 100 names, each at most 120 characters, within a 32 KiB JSON body. Client aborts propagate to the provider fetch, which also has a 30-second timeout. A timed-out provider returns 504; an unavailable or invalid provider response remains an error and is never replaced with mock output.
+
+Provider-specific service credentials and production endpoint acceptance are deployment handoff requirements; this proxy's user-session check does not authenticate the external model provider.
+
 ## Environment variables
 
 Configure these on the Next.js server when the corresponding Lead endpoints are published:

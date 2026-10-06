@@ -24,14 +24,17 @@ export function PhotoIntelligencePanel({
 		if (!result || result.detections.length === 0) {
 			setMatches([])
 			setError(null)
+			setLoading(false)
 			return
 		}
 
 		let active = true
+		const controller = new AbortController()
 		setLoading(true)
 		setError(null)
 		void findRecipesFromIngredients(
 			result.detections.map(detection => detection.name),
+			controller.signal,
 		)
 			.then(response => {
 				if (active) setMatches(response.matches)
@@ -51,6 +54,7 @@ export function PhotoIntelligencePanel({
 			})
 		return () => {
 			active = false
+			controller.abort()
 		}
 	}, [result, t])
 

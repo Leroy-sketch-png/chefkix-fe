@@ -39,6 +39,7 @@ const FAMILY_ALIASES: Record<string, string> = {
 	shellfish: 'shellfish',
 	soy: 'soy',
 	wheat: 'wheat_gluten',
+	wheat_gluten: 'wheat_gluten',
 }
 
 const INGREDIENT_FAMILIES: Record<string, string> = {
@@ -119,8 +120,16 @@ const normalizeIngredient = (value: string) =>
 const ingredientFamilies = (ingredient: string) => {
 	const normalized = normalizeIngredient(ingredient)
 	const matches = new Set<string>()
+	// Exact compound phrases avoid classifying peanut butter as dairy.
+	if (INGREDIENT_FAMILIES[normalized])
+		return new Set([INGREDIENT_FAMILIES[normalized]])
+	const ambiguous = ['milk', 'butter', 'flour', 'cream', 'egg', 'eggs']
 	for (const [term, family] of Object.entries(INGREDIENT_FAMILIES)) {
-		if (normalized === term || normalized.includes(term)) matches.add(family)
+		if (
+			!ambiguous.includes(term) &&
+			('_' + normalized + '_').includes('_' + term + '_')
+		)
+			matches.add(family)
 	}
 	return matches
 }
@@ -130,15 +139,19 @@ const parseBackendSafety = (
 ): AllergenSafetyResult | null => {
 	const nested = asRecord(substitution.allergenSafety)
 	const source = nested ?? asRecord(substitution)
-	const rawStatus = firstValue(source, [
+	const rawStatusValue = firstValue(source, [
 		'status',
 		'safetyStatus',
 		'safety_status',
 	])
+	const rawStatus =
+		typeof rawStatusValue === 'string' ? rawStatusValue.toLowerCase() : null
 	const status =
 		rawStatus === 'safe' || rawStatus === 'check' || rawStatus === 'blocked'
 			? rawStatus
-			: null
+			: rawStatus === 'unknown'
+				? 'check'
+				: null
 	const explicitSafe =
 		typeof substitution.allergenSafe === 'boolean'
 			? substitution.allergenSafe
@@ -160,7 +173,8 @@ const parseBackendSafety = (
 		'blocked_reason',
 		'message',
 	])
-	const resolvedStatus = status ?? (explicitSafe ? 'safe' : 'blocked')
+	const resolvedStatus =
+		explicitSafe === false ? 'blocked' : (status ?? 'check')
 	return {
 		status: resolvedStatus,
 		flaggedAllergens,
@@ -169,7 +183,9 @@ const parseBackendSafety = (
 				? reason
 				: resolvedStatus === 'safe'
 					? 'No conflict found in the current profile.'
-					: 'The safety service flagged a possible allergen conflict.',
+					: resolvedStatus === 'blocked'
+						? 'The safety service flagged a possible allergen conflict.'
+						: 'No verified safety decision is available. Check the product label.',
 		source: 'backend',
 	}
 }
@@ -179,7 +195,7 @@ export const resolveAllergenSafety = (
 	allergenFlags: string[] | null | undefined,
 ): AllergenSafetyResult => {
 	const backendResult = parseBackendSafety(substitution)
-	if (backendResult) return backendResult
+	if (backendResult?.status === 'blocked') return backendResult
 
 	const normalizedFlags = normalizeAllergenFlags(allergenFlags)
 	if (normalizedFlags.length === 0) {
@@ -199,7 +215,10 @@ export const resolveAllergenSafety = (
 			(candidateFamilies.size > 0 &&
 				candidateFamilies.has(FAMILY_ALIASES[canonical])) ||
 			(flag.startsWith('custom:') &&
-				normalizeIngredient(substitution.name).includes(canonical))
+				Boolean(canonical) &&
+				`_${normalizeIngredient(substitution.name)}_`.includes(
+					`_${canonical}_`,
+				))
 		)
 	})
 	if (matchingFlags.length > 0) {
@@ -212,6 +231,7 @@ export const resolveAllergenSafety = (
 		}
 	}
 
+	if (backendResult) return backendResult
 	if (candidateFamilies.size === 0) {
 		return {
 			status: 'check',
@@ -223,9 +243,10 @@ export const resolveAllergenSafety = (
 	}
 
 	return {
-		status: 'safe',
+		status: 'check',
 		flaggedAllergens: [],
-		reason: 'No match found against the saved allergen profile.',
+		reason:
+			'No name match found. This does not verify ingredients or cross-contact safety.',
 		source: 'profile',
 	}
 }
@@ -243,7 +264,9 @@ export const findRecipeAllergenConflicts = (
 			const family = FAMILY_ALIASES[canonical]
 			return (
 				(Boolean(family) && ingredientFamilies(ingredient).has(family)) ||
-				(isCustom && normalizeIngredient(ingredient).includes(canonical))
+				(isCustom &&
+					Boolean(canonical) &&
+					`_${normalizeIngredient(ingredient)}_`.includes(`_${canonical}_`))
 			)
 		})
 		if (matches.length === 0) return []

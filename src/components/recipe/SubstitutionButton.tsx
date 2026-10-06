@@ -115,6 +115,11 @@ export function SubstitutionButton({
 
 	const handleFeedback = async (sub: Substitution, accepted: boolean) => {
 		if (!sessionId || !sub.suggestionId || !sub.candidateReceipt) return
+		if (
+			accepted &&
+			resolveAllergenSafety(sub, user?.allergenFlags).status === 'blocked'
+		)
+			return
 		const actionKey = `${sub.suggestionId}:${accepted ? 'accepted' : 'rejected'}`
 		setFeedbackState(current => ({
 			...current,
@@ -270,7 +275,7 @@ export function SubstitutionButton({
 													/>
 													<CompoundExplanation
 														originalIngredient={ingredientName}
-														 substitution={sub}
+														substitution={sub}
 													/>
 													{sessionId &&
 														sub.candidateReceipt &&
@@ -278,32 +283,52 @@ export function SubstitutionButton({
 															<div className='mt-2 flex items-center gap-2'>
 																<button
 																	type='button'
-																	disabled={['submitting', 'accepted', 'rejected'].includes(
-																		feedbackState[sub.suggestionId] ?? '',
-																	)}
+																	disabled={
+																		resolveAllergenSafety(
+																			sub,
+																			user?.allergenFlags,
+																		).status === 'blocked' ||
+																		[
+																			'submitting',
+																			'accepted',
+																			'rejected',
+																		].includes(
+																			feedbackState[sub.suggestionId] ?? '',
+																		)
+																	}
 																	onClick={() => handleFeedback(sub, true)}
 																	className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
 																>
-																	{feedbackState[sub.suggestionId] === 'accepted'
+																	{feedbackState[sub.suggestionId] ===
+																	'accepted'
 																		? t('feedbackRecorded')
 																		: t('substitutionWorks')}
 																</button>
 																<button
 																	type='button'
-																	disabled={['submitting', 'accepted', 'rejected'].includes(
+																	disabled={[
+																		'submitting',
+																		'accepted',
+																		'rejected',
+																	].includes(
 																		feedbackState[sub.suggestionId] ?? '',
 																	)}
 																	onClick={() => handleFeedback(sub, false)}
 																	className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
 																>
-																	{feedbackState[sub.suggestionId] === 'rejected'
+																	{feedbackState[sub.suggestionId] ===
+																	'rejected'
 																		? t('feedbackRecorded')
 																		: t('substitutionDoesNotWork')}
 																</button>
 															</div>
 														)}
-													{feedbackState[sub.suggestionId ?? ''] === 'error' && (
-														<p role='status' className='mt-1 text-xs text-error'>
+													{feedbackState[sub.suggestionId ?? ''] ===
+														'error' && (
+														<p
+															role='status'
+															className='mt-1 text-xs text-error'
+														>
 															{t('feedbackFailed')}
 														</p>
 													)}
