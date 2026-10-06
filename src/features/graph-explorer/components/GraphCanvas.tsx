@@ -78,19 +78,26 @@ export function GraphCanvas({
 		startY: number
 		view: typeof initialView
 	} | null>(null)
-	const layoutRef = useRef<Map<string, ForcePosition>>(new Map())
+	const focusedSearchRef = useRef<string | null>(null)
+	const userMovedViewRef = useRef(false)
 
 	const layoutData = useMemo(() => {
-		const edges = data.edges.filter(edge => signals.includes(edge.type))
+		const edges = data.edges.filter(
+			edge =>
+				signals.includes(edge.type) &&
+				(!query.trim() ||
+					edge.source === searchTargetId ||
+					edge.target === searchTargetId),
+		)
 		const connected = new Set(edges.flatMap(edge => [edge.source, edge.target]))
+		if (searchTargetId) connected.add(searchTargetId)
 		return { nodes: data.nodes.filter(node => connected.has(node.id)), edges }
-	}, [data.edges, data.nodes, signals])
+	}, [data.edges, data.nodes, query, searchTargetId, signals])
 	const { positions, dragNode, pinNode } = useForceLayout(
 		layoutData,
 		width,
 		height,
 	)
-	layoutRef.current = positions
 	const degree = useMemo(
 		() =>
 			data.edges.reduce(
@@ -125,22 +132,32 @@ export function GraphCanvas({
 	)
 
 	useEffect(() => {
-		if (!query.trim()) {
+		if (!query.trim() || !highlightedId) {
+			focusedSearchRef.current = null
+			userMovedViewRef.current = false
 			setView(initialView)
-			return
 		}
-		const node = highlightedId
-			? layoutRef.current.get(highlightedId)
-			: undefined
-		if (highlightedId) setSelected(highlightedId)
+	}, [highlightedId, query])
+
+	useEffect(() => {
+		if (!query.trim() || !highlightedId) return
+		if (focusedSearchRef.current !== highlightedId) {
+			focusedSearchRef.current = highlightedId
+			userMovedViewRef.current = false
+			setSelected(highlightedId)
+		}
+		if (userMovedViewRef.current) return
+		const node = positions.get(highlightedId)
 		if (!node) return
 		const scale = 1.45
-		setView({
-			x: node.x - width / scale / 2,
-			y: node.y - height / scale / 2,
-			scale,
-		})
-	}, [highlightedId, query])
+		const x = node.x - width / scale / 2
+		const y = node.y - height / scale / 2
+		setView(previous =>
+			previous.x === x && previous.y === y && previous.scale === scale
+				? previous
+				: { x, y, scale },
+		)
+	}, [highlightedId, positions, query])
 
 	function getGraphPosition(
 		event: ReactPointerEvent<SVGSVGElement>,
@@ -157,11 +174,13 @@ export function GraphCanvas({
 	}
 
 	function startPan(event: ReactPointerEvent<SVGRectElement>) {
+		userMovedViewRef.current = true
 		panRef.current = { startX: event.clientX, startY: event.clientY, view }
 		event.currentTarget.setPointerCapture(event.pointerId)
 	}
 
 	function resetView() {
+		userMovedViewRef.current = true
 		setView(initialView)
 		setSelected(null)
 		setSelectedEdgeKey(null)
@@ -180,6 +199,7 @@ export function GraphCanvas({
 	}
 
 	function changeZoom(delta: number) {
+		userMovedViewRef.current = true
 		setView(previous => {
 			const scale = Math.max(0.35, Math.min(2.2, previous.scale + delta))
 			const centerX = previous.x + width / previous.scale / 2
@@ -207,12 +227,13 @@ export function GraphCanvas({
 							Relationship map
 						</h2>
 						<p className='mt-1 text-xs text-text-muted'>
-							Only ingredients with documented links appear here. Select a node
+							Search focuses an ingredient and its direct links. Select a node
 							or line to inspect it.
 						</p>
 					</div>
 					<span className='rounded-full border border-border-medium bg-bg-elevated px-3 py-1 text-xs font-medium text-text-muted'>
-						{layoutData.edges.length} visible links
+						{layoutData.edges.length} visible{' '}
+						{layoutData.edges.length === 1 ? 'link' : 'links'}
 					</span>
 				</div>
 				<div
@@ -328,6 +349,7 @@ export function GraphCanvas({
 									tabIndex={0}
 									aria-label={`Explore ${node.name}`}
 									onPointerDown={event => {
+										userMovedViewRef.current = true
 										dragRef.current = node.id
 										event.currentTarget.setPointerCapture(event.pointerId)
 										setSelectedEdgeKey(null)

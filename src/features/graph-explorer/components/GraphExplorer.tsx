@@ -160,7 +160,13 @@ export function GraphExplorer() {
 	const activeSearchId = shown[searchIndex]?.id
 	const mappedIngredientCount = new Set(
 		(visibleData?.edges ?? [])
-			.filter(edge => visibleSignals.includes(edge.type))
+			.filter(
+				edge =>
+					visibleSignals.includes(edge.type) &&
+					(!query.trim() ||
+						edge.source === activeSearchId ||
+						edge.target === activeSearchId),
+			)
 			.flatMap(edge => [edge.source, edge.target]),
 	).size
 
@@ -199,7 +205,7 @@ export function GraphExplorer() {
 					{
 						value: visibleData?.edges.length ?? 0,
 						label: 'Documented relationships',
-						note: 'Select a line for context',
+						note: 'Across the full index',
 					},
 				].map(item => (
 					<div
