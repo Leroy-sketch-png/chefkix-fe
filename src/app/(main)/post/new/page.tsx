@@ -18,6 +18,9 @@ import {
 	Send,
 	PenSquare,
 	Star,
+	Check,
+	CloudOff,
+	RefreshCw,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AnimatedButton } from '@/components/ui/animated-button'
@@ -30,6 +33,8 @@ import { createPost } from '@/services/post'
 import { getSessionById, linkPostToSession } from '@/services/cookingSession'
 import { guardContent } from '@/services/ml'
 import { trackEvent } from '@/lib/eventTracker'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { hasClaimablePostXp } from '@/lib/cookingXp'
@@ -44,6 +49,15 @@ import { logDevError } from '@/lib/dev-log'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { postDraftRepository } from '@/lib/post-draft-storage'
+import {
+	usePostDraftAutosave,
+	type PostDraftSaveState,
+} from '@/hooks/usePostDraftAutosave'
+import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
+import {
+	formatShortcutLabel,
+	useModifierSymbol,
+} from '@/hooks/useKeyboardShortcuts'
 
 interface SessionInfo {
 	id: string
@@ -76,6 +90,11 @@ function CreatePostContent() {
 	const router = useRouter()
 	const t = useTranslations('post')
 	const tc = useTranslations('common')
+	const modifierSymbol = useModifierSymbol()
+	const submitShortcut = formatShortcutLabel(
+		{ key: 'Enter', ctrl: true },
+		modifierSymbol,
+	)
 	const searchParams = useSearchParams()
 	const requestedSessionId = searchParams.get('session')
 	const [draftSessionId, setDraftSessionId] = useState<string | null>(null)
@@ -97,6 +116,7 @@ function CreatePostContent() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [reviewRating, setReviewRating] = useState<number>(0)
 	const [isDraftHydrated, setIsDraftHydrated] = useState(false)
+	const [recoveredDraftExists, setRecoveredDraftExists] = useState(false)
 
 	const loadedDraftKey = useRef<string | null>(null)
 
@@ -193,6 +213,8 @@ function CreatePostContent() {
 		if (loadedDraftKey.current === key) return
 		loadedDraftKey.current = key
 		let cancelled = false
+		setIsDraftHydrated(false)
+		setRecoveredDraftExists(false)
 
 		const recoverDraft = async () => {
 			try {
@@ -207,6 +229,7 @@ function CreatePostContent() {
 				setPhotoFiles(draft.photos)
 				setPreviewUrls(urls)
 				setDraftSessionId(draft.sessionId)
+				setRecoveredDraftExists(true)
 			} catch (error) {
 				if (!cancelled) {
 					logDevError('Failed to restore post draft:', error)
@@ -223,28 +246,18 @@ function CreatePostContent() {
 		}
 	}, [isHydrated, requestedSessionId, t, user?.userId])
 
-	// ── Debounced durable auto-save ──────────────────────────────────
-	useEffect(() => {
-		const ownerId = user?.userId
-		if (!isDraftHydrated || !ownerId) return
-
-		const timer = setTimeout(() => {
-			const persist =
-				content.trim() || photoFiles.length > 0 || sessionId
-					? postDraftRepository.save({
-							ownerId,
-							sessionId,
-							content,
-							photos: photoFiles,
-						})
-					: postDraftRepository.clear(ownerId, sessionId)
-			void persist.catch(error => {
-				logDevError('Failed to auto-save post draft:', error)
-			})
-		}, 1500)
-
-		return () => clearTimeout(timer)
-	}, [content, isDraftHydrated, photoFiles, sessionId, user?.userId])
+	const draftAutosave = usePostDraftAutosave({
+		ownerId: user?.userId,
+		sessionId,
+		content,
+		photos: photoFiles,
+		enabled: isDraftHydrated,
+		initiallyPersisted: recoveredDraftExists,
+	})
+	useBeforeUnloadWarning(
+		draftAutosave.hasUnresolvedChanges && !isSubmitting,
+		t('draftLeaveWarning'),
+	)
 
 	const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || [])
@@ -452,7 +465,8 @@ function CreatePostContent() {
 		: false
 
 	// Guest guard — show skeleton while loading, hide on unauthenticated (redirect effect handles navigation)
-	if (!isHydrated || isAuthLoading) return <CreatePostSkeleton />
+	if (!isHydrated || isAuthLoading || !isDraftHydrated)
+		return <CreatePostSkeleton />
 	if (!isAuthenticated) return null
 
 	return (
@@ -470,7 +484,7 @@ function CreatePostContent() {
 						<div className='flex items-center gap-3'>
 							<motion.button
 								type='button'
-								onClick={() => router.back()}
+								onClick={() => navigateBackOrFallback(router, PATHS.FEED)}
 								whileTap={BUTTON_SUBTLE_TAP}
 								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								aria-label={t('ariaGoBack')}
@@ -661,7 +675,7 @@ function CreatePostContent() {
 							className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card'
 						>
 							{/* Author header */}
-							<div className='flex items-center gap-3 border-b border-border-subtle p-4'>
+							<div className='flex flex-wrap items-center gap-3 border-b border-border-subtle p-4'>
 								<Avatar className='size-12 ring-2 ring-brand/10'>
 									<AvatarImage
 										src={user?.avatarUrl}
@@ -676,7 +690,7 @@ function CreatePostContent() {
 											.slice(0, 2) || 'YO'}
 									</AvatarFallback>
 								</Avatar>
-								<div>
+								<div className='min-w-0 flex-1'>
 									<div className='font-semibold text-text-primary'>
 										{user?.displayName || user?.username || tc('user')}
 									</div>
@@ -686,6 +700,17 @@ function CreatePostContent() {
 											: t('shareYourCreationShort')}
 									</div>
 								</div>
+								<DraftSaveIndicator
+									state={draftAutosave.state}
+									onRetry={() => void draftAutosave.retry()}
+									labels={{
+										unsaved: t('draftUnsaved'),
+										saving: t('draftSaving'),
+										saved: t('draftSaved'),
+										error: t('draftSaveFailed'),
+										retry: t('draftRetry'),
+									}}
+								/>
 							</div>
 
 							{/* Content textarea */}
@@ -813,14 +838,8 @@ function CreatePostContent() {
 														})
 													: t('postButton')
 												: t('postButton')}
-											<kbd
-												className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'
-												suppressHydrationWarning
-											>
-												{typeof window !== 'undefined' &&
-												/Mac|iPhone|iPad/.test(navigator.userAgent)
-													? '⌘↵'
-													: 'Ctrl+↵'}
+											<kbd className='ml-1 hidden rounded bg-white/20 px-1.5 py-0.5 text-xs font-normal md:inline'>
+												{submitShortcut}
 											</kbd>
 										</>
 									)}
@@ -847,6 +866,63 @@ function CreatePostContent() {
 				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+function DraftSaveIndicator({
+	state,
+	onRetry,
+	labels,
+}: {
+	state: PostDraftSaveState
+	onRetry: () => void
+	labels: Record<'unsaved' | 'saving' | 'saved' | 'error' | 'retry', string>
+}) {
+	if (state === 'idle') return null
+
+	if (state === 'error') {
+		return (
+			<button
+				type='button'
+				onClick={onRetry}
+				className='inline-flex min-h-10 items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-3 text-sm font-semibold text-error transition-colors hover:bg-error/15 focus-visible:ring-2 focus-visible:ring-error/50'
+				aria-label={`${labels.error}. ${labels.retry}`}
+				data-testid='post-draft-status'
+			>
+				<CloudOff className='size-4' aria-hidden='true' />
+				<span>{labels.error}</span>
+				<RefreshCw className='size-3.5' aria-hidden='true' />
+			</button>
+		)
+	}
+
+	return (
+		<div
+			className={cn(
+				'inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium',
+				state === 'saved'
+					? 'border-success/25 bg-success/10 text-success'
+					: 'border-border bg-bg-elevated text-text-secondary',
+			)}
+			role='status'
+			aria-live='polite'
+			data-testid='post-draft-status'
+		>
+			{state === 'saving' ? (
+				<Loader2 className='size-4 animate-spin' aria-hidden='true' />
+			) : state === 'saved' ? (
+				<Check className='size-4' aria-hidden='true' />
+			) : (
+				<Clock className='size-4' aria-hidden='true' />
+			)}
+			<span>
+				{state === 'saving'
+					? labels.saving
+					: state === 'saved'
+						? labels.saved
+						: labels.unsaved}
+			</span>
+		</div>
 	)
 }
 
