@@ -21,6 +21,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from 'next-intl'
+import { roomInvitePath } from '@/lib/room-code'
 
 interface FriendsCookingNowProps {
 	className?: string
@@ -55,7 +56,8 @@ export function FriendsCookingNow({
 			])
 			const roomsRes =
 				roomsResult.status === 'fulfilled' ? roomsResult.value : null
-			const soloRes = soloResult.status === 'fulfilled' ? soloResult.value : null
+			const soloRes =
+				soloResult.status === 'fulfilled' ? soloResult.value : null
 			const roomsSucceeded = Boolean(
 				roomsRes?.success && Array.isArray(roomsRes.data),
 			)
@@ -242,9 +244,7 @@ export function FriendsCookingNow({
 										<button
 											type='button'
 											onClick={() =>
-												router.push(
-													`/cook-together?roomCode=${room.roomCode}&role=SPECTATOR`,
-												)
+												router.push(roomInvitePath(room.roomCode, 'SPECTATOR'))
 											}
 											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl border border-border-subtle bg-bg-card px-2.5 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary'
 											title={t('friendWatch')}
@@ -257,9 +257,7 @@ export function FriendsCookingNow({
 										</button>
 										<button
 											type='button'
-											onClick={() =>
-												router.push(`/cook-together?roomCode=${room.roomCode}`)
-											}
+											onClick={() => router.push(roomInvitePath(room.roomCode))}
 											className='inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-brand px-2.5 py-1.5 text-xs font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow'
 											title={t('friendJoin')}
 											aria-label={t('friendJoinAria', {
