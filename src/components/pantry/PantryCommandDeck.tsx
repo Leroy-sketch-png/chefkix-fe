@@ -15,7 +15,7 @@ interface PantryCommandDeckProps {
 	onSearchChange: (value: string) => void
 	showingCategory: string
 	hasSuggestionsOpen: boolean
-	onOpenSuggestions: () => void
+	onToggleSuggestions: () => void
 	onClearExpired: () => void
 	canClearExpired: boolean
 	className?: string
@@ -62,7 +62,7 @@ export function PantryCommandDeck({
 	onSearchChange,
 	showingCategory,
 	hasSuggestionsOpen,
-	onOpenSuggestions,
+	onToggleSuggestions,
 	onClearExpired,
 	canClearExpired,
 	className,
@@ -92,7 +92,9 @@ export function PantryCommandDeck({
 				<div className='grid w-full grid-cols-2 gap-2 lg:w-auto lg:flex'>
 					<button
 						type='button'
-						onClick={onOpenSuggestions}
+						onClick={onToggleSuggestions}
+						aria-expanded={hasSuggestionsOpen}
+						aria-controls='pantry-recipe-suggestions'
 						className='inline-flex min-h-9 items-center justify-center gap-2 rounded-xl border border-brand/20 bg-brand/8 px-3 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/12'
 					>
 						<Sparkles className='size-4' />

@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -72,6 +73,7 @@ import { createFromRecipe } from '@/services/shoppingList'
 import { relativeExpiry } from '@/lib/relative-time'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { reconcilePantryItems } from '@/lib/pantry-items'
+import { getPantryCounts, getVisiblePantryItems } from '@/lib/pantry-view'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -150,6 +152,8 @@ export default function PantryPage() {
 	const [matchedRecipes, setMatchedRecipes] = useState<PantryRecipeMatch[]>([])
 	const [showSuggestions, setShowSuggestions] = useState(false)
 	const [loadingRecipes, setLoadingRecipes] = useState(false)
+	const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
+	const suggestionLoadInFlightRef = useRef(false)
 	const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
 		null,
 	)
@@ -159,11 +163,14 @@ export default function PantryPage() {
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
 	useEscapeKey(showClearExpiredConfirm, () => setShowClearExpiredConfirm(false))
 	const [addingToListId, setAddingToListId] = useState<string | null>(null)
+	const fetchRequestId = useRef(0)
 	// ── Fetch ─────────────────────────────────────────────
 
 	const fetchItems = useCallback(async () => {
+		const requestId = ++fetchRequestId.current
 		try {
-			const response = await getPantryItems(filterCategory ?? undefined)
+			const response = await getPantryItems()
+			if (requestId !== fetchRequestId.current) return
 			if (!response.success || !response.data) {
 				setError(true)
 				toast.error(response.message || t('failedToLoadItems'), {
@@ -179,6 +186,7 @@ export default function PantryPage() {
 			setItems(response.data)
 			setError(false)
 		} catch {
+			if (requestId !== fetchRequestId.current) return
 			setError(true)
 			toast.error(t('failedToLoadItems'), {
 				action: {
@@ -189,35 +197,16 @@ export default function PantryPage() {
 				},
 			})
 		} finally {
-			setLoading(false)
+			if (requestId === fetchRequestId.current) setLoading(false)
 		}
-	}, [filterCategory, t])
+	}, [t])
 
 	useEffect(() => {
-		let cancelled = false
-		getPantryItems(filterCategory ?? undefined)
-			.then(response => {
-				if (cancelled) return
-				if (!response.success || !response.data) {
-					setError(true)
-					toast.error(response.message || t('failedToLoadItems'))
-					return
-				}
-				setItems(response.data)
-				setError(false)
-			})
-			.catch(() => {
-				if (cancelled) return
-				setError(true)
-				toast.error(t('failedToLoadItems'))
-			})
-			.finally(() => {
-				if (!cancelled) setLoading(false)
-			})
+		void fetchItems()
 		return () => {
-			cancelled = true
+			fetchRequestId.current += 1
 		}
-	}, [filterCategory, t])
+	}, [fetchItems])
 
 	// ── Quick Add ─────────────────────────────────────────
 
@@ -239,7 +228,7 @@ export default function PantryPage() {
 				return
 			}
 			const newItem = await addPantryItem(req)
-			setItems(prev => reconcilePantryItems(prev, newItem, filterCategory))
+			setItems(prev => reconcilePantryItems(prev, newItem))
 			setQuickAddName('')
 			setQuickAddQty('')
 			setQuickAddUnit('')
@@ -336,10 +325,13 @@ export default function PantryPage() {
 
 	const loadSuggestions = async () => {
 		setShowSuggestions(true)
+		if (suggestionsLoaded || suggestionLoadInFlightRef.current) return
+		suggestionLoadInFlightRef.current = true
 		setLoadingRecipes(true)
 		try {
 			const data = await getMatchingRecipes(0.3, true)
 			setMatchedRecipes(data)
+			setSuggestionsLoaded(true)
 		} catch {
 			setShowSuggestions(false)
 			toast.error(t('failedToLoadSuggestions'), {
@@ -351,15 +343,20 @@ export default function PantryPage() {
 				},
 			})
 		} finally {
+			suggestionLoadInFlightRef.current = false
 			setLoadingRecipes(false)
 		}
 	}
 
-	const handleAddToShoppingList = async (
-		recipeId: string,
-		e: React.SyntheticEvent,
-	) => {
-		e.stopPropagation()
+	const toggleSuggestions = () => {
+		if (showSuggestions) {
+			setShowSuggestions(false)
+			return
+		}
+		void loadSuggestions()
+	}
+
+	const handleAddToShoppingList = async (recipeId: string) => {
 		if (addingToListId) return
 		setAddingToListId(recipeId)
 		try {
@@ -382,22 +379,18 @@ export default function PantryPage() {
 
 	// ── Derived ───────────────────────────────────────────
 
-	const expiredCount = items.filter(i => i.freshness === 'expired').length
-	const expiringCount = items.filter(
-		i => i.freshness === 'expiring_soon',
-	).length
+	const pantryCounts = getPantryCounts(items)
+	const expiredCount = pantryCounts.expired
+	const expiringCount = pantryCounts.expiringSoon
 	const activeCategoryLabel = filterCategory
 		? t(
 				CATEGORIES.find(category => category.key === filterCategory)
 					?.labelKey ?? 'all',
 			)
 		: t('all')
-	const trackedItemsLabel = t('itemCount', { count: items.length })
-	const filtered = items.filter(i =>
-		searchQuery
-			? i.ingredientName.toLowerCase().includes(searchQuery.toLowerCase())
-			: true,
-	)
+	const trackedItemsLabel = t('itemCount', { count: pantryCounts.total })
+	const filtered = getVisiblePantryItems(items, filterCategory, searchQuery)
+	const hasActiveViewFilter = Boolean(filterCategory || searchQuery.trim())
 	const grouped = CATEGORIES.map(cat => ({
 		...cat,
 		items: filtered.filter(i => i.category === cat.key),
@@ -452,14 +445,14 @@ export default function PantryPage() {
 				<div className='grid grid-cols-1 gap-6 py-6'>
 					<div className='space-y-6'>
 						<PantryCommandDeck
-							itemCount={items.length}
+							itemCount={pantryCounts.total}
 							expiredCount={expiredCount}
 							expiringCount={expiringCount}
 							searchQuery={searchQuery}
 							onSearchChange={setSearchQuery}
 							showingCategory={activeCategoryLabel}
 							hasSuggestionsOpen={showSuggestions}
-							onOpenSuggestions={loadSuggestions}
+							onToggleSuggestions={toggleSuggestions}
 							onClearExpired={() => setShowClearExpiredConfirm(true)}
 							canClearExpired={expiredCount > 0}
 						>
@@ -770,6 +763,21 @@ export default function PantryPage() {
 									icon: <Plus className='size-4' />,
 								}}
 							/>
+						) : filtered.length === 0 && hasActiveViewFilter ? (
+							<EmptyStateGamified
+								variant='custom'
+								emoji='🔎'
+								title={t('noFilteredItemsTitle')}
+								description={t('noFilteredItemsDescription')}
+								primaryAction={{
+									label: t('clearFilters'),
+									onClick: () => {
+										setFilterCategory(null)
+										setSearchQuery('')
+									},
+									icon: <X className='size-4' />,
+								}}
+							/>
 						) : (
 							<div className='space-y-4'>
 								{grouped.map(group => (
@@ -936,6 +944,7 @@ export default function PantryPage() {
 						<AnimatePresence>
 							{showSuggestions && (
 								<motion.div
+									id='pantry-recipe-suggestions'
 									initial={{ opacity: 0, y: 20 }}
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: 20 }}
@@ -985,70 +994,73 @@ export default function PantryPage() {
 													})
 
 												return (
-													<motion.button
-														type='button'
+													<motion.div
 														key={match.recipeId}
 														whileHover={CARD_HOVER}
-														onClick={() =>
-															router.push(`/recipes/${match.recipeId}`)
-														}
-														className='flex items-center gap-4 rounded-xl border border-border-subtle bg-bg p-3 text-left transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-brand/50'
+														className='flex items-center rounded-xl border border-border-subtle bg-bg transition-colors hover:bg-bg-elevated'
 													>
-														{coverImageDelivery && (
-															<Image
-																src={coverImageDelivery.src}
-																alt={match.recipeTitle}
-																width={56}
-																height={56}
-																unoptimized={coverImageDelivery.unoptimized}
-																className='size-14 rounded-xl object-cover'
-															/>
-														)}
-														<div className='flex-1'>
-															<p className='font-medium text-text-primary'>
-																{match.recipeTitle}
-															</p>
-															<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
-																<span>{match.difficulty}</span>
-																<span>
-																	{match.totalTimeMinutes} {t('min')}
-																</span>
-															</div>
-															<div className='mt-1.5 flex items-center gap-2'>
-																<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
-																	<div
-																		className='h-full rounded-full bg-brand transition-all'
-																		style={{
-																			width: `${match.matchPercentage * 100}%`,
-																		}}
-																	/>
-																</div>
-																<span className='text-xs font-semibold text-brand'>
-																	{Math.round(match.matchPercentage * 100)}%
-																</span>
-															</div>
-															{match.expiringIngredientsUsed.length > 0 && (
-																<p className='mt-1 text-xs text-warning'>
-																	{t('usesExpiring')}{' '}
-																	{match.expiringIngredientsUsed.join(', ')}
-																</p>
+														<Link
+															href={`/recipes/${match.recipeId}?cook=true`}
+															className='flex min-w-0 flex-1 items-center gap-4 rounded-xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+														>
+															{coverImageDelivery && (
+																<Image
+																	src={coverImageDelivery.src}
+																	alt={match.recipeTitle}
+																	width={56}
+																	height={56}
+																	unoptimized={coverImageDelivery.unoptimized}
+																	className='size-14 rounded-xl object-cover'
+																/>
 															)}
-														</div>{' '}
+															<div className='min-w-0 flex-1'>
+																<p className='font-medium text-text-primary'>
+																	{match.recipeTitle}
+																</p>
+																<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
+																	<span>{match.difficulty}</span>
+																	<span>
+																		{match.totalTimeMinutes} {t('min')}
+																	</span>
+																</div>
+																<div className='mt-1.5 flex items-center gap-2'>
+																	<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
+																		<div
+																			className='h-full rounded-full bg-brand transition-all'
+																			style={{
+																				width: `${match.matchPercentage * 100}%`,
+																			}}
+																		/>
+																	</div>
+																	<span className='text-xs font-semibold text-brand'>
+																		{Math.round(match.matchPercentage * 100)}%
+																	</span>
+																</div>
+																{match.expiringIngredientsUsed.length > 0 && (
+																	<p className='mt-1 text-xs text-warning'>
+																		{t('usesExpiring')}{' '}
+																		{match.expiringIngredientsUsed.join(', ')}
+																	</p>
+																)}
+															</div>
+														</Link>
 														<button
 															type='button'
-															onClick={e =>
-																handleAddToShoppingList(match.recipeId, e)
+															onClick={() =>
+																handleAddToShoppingList(match.recipeId)
 															}
 															aria-label={t('addToShoppingList')}
-															className='grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10'
+															aria-busy={addingToListId === match.recipeId}
+															disabled={addingToListId !== null}
+															className='mr-3 grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10 disabled:cursor-not-allowed disabled:opacity-60'
 														>
 															{addingToListId === match.recipeId ? (
 																<Loader2 className='size-4 animate-spin text-text-muted' />
 															) : (
 																<ShoppingCart className='size-4 text-text-secondary' />
 															)}
-														</button>{' '}
-													</motion.button>
+														</button>
+													</motion.div>
 												)
 											})}
 										</div>
