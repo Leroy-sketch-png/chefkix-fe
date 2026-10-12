@@ -9,7 +9,9 @@ describe('shopping-list item mutation authority', () => {
 
 	it('serializes every complete-list writer through one whole-list lock', () => {
 		expect(source).toContain('const listMutationLockRef = useRef(false)')
-		expect(source.match(/beginListMutation\(/g)).toHaveLength(4)
+		expect(source.match(/beginListMutation\(/g)).toHaveLength(5)
+		expect(source).toContain("beginListMutation({ type: 'share' })")
+		expect(source).toContain("beginListMutation({ type: 'reset-share' })")
 		expect(source).not.toContain('addingItemRef')
 		expect(source).not.toContain('removingItemRef')
 	})
@@ -29,5 +31,20 @@ describe('shopping-list item mutation authority', () => {
 				/checkedItems: items\.filter\(item => item\.checked\)\.length/g,
 			),
 		).toHaveLength(2)
+	})
+
+	it('distinguishes an absent meal plan from a failed list creation request', () => {
+		const createHandler = source.slice(
+			source.indexOf('const handleCreateFromMealPlan'),
+			source.indexOf('const handleCreateCustom'),
+		)
+
+		expect(createHandler).toContain(
+			"if (!plan) {\n\t\t\t\ttoast.error(t('noMealPlan'))",
+		)
+		expect(createHandler).toContain(
+			"catch {\n\t\t\ttoast.error(t('failedCreateFromMealPlan'))",
+		)
+		expect(createHandler.match(/t\('noMealPlan'\)/g)).toHaveLength(1)
 	})
 })

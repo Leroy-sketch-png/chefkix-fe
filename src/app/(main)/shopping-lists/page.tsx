@@ -15,6 +15,8 @@ import {
 	UtensilsCrossed,
 	FileText,
 	Package,
+	RotateCcw,
+	ListChecks,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -61,6 +63,15 @@ import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { relativeTime } from '@/lib/relative-time'
 import {
+	resolveStableShoppingListShare,
+	shoppingListShareUrl,
+} from '@/lib/shopping-list-sharing'
+import {
+	shoppingListIdFromSearch,
+	shoppingListPath,
+} from '@/lib/shopping-list-route'
+import { copyToClipboard } from '@/lib/clipboard'
+import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
@@ -72,8 +83,17 @@ const SOURCE_CONFIG: Record<
 	{ icon: typeof CalendarDays; color: string; bg: string }
 > = {
 	'Meal Plan': { icon: CalendarDays, color: 'text-info', bg: 'bg-info/10' },
+	'Cook Plan': { icon: ListChecks, color: 'text-brand', bg: 'bg-brand/10' },
 	Recipe: { icon: UtensilsCrossed, color: 'text-brand', bg: 'bg-brand/10' },
 	Custom: { icon: FileText, color: 'text-success', bg: 'bg-success/10' },
+}
+
+function replaceShoppingListUrl(listId?: string | null) {
+	window.history.replaceState(
+		window.history.state,
+		'',
+		shoppingListPath(listId),
+	)
 }
 
 type PendingListMutation =
@@ -81,6 +101,7 @@ type PendingListMutation =
 	| { type: 'add' }
 	| { type: 'remove'; itemId: string }
 	| { type: 'share' }
+	| { type: 'reset-share' }
 
 export default function ShoppingListsPage() {
 	// ── State ──────────────────────────────────────────────────────────
@@ -99,6 +120,7 @@ export default function ShoppingListsPage() {
 	const [isCreating, setIsCreating] = useState(false)
 	const [copySuccess, setCopySuccess] = useState(false)
 	const [shareSuccess, setShareSuccess] = useState(false)
+	const [showResetShareDialog, setShowResetShareDialog] = useState(false)
 	const listMutationLockRef = useRef(false)
 	const [pendingListMutation, setPendingListMutation] =
 		useState<PendingListMutation>(null)
@@ -125,6 +147,7 @@ export default function ShoppingListsPage() {
 	const tc = useTranslations('common')
 
 	useEscapeKey(!!confirmingDeleteId, () => setConfirmingDeleteId(null))
+	useEscapeKey(showResetShareDialog, () => setShowResetShareDialog(false))
 
 	// ── Ingredient autocomplete via Typesense ──────────────────────────
 
@@ -178,24 +201,40 @@ export default function ShoppingListsPage() {
 
 	// ── List operations ────────────────────────────────────────────────
 
-	const handleOpenList = async (id: string) => {
-		setIsDetailLoading(true)
-		try {
-			const data = await getShoppingListById(id)
-			setSelectedList(data)
-		} catch {
-			toast.error(t('failedOpen'))
-		} finally {
-			setIsDetailLoading(false)
-		}
-	}
+	const handleOpenList = useCallback(
+		async (id: string, fromUrl = false) => {
+			setIsDetailLoading(true)
+			try {
+				const data = await getShoppingListById(id)
+				setSelectedList(data)
+				replaceShoppingListUrl(data.id)
+			} catch {
+				toast.error(t('failedOpen'))
+				if (fromUrl) replaceShoppingListUrl()
+			} finally {
+				setIsDetailLoading(false)
+			}
+		},
+		[t],
+	)
+
+	const initialSelectionHandledRef = useRef(false)
+	useEffect(() => {
+		if (initialSelectionHandledRef.current) return
+		initialSelectionHandledRef.current = true
+		const listId = shoppingListIdFromSearch(window.location.search)
+		if (listId) void handleOpenList(listId, true)
+	}, [handleOpenList])
 
 	const handleDeleteList = async (id: string) => {
 		setIsDeletingList(true)
 		try {
 			await deleteShoppingList(id)
 			setLists(prev => prev.filter(l => l.id !== id))
-			if (selectedList?.id === id) setSelectedList(null)
+			if (selectedList?.id === id) {
+				setSelectedList(null)
+				replaceShoppingListUrl()
+			}
 			setConfirmingDeleteId(null)
 			toast.success(t('deleted'))
 		} catch {
@@ -215,11 +254,12 @@ export default function ShoppingListsPage() {
 			}
 			const list = await createFromMealPlan({ mealPlanId: plan.id })
 			setSelectedList(list)
+			replaceShoppingListUrl(list.id)
 			setShowCreateMenu(false)
 			fetchLists()
 			toast.success(t('createdFromMealPlan'))
 		} catch {
-			toast.error(t('noMealPlan'))
+			toast.error(t('failedCreateFromMealPlan'))
 		} finally {
 			setIsCreating(false)
 		}
@@ -231,6 +271,7 @@ export default function ShoppingListsPage() {
 		try {
 			const list = await createCustomList({ name: customListName.trim() })
 			setSelectedList(list)
+			replaceShoppingListUrl(list.id)
 			setShowCreateMenu(false)
 			setShowCustomNameInput(false)
 			setCustomListName('')
@@ -365,9 +406,10 @@ export default function ShoppingListsPage() {
 			})
 			.join('\n')
 		try {
-			await navigator.clipboard.writeText(
+			const copied = await copyToClipboard(
 				`${selectedList.name}\n${'─'.repeat(30)}\n${text}`,
 			)
+			if (!copied) throw new Error('Clipboard unavailable')
 			setCopySuccess(true)
 		} catch {
 			toast.error(t('failedCopy'))
@@ -376,16 +418,46 @@ export default function ShoppingListsPage() {
 
 	const handleShare = async () => {
 		if (!selectedList || listMutationLockRef.current) return
-		const listId = selectedList.id
 		if (!beginListMutation({ type: 'share' })) return
 		try {
-			const updated = await regenerateShareToken(listId)
-			applyListResponse(listId, updated)
-			const url = `${window.location.origin}/shopping-lists/shared/${updated.shareToken}`
-			await navigator.clipboard.writeText(url)
+			const shareableList = await resolveStableShoppingListShare(
+				selectedList,
+				regenerateShareToken,
+			)
+			if (!shareableList.shareToken) throw new Error('Share token unavailable')
+			if (shareableList !== selectedList) {
+				applyListResponse(selectedList.id, shareableList)
+			}
+			const url = shoppingListShareUrl(
+				window.location.origin,
+				shareableList.shareToken,
+			)
+			if (!(await copyToClipboard(url))) throw new Error('Clipboard unavailable')
 			setShareSuccess(true)
 		} catch {
 			toast.error(t('failedShare'))
+		} finally {
+			endListMutation()
+		}
+	}
+
+	const handleResetShareLink = async () => {
+		if (!selectedList || listMutationLockRef.current) return
+		const listId = selectedList.id
+		if (!beginListMutation({ type: 'reset-share' })) return
+		try {
+			const updated = await regenerateShareToken(listId)
+			if (!updated.shareToken) throw new Error('Share token unavailable')
+			applyListResponse(listId, updated)
+			const copied = await copyToClipboard(
+				shoppingListShareUrl(window.location.origin, updated.shareToken),
+			)
+			if (!copied) throw new Error('Clipboard unavailable')
+			setShareSuccess(true)
+			setShowResetShareDialog(false)
+			toast.success(t('shareLinkReset'))
+		} catch {
+			toast.error(t('failedResetShareLink'))
 		} finally {
 			endListMutation()
 		}
@@ -427,10 +499,69 @@ export default function ShoppingListsPage() {
 		() => (selectedList?.items ?? []).filter(i => !i.checked),
 		[selectedList],
 	)
+	const resetShareDialog = (
+		<AnimatePresence>
+			{showResetShareDialog && (
+				<Portal>
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className='fixed inset-0 z-modal flex items-center justify-center bg-black/60 p-4'
+						onClick={() => setShowResetShareDialog(false)}
+					>
+						<motion.div
+							initial={{ scale: 0.95, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.95, opacity: 0 }}
+							onClick={event => event.stopPropagation()}
+							role='alertdialog'
+							aria-modal='true'
+							aria-labelledby='reset-share-link-title'
+							aria-describedby='reset-share-link-desc'
+							className='w-full max-w-sm rounded-xl bg-bg-card p-6 shadow-warm'
+						>
+							<h3
+								id='reset-share-link-title'
+								className='mb-2 text-lg font-bold text-text-primary'
+							>
+								{t('resetShareLinkTitle')}
+							</h3>
+							<p
+								id='reset-share-link-desc'
+								className='mb-6 text-sm text-text-muted'
+							>
+								{t('resetShareLinkDesc')}
+							</p>
+							<div className='flex justify-end gap-3'>
+								<button
+									type='button'
+									onClick={() => setShowResetShareDialog(false)}
+									className='rounded-xl px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated'
+								>
+									{t('cancel')}
+								</button>
+								<button
+									type='button'
+									onClick={handleResetShareLink}
+									disabled={pendingListMutation !== null}
+									className='rounded-xl bg-destructive px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive/90 disabled:cursor-not-allowed disabled:opacity-60'
+								>
+									{pendingListMutation?.type === 'reset-share'
+										? t('resettingShareLink')
+										: t('resetShareLink')}
+								</button>
+							</div>
+						</motion.div>
+					</motion.div>
+				</Portal>
+			)}
+		</AnimatePresence>
+	)
 
 	// ── Loading skeleton ───────────────────────────────────────────────
 
-	if (isLoading) {
+	if (isLoading || isDetailLoading) {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
@@ -450,7 +581,7 @@ export default function ShoppingListsPage() {
 		)
 	}
 
-	if (fetchError) {
+	if (fetchError && !selectedList) {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
@@ -495,6 +626,7 @@ export default function ShoppingListsPage() {
 										type='button'
 										onClick={() => {
 											setSelectedList(null)
+											replaceShoppingListUrl()
 											fetchLists()
 										}}
 										className='rounded-xl p-2 text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -506,20 +638,32 @@ export default function ShoppingListsPage() {
 										{t('backToLists')}
 									</p>
 								</div>
-								<button
-									type='button'
-									onClick={handleShare}
-									disabled={pendingListMutation !== null}
-									className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50'
-									title={t('shareList')}
-								>
-									{shareSuccess ? (
-										<Check className='size-4 text-success' />
-									) : (
-										<Share2 className='size-4' />
-									)}
-									{shareSuccess ? t('linkCopied') : t('share')}
-								</button>
+								<div className='flex items-center gap-2'>
+									<button
+										type='button'
+										onClick={handleShare}
+										disabled={pendingListMutation !== null}
+										className='flex items-center gap-1.5 rounded-xl border border-border-subtle px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50'
+										title={t('shareList')}
+									>
+										{shareSuccess ? (
+											<Check className='size-4 text-success' />
+										) : (
+											<Share2 className='size-4' />
+										)}
+										{shareSuccess ? t('linkCopied') : t('share')}
+									</button>
+									<button
+										type='button'
+										onClick={() => setShowResetShareDialog(true)}
+										disabled={pendingListMutation !== null}
+										className='flex size-10 items-center justify-center rounded-xl border border-border-subtle text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50'
+										aria-label={t('resetShareLink')}
+										title={t('resetShareLink')}
+									>
+										<RotateCcw className='size-4' />
+									</button>
+								</div>
 							</div>
 
 							{/* Progress bar */}
@@ -699,6 +843,7 @@ export default function ShoppingListsPage() {
 							</PremiumSurface>
 						</div>
 					</div>
+					{resetShareDialog}
 				</PageContainer>
 			</PageTransition>
 		)
@@ -856,16 +1001,21 @@ export default function ShoppingListsPage() {
 													)
 												: 0
 										return (
-											<motion.div
+											<motion.article
 												key={list.id}
 												whileHover={CARD_HOVER}
 												transition={TRANSITION_SPRING}
-												onClick={() => handleOpenList(list.id)}
-												className='cursor-pointer rounded-xl overflow-hidden'
+												className='group overflow-hidden rounded-xl'
 											>
-												<div className='group relative bg-bg-card/75 backdrop-blur-md p-4 shadow-card border border-border-subtle transition-all hover:shadow-warm md:p-5 overflow-hidden'>
+												<div className='relative overflow-hidden border border-border-subtle bg-bg-card/75 p-4 shadow-card backdrop-blur-md transition-all hover:shadow-warm md:p-5'>
+													<button
+														type='button'
+														onClick={() => handleOpenList(list.id)}
+														aria-label={t('ariaOpenList', { name: list.name })}
+														className='absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand'
+													/>
 													{/* Source badge */}
-													<div className='mb-3 flex items-center justify-between z-10 relative'>
+													<div className='relative mb-3 flex items-center justify-between'>
 														<span
 															className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${sourceConf.color} ${sourceConf.bg}`}
 														>
@@ -874,11 +1024,8 @@ export default function ShoppingListsPage() {
 														</span>
 														<button
 															type='button'
-															onClick={e => {
-																e.stopPropagation()
-																setConfirmingDeleteId(list.id)
-															}}
-															className='flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 md:opacity-50 md:group-hover:opacity-100 focus-visible:opacity-100'
+															onClick={() => setConfirmingDeleteId(list.id)}
+															className='relative z-20 flex size-10 items-center justify-center rounded-md text-text-muted opacity-60 transition-all hover:bg-destructive/10 hover:text-destructive active:opacity-100 focus-visible:opacity-100 md:opacity-50 md:group-hover:opacity-100'
 															aria-label={t('ariaDeleteList')}
 														>
 															<Trash2 className='size-4' />
@@ -886,12 +1033,12 @@ export default function ShoppingListsPage() {
 													</div>
 
 													{/* Title */}
-													<h3 className='mb-1 text-base font-semibold text-text-primary z-10 relative group-hover:text-brand transition-colors duration-300'>
+													<h3 className='relative mb-1 text-base font-semibold text-text-primary transition-colors duration-300 group-hover:text-brand'>
 														{list.name}
 													</h3>
 
 													{/* Stats */}
-													<p className='mb-3 text-xs text-text-muted z-10 relative'>
+													<p className='relative mb-3 text-xs text-text-muted'>
 														{t('itemsStats', {
 															checked: list.checkedItems,
 															total: list.totalItems,
@@ -901,7 +1048,7 @@ export default function ShoppingListsPage() {
 
 													{/* Mini progress bar */}
 													{list.totalItems > 0 && (
-														<div className='overflow-hidden rounded-full bg-bg-elevated z-10 relative'>
+														<div className='relative overflow-hidden rounded-full bg-bg-elevated'>
 															<div
 																className='h-1.5 rounded-full bg-gradient-primary transition-all duration-500'
 																style={{ width: `${listProgress}%` }}
@@ -911,13 +1058,13 @@ export default function ShoppingListsPage() {
 
 													{/* Completion indicator */}
 													{listProgress === 100 && list.totalItems > 0 && (
-														<div className='mt-2 flex items-center gap-1 text-xs font-medium text-success z-10 relative'>
+														<div className='relative mt-2 flex items-center gap-1 text-xs font-medium text-success'>
 															<Check className='size-3' />
 															{t('complete')}
 														</div>
 													)}
 												</div>
-											</motion.div>
+											</motion.article>
 										)
 									})}
 								</div>
