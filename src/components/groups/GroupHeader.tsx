@@ -29,6 +29,7 @@ import { leaveGroup } from '@/services/group'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
+import { shareContent } from '@/lib/clipboard'
 
 interface GroupHeaderProps {
 	group: Group
@@ -76,23 +77,14 @@ export const GroupHeader = ({
 
 	const handleShareGroup = async () => {
 		const url = `${window.location.origin}/groups/${group.id}`
+		const result = await shareContent({
+			title: group.name,
+			text: t('ghShareText', { name: group.name }),
+			url,
+		})
 
-		try {
-			if (navigator.share) {
-				await navigator.share({
-					title: group.name,
-					text: t('ghShareText', { name: group.name }),
-					url,
-				})
-				return
-			}
-
-			await navigator.clipboard.writeText(url)
-			toast.success(t('ghLinkCopied'))
-		} catch (error) {
-			if (error instanceof DOMException && error.name === 'AbortError') return
-			toast.error(t('ghShareFailed'))
-		}
+		if (result === 'copied') toast.success(t('ghLinkCopied'))
+		if (result === 'failed') toast.error(t('ghShareFailed'))
 	}
 
 	return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, Reorder, useDragControls } from 'framer-motion'
 import {
 	BookOpen,
@@ -31,6 +31,7 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { DifficultyStep, CollectionType } from '@/lib/types/collection'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { autocompleteSearch } from '@/services/search'
+import { getRecipeById } from '@/services/recipe'
 
 interface CollectionBuilderProps {
 	/** Initial collection name */
@@ -73,6 +74,9 @@ const DIFFICULTY_LEVELS: DifficultyLevel[] = [
 	'Expert',
 ]
 
+const EMPTY_RECIPE_IDS: string[] = []
+const EMPTY_STAGES: DifficultyStep[] = []
+
 const getDifficultyColor = (difficulty: string) => {
 	switch (difficulty.toLowerCase()) {
 		case 'beginner':
@@ -99,8 +103,8 @@ const getDifficultyColor = (difficulty: string) => {
 export function CollectionBuilder({
 	initialName = '',
 	initialDescription = '',
-	initialRecipeIds = [],
-	initialStages = [],
+	initialRecipeIds = EMPTY_RECIPE_IDS,
+	initialStages = EMPTY_STAGES,
 	initialType = 'LEARNING_PATH',
 	initialIsPublic = true,
 	onSave,
@@ -128,6 +132,45 @@ export function CollectionBuilder({
 	const [newStageName, setNewStageName] = useState('')
 	const [newStageDifficulty, setNewStageDifficulty] =
 		useState<DifficultyLevel>('Beginner')
+	const [recipeNames, setRecipeNames] = useState<Record<string, string>>({})
+
+	useEffect(() => {
+		const recipeIds = Array.from(
+			new Set([
+				...initialRecipeIds,
+				...initialStages.flatMap(stage => stage.recipeIds),
+			]),
+		)
+		if (recipeIds.length === 0) return
+
+		let cancelled = false
+		async function hydrateRecipeNames() {
+			const results = await Promise.allSettled(
+				recipeIds.map(recipeId => getRecipeById(recipeId)),
+			)
+			if (cancelled) return
+
+			const hydratedNames = results.reduce<Record<string, string>>(
+				(names, result, index) => {
+					if (
+						result.status === 'fulfilled' &&
+						result.value.success &&
+						result.value.data?.title
+					) {
+						names[recipeIds[index]] = result.value.data.title
+					}
+					return names
+				},
+				{},
+			)
+			setRecipeNames(current => ({ ...hydratedNames, ...current }))
+		}
+
+		hydrateRecipeNames()
+		return () => {
+			cancelled = true
+		}
+	}, [initialRecipeIds, initialStages])
 
 	// Computed stats
 	const allRecipeIds = stages.flatMap(stage => stage.recipeIds)
@@ -213,6 +256,7 @@ export function CollectionBuilder({
 						: stage,
 				),
 			)
+			setRecipeNames(current => ({ ...current, [recipeId]: option.label }))
 			toast.success(t('builderRecipeAdded', { name: option.label }))
 		},
 		[allRecipeIds, t],
@@ -367,6 +411,7 @@ export function CollectionBuilder({
 							onRemoveRecipe={handleRemoveRecipe}
 							onAddRecipe={handleAddRecipe}
 							existingRecipeIds={allRecipeIds}
+							recipeNames={recipeNames}
 							getDifficultyColor={getDifficultyColor}
 						/>
 					))}
@@ -417,7 +462,9 @@ export function CollectionBuilder({
 								</label>
 								<Select
 									value={newStageDifficulty}
-									onValueChange={v => setNewStageDifficulty(v as DifficultyLevel)}
+									onValueChange={v =>
+										setNewStageDifficulty(v as DifficultyLevel)
+									}
 								>
 									<SelectTrigger className='w-full bg-bg-card'>
 										<SelectValue />
@@ -490,6 +537,7 @@ interface StageItemProps {
 	onRemoveRecipe: (stageIndex: number, recipeId: string) => void
 	onAddRecipe: (stageIndex: number, option: AsyncComboboxOption) => void
 	existingRecipeIds: string[]
+	recipeNames: Record<string, string>
 	getDifficultyColor: (difficulty: string) => string
 }
 
@@ -502,6 +550,7 @@ function StageItem({
 	onRemoveRecipe,
 	onAddRecipe,
 	existingRecipeIds,
+	recipeNames,
 	getDifficultyColor,
 }: StageItemProps) {
 	const t = useTranslations('collections')
@@ -570,9 +619,13 @@ function StageItem({
 				<div className='w-32 flex-shrink-0'>
 					<Select
 						value={stage.difficulty}
-						onValueChange={v => onUpdateDifficulty(stageIndex, v as DifficultyLevel)}
+						onValueChange={v =>
+							onUpdateDifficulty(stageIndex, v as DifficultyLevel)
+						}
 					>
-						<SelectTrigger className={`h-8 rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-brand/50 ${getDifficultyColor(stage.difficulty)}`}>
+						<SelectTrigger
+							className={`h-8 rounded-full border px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-brand/50 ${getDifficultyColor(stage.difficulty)}`}
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -605,10 +658,8 @@ function StageItem({
 									className='flex items-center justify-between rounded-xl bg-bg-elevated px-3 py-2'
 								>
 									<span className='text-sm text-text-primary'>
-										{t('builderRecipeLabel', {
-											index: idx + 1,
-											id: recipeId.slice(0, 8),
-										})}
+										{recipeNames[recipeId] ||
+											t('builderRecipeFallback', { index: idx + 1 })}
 									</span>
 									<button
 										type='button'

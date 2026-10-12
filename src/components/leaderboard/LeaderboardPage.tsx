@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Globe, Users, Clock, Share2, ArrowLeft, ChefHat } from 'lucide-react'
+import { Globe, Users, Share2, ArrowLeft, ChefHat } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
@@ -41,16 +41,9 @@ export interface MyRankInfo {
 	nextRankPosition?: number
 }
 
-export interface ResetInfo {
-	days: number
-	hours: number
-	minutes: number
-}
-
 export interface LeaderboardPageProps {
 	entries: LeaderboardEntry[]
 	myRank?: MyRankInfo
-	resetInfo?: ResetInfo
 	type: LeaderboardType
 	timeframe: Timeframe
 	isLoading?: boolean
@@ -172,12 +165,25 @@ function TimeframeToggle({
 
 function MyRankBanner({
 	myRank,
+	timeframe,
 	onCookNow,
 }: {
 	myRank: MyRankInfo
+	timeframe: Timeframe
 	onCookNow?: () => void
 }) {
 	const t = useTranslations('leaderboard')
+	const xpLabel = (() => {
+		switch (timeframe) {
+			case 'monthly':
+				return t('xpThisMonth')
+			case 'all_time':
+				return t('xpAllTime')
+			case 'weekly':
+			default:
+				return t('xpThisWeek')
+		}
+	})()
 	return (
 		<motion.div
 			initial={{ opacity: 0, y: 10 }}
@@ -201,7 +207,7 @@ function MyRankBanner({
 					<span className='text-xl font-bold tracking-tight text-text-primary'>
 						{myRank.xpThisWeek}
 					</span>
-					<span className='text-xs text-text-muted'>{t('xpThisWeek')}</span>
+					<span className='text-xs text-text-muted'>{xpLabel}</span>
 				</div>
 				<div className='flex flex-col'>
 					<span className='text-xl font-bold tracking-tight text-text-primary'>
@@ -243,34 +249,12 @@ function MyRankBanner({
 }
 
 // ============================================================================
-// RESET TIMER
-// ============================================================================
-
-function ResetTimer({ resetInfo }: { resetInfo: ResetInfo }) {
-	const t = useTranslations('leaderboard')
-	return (
-		<div className='mt-4 flex items-center justify-center gap-2 rounded-xl border border-border-subtle/80 bg-gradient-to-br from-bg-card to-bg-elevated/60 py-3.5 text-sm text-text-muted'>
-			<Clock className='size-icon-sm' />
-			<span>
-				{t('resetsIn')}{' '}
-				<strong className='text-text-primary'>
-					{t('resetTimeDays', { days: resetInfo.days })}{' '}
-					{t('resetTimeHours', { hours: resetInfo.hours })}{' '}
-					{t('resetTimeMinutes', { minutes: resetInfo.minutes })}
-				</strong>
-			</span>
-		</div>
-	)
-}
-
-// ============================================================================
 // LEADERBOARD PAGE COMPONENT
 // ============================================================================
 
 export function LeaderboardPage({
 	entries,
 	myRank,
-	resetInfo,
 	type,
 	timeframe,
 	isLoading = false,
@@ -349,7 +333,11 @@ export function LeaderboardPage({
 
 			{/* My Rank Banner (when not in visible list) */}
 			{showMyRankBanner && (
-				<MyRankBanner myRank={myRank} onCookNow={onCookNow} />
+				<MyRankBanner
+					myRank={myRank}
+					timeframe={timeframe}
+					onCookNow={onCookNow}
+				/>
 			)}
 
 			{/* Loading State */}
@@ -397,11 +385,6 @@ export function LeaderboardPage({
 						))}
 					</motion.div>
 				</>
-			)}
-
-			{/* Reset Timer */}
-			{resetInfo && timeframe !== 'all_time' && (
-				<ResetTimer resetInfo={resetInfo} />
 			)}
 
 			{/* Empty State - Encouraging, not depressing */}

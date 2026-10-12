@@ -23,6 +23,7 @@ import {
 	X,
 	UserPlus,
 	BarChart3,
+	FolderHeart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -50,7 +51,7 @@ interface NavItem {
  * DESIGN DECISION: Mobile nav has 5 items (iOS/Android standard).
  * Home, Feed, Explore, Create, Profile, More.
  * "More" opens a drawer with secondary nav: Challenges, Community,
- * Cook Together, Messages, Pantry, Meal Plan, Shopping, Settings.
+ * Cook Together, Messages, Pantry, Meal Plan, Shopping, Collections, Settings.
  * Notifications are accessible via the Topbar bell icon.
  */
 const navItems: NavItem[] = [
@@ -111,6 +112,7 @@ const moreMenuItems: NavItem[] = [
 	{ href: '/pantry', icon: Package, labelKey: 'pantry' },
 	{ href: '/meal-planner', icon: CalendarDays, labelKey: 'mealPlan' },
 	{ href: '/shopping-lists', icon: ShoppingCart, labelKey: 'shopping' },
+	{ href: PATHS.COLLECTIONS, icon: FolderHeart, labelKey: 'collections' },
 	{ href: PATHS.CREATOR, icon: BarChart3, labelKey: 'creator' },
 	{ href: '/settings', icon: Settings, labelKey: 'settings' },
 ]
@@ -171,6 +173,7 @@ export const MobileBottomNav = () => {
 					'/pantry',
 					'/meal-planner',
 					'/shopping-lists',
+					PATHS.COLLECTIONS,
 				].includes(item.href),
 			),
 		},

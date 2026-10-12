@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -10,6 +10,8 @@ import {
 	Pencil,
 	Trash2,
 	FolderHeart,
+	AlertTriangle,
+	RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
@@ -18,6 +20,7 @@ import { PageTransition } from '@/components/layout/PageTransition'
 import { Portal } from '@/components/ui/portal'
 import { PostCard } from '@/components/social/PostCard'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
+import { ErrorState } from '@/components/ui/error-state'
 import {
 	CollectionBuilder,
 	LearningPathView,
@@ -43,6 +46,7 @@ import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
+import { PATHS } from '@/constants'
 
 export default function CollectionDetailPage({
 	params,
@@ -61,6 +65,12 @@ export default function CollectionDetailPage({
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [isUpdating, setIsUpdating] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [loadError, setLoadError] = useState<'not-found' | 'failed' | null>(
+		null,
+	)
+	const [postsLoadFailed, setPostsLoadFailed] = useState(false)
+	const [recipesLoadFailed, setRecipesLoadFailed] = useState(false)
+	const loadRequestIdRef = useRef(0)
 
 	// Edit form state
 	const [editName, setEditName] = useState('')
@@ -74,58 +84,70 @@ export default function CollectionDetailPage({
 		setShowDeleteConfirm(false),
 	)
 
-	const loadRecipeDetails = async (recipeIds?: string[]) => {
+	const loadRecipeDetails = useCallback(async (recipeIds?: string[]) => {
 		if (!recipeIds?.length) {
-			return []
+			return { recipes: [], failedCount: 0 }
 		}
 
 		const recipeResults = await Promise.allSettled(
 			recipeIds.map(id => getRecipeById(id)),
 		)
 
-		return recipeResults.flatMap(result =>
+		const recipes = recipeResults.flatMap(result =>
 			result.status === 'fulfilled' && result.value.success && result.value.data
 				? [result.value.data]
 				: [],
 		)
-	}
+		return { recipes, failedCount: recipeIds.length - recipes.length }
+	}, [])
+
+	const fetchData = useCallback(async () => {
+		const requestId = ++loadRequestIdRef.current
+		setIsLoading(true)
+		setLoadError(null)
+		setCollection(null)
+		setPosts([])
+		setRecipes([])
+		setPostsLoadFailed(false)
+		setRecipesLoadFailed(false)
+
+		try {
+			const [colRes, postsRes] = await Promise.all([
+				getCollectionById(collectionId),
+				getCollectionPosts(collectionId),
+			])
+			if (requestId !== loadRequestIdRef.current) return
+			if (!colRes.success || !colRes.data) {
+				setLoadError(colRes.statusCode === 404 ? 'not-found' : 'failed')
+				return
+			}
+
+			setCollection(colRes.data)
+			setEditName(colRes.data.name)
+			setEditDescription(colRes.data.description || '')
+			setEditIsPublic(colRes.data.isPublic)
+			const recipeLoad = await loadRecipeDetails(colRes.data.recipeIds)
+			if (requestId !== loadRequestIdRef.current) return
+			setRecipes(recipeLoad.recipes)
+			setRecipesLoadFailed(recipeLoad.failedCount > 0)
+			setPostsLoadFailed(!postsRes.success)
+			if (postsRes.success && postsRes.data) {
+				setPosts(postsRes.data)
+			}
+		} catch {
+			if (requestId !== loadRequestIdRef.current) return
+			setLoadError('failed')
+		} finally {
+			if (requestId === loadRequestIdRef.current) setIsLoading(false)
+		}
+	}, [collectionId, loadRecipeDetails])
 
 	useEffect(() => {
-		let cancelled = false
-		async function fetchData() {
-			try {
-				const [colRes, postsRes] = await Promise.all([
-					getCollectionById(collectionId),
-					getCollectionPosts(collectionId),
-				])
-				if (cancelled) return
-				if (colRes.success && colRes.data) {
-					setCollection(colRes.data)
-					setEditName(colRes.data.name)
-					setEditDescription(colRes.data.description || '')
-					setEditIsPublic(colRes.data.isPublic)
-					const nextRecipes = await loadRecipeDetails(colRes.data.recipeIds)
-					if (!cancelled) {
-						setRecipes(nextRecipes)
-					}
-				} else {
-					setRecipes([])
-				}
-				if (postsRes.success && postsRes.data) {
-					setPosts(postsRes.data)
-				}
-			} catch {
-				if (cancelled) return
-				toast.error(t('detailLoadFailed'))
-			} finally {
-				if (!cancelled) setIsLoading(false)
-			}
-		}
 		fetchData()
 		return () => {
-			cancelled = true
+			loadRequestIdRef.current += 1
 		}
-	}, [collectionId, t])
+	}, [fetchData])
 
 	const handleUpdate = async () => {
 		if (!editName.trim()) {
@@ -144,7 +166,9 @@ export default function CollectionDetailPage({
 			setEditName(response.data.name)
 			setEditDescription(response.data.description || '')
 			setEditIsPublic(response.data.isPublic)
-			setRecipes(await loadRecipeDetails(response.data.recipeIds))
+			const recipeLoad = await loadRecipeDetails(response.data.recipeIds)
+			setRecipes(recipeLoad.recipes)
+			setRecipesLoadFailed(recipeLoad.failedCount > 0)
 			setShowEditModal(false)
 			toast.success(t('detailUpdated'))
 		} else {
@@ -171,7 +195,9 @@ export default function CollectionDetailPage({
 			setEditName(response.data.name)
 			setEditDescription(response.data.description || '')
 			setEditIsPublic(response.data.isPublic)
-			setRecipes(await loadRecipeDetails(response.data.recipeIds))
+			const recipeLoad = await loadRecipeDetails(response.data.recipeIds)
+			setRecipes(recipeLoad.recipes)
+			setRecipesLoadFailed(recipeLoad.failedCount > 0)
 			setShowEditModal(false)
 			toast.success(t('detailUpdated'))
 		} else {
@@ -233,7 +259,22 @@ export default function CollectionDetailPage({
 		)
 	}
 
-	if (!collection) {
+	if (loadError === 'failed') {
+		return (
+			<PageTransition>
+				<PageContainer maxWidth='lg'>
+					<ErrorState
+						title={t('detailLoadFailed')}
+						message={t('detailLoadFailedMessage')}
+						onRetry={fetchData}
+						showHomeButton={false}
+					/>
+				</PageContainer>
+			</PageTransition>
+		)
+	}
+
+	if (loadError === 'not-found' || !collection) {
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='lg'>
@@ -244,7 +285,7 @@ export default function CollectionDetailPage({
 						</h2>
 						<button
 							type='button'
-							onClick={() => router.push('/collections')}
+							onClick={() => router.push(PATHS.COLLECTIONS)}
 							className='mt-4 rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white'
 						>
 							{t('detailBackToCollections')}
@@ -278,20 +319,38 @@ export default function CollectionDetailPage({
 		<PageTransition>
 			<PageContainer maxWidth='lg'>
 				<div className='space-y-6 py-6'>
-				<div
-					className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'
-				>
-					<div className='relative z-10 w-full p-2.5 md:p-3.5 flex items-center justify-between'>
-						<button
-							type='button'
-							onClick={() => router.back()}
-							className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
-						>
-							<ArrowLeft className='size-4' />
-							{t('detailBack')}
-						</button>
+					<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-0'>
+						<div className='relative z-10 w-full p-2.5 md:p-3.5 flex items-center justify-between'>
+							<button
+								type='button'
+								onClick={() => router.push(PATHS.COLLECTIONS)}
+								className='flex items-center gap-1.5 text-sm text-text-muted transition-colors hover:text-text-primary'
+							>
+								<ArrowLeft className='size-4' />
+								{t('detailBackToCollections')}
+							</button>
+						</div>
 					</div>
-				</div>
+
+					{(postsLoadFailed || recipesLoadFailed) && (
+						<div
+							role='status'
+							className='flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between'
+						>
+							<div className='flex items-start gap-2.5'>
+								<AlertTriangle className='mt-0.5 size-4 shrink-0 text-warning' />
+								<span>{t('detailPartialLoad')}</span>
+							</div>
+							<button
+								type='button'
+								onClick={fetchData}
+								className='inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-warning/30 bg-bg-card px-3 font-semibold text-text-primary transition-colors hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-warning/50'
+							>
+								<RefreshCw className='size-4' />
+								{t('detailRetryContent')}
+							</button>
+						</div>
+					)}
 
 					{/* Learning Path View - completely different layout */}
 					{isLearningPath ? (
@@ -303,9 +362,7 @@ export default function CollectionDetailPage({
 						/>
 					) : (
 						<>
-							<div
-								className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-4 md:p-5'
-							>
+							<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-4 md:p-5'>
 								<div className='relative z-10 w-full flex items-start justify-between'>
 									<div>
 										<div className='flex items-center gap-2'>
@@ -359,9 +416,7 @@ export default function CollectionDetailPage({
 
 							{/* Collection contents */}
 							{!hasRecipeContent && !hasPostContent ? (
-								<div
-									className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md overflow-hidden shadow-card p-1'
-								>
+								<div className='rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md overflow-hidden shadow-card p-1'>
 									<div className='relative z-10 w-full'>
 										<EmptyState
 											variant='saved'
@@ -438,9 +493,7 @@ export default function CollectionDetailPage({
 											<div className='space-y-4'>
 												{posts.map(post => (
 													<div key={post.id} className='relative group'>
-														<div
-															className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-1 shadow-card transition-all group-hover:shadow-warm'
-														>
+														<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md p-1 shadow-card transition-all group-hover:shadow-warm'>
 															<div className='relative z-10 w-full'>
 																<PostCard
 																	post={post}
@@ -498,9 +551,7 @@ export default function CollectionDetailPage({
 								}`}
 								onClick={e => e.stopPropagation()}
 							>
-								<div
-									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
-								>
+								<div className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'>
 									<div className='relative z-10 w-full'>
 										{isLearningPath ? (
 											<CollectionBuilder
@@ -608,9 +659,7 @@ export default function CollectionDetailPage({
 								className='w-full max-w-sm rounded-2xl overflow-hidden shadow-warm p-0'
 								onClick={e => e.stopPropagation()}
 							>
-								<div
-									className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'
-								>
+								<div className='w-full bg-bg-card/95 backdrop-blur-md p-6 border border-border-subtle rounded-2xl'>
 									<div className='relative z-10 w-full'>
 										<h3 className='mb-2 text-lg font-bold text-text-primary'>
 											{t('detailDeleteTitle')}

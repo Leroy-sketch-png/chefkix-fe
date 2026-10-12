@@ -20,8 +20,8 @@ describe('group surface truth contracts', () => {
 		const header = readSource('src/components/groups/GroupHeader.tsx')
 		const detail = readSource('src/app/(main)/groups/[id]/page.tsx')
 
-		expect(header).toContain('navigator.share')
-		expect(header).toContain('navigator.clipboard.writeText')
+		expect(header).toContain("import { shareContent } from '@/lib/clipboard'")
+		expect(header).toContain('const result = await shareContent({')
 		expect(header).toContain('handleShareGroup')
 		expect(detail).toContain("t('groupWorkspaceChip')")
 		expect(detail).not.toContain("chipText='Collaborative board'")

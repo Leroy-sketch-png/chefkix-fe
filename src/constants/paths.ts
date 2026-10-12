@@ -19,6 +19,8 @@ export const PATHS = {
 	CREATOR: '/creator',
 	COOK: '/cook',
 	CREATE_POST: '/post/new',
+	COLLECTIONS: '/collections',
+	SHOPPING_LISTS: '/shopping-lists',
 	PROFILE: '/profile',
 	SETTINGS: '/settings',
 	AUTH: {
