@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
 	Check,
@@ -12,10 +12,12 @@ import {
 	Plus,
 	RefreshCw,
 	ShoppingBasket,
+	ListChecks,
 	Sparkles,
 	Users,
 	Utensils,
-	ExternalLink,
+	Play,
+	AlertTriangle,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
@@ -31,7 +33,18 @@ import {
 	swapCookPlanDish,
 } from '@/services/cookplan'
 import { getAllSettings } from '@/services/settings'
+import { createFromCookPlan } from '@/services/shoppingList'
 import type { CookPlan, CookPlanMode, MealRole } from '@/lib/types/cookplan'
+import {
+	clampActiveMinutes,
+	cookPlanCookingPath,
+	cookPlanShoppingItemKey,
+	MAX_ACTIVE_MINUTES,
+	MIN_ACTIVE_MINUTES,
+	reconcileCheckedShoppingItems,
+} from '@/lib/cook-plan-ui'
+import { shoppingListPath } from '@/lib/shopping-list-route'
+import { copyToClipboard } from '@/lib/clipboard'
 
 const MODES: CookPlanMode[] = ['COOK_ONCE_TODAY', 'DINNER_WITH_LEFTOVERS']
 
@@ -54,16 +67,23 @@ export default function MealPlannerPage() {
 	const [pantryFirst, setPantryFirst] = useState(true)
 	const [plan, setPlan] = useState<CookPlan | null>(null)
 	const [loading, setLoading] = useState(true)
+	const [loadFailed, setLoadFailed] = useState(false)
 	const [generating, setGenerating] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
+	const [savingShoppingList, setSavingShoppingList] = useState(false)
+	const shoppingListSaveInFlight = useRef(false)
+	const [savedShoppingListId, setSavedShoppingListId] = useState<string | null>(
+		null,
+	)
 
 	const load = useCallback(async () => {
 		setLoading(true)
+		setLoadFailed(false)
 		try {
 			const [currentPlan, settingsResponse] = await Promise.all([
 				getCurrentCookPlan(planDate),
-				getAllSettings(),
+				getAllSettings().catch(() => null),
 			])
 			setPlan(currentPlan)
 			if (currentPlan) {
@@ -71,18 +91,17 @@ export default function MealPlannerPage() {
 				setHouseholdSize(currentPlan.householdSize)
 				setMaxActiveMinutes(currentPlan.maxActiveMinutes)
 				setPantryFirst(currentPlan.pantryFirst)
-			} else if (settingsResponse.success && settingsResponse.data?.cooking) {
+			} else if (settingsResponse?.success && settingsResponse.data?.cooking) {
 				const cooking = settingsResponse.data.cooking
 				setHouseholdSize(
 					Math.min(12, Math.max(1, cooking.defaultServings || 2)),
 				)
 				if (cooking.maxCookingTimeMinutes) {
-					setMaxActiveMinutes(
-						Math.min(240, Math.max(15, cooking.maxCookingTimeMinutes)),
-					)
+					setMaxActiveMinutes(clampActiveMinutes(cooking.maxCookingTimeMinutes))
 				}
 			}
 		} catch {
+			setLoadFailed(true)
 			toast.error(t('failedLoad'))
 		} finally {
 			setLoading(false)
@@ -101,7 +120,6 @@ export default function MealPlannerPage() {
 
 	const generate = async () => {
 		setGenerating(true)
-		setCheckedItems(new Set())
 		try {
 			const nextPlan = await createCookPlan({
 				planDate,
@@ -111,6 +129,10 @@ export default function MealPlannerPage() {
 				pantryFirst,
 			})
 			setPlan(nextPlan)
+			setCheckedItems(current =>
+				reconcileCheckedShoppingItems(current, nextPlan.shoppingList),
+			)
+			setSavedShoppingListId(null)
 			if (nextPlan.cookBatches.length > 0) {
 				toast.success(t('todayPlanGenerated'))
 			}
@@ -129,20 +151,36 @@ export default function MealPlannerPage() {
 			)
 			.join('\n')
 		try {
-			await navigator.clipboard.writeText(text)
+			if (!(await copyToClipboard(text))) throw new Error('Copy failed')
 			setCopied(true)
 		} catch {
 			toast.error(t('failedCopy'))
 		}
 	}
 
-	const toggleShoppingItem = (ingredient: string) => {
+	const toggleShoppingItem = (itemKey: string) => {
 		setCheckedItems(current => {
 			const next = new Set(current)
-			if (next.has(ingredient)) next.delete(ingredient)
-			else next.add(ingredient)
+			if (next.has(itemKey)) next.delete(itemKey)
+			else next.add(itemKey)
 			return next
 		})
+	}
+
+	const saveShoppingList = async () => {
+		if (!plan?.id || shoppingListSaveInFlight.current) return
+		shoppingListSaveInFlight.current = true
+		setSavingShoppingList(true)
+		try {
+			const saved = await createFromCookPlan({ cookPlanId: plan.id })
+			setSavedShoppingListId(saved.id)
+			toast.success(t('shoppingListSaved'))
+		} catch {
+			toast.error(t('failedSaveShoppingList'))
+		} finally {
+			shoppingListSaveInFlight.current = false
+			setSavingShoppingList(false)
+		}
 	}
 
 	const swapDish = async (
@@ -158,7 +196,10 @@ export default function MealPlannerPage() {
 			replacementRecipeId,
 		)
 		setPlan(nextPlan)
-		setCheckedItems(new Set())
+		setCheckedItems(current =>
+			reconcileCheckedShoppingItems(current, nextPlan.shoppingList),
+		)
+		setSavedShoppingListId(null)
 		toast.success(
 			t('swappedTo', {
 				title:
@@ -346,8 +387,8 @@ export default function MealPlannerPage() {
 									</span>
 									<input
 										type='range'
-										min={15}
-										max={180}
+										min={MIN_ACTIVE_MINUTES}
+										max={MAX_ACTIVE_MINUTES}
 										step={15}
 										value={maxActiveMinutes}
 										disabled={generating}
@@ -430,7 +471,30 @@ export default function MealPlannerPage() {
 						</section>
 					) : null}
 
-					{!plan && !generating ? (
+					{loadFailed && !generating ? (
+						<section
+							role='alert'
+							className='flex min-h-48 flex-col items-center justify-center border border-danger/30 bg-danger/5 px-6 py-10 text-center'
+						>
+							<AlertTriangle className='size-9 text-danger' />
+							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
+								{t('failedLoad')}
+							</h2>
+							<p className='mt-1 max-w-xl text-sm text-text-muted'>
+								{t('failedLoadDesc')}
+							</p>
+							<Button
+								className='mt-4'
+								variant='outline'
+								onClick={() => void load()}
+							>
+								<RefreshCw />
+								{t('retryLoad')}
+							</Button>
+						</section>
+					) : null}
+
+					{!plan && !loadFailed && !generating ? (
 						<section className='flex min-h-48 flex-col items-center justify-center border border-dashed border-border-medium px-6 py-10 text-center'>
 							<ChefHat className='size-10 text-text-muted' />
 							<h2 className='mt-3 text-lg font-semibold text-text-primary'>
@@ -551,16 +615,12 @@ export default function MealPlannerPage() {
 													</div>
 												</div>
 												<div className='mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border-subtle pt-3'>
-													<Link
-														href={`/recipes/${dish.recipeId}`}
-														className='inline-flex min-h-9 items-center gap-1.5 text-sm font-semibold text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
-													>
-														{t('viewRecipe')}
-														<ExternalLink
-															className='size-3.5'
-															aria-hidden='true'
-														/>
-													</Link>
+													<Button asChild size='sm'>
+														<Link href={cookPlanCookingPath(dish.recipeId)}>
+															<Play aria-hidden='true' />
+															{t('startCooking')}
+														</Link>
+													</Button>
 													<CookPlanDishSwapDialog
 														dish={dish}
 														excludedRecipeIds={batch.dishes.map(
@@ -601,15 +661,44 @@ export default function MealPlannerPage() {
 											})}
 										</p>
 									</div>
-									<Button
-										variant='outline'
-										size='sm'
-										onClick={copyShoppingList}
-										disabled={!plan?.shoppingList.length}
-									>
-										{copied ? <Check /> : <Copy />}
-										{copied ? t('copied') : t('copyList')}
-									</Button>
+									<div className='flex flex-wrap justify-end gap-2'>
+										{savedShoppingListId ? (
+											<Button asChild size='sm'>
+												<Link href={shoppingListPath(savedShoppingListId)}>
+													<ListChecks />
+													{t('openShoppingList')}
+												</Link>
+											</Button>
+										) : (
+											<Button
+												size='sm'
+												onClick={() => void saveShoppingList()}
+												disabled={
+													savingShoppingList ||
+													!plan?.id ||
+													!plan.shoppingList.length
+												}
+											>
+												{savingShoppingList ? (
+													<Loader2 className='animate-spin' />
+												) : (
+													<ListChecks />
+												)}
+												{savingShoppingList
+													? t('savingShoppingList')
+													: t('saveShoppingList')}
+											</Button>
+										)}
+										<Button
+											variant='outline'
+											size='sm'
+											onClick={copyShoppingList}
+											disabled={!plan?.shoppingList.length}
+										>
+											{copied ? <Check /> : <Copy />}
+											{copied ? t('copied') : t('copyList')}
+										</Button>
+									</div>
 								</div>
 
 								{plan?.shoppingList.length === 0 ? (
@@ -620,10 +709,11 @@ export default function MealPlannerPage() {
 								) : (
 									<ul className='grid gap-x-6 md:grid-cols-2'>
 										{plan?.shoppingList.map(item => {
-											const checked = checkedItems.has(item.ingredient)
+											const itemKey = cookPlanShoppingItemKey(item)
+											const checked = checkedItems.has(itemKey)
 											return (
 												<li
-													key={`${item.ingredient}-${item.unit || ''}`}
+													key={itemKey}
 													className='flex items-center gap-3 border-b border-border-subtle py-3'
 												>
 													<button
@@ -631,8 +721,9 @@ export default function MealPlannerPage() {
 														aria-label={t('toggleShoppingItem', {
 															item: item.ingredient,
 														})}
-														aria-pressed={checked}
-														onClick={() => toggleShoppingItem(item.ingredient)}
+														role='checkbox'
+														aria-checked={checked}
+														onClick={() => toggleShoppingItem(itemKey)}
 														className={`flex size-5 shrink-0 items-center justify-center rounded border ${
 															checked
 																? 'border-brand bg-brand text-white'
