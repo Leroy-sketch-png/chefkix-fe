@@ -4,6 +4,9 @@ import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
+import { copyToClipboard } from '@/lib/clipboard'
 import {
 	Recipe,
 	getRecipeImage,
@@ -428,7 +431,9 @@ function RecipeDetailContent() {
 				if ((err as Error).name !== 'AbortError') {
 					// Share failed for non-cancel reason - fall back to clipboard
 					try {
-						await navigator.clipboard.writeText(shareUrl)
+						if (!(await copyToClipboard(shareUrl))) {
+							throw new Error('Clipboard unavailable')
+						}
 						toast.success(t('toastLinkCopied'))
 					} catch (err) {
 						logDevError('Clipboard fallback failed:', err)
@@ -438,7 +443,9 @@ function RecipeDetailContent() {
 			}
 		} else {
 			try {
-				await navigator.clipboard.writeText(shareUrl)
+				if (!(await copyToClipboard(shareUrl))) {
+					throw new Error('Clipboard unavailable')
+				}
 				toast.success(t('toastLinkCopied'))
 			} catch (err) {
 				logDevError('Clipboard copy failed:', err)
@@ -636,7 +643,7 @@ function RecipeDetailContent() {
 				} else if (remixResult) {
 					setRemixResult(null)
 				} else {
-					router.back()
+					navigateBackOrFallback(router, PATHS.EXPLORE)
 				}
 				return
 			}

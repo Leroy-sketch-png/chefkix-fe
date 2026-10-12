@@ -18,7 +18,6 @@ import {
 	BUTTON_TAP,
 	CARD_HOVER,
 } from '@/lib/motion'
-import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import {
 	AlertDialog,
@@ -31,17 +30,15 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
-import { getStorageJson, removeStorageItem } from '@/lib/storage'
-import { useTranslations } from 'next-intl'
+import { useFormatter, useTranslations } from 'next-intl'
+import {
+	clearLocalRecipeDraft,
+	isLocalRecipeDraftStale,
+	readLocalRecipeDraft,
+	type LocalRecipeDraft,
+} from '@/lib/local-recipe-draft'
 
-/**
- * Local Draft shape (stored in localStorage under 'chefkix-recipe-draft')
- */
-interface LocalDraft {
-	type: 'manual'
-	data: RecipeFormData
-	savedAt: string
-}
+type RecipeEditorSource = 'new' | 'local' | 'server'
 
 /**
  * Create Recipe Page
@@ -56,35 +53,41 @@ function CreateRecipeContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const t = useTranslations('create')
+	const format = useFormatter()
 	const urlDraftId = searchParams.get('draftId')
 	const [mode, setMode] = useState<'list' | 'create'>(
 		urlDraftId ? 'create' : 'list',
 	)
 	const [selectedDraft, setSelectedDraft] = useState<Recipe | null>(null)
-	const [localDraft, setLocalDraft] = useState<LocalDraft | null>(null)
+	const [localDraft, setLocalDraft] =
+		useState<LocalRecipeDraft<RecipeFormData> | null>(null)
+	const [editorSource, setEditorSource] = useState<RecipeEditorSource>(
+		urlDraftId ? 'server' : 'new',
+	)
 	const [showDiscardDialog, setShowDiscardDialog] = useState(false)
+	const [discardAction, setDiscardAction] = useState<'discard' | 'start'>(
+		'discard',
+	)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
+	const localDraftIsOlder = localDraft
+		? isLocalRecipeDraftStale(localDraft.savedAt)
+		: false
 
 	const loadLocalDraft = useCallback(() => {
-		try {
-			const parsed = getStorageJson<LocalDraft>('chefkix-recipe-draft')
-			if (!parsed) {
-				setLocalDraft(null)
-				return
-			}
+		const result = readLocalRecipeDraft<RecipeFormData>()
+		if (result.status === 'valid') {
+			setLocalDraft(result.draft)
+			return
+		}
 
-			if (parsed.type === 'manual' && parsed.data) {
-				setLocalDraft(parsed)
-				return
-			}
-
-			setLocalDraft(null)
-		} catch (error) {
-			logDevError('Failed to parse local draft:', error)
-			removeStorageItem('chefkix-recipe-draft')
+		if (result.status === 'corrupt') {
+			clearLocalRecipeDraft()
 			setLocalDraft(null)
 			toast.error(t('draftCorrupted'))
+			return
 		}
+
+		setLocalDraft(null)
 	}, [t])
 
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
@@ -98,8 +101,7 @@ function CreateRecipeContent() {
 				if (cancelled) return
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
-					removeStorageItem('chefkix-recipe-draft')
-					setLocalDraft(null)
+					setEditorSource('server')
 					setMode('create')
 				} else {
 					setSelectedDraft(null)
@@ -129,9 +131,11 @@ function CreateRecipeContent() {
 	}, [loadLocalDraft, urlDraftId])
 
 	const handlePublishSuccess = (recipeId: string) => {
-		// Clear local draft on successful publish
-		removeStorageItem('chefkix-recipe-draft')
-		setLocalDraft(null)
+		// A server draft has its own identity; never erase unrelated local recovery.
+		if (editorSource !== 'server') {
+			clearLocalRecipeDraft()
+			setLocalDraft(null)
+		}
 		// Navigate to the new recipe page
 		router.push(`/recipes/${recipeId}`)
 	}
@@ -148,8 +152,7 @@ function CreateRecipeContent() {
 				const response = await getRecipeById(draftId)
 				if (response.success && response.data) {
 					setSelectedDraft(response.data)
-					removeStorageItem('chefkix-recipe-draft')
-					setLocalDraft(null) // Clear local draft state when using server draft
+					setEditorSource('server')
 					setMode('create')
 				} else {
 					setSelectedDraft(null)
@@ -168,19 +171,35 @@ function CreateRecipeContent() {
 
 	const handleResumeLocalDraft = () => {
 		setSelectedDraft(null)
+		setEditorSource('local')
 		setMode('create')
 	}
 
-	const handleDiscardLocalDraft = () => {
-		removeStorageItem('chefkix-recipe-draft')
+	const confirmDiscardLocalDraft = () => {
+		clearLocalRecipeDraft()
 		setLocalDraft(null)
 		setShowDiscardDialog(false)
+		if (discardAction === 'start') {
+			setSelectedDraft(null)
+			setEditorSource('new')
+			setMode('create')
+		}
 	}
 
 	const handleNewRecipe = () => {
+		if (localDraft) {
+			setDiscardAction('start')
+			setShowDiscardDialog(true)
+			return
+		}
 		setSelectedDraft(null)
-		setLocalDraft(null)
+		setEditorSource('new')
 		setMode('create')
+	}
+
+	const handleDiscardRequest = () => {
+		setDiscardAction('discard')
+		setShowDiscardDialog(true)
 	}
 
 	const handleBackToList = () => {
@@ -198,7 +217,9 @@ function CreateRecipeContent() {
 		<PageTransition>
 			<PageContainer maxWidth={mode === 'list' ? '2xl' : 'lg'}>
 				<AnimatePresence mode='wait'>
-					{mode === 'list' ? (
+					{isLoadingDraft ? (
+						<DraftLoadingState key='loading' />
+					) : mode === 'list' ? (
 						<motion.div
 							key='list'
 							initial={{ opacity: 0, x: -20 }}
@@ -228,18 +249,19 @@ function CreateRecipeContent() {
 															{localDraft.data.title || t('untitledRecipe')}
 														</h2>
 														<span className='rounded-full bg-streak/20 px-2 py-0.5 text-xs font-medium text-streak'>
-															{t('localDraft')}
+															{t(
+																localDraftIsOlder
+																	? 'olderLocalDraft'
+																	: 'localDraft',
+															)}
 														</span>
 													</div>
 													<div className='mt-1 flex items-center gap-1.5 text-xs text-text-muted'>
 														<Clock className='size-3' />
 														<span>
 															{t('savedAgo', {
-																time: formatDistanceToNow(
+																time: format.relativeTime(
 																	new Date(localDraft.savedAt),
-																	{
-																		addSuffix: true,
-																	},
 																),
 															})}
 														</span>
@@ -251,6 +273,11 @@ function CreateRecipeContent() {
 															steps: localDraft.data.steps?.length || 0,
 														})}
 													</p>
+													{localDraftIsOlder ? (
+														<p className='mt-2 text-sm text-text-secondary'>
+															{t('olderDraftNotice')}
+														</p>
+													) : null}
 												</div>
 											</div>
 											<div className='mt-4 flex gap-3'>
@@ -265,7 +292,9 @@ function CreateRecipeContent() {
 												</motion.button>
 												<motion.button
 													type='button'
-													onClick={() => setShowDiscardDialog(true)}
+													onClick={handleDiscardRequest}
+													aria-label={t('discardDraftTitle')}
+													title={t('discardDraftTitle')}
 													whileHover={BUTTON_HOVER}
 													whileTap={BUTTON_TAP}
 													className='flex items-center justify-center rounded-xl border border-border px-4 py-2.5 text-sm text-text-muted hover:border-destructive hover:text-destructive focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -280,32 +309,6 @@ function CreateRecipeContent() {
 										onSelectDraft={handleSelectDraft}
 										onNewRecipe={handleNewRecipe}
 									/>
-
-									<AnimatePresence>
-										{isLoadingDraft && (
-											<motion.div
-												initial={{ opacity: 0 }}
-												animate={{ opacity: 1 }}
-												exit={{ opacity: 0 }}
-												className='mx-auto max-w-3xl space-y-5 p-5'
-											>
-												<div className='flex items-center gap-4'>
-													<Skeleton className='size-10 rounded-xl' />
-													<Skeleton className='h-8 w-48' />
-												</div>
-												<div className='grid gap-4 md:grid-cols-2'>
-													<Skeleton className='h-24 rounded-2xl' />
-													<Skeleton className='h-24 rounded-2xl' />
-												</div>
-												<div className='rounded-2xl bg-bg-card p-6 space-y-4'>
-													<Skeleton className='h-6 w-40' />
-													<Skeleton className='h-4 w-64' />
-													<Skeleton className='h-40 w-full rounded-xl' />
-													<Skeleton className='h-12 w-full rounded-xl' />
-												</div>
-											</motion.div>
-										)}
-									</AnimatePresence>
 								</div>
 							</div>
 						</motion.div>
@@ -339,12 +342,21 @@ function CreateRecipeContent() {
 								<Trash2 className='size-7 text-destructive' />
 							</div>
 							<AlertDialogTitle className='text-lg font-bold text-text-primary'>
-								{t('discardDraftTitle')}
+								{t(
+									discardAction === 'start'
+										? 'startFreshDraftTitle'
+										: 'discardDraftTitle',
+								)}
 							</AlertDialogTitle>
 							<AlertDialogDescription className='text-sm text-text-secondary'>
-								{t('discardDraftDescription', {
-									title: localDraft?.data.title || t('untitledRecipe'),
-								})}
+								{t(
+									discardAction === 'start'
+										? 'startFreshDraftDescription'
+										: 'discardDraftDescription',
+									{
+										title: localDraft?.data.title || t('untitledRecipe'),
+									},
+								)}
 							</AlertDialogDescription>
 						</AlertDialogHeader>
 						<AlertDialogFooter className='flex-row gap-3 sm:justify-center'>
@@ -352,10 +364,10 @@ function CreateRecipeContent() {
 								{t('keepIt')}
 							</AlertDialogCancel>
 							<AlertDialogAction
-								onClick={handleDiscardLocalDraft}
+								onClick={confirmDiscardLocalDraft}
 								className='flex-1 rounded-xl bg-destructive text-white hover:bg-destructive/90'
 							>
-								{t('discard')}
+								{t(discardAction === 'start' ? 'discardAndStart' : 'discard')}
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
@@ -365,6 +377,32 @@ function CreateRecipeContent() {
 				<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
 			</PageContainer>
 		</PageTransition>
+	)
+}
+
+function DraftLoadingState() {
+	return (
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			className='mx-auto max-w-3xl space-y-5 p-5'
+		>
+			<div className='flex items-center gap-4'>
+				<Skeleton className='size-10 rounded-xl' />
+				<Skeleton className='h-8 w-48' />
+			</div>
+			<div className='grid gap-4 md:grid-cols-2'>
+				<Skeleton className='h-24 rounded-2xl' />
+				<Skeleton className='h-24 rounded-2xl' />
+			</div>
+			<div className='space-y-4 rounded-2xl bg-bg-card p-6'>
+				<Skeleton className='h-6 w-40' />
+				<Skeleton className='h-4 w-64' />
+				<Skeleton className='h-40 w-full rounded-xl' />
+				<Skeleton className='h-12 w-full rounded-xl' />
+			</div>
+		</motion.div>
 	)
 }
 
