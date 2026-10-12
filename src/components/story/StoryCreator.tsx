@@ -24,6 +24,8 @@ import { api } from '@/lib/axios'
 import { useTranslations } from '@/i18n/hooks'
 import { STORY_IMAGE_ACCEPT, validateStoryImage } from '@/lib/story-media'
 import { logDevError } from '@/lib/dev-log'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { StoryRecipePicker } from './StoryRecipePicker'
 import type { AsyncComboboxOption } from '@/components/ui/async-combobox'
 
@@ -289,7 +291,7 @@ export function StoryCreator() {
 					<Button
 						variant='ghost'
 						size='icon'
-						onClick={() => router.back()}
+						onClick={() => navigateBackOrFallback(router, PATHS.FEED)}
 						className='rounded-full hover:bg-bg-hover text-text-secondary'
 						aria-label={t('closeButton')}
 						title={t('closeButton')}

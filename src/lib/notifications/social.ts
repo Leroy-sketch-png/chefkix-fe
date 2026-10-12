@@ -1,6 +1,8 @@
 import type { ApiResponse } from '@/lib/types'
 import { formatShortTimeAgo } from '@/lib/utils'
 import type { Notification } from '@/services/notification'
+import { storyViewPath } from '@/lib/story-share'
+import { roomInvitePath } from '@/lib/room-code'
 
 export type SocialNotificationType =
 	| 'like'
@@ -22,6 +24,7 @@ export interface SocialNotification {
 	target?: string
 	targetEntityId?: string
 	targetEntityUrl?: string
+	roomCode?: string
 	time: string
 	read: boolean
 	createdAt: Date
@@ -90,6 +93,7 @@ export const transformToSocialNotification = (
 		target: data.targetTitle,
 		targetEntityId: notification.targetEntityId || data.targetEntityId,
 		targetEntityUrl: notification.targetEntityUrl || data.targetEntityUrl,
+		roomCode: data.roomCode,
 		time: formatShortTimeAgo(createdAt),
 		read: notification.isRead,
 		createdAt,
@@ -111,7 +115,7 @@ export const resolveSocialNotificationPath = (
 		currentUserId &&
 		notification.targetEntityId
 	) {
-		return `/story/view/${encodeURIComponent(currentUserId)}?startAt=${encodeURIComponent(notification.targetEntityId)}`
+		return storyViewPath(currentUserId, notification.targetEntityId)
 	}
 
 	if (
@@ -119,6 +123,10 @@ export const resolveSocialNotificationPath = (
 		notification.targetEntityId
 	) {
 		return `/post/${encodeURIComponent(notification.targetEntityId)}`
+	}
+
+	if (notification.type === 'cook' && notification.roomCode) {
+		return roomInvitePath(notification.roomCode)
 	}
 
 	if (notification.type === 'cook' || notification.type === 'achievement') {

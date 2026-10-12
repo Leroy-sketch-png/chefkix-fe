@@ -12,6 +12,7 @@ import {
 	Play,
 	RefreshCw,
 	ChefHat,
+	Share2,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -33,6 +34,8 @@ import FlyingReaction from './FlyingReaction'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 import { isAxiosError } from 'axios'
 import { useRouter } from 'next/navigation'
+import { shareContent } from '@/lib/clipboard'
+import { storyShareUrl } from '@/lib/story-share'
 
 export interface FlyingReactionState {
 	id: number
@@ -119,6 +122,7 @@ export function StoryViewer({
 	const [isManuallyPaused, setIsManuallyPaused] = useState(false)
 	const [isHolding, setIsHolding] = useState(false)
 	const [isComposing, setIsComposing] = useState(false)
+	const [isSharing, setIsSharing] = useState(false)
 	const [authorProfile, setAuthorProfile] = useState<Profile | null>(null)
 	const [isAuthorLoading, setIsAuthorLoading] = useState(true)
 	const [authorLookupFailed, setAuthorLookupFailed] = useState(false)
@@ -127,6 +131,7 @@ export function StoryViewer({
 	)
 	const timerRef = useRef<NodeJS.Timeout | null>(null)
 	const recordedViewStoryIdsRef = useRef(new Set<string>())
+	const shareInFlightRef = useRef(false)
 	const router = useRouter()
 	const { user: currentUser } = useAuth()
 	const t = useTranslations('story')
@@ -418,6 +423,28 @@ export function StoryViewer({
 	const displayAuthorAvatar = isMe
 		? currentUser?.avatarUrl
 		: authorProfile?.avatarUrl
+	const handleShare = async () => {
+		if (shareInFlightRef.current) return
+		shareInFlightRef.current = true
+		const wasManuallyPaused = isManuallyPaused
+		setIsManuallyPaused(true)
+		setIsSharing(true)
+
+		try {
+			const result = await shareContent({
+				title: t('shareTitle', { name: displayAuthorName }),
+				text: t('shareText', { name: displayAuthorName }),
+				url: storyShareUrl(window.location.origin, userId, currentStory.id),
+			})
+
+			if (result === 'copied') toast.success(t('shareCopied'))
+			if (result === 'failed') toast.error(t('shareFailed'))
+		} finally {
+			shareInFlightRef.current = false
+			setIsSharing(false)
+			if (!wasManuallyPaused) setIsManuallyPaused(false)
+		}
+	}
 
 	return (
 		<AnimatePresence>
@@ -490,13 +517,13 @@ export function StoryViewer({
 						</div>
 
 						<div className='flex items-center justify-between'>
-							<div className='flex items-center gap-3'>
+							<div className='flex min-w-0 flex-1 items-center gap-3'>
 								<Avatar className='h-10 w-10 border-2 border-white'>
 									<AvatarImage src={displayAuthorAvatar} />
 									<AvatarFallback>{displayAuthorName.charAt(0)}</AvatarFallback>
 								</Avatar>
-								<div>
-									<p className='font-bold text-white text-sm drop-shadow-md'>
+								<div className='min-w-0'>
+									<p className='truncate font-bold text-white text-sm drop-shadow-md'>
 										{displayAuthorName}
 									</p>
 									<p className='text-xs text-neutral-200 drop-shadow-md'>
@@ -508,7 +535,22 @@ export function StoryViewer({
 									</p>
 								</div>
 							</div>
-							<div className='pointer-events-auto flex items-center gap-1'>
+							<div className='pointer-events-auto flex shrink-0 items-center gap-1'>
+								<button
+									type='button'
+									onPointerDown={event => event.stopPropagation()}
+									onClick={event => {
+										event.stopPropagation()
+										void handleShare()
+									}}
+									disabled={isSharing}
+									aria-busy={isSharing}
+									className='inline-flex size-10 items-center justify-center rounded-full bg-black/35 text-white/80 hover:bg-black/55 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+									aria-label={t('shareButton')}
+									title={t('shareButton')}
+								>
+									<Share2 size={20} aria-hidden='true' />
+								</button>
 								<button
 									type='button'
 									onClick={() => setIsManuallyPaused(paused => !paused)}

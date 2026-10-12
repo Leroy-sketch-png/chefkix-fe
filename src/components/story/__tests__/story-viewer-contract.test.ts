@@ -48,7 +48,7 @@ describe('Story viewer trust contract', () => {
 		expect(viewer).toContain('failedMediaStoryIds.has(currentStory.id)')
 		expect(viewer).toContain('recordedViewStoryIdsRef.current.has(storyId)')
 		expect(viewer).toContain(
-			"className='pointer-events-auto flex items-center gap-1'",
+			"className='pointer-events-auto flex shrink-0 items-center gap-1'",
 		)
 		expect(viewer).toContain("aria-label={t('closeButton')}")
 		expect(viewer).toContain("aria-label={t('previousStory')}")

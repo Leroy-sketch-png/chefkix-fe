@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { logDevError } from '@/lib/dev-log'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { motion } from 'framer-motion'
 import {
 	ArrowLeft,
@@ -355,7 +357,7 @@ export default function TasteProfilePage() {
 					<div className='flex items-start gap-3'>
 						<motion.button
 							type='button'
-							onClick={() => router.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.PROFILE)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}

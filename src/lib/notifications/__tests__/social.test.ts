@@ -73,6 +73,28 @@ describe('social notification contract', () => {
 		)
 	})
 
+	it('opens a room invite at the exact canonical co-cook destination', () => {
+		const result = transformToSocialNotification(
+			notification({
+				type: 'ROOM_INVITE',
+				data: { roomCode: 'ra-men7' },
+			}),
+		)
+
+		expect(result.roomCode).toBe('ra-men7')
+		expect(resolveSocialNotificationPath(result, 'owner')).toBe(
+			'/cook-together?code=RAMEN7',
+		)
+	})
+
+	it('keeps non-room cooking notifications on their existing fallback', () => {
+		const result = transformToSocialNotification(
+			notification({ type: 'DUEL_INVITE', data: undefined }),
+		)
+
+		expect(resolveSocialNotificationPath(result, 'owner')).toBe('/dashboard')
+	})
+
 	it('keeps an unknown event visible without inventing a destination', () => {
 		const result = transformToSocialNotification(
 			notification({ type: 'XP_AWARDED', targetEntityId: undefined }),

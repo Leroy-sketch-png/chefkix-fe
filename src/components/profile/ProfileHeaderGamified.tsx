@@ -37,6 +37,7 @@ import {
 } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
 import { AnimatedNumber } from '@/components/ui/animated-number'
+import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 import type { Badge } from '@/lib/types/gamification'
 
 type UserTitle = 'BEGINNER' | 'AMATEUR' | 'SEMIPRO' | 'PRO'
@@ -545,14 +546,7 @@ const OwnProfileHeader = ({
 	activeTab,
 	onTabChange,
 }: OwnProfileProps) => {
-	// Platform detection for keyboard shortcuts
-	const isMac =
-		typeof navigator !== 'undefined' &&
-		(('userAgentData' in navigator &&
-			(navigator.userAgentData as { platform?: string })?.platform ===
-				'macOS') ||
-			/Mac/i.test(navigator.userAgent))
-	const modKey = isMac ? '⌘' : 'Ctrl'
+	const modKey = useModifierSymbol()
 
 	const t = useTranslations('profile')
 

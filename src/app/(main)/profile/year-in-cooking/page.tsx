@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -30,6 +30,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { getProfileDisplayName } from '@/lib/types/profile'
 import { logDevError } from '@/lib/dev-log'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
+import {
+	generateYearInCookingShareCanvas,
+	type YearInCookingShareCard,
+} from '@/lib/year-in-cooking-share'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -209,124 +215,6 @@ function buildRecapCards(stats: {
 	return cards
 }
 
-// ── Canvas card generation for sharing ──
-const SHARE_W = 600
-const SHARE_H = 800
-const BRAND_COLOR = '#ff5a36'
-const BG_WARM = '#fdfbf8'
-const TEXT_PRIMARY = '#2c2420'
-const TEXT_SECONDARY = '#8c7e72'
-
-interface ShareCard {
-	emoji: string
-	title: string
-	value: string
-	subtitle: string
-}
-
-function generateShareCanvas(
-	cards: ShareCard[],
-	displayName: string,
-	headerTitle: string,
-	footerTitle: string,
-): HTMLCanvasElement {
-	const canvas = document.createElement('canvas')
-	const dpr = 2
-	canvas.width = SHARE_W * dpr
-	canvas.height = SHARE_H * dpr
-	const ctx = canvas.getContext('2d')!
-	ctx.scale(dpr, dpr)
-
-	// Background
-	ctx.fillStyle = BG_WARM
-	ctx.fillRect(0, 0, SHARE_W, SHARE_H)
-
-	// Header gradient bar
-	const grad = ctx.createLinearGradient(0, 0, SHARE_W, 80)
-	grad.addColorStop(0, BRAND_COLOR)
-	grad.addColorStop(1, '#8b5cf6')
-	ctx.fillStyle = grad
-	ctx.beginPath()
-	ctx.moveTo(0, 0)
-	ctx.lineTo(SHARE_W, 0)
-	ctx.lineTo(SHARE_W, 70)
-	ctx.quadraticCurveTo(SHARE_W / 2, 95, 0, 70)
-	ctx.closePath()
-	ctx.fill()
-
-	// Title
-	ctx.fillStyle = '#ffffff'
-	ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
-	ctx.textAlign = 'center'
-	ctx.fillText(headerTitle, SHARE_W / 2, 44)
-
-	// Stats grid — show up to 6 cards in a 2×3 grid
-	const gridCards = cards.slice(0, 6)
-	const startY = 120
-	const cellW = 260
-	const cellH = 180
-	const gapX = 20
-	const gapY = 16
-	const offsetX = (SHARE_W - cellW * 2 - gapX) / 2
-
-	gridCards.forEach((card, i) => {
-		const col = i % 2
-		const row = Math.floor(i / 2)
-		const x = offsetX + col * (cellW + gapX)
-		const y = startY + row * (cellH + gapY)
-
-		// Card background
-		ctx.fillStyle = '#ffffff'
-		ctx.beginPath()
-		ctx.roundRect(x, y, cellW, cellH, 16)
-		ctx.fill()
-
-		// Card border
-		ctx.strokeStyle = 'rgba(140,126,114,0.15)'
-		ctx.lineWidth = 1
-		ctx.beginPath()
-		ctx.roundRect(x, y, cellW, cellH, 16)
-		ctx.stroke()
-
-		// Emoji
-		ctx.font = '36px system-ui, -apple-system, sans-serif'
-		ctx.textAlign = 'center'
-		ctx.fillText(card.emoji, x + cellW / 2, y + 48)
-
-		// Value
-		ctx.fillStyle = TEXT_PRIMARY
-		ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
-		ctx.fillText(card.value, x + cellW / 2, y + 90)
-
-		// Title
-		ctx.fillStyle = TEXT_SECONDARY
-		ctx.font = '13px system-ui, -apple-system, sans-serif'
-		ctx.fillText(card.title, x + cellW / 2, y + 115)
-
-		// Subtitle (truncate)
-		ctx.font = '11px system-ui, -apple-system, sans-serif'
-		ctx.fillStyle = 'rgba(140,126,114,0.7)'
-		const sub =
-			card.subtitle.length > 35
-				? card.subtitle.slice(0, 32) + '…'
-				: card.subtitle
-		ctx.fillText(sub, x + cellW / 2, y + 140)
-	})
-
-	// Footer
-	const footerY = SHARE_H - 50
-	ctx.fillStyle = TEXT_SECONDARY
-	ctx.font = '12px system-ui, -apple-system, sans-serif'
-	ctx.textAlign = 'center'
-	ctx.fillText(footerTitle, SHARE_W / 2, footerY)
-
-	ctx.fillStyle = BRAND_COLOR
-	ctx.font = 'bold 14px system-ui, -apple-system, sans-serif'
-	ctx.fillText('chefkix.com', SHARE_W / 2, footerY + 22)
-
-	return canvas
-}
-
 // ── Slide animation variants ──
 const slideVariants = {
 	enter: (direction: number) => ({
@@ -352,7 +240,10 @@ export default function YearInCookingPage() {
 	const tc = useTranslations('common')
 	const { user: profile } = useAuth()
 	const [[page, direction], setPage] = useState([0, 0])
-	const [isGenerating, setIsGenerating] = useState(false)
+	const [generatingAction, setGeneratingAction] = useState<
+		'share' | 'download' | null
+	>(null)
+	const generationLockRef = useRef(false)
 	const [copied, setCopied] = useState(false)
 
 	const cards = useMemo(() => {
@@ -386,7 +277,7 @@ export default function YearInCookingPage() {
 	)
 
 	const resolveShareCards = useCallback(
-		(): ShareCard[] =>
+		(): YearInCookingShareCard[] =>
 			cards.map(c => ({
 				emoji: c.emoji,
 				title: t(c.titleKey),
@@ -397,15 +288,15 @@ export default function YearInCookingPage() {
 	)
 
 	const handleShare = useCallback(async () => {
-		if (cards.length === 0) return
-		setIsGenerating(true)
+		if (cards.length === 0 || generationLockRef.current) return
+		generationLockRef.current = true
+		setGeneratingAction('share')
 		try {
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
-			const canvas = generateShareCanvas(
+			const canvas = generateYearInCookingShareCanvas(
 				shareCards,
-				displayName,
 				headerTitle,
 				footerTitle,
 			)
@@ -438,23 +329,26 @@ export default function YearInCookingPage() {
 				toast.success(t('toastCopiedClipboard'))
 			}
 		} catch (err) {
-			logDevError('Share failed:', err)
-			toast.error(t('toastShareFailed'))
+			if (!(err instanceof DOMException && err.name === 'AbortError')) {
+				logDevError('Share failed:', err)
+				toast.error(t('toastShareFailed'))
+			}
 		} finally {
-			setIsGenerating(false)
+			generationLockRef.current = false
+			setGeneratingAction(null)
 		}
 	}, [cards, displayName, t, resolveShareCards])
 
 	const handleDownload = useCallback(async () => {
-		if (cards.length === 0) return
-		setIsGenerating(true)
+		if (cards.length === 0 || generationLockRef.current) return
+		generationLockRef.current = true
+		setGeneratingAction('download')
 		try {
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
-			const canvas = generateShareCanvas(
+			const canvas = generateYearInCookingShareCanvas(
 				shareCards,
-				displayName,
 				headerTitle,
 				footerTitle,
 			)
@@ -473,7 +367,8 @@ export default function YearInCookingPage() {
 			logDevError('Download failed:', err)
 			toast.error(t('toastDownloadFailed'))
 		} finally {
-			setIsGenerating(false)
+			generationLockRef.current = false
+			setGeneratingAction(null)
 		}
 	}, [cards, displayName, t, resolveShareCards])
 	useEffect(() => {
@@ -514,7 +409,7 @@ export default function YearInCookingPage() {
 						<div className='flex items-center gap-3'>
 							<motion.button
 								type='button'
-								onClick={() => router.back()}
+								onClick={() => navigateBackOrFallback(router, PATHS.PROFILE)}
 								whileTap={BUTTON_SUBTLE_TAP}
 								className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 								aria-label={t('ariaGoBack')}
@@ -551,7 +446,7 @@ export default function YearInCookingPage() {
 					<div className='flex items-center gap-3'>
 						<motion.button
 							type='button'
-							onClick={() => router.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.PROFILE)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}
@@ -676,10 +571,11 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={handleDownload}
-							disabled={isGenerating}
+							disabled={generatingAction !== null}
+							aria-busy={generatingAction === 'download'}
 							className='flex items-center gap-2 rounded-xl border border-border bg-bg-card px-5 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
-							{isGenerating ? (
+							{generatingAction === 'download' ? (
 								<Loader2 className='size-4 animate-spin' />
 							) : (
 								<Download className='size-4' />
@@ -690,12 +586,13 @@ export default function YearInCookingPage() {
 							type='button'
 							whileTap={BUTTON_SUBTLE_TAP}
 							onClick={handleShare}
-							disabled={isGenerating}
+							disabled={generatingAction !== null}
+							aria-busy={generatingAction === 'share'}
 							className='flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 						>
 							{copied ? (
 								<Check className='size-4' />
-							) : isGenerating ? (
+							) : generatingAction === 'share' ? (
 								<Loader2 className='size-4 animate-spin' />
 							) : (
 								<Share2 className='size-4' />
