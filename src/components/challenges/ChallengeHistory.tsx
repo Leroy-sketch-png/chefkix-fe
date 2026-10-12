@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 
 import { motion } from 'framer-motion'
@@ -29,6 +30,7 @@ import { NumberTicker } from '@/components/ui/number-ticker'
 type DayStatus = 'completed' | 'missed' | 'today' | 'upcoming' | 'future'
 
 interface ChallengeDay {
+	id?: string
 	date: Date
 	status: DayStatus
 	challenge?: {
@@ -66,6 +68,10 @@ interface ChallengeHistoryPageProps {
 		totalBonusXp: number
 	}
 	onBack?: () => void
+	hasMore?: boolean
+	isLoadingMore?: boolean
+	loadMoreError?: boolean
+	onLoadMore?: () => void
 	className?: string
 }
 
@@ -73,14 +79,10 @@ interface ChallengeHistoryPageProps {
 // UTILITIES
 // ============================================
 
-const formatDateUtil = (date: Date, format: 'short' | 'long' = 'short') => {
-	if (format === 'short') {
-		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-	}
-	return date.toLocaleDateString('en-US', {
-		month: 'long',
+const formatDateUtil = (date: Date, locale: string) => {
+	return date.toLocaleDateString(locale, {
+		month: 'short',
 		day: 'numeric',
-		year: 'numeric',
 	})
 }
 
@@ -93,11 +95,11 @@ const isTodayUtil = (date: Date) => {
 	)
 }
 
-const formatDateShort = (date: Date) => {
-	return formatDateUtil(date, 'short')
+const formatDateShort = (date: Date, locale: string) => {
+	return formatDateUtil(date, locale)
 }
 
-const getDayName = (date: Date, locale = 'en-US') => {
+const getDayName = (date: Date, locale: string) => {
 	return date.toLocaleDateString(locale, { weekday: 'short' })
 }
 
@@ -203,7 +205,7 @@ const DayColumn = ({ day }: { day: ChallengeDay }) => {
 				{getDayName(day.date, locale)}
 			</span>
 			<span className='text-2xs text-text-secondary'>
-				{formatDateShort(day.date)}
+				{formatDateShort(day.date, locale)}
 			</span>
 
 			{/* Badge */}
@@ -328,8 +330,13 @@ export const ChallengeHistorySection = ({
 
 					{/* Week Calendar */}
 					<div className='mb-6 grid grid-cols-7 gap-2'>
-						{weekDays.map((day, i) => (
-							<DayColumn key={i} day={day} />
+						{weekDays.map(day => (
+							<DayColumn
+								key={
+									day.id ?? `${day.date.toISOString()}-${day.challenge?.title}`
+								}
+								day={day}
+							/>
 						))}
 					</div>
 
@@ -428,7 +435,13 @@ const HistoryItem = ({
 							: '—'}
 					</span>
 					{day.recipeCooked && (
-						<div className='mt-1 flex items-center gap-2'>
+						<Link
+							href={`/recipes/${day.recipeCooked.id}?cook=true`}
+							aria-label={t('cookAgainRecipe', {
+								title: day.recipeCooked.title,
+							})}
+							className='mt-1 flex w-fit items-center gap-2 rounded-md text-brand transition-colors hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+						>
 							<Image
 								src={day.recipeCooked.imageUrl}
 								alt={day.recipeCooked.title}
@@ -439,7 +452,8 @@ const HistoryItem = ({
 							<span className='text-xs font-semibold text-brand'>
 								{day.recipeCooked.title}
 							</span>
-						</div>
+							<ChevronRight className='size-3.5' aria-hidden='true' />
+						</Link>
 					)}
 				</div>
 
@@ -463,10 +477,16 @@ const HistoryItem = ({
 // CHALLENGE HISTORY PAGE (Full Page)
 // ============================================
 
+const HISTORY_DISPLAY_BATCH_SIZE = 20
+
 export const ChallengeHistoryPage = ({
 	days,
 	stats,
 	onBack,
+	hasMore = false,
+	isLoadingMore = false,
+	loadMoreError = false,
+	onLoadMore,
 	className,
 }: ChallengeHistoryPageProps) => {
 	const completionRate = Math.round(
@@ -474,9 +494,19 @@ export const ChallengeHistoryPage = ({
 	)
 
 	// Group days by "recent" (last 7) and rest
-	const recentDays = days.filter(d => d.status !== 'future').slice(0, 10)
+	const recentDays = days.filter(d => d.status !== 'future')
+	const [visibleCount, setVisibleCount] = useState(HISTORY_DISPLAY_BATCH_SIZE)
+	const visibleDays = recentDays.slice(0, visibleCount)
+	const hasBufferedDays = visibleCount < recentDays.length
 	const t = useTranslations('challenge')
 	const locale = useLocale()
+	const handleLoadMore = () => {
+		if (hasBufferedDays) {
+			setVisibleCount(count => count + HISTORY_DISPLAY_BATCH_SIZE)
+			return
+		}
+		onLoadMore?.()
+	}
 
 	return (
 		<div className={cn('mx-auto max-w-3xl space-y-6 p-6', className)}>
@@ -586,13 +616,37 @@ export const ChallengeHistoryPage = ({
 									</p>
 								</div>
 							)}
-							{recentDays.map((day, i) => (
+							{visibleDays.map(day => (
 								<HistoryItem
-									key={i}
+									key={
+										day.id ??
+										`${day.date.toISOString()}-${day.challenge?.title}`
+									}
 									day={day}
 									showTodayBadge={isTodayUtil(day.date)}
 								/>
 							))}
+							{loadMoreError && (
+								<p className='mt-4 text-center text-sm text-error' role='alert'>
+									{t('historyLoadMoreFailed')}
+								</p>
+							)}
+							{(hasBufferedDays ||
+								(onLoadMore && (hasMore || loadMoreError))) && (
+								<button
+									type='button'
+									onClick={handleLoadMore}
+									disabled={isLoadingMore}
+									aria-busy={isLoadingMore}
+									className='mx-auto mt-5 flex min-h-10 items-center justify-center rounded-xl border border-border-subtle bg-bg-elevated px-5 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover disabled:cursor-wait disabled:opacity-60'
+								>
+									{isLoadingMore
+										? t('loadingMore')
+										: loadMoreError
+											? t('retryLoadMore')
+											: t('loadMore')}
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
