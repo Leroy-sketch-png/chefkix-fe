@@ -144,7 +144,7 @@ export function LearningPathView({
 	}
 
 	const handleStartRecipe = (recipeId: string) => {
-		router.push(`/recipes/${recipeId}`)
+		router.push(`/recipes/${recipeId}?cook=true`)
 	}
 
 	const getDifficultyColor = (difficulty: string) => {
@@ -172,9 +172,7 @@ export function LearningPathView({
 	return (
 		<div className='space-y-6'>
 			{/* Header with stats */}
-			<div
-				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-6'
-			>
+			<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card p-6'>
 				<div className='relative z-10 w-full'>
 					{/* Collection info */}
 					<div className='mb-4 flex items-start justify-between gap-3'>
@@ -247,7 +245,9 @@ export function LearningPathView({
 							<div className='flex items-center gap-2'>
 								<Zap className='size-4 text-xp' />
 								<span className='text-sm tabular-nums text-text-secondary'>
-									{collection.totalXp.toLocaleString()} XP
+									{t('learningPathEstimatedXp', {
+										xp: collection.totalXp.toLocaleString(),
+									})}
 								</span>
 							</div>
 						)}
@@ -264,8 +264,7 @@ export function LearningPathView({
 					</div>
 
 					{/* Rating and completion rate */}
-					{(collection.averageRating ||
-						collection.completionRate !== undefined) && (
+					{(collection.averageRating || collection.completionRate != null) && (
 						<div className='mb-6 flex items-center gap-6'>
 							{collection.averageRating && (
 								<div className='flex items-center gap-1.5'>
@@ -275,7 +274,7 @@ export function LearningPathView({
 									</span>
 								</div>
 							)}
-							{collection.completionRate !== undefined && (
+							{collection.completionRate != null && (
 								<div className='flex items-center gap-1.5'>
 									<Trophy className='size-4 text-success' />
 									<span className='text-sm text-text-secondary'>
@@ -450,9 +449,7 @@ function StageCard({
 			transition={TRANSITION_SPRING}
 			className='group relative'
 		>
-			<div
-				className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'
-			>
+			<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card/75 backdrop-blur-md shadow-card transition-all group-hover:shadow-warm p-0'>
 				<div className='relative z-10 w-full'>
 					{/* Stage header */}
 					<button

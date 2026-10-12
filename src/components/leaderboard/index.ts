@@ -17,7 +17,6 @@ export type {
 	LeaderboardType,
 	Timeframe,
 	MyRankInfo,
-	ResetInfo,
 	LeaderboardPageProps,
 } from './LeaderboardPage'
 

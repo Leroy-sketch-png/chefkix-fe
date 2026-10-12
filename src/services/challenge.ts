@@ -62,6 +62,12 @@ export interface ChallengeStats {
 export interface ChallengeHistoryResponse {
 	challenges: ChallengeHistoryItem[]
 	stats: ChallengeStats
+	pagination: {
+		page: number
+		size: number
+		totalElements: number
+		hasNext: boolean
+	}
 }
 
 export const countCompletedDaysThisUtcWeek = (
@@ -179,15 +185,16 @@ export const getTodaysChallenge = async (requestOptions?: {
 
 /**
  * Get challenge history for the user.
- * @param limit Number of past challenges to return (default: 7)
+ * @param options Zero-based page and page size (defaults to page 0, size 7)
  */
 export const getChallengeHistory = async (
-	size: number = 7,
+	options: { page?: number; size?: number } = {},
 ): Promise<ApiResponse<ChallengeHistoryResponse>> => {
 	try {
+		const { page = 0, size = 7 } = options
 		const response = await api.get<ApiResponse<ChallengeHistoryResponse>>(
 			API_ENDPOINTS.CHALLENGES.HISTORY,
-			{ params: { size } },
+			{ params: { page, size } },
 		)
 		return response.data
 	} catch (error) {
@@ -214,7 +221,7 @@ export const getChallengeStats = async (): Promise<
 	ApiResponse<ChallengeStats>
 > => {
 	try {
-		const response = await getChallengeHistory(1)
+		const response = await getChallengeHistory({ size: 1 })
 		if (response.success && response.data) {
 			return {
 				success: true,

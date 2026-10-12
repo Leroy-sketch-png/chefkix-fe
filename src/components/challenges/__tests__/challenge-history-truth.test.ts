@@ -3,8 +3,14 @@ import path from 'node:path'
 
 import {
 	countCompletedDaysThisUtcWeek,
+	getChallengeHistory,
 	type ChallengeHistoryItem,
 } from '@/services/challenge'
+import { api } from '@/lib/axios'
+
+jest.mock('@/lib/axios', () => ({
+	api: { get: jest.fn() },
+}))
 
 const item = (date: string, completed = true): ChallengeHistoryItem => ({
 	id: `challenge-${date}`,
@@ -15,6 +21,10 @@ const item = (date: string, completed = true): ChallengeHistoryItem => ({
 })
 
 describe('challenge history truth', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
 	it('counts distinct completed UTC dates in the current Monday-based week', () => {
 		const history = [
 			item('2026-07-27'),
@@ -45,12 +55,46 @@ describe('challenge history truth', () => {
 			'utf8',
 		)
 
-		expect(service).toContain('{ params: { size } }')
+		expect(service).toContain('{ params: { page, size } }')
 		expect(service).not.toContain('{ params: { limit } }')
-		expect(route).toContain('getChallengeHistory(100)')
-		expect(route.replace(/\s+/g, '')).toContain('else{setFetchError(true)}')
+		expect(route.replace(/\s+/g, '')).toContain('page:0,size:HISTORY_PAGE_SIZE')
+		expect(route).toContain('response.data.pagination.hasNext')
+		expect(route.replace(/\s+/g, '')).toContain('else{setFetchError(true)')
+		expect(route).toContain('setRetryKey(key => key + 1)')
+		expect(route).toContain("router.push('/challenges')")
+		expect(route).not.toContain('window.location.reload()')
+		expect(route).not.toContain('router.back()')
 		expect(view).not.toContain('Simple calendar grid placeholder')
 		expect(view).not.toContain('onMonthChange')
 		expect(view).toContain("t('historyEmptyTitle')")
+	})
+
+	it('sends explicit page and size parameters to the history contract', async () => {
+		;(api.get as jest.Mock).mockResolvedValue({
+			data: {
+				success: true,
+				data: {
+					challenges: [],
+					stats: {
+						totalCompleted: 0,
+						currentStreak: 0,
+						longestStreak: 0,
+						totalBonusXp: 0,
+					},
+					pagination: {
+						page: 2,
+						size: 25,
+						totalElements: 60,
+						hasNext: false,
+					},
+				},
+			},
+		})
+
+		await getChallengeHistory({ page: 2, size: 25 })
+
+		expect(api.get).toHaveBeenCalledWith(expect.any(String), {
+			params: { page: 2, size: 25 },
+		})
 	})
 })

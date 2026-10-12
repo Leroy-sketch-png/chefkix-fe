@@ -19,6 +19,8 @@ import {
 	ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -218,9 +220,7 @@ const BadgeCard = ({ badge, isEarned, earnedAt }: BadgeCardProps) => {
 				</motion.div>
 			)}
 
-			<div
-				className='h-full w-full'
-			>
+			<div className='h-full w-full'>
 				<div
 					className={cn(
 						'flex flex-col items-center gap-3 h-full w-full text-center p-4 rounded-[inherit]',
@@ -445,7 +445,7 @@ export default function BadgeCatalogPage() {
 							<div className='mb-4 flex items-start gap-3'>
 								<motion.button
 									type='button'
-									onClick={() => router.back()}
+									onClick={() => navigateBackOrFallback(router, PATHS.PROFILE)}
 									whileTap={BUTTON_SUBTLE_TAP}
 									className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 									aria-label={t('ariaGoBack')}
@@ -453,9 +453,7 @@ export default function BadgeCatalogPage() {
 									<ArrowLeft className='size-5' />
 								</motion.button>
 								<div className='flex-1 rounded-2xl overflow-hidden shadow-card'>
-									<div
-										className='h-full w-full'
-									>
+									<div className='h-full w-full'>
 										<div className='flex items-center gap-3 p-4 bg-bg-card'>
 											<div className='grid size-10 place-items-center rounded-2xl bg-brand text-white shadow-glow'>
 												<Trophy className='size-5' />
@@ -515,19 +513,20 @@ export default function BadgeCatalogPage() {
 								<div className='flex flex-wrap items-center gap-2'>
 									<Select
 										value={selectedCategory}
-										onValueChange={v => setSelectedCategory(v as BadgeCategory | 'ALL')}
+										onValueChange={v =>
+											setSelectedCategory(v as BadgeCategory | 'ALL')
+										}
 									>
 										<SelectTrigger className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value='ALL'>
-												{t('allCategories')}
-											</SelectItem>
+											<SelectItem value='ALL'>{t('allCategories')}</SelectItem>
 											{Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
 												<SelectItem key={key} value={key}>
-													{t(config.labelKey)} ({categoryCounts[key]?.earned ?? 0}
-													/{categoryCounts[key]?.total ?? 0})
+													{t(config.labelKey)} (
+													{categoryCounts[key]?.earned ?? 0}/
+													{categoryCounts[key]?.total ?? 0})
 												</SelectItem>
 											))}
 										</SelectContent>
@@ -536,15 +535,15 @@ export default function BadgeCatalogPage() {
 									{/* Rarity Filter */}
 									<Select
 										value={selectedRarity}
-										onValueChange={v => setSelectedRarity(v as BadgeRarity | 'ALL')}
+										onValueChange={v =>
+											setSelectedRarity(v as BadgeRarity | 'ALL')
+										}
 									>
 										<SelectTrigger className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-1 focus-visible:ring-brand/20 sm:flex-none'>
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value='ALL'>
-												{t('allRarities')}
-											</SelectItem>
+											<SelectItem value='ALL'>{t('allRarities')}</SelectItem>
 											{RARITY_ORDER.map(rarity => (
 												<SelectItem key={rarity} value={rarity}>
 													{t(RARITY_CONFIG[rarity].labelKey)}

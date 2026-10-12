@@ -12,7 +12,7 @@ export interface ShoppingListItem {
 	addedManually: boolean
 }
 
-export type ShoppingListSource = 'Meal Plan' | 'Recipe' | 'Custom'
+export type ShoppingListSource = 'Meal Plan' | 'Cook Plan' | 'Recipe' | 'Custom'
 
 export interface ShoppingListResponse {
 	id: string
@@ -20,6 +20,7 @@ export interface ShoppingListResponse {
 	items: ShoppingListItem[]
 	source: ShoppingListSource
 	sourceMealPlanId: string | null
+	sourceCookPlanId?: string | null
 	sourceRecipeId: string | null
 	shareToken: string | null
 	totalItems: number
@@ -41,6 +42,10 @@ export interface ShoppingListSummary {
 
 export interface CreateFromMealPlanRequest {
 	mealPlanId: string
+}
+
+export interface CreateFromCookPlanRequest {
+	cookPlanId: string
 }
 
 export interface CreateFromRecipeRequest {

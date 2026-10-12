@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/i18n/hooks'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -31,6 +31,7 @@ import {
  * Transform API response to UI format
  */
 const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
+	id: item.id,
 	date: new Date(item.date),
 	status: item.completed ? 'completed' : 'missed',
 	challenge: {
@@ -51,12 +52,20 @@ const transformToChallengeDay = (item: ChallengeHistoryItem): ChallengeDay => ({
 // PAGE
 // ============================================
 
+const HISTORY_PAGE_SIZE = 100
+
 export default function ChallengeHistoryPageRoute() {
 	const router = useRouter()
 	const t = useTranslations('challenges')
 	const tc = useTranslations('common')
 	const [isLoading, setIsLoading] = useState(true)
 	const [fetchError, setFetchError] = useState(false)
+	const [retryKey, setRetryKey] = useState(0)
+	const [isLoadingMore, setIsLoadingMore] = useState(false)
+	const [loadMoreError, setLoadMoreError] = useState(false)
+	const [currentPage, setCurrentPage] = useState(0)
+	const [hasMore, setHasMore] = useState(false)
+	const loadMoreInFlightRef = useRef(false)
 	const [days, setDays] = useState<ChallengeDay[]>([])
 	const [stats, setStats] = useState({
 		currentStreak: 0,
@@ -74,11 +83,16 @@ export default function ChallengeHistoryPageRoute() {
 			setIsLoading(true)
 			setFetchError(false)
 			try {
-				const response = await getChallengeHistory(100)
+				const response = await getChallengeHistory({
+					page: 0,
+					size: HISTORY_PAGE_SIZE,
+				})
 				if (cancelled) return
 				if (response.success && response.data) {
 					const { challenges, stats: apiStats } = response.data
 					setDays(challenges.map(transformToChallengeDay))
+					setCurrentPage(response.data.pagination.page)
+					setHasMore(response.data.pagination.hasNext)
 					setStats({
 						currentStreak: apiStats.currentStreak,
 						completedThisWeek: countCompletedDaysThisUtcWeek(challenges),
@@ -106,7 +120,44 @@ export default function ChallengeHistoryPageRoute() {
 		return () => {
 			cancelled = true
 		}
-	}, [t])
+	}, [retryKey, t])
+
+	const handleLoadMore = async () => {
+		if (!hasMore || loadMoreInFlightRef.current) return
+
+		loadMoreInFlightRef.current = true
+		setIsLoadingMore(true)
+		setLoadMoreError(false)
+		const nextPage = currentPage + 1
+
+		try {
+			const response = await getChallengeHistory({
+				page: nextPage,
+				size: HISTORY_PAGE_SIZE,
+			})
+			if (!response.success || !response.data) {
+				setLoadMoreError(true)
+				return
+			}
+
+			const incomingDays = response.data.challenges.map(transformToChallengeDay)
+			setDays(previousDays => {
+				const knownIds = new Set(previousDays.map(day => day.id))
+				return [
+					...previousDays,
+					...incomingDays.filter(day => !day.id || !knownIds.has(day.id)),
+				]
+			})
+			setCurrentPage(response.data.pagination.page)
+			setHasMore(response.data.pagination.hasNext)
+		} catch (err) {
+			logDevError('Failed to load more challenge history:', err)
+			setLoadMoreError(true)
+		} finally {
+			loadMoreInFlightRef.current = false
+			setIsLoadingMore(false)
+		}
+	}
 
 	if (fetchError) {
 		return (
@@ -115,11 +166,7 @@ export default function ChallengeHistoryPageRoute() {
 					<ErrorState
 						title={t('errorLoadHistory')}
 						message={t('errorLoadHistoryDesc')}
-						onRetry={() => {
-							setIsLoading(true)
-							setFetchError(false)
-							window.location.reload()
-						}}
+						onRetry={() => setRetryKey(key => key + 1)}
 					/>
 				</PageContainer>
 			</PageTransition>
@@ -143,14 +190,20 @@ export default function ChallengeHistoryPageRoute() {
 			<PageContainer maxWidth='lg'>
 				<PremiumSurface
 					eyebrow={tc('eyebrows.challengeTimeline')}
-					chipText={tc('eyebrows.nLoggedDays', { n: days.length })}
+					chipText={tc('eyebrows.nLoggedDays', {
+						n: stats.totalCompleted,
+					})}
 					tone='streak'
 					className='p-3 md:p-4'
 				>
 					<ChallengeHistoryPage
 						days={days}
 						stats={stats}
-						onBack={() => router.back()}
+						hasMore={hasMore}
+						isLoadingMore={isLoadingMore}
+						loadMoreError={loadMoreError}
+						onLoadMore={handleLoadMore}
+						onBack={() => router.push('/challenges')}
 					/>
 				</PremiumSurface>
 

@@ -3,8 +3,7 @@
 import { motion } from 'framer-motion'
 import { AlertCircle, Clock, Copy, FileText, Trash2 } from 'lucide-react'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
-import { formatDistanceToNow } from 'date-fns'
+import { useFormatter, useTranslations } from 'next-intl'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { cn } from '@/lib/utils'
 import { ICON_BUTTON_HOVER, ICON_BUTTON_TAP, staggerItem } from '@/lib/motion'
@@ -66,6 +65,7 @@ function DraftsListCardContent({
 	onDelete,
 }: DraftsListCardProps) {
 	const t = useTranslations('recipe')
+	const format = useFormatter()
 
 	return (
 		<motion.div
@@ -101,9 +101,7 @@ function DraftsListCardContent({
 					<span>
 						{draft.createdAt
 							? t('createdAgo', {
-									time: formatDistanceToNow(new Date(draft.createdAt), {
-										addSuffix: true,
-									}),
+									time: format.relativeTime(new Date(draft.createdAt)),
 								})
 							: t('draft')}
 					</span>

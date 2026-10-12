@@ -199,10 +199,7 @@ export type ContentType =
 
 // Ingredient Substitution
 export type SubstitutionReason =
-	| 'allergy'
-	| 'unavailable'
-	| 'preference'
-	| 'dietary'
+	'allergy' | 'unavailable' | 'preference' | 'dietary'
 
 export interface SubstitutionRequest {
 	ingredient: string
@@ -233,12 +230,7 @@ export interface SubstitutionResponse {
 }
 
 export type RemixType =
-	| 'vegetarian'
-	| 'vegan'
-	| 'gluten-free'
-	| 'spicy'
-	| 'healthy'
-	| 'quick'
+	'vegetarian' | 'vegan' | 'gluten-free' | 'spicy' | 'healthy' | 'quick'
 
 export interface RemixRecipeRequest {
 	recipe_title: string
@@ -429,7 +421,7 @@ export const suggestSubstitutions = async (
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
 				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
-			...(resolvedSessionId && { session_id: resolvedSessionId }),
+				...(resolvedSessionId && { session_id: resolvedSessionId }),
 			},
 			{
 				headers: allergenFlags?.length

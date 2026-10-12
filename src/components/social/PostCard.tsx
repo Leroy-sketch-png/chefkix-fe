@@ -73,6 +73,7 @@ import { logDevError } from '@/lib/dev-log'
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { SaveToCollectionPicker } from '@/components/social/SaveToCollectionPicker'
 import { cn } from '@/lib/utils'
+import { copyToClipboard } from '@/lib/clipboard'
 import { StarRating } from '@/components/ui/star-rating'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { Lens } from '@/components/ui/lens'
@@ -576,7 +577,9 @@ const PostCardContent = ({
 				if ((err as Error).name !== 'AbortError') {
 					logDevError('Native share failed, falling back to clipboard:', err)
 					try {
-						await navigator.clipboard.writeText(postUrl)
+						if (!(await copyToClipboard(postUrl))) {
+							throw new Error('Clipboard unavailable')
+						}
 						toast.success(t('linkCopied'))
 					} catch {
 						toast.error(t('failedCopyLink'))
@@ -586,7 +589,9 @@ const PostCardContent = ({
 		} else {
 			// Fallback: copy to clipboard
 			try {
-				await navigator.clipboard.writeText(postUrl)
+				if (!(await copyToClipboard(postUrl))) {
+					throw new Error('Clipboard unavailable')
+				}
 				toast.success(t('linkCopied'))
 			} catch {
 				toast.error(t('failedCopyLink'))

@@ -74,22 +74,14 @@ export function SubstitutionButton({
 		setError(null)
 		try {
 			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
-			const res = user?.allergenFlags?.length
-				? await suggestSubstitutions(
-						ingredientName,
-						r,
-						context,
-						undefined,
-						user.allergenFlags,
-						sessionId,
-					)
-				: await suggestSubstitutions(
-						ingredientName,
-						r,
-						context,
-						undefined,
-						sessionId,
-					)
+			const res = await suggestSubstitutions(
+				ingredientName,
+				r,
+				context,
+				undefined,
+				user?.allergenFlags,
+				sessionId,
+			)
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
@@ -222,95 +214,111 @@ export function SubstitutionButton({
 										{error}
 									</p>
 								) : substitutions && substitutions.length > 0 ? (
-									<div className='space-y-3'>
-										<CompoundComparison
-											originalIngredient={ingredientName}
-											substitutions={substitutions}
-											allergenFlags={user?.allergenFlags}
-										/>
-										<ul className='max-h-64 space-y-2 overflow-y-auto'>
-											{substitutions.map(sub => (
-												<li
-													key={sub.suggestionId ?? sub.name}
-													className={cn(
-														'rounded-xl bg-bg-elevated p-2.5',
-														resolveAllergenSafety(sub, user?.allergenFlags)
-															.status === 'blocked' && 'opacity-75',
-													)}
-												>
-													<div className='flex items-center justify-between'>
-														<span className='text-sm font-medium text-text-primary'>
-															{sub.name}
-														</span>
-														<span
-															className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
-																sub.confidenceScore >= 0.8
-																	? 'bg-success/15 text-success'
-																	: sub.confidenceScore >= 0.5
-																		? 'bg-warning/15 text-warning'
-																		: 'bg-destructive/15 text-destructive'
-															}`}
-														>
-															{Math.round(sub.confidenceScore * 100)}%
-														</span>
-													</div>
-													<p className='mt-0.5 text-xs text-brand/80'>
-														{sub.ratio}
-													</p>
-													{sub.notes && (
-														<p className='mt-0.5 text-xs text-text-muted'>
-															{sub.notes}
-														</p>
-													)}
-													<AllergenSafetyIndicator
-														safety={resolveAllergenSafety(
-															sub,
-															user?.allergenFlags,
+									<>
+										<div className='space-y-3'>
+											<CompoundComparison
+												originalIngredient={ingredientName}
+												substitutions={substitutions}
+												allergenFlags={user?.allergenFlags}
+											/>
+											<ul className='max-h-64 space-y-2 overflow-y-auto'>
+												{substitutions.map(sub => (
+													<li
+														key={sub.suggestionId ?? sub.name}
+														className={cn(
+															'rounded-xl bg-bg-elevated p-2.5',
+															resolveAllergenSafety(sub, user?.allergenFlags)
+																.status === 'blocked' && 'opacity-75',
 														)}
-													/>
-													<CompoundExplanation
-														originalIngredient={ingredientName}
-														 substitution={sub}
-													/>
-													{sessionId &&
-														sub.candidateReceipt &&
-														sub.suggestionId && (
-															<div className='mt-2 flex items-center gap-2'>
-																<button
-																	type='button'
-																	disabled={['submitting', 'accepted', 'rejected'].includes(
-																		feedbackState[sub.suggestionId] ?? '',
-																	)}
-																	onClick={() => handleFeedback(sub, true)}
-																	className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
-																>
-																	{feedbackState[sub.suggestionId] === 'accepted'
-																		? t('feedbackRecorded')
-																		: t('substitutionWorks')}
-																</button>
-																<button
-																	type='button'
-																	disabled={['submitting', 'accepted', 'rejected'].includes(
-																		feedbackState[sub.suggestionId] ?? '',
-																	)}
-																	onClick={() => handleFeedback(sub, false)}
-																	className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
-																>
-																	{feedbackState[sub.suggestionId] === 'rejected'
-																		? t('feedbackRecorded')
-																		: t('substitutionDoesNotWork')}
-																</button>
-															</div>
-														)}
-													{feedbackState[sub.suggestionId ?? ''] === 'error' && (
-														<p role='status' className='mt-1 text-xs text-error'>
-															{t('feedbackFailed')}
+													>
+														<div className='flex items-center justify-between'>
+															<span className='text-sm font-medium text-text-primary'>
+																{sub.name}
+															</span>
+															<span
+																className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
+																	sub.confidenceScore >= 0.8
+																		? 'bg-success/15 text-success'
+																		: sub.confidenceScore >= 0.5
+																			? 'bg-warning/15 text-warning'
+																			: 'bg-destructive/15 text-destructive'
+																}`}
+															>
+																{Math.round(sub.confidenceScore * 100)}%
+															</span>
+														</div>
+														<p className='mt-0.5 text-xs text-brand/80'>
+															{sub.ratio}
 														</p>
-													)}
-												</li>
-											))}
-										</ul>
-									</div>
+														{sub.notes && (
+															<p className='mt-0.5 text-xs text-text-muted'>
+																{sub.notes}
+															</p>
+														)}
+														<AllergenSafetyIndicator
+															safety={resolveAllergenSafety(
+																sub,
+																user?.allergenFlags,
+															)}
+														/>
+														<CompoundExplanation
+															originalIngredient={ingredientName}
+															substitution={sub}
+														/>
+														{sessionId &&
+															sub.candidateReceipt &&
+															sub.suggestionId && (
+																<div className='mt-2 flex items-center gap-2'>
+																	<button
+																		type='button'
+																		disabled={[
+																			'submitting',
+																			'accepted',
+																			'rejected',
+																		].includes(
+																			feedbackState[sub.suggestionId] ?? '',
+																		)}
+																		onClick={() => handleFeedback(sub, true)}
+																		className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
+																	>
+																		{feedbackState[sub.suggestionId] ===
+																		'accepted'
+																			? t('feedbackRecorded')
+																			: t('substitutionWorks')}
+																	</button>
+																	<button
+																		type='button'
+																		disabled={[
+																			'submitting',
+																			'accepted',
+																			'rejected',
+																		].includes(
+																			feedbackState[sub.suggestionId] ?? '',
+																		)}
+																		onClick={() => handleFeedback(sub, false)}
+																		className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
+																	>
+																		{feedbackState[sub.suggestionId] ===
+																		'rejected'
+																			? t('feedbackRecorded')
+																			: t('substitutionDoesNotWork')}
+																	</button>
+																</div>
+															)}
+														{feedbackState[sub.suggestionId ?? ''] ===
+															'error' && (
+															<p
+																role='status'
+																className='mt-1 text-xs text-error'
+															>
+																{t('feedbackFailed')}
+															</p>
+														)}
+													</li>
+												))}
+											</ul>
+										</div>
+									</>
 								) : (
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{t('noSubstitutionsFound')}

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 
 export interface KeyboardShortcut {
 	key: string
@@ -76,15 +76,33 @@ export function useKeyboardShortcuts(
 /** Platform-aware modifier symbol */
 export function getModifierSymbol(): string {
 	if (typeof navigator === 'undefined') return 'Ctrl'
-	return /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl'
+	const platform =
+		'userAgentData' in navigator
+			? (navigator.userAgentData as { platform?: string }).platform
+			: undefined
+	return platform === 'macOS' || /Mac|iPhone|iPad/.test(navigator.userAgent)
+		? '⌘'
+		: 'Ctrl'
+}
+
+/** Hydration-stable platform modifier for shortcut labels. */
+export function useModifierSymbol(): string {
+	const [symbol, setSymbol] = useState('Ctrl')
+
+	useEffect(() => {
+		setSymbol(getModifierSymbol())
+	}, [])
+
+	return symbol
 }
 
 /** Format shortcut for display */
 export function formatShortcutLabel(
 	shortcut: Pick<KeyboardShortcut, 'key' | 'ctrl' | 'shift' | 'alt'>,
+	modifierSymbol = getModifierSymbol(),
 ): string {
 	const parts: string[] = []
-	if (shortcut.ctrl) parts.push(getModifierSymbol())
+	if (shortcut.ctrl) parts.push(modifierSymbol)
 	if (shortcut.shift) parts.push('Shift')
 	if (shortcut.alt) parts.push('Alt')
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useId, useState } from 'react'
 import { ArrowLeft, Flame, History, Search, Sparkles, X } from 'lucide-react'
 import { FeedTabBar, type TabItem } from '@/components/shared/FeedTabBar'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,11 @@ interface SearchDeckBaseProps {
 	onClear: () => void
 	searchPlaceholder: string
 	clearLabel: string
+	autocompleteTerms: string[]
+	autocompleteLabel: string
+	autocompleteLoadingLabel: string
+	isAutocompleteLoading: boolean
+	onAutocompleteSelect: (term: string) => void
 	className?: string
 }
 
@@ -37,8 +43,9 @@ interface SearchDiscoveryCommandDeckProps extends SearchDeckBaseProps {
 	trendingTerms: TrendingTerm[]
 }
 
-interface SearchResultsCommandDeckProps<TTab extends string>
-	extends SearchDeckBaseProps {
+interface SearchResultsCommandDeckProps<
+	TTab extends string,
+> extends SearchDeckBaseProps {
 	mode: 'results'
 	eyebrow: string
 	chipLabel: string
@@ -52,8 +59,7 @@ interface SearchResultsCommandDeckProps<TTab extends string>
 }
 
 type SearchCommandDeckProps<TTab extends string> =
-	| SearchDiscoveryCommandDeckProps
-	| SearchResultsCommandDeckProps<TTab>
+	SearchDiscoveryCommandDeckProps | SearchResultsCommandDeckProps<TTab>
 
 export function SearchCommandDeck<TTab extends string>(
 	props: SearchCommandDeckProps<TTab>,
@@ -83,16 +89,85 @@ function SearchInput({
 	onClear,
 	searchPlaceholder,
 	clearLabel,
+	autocompleteTerms,
+	autocompleteLabel,
+	autocompleteLoadingLabel,
+	isAutocompleteLoading,
+	onAutocompleteSelect,
 }: SearchDeckBaseProps) {
+	const listboxId = useId()
+	const [hasFocus, setHasFocus] = useState(false)
+	const [isDismissed, setIsDismissed] = useState(false)
+	const [activeIndex, setActiveIndex] = useState(-1)
+	const canSuggest = searchValue.trim().length >= 2
+	const isOpen =
+		hasFocus &&
+		!isDismissed &&
+		canSuggest &&
+		(isAutocompleteLoading || autocompleteTerms.length > 0)
+
+	useEffect(() => {
+		setActiveIndex(-1)
+		setIsDismissed(false)
+	}, [autocompleteTerms, searchValue])
+
+	const selectTerm = (term: string) => {
+		setIsDismissed(true)
+		setActiveIndex(-1)
+		onAutocompleteSelect(term)
+	}
+
 	return (
-		<div className='relative'>
+		<div
+			className='relative'
+			onFocus={() => {
+				setHasFocus(true)
+				setIsDismissed(false)
+			}}
+			onBlur={event => {
+				if (!event.currentTarget.contains(event.relatedTarget)) {
+					setHasFocus(false)
+					setIsDismissed(false)
+					setActiveIndex(-1)
+				}
+			}}
+		>
 			<Search className='pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted' />
 			<input
 				type='text'
 				value={searchValue}
-				onChange={event => onSearchChange(event.target.value)}
+				onChange={event => {
+					setIsDismissed(false)
+					onSearchChange(event.target.value)
+				}}
 				placeholder={searchPlaceholder}
 				aria-label={searchPlaceholder}
+				role='combobox'
+				aria-autocomplete='list'
+				aria-expanded={isOpen}
+				aria-controls={isOpen ? listboxId : undefined}
+				aria-activedescendant={
+					activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+				}
+				onKeyDown={event => {
+					if (!isOpen) return
+					if (event.key === 'ArrowDown' && autocompleteTerms.length > 0) {
+						event.preventDefault()
+						setActiveIndex(index => (index + 1) % autocompleteTerms.length)
+					} else if (event.key === 'ArrowUp' && autocompleteTerms.length > 0) {
+						event.preventDefault()
+						setActiveIndex(index =>
+							index <= 0 ? autocompleteTerms.length - 1 : index - 1,
+						)
+					} else if (event.key === 'Enter' && activeIndex >= 0) {
+						event.preventDefault()
+						selectTerm(autocompleteTerms[activeIndex])
+					} else if (event.key === 'Escape') {
+						event.preventDefault()
+						setIsDismissed(true)
+						setActiveIndex(-1)
+					}
+				}}
 				className='w-full rounded-xl border border-border-subtle bg-bg-card py-3 pl-12 pr-11 text-text-primary placeholder:text-text-muted focus:border-brand/70 focus:outline-none focus-visible:ring-0 sm:py-3.5'
 			/>
 			{searchValue && (
@@ -105,6 +180,42 @@ function SearchInput({
 				>
 					<X className='size-4' />
 				</motion.button>
+			)}
+			{isOpen && (
+				<div
+					id={listboxId}
+					role='listbox'
+					aria-label={autocompleteLabel}
+					className='absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 overflow-hidden rounded-xl border border-border bg-bg-card p-1.5 shadow-elevated'
+				>
+					{isAutocompleteLoading && autocompleteTerms.length === 0 ? (
+						<p role='status' className='px-3 py-2 text-sm text-text-secondary'>
+							{autocompleteLoadingLabel}
+						</p>
+					) : (
+						autocompleteTerms.map((term, index) => (
+							<button
+								type='button'
+								role='option'
+								aria-selected={activeIndex === index}
+								id={`${listboxId}-option-${index}`}
+								key={term}
+								onMouseDown={event => event.preventDefault()}
+								onClick={() => selectTerm(term)}
+								onMouseEnter={() => setActiveIndex(index)}
+								className={cn(
+									'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-text-primary transition-colors',
+									activeIndex === index
+										? 'bg-brand/10 text-brand'
+										: 'hover:bg-bg-hover',
+								)}
+							>
+								<Search className='size-4 shrink-0 text-text-muted' />
+								<span className='truncate'>{term}</span>
+							</button>
+						))
+					)}
+				</div>
 			)}
 		</div>
 	)

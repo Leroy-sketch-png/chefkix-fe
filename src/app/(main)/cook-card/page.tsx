@@ -12,6 +12,8 @@ import CookCardRenderer from '@/components/cook-card/CookCardRenderer'
 import { BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { useTranslations } from '@/i18n/hooks'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 
 function CookCardContent() {
 	const t = useTranslations('cooking')
@@ -25,7 +27,10 @@ function CookCardContent() {
 			<PageContainer>
 				<div className='flex flex-col items-center gap-4 py-16 text-center'>
 					<p className='text-text-secondary'>{t('noSessionSpecified')}</p>
-					<Button variant='outline' onClick={() => router.back()}>
+					<Button
+						variant='outline'
+						onClick={() => navigateBackOrFallback(router, PATHS.COOK)}
+					>
 						<ArrowLeft className='mr-2 size-4' />
 						{t('goBack')}
 					</Button>
@@ -46,7 +51,7 @@ function CookCardContent() {
 					<div className='flex items-center gap-3'>
 						<motion.button
 							type='button'
-							onClick={() => router.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.COOK)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}

@@ -2,6 +2,7 @@ import type { CookingRoom, RoomParticipant } from '@/lib/types/room'
 import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { useCookingStore } from '@/store/cookingStore'
+import { roomInvitePath } from '@/lib/room-code'
 import {
 	getIoCertificationGateResult,
 	getStoredIoCertificationSummary,
@@ -1032,8 +1033,8 @@ async function createCookTogetherShortcut(
 	}
 
 	const origin = getDemoOrigin()
-	const joinPath = `/cook-together?roomCode=${effectiveRoomCode}`
-	const watchPath = `${joinPath}&role=SPECTATOR`
+	const joinPath = roomInvitePath(effectiveRoomCode)
+	const watchPath = roomInvitePath(effectiveRoomCode, 'SPECTATOR')
 	const joinUrl = `${origin}${joinPath}`
 	const watchUrl = `${origin}${watchPath}`
 

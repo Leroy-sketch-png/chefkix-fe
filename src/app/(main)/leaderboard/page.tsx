@@ -159,22 +159,6 @@ export default function LeaderboardRoute() {
 		onRefresh: () => setRetryKey(k => k + 1),
 	})
 
-	// Calculate reset timer (weekly resets on Sunday midnight UTC)
-	const getResetInfo = () => {
-		const now = new Date()
-		const nextSunday = new Date(now)
-		nextSunday.setUTCDate(now.getUTCDate() + ((7 - now.getUTCDay()) % 7))
-		nextSunday.setUTCHours(0, 0, 0, 0)
-		if (nextSunday <= now) {
-			nextSunday.setUTCDate(nextSunday.getUTCDate() + 7)
-		}
-		const diff = nextSunday.getTime() - now.getTime()
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-		return { days, hours, minutes }
-	}
-
 	if (error) {
 		return (
 			<PageTransition>
@@ -210,7 +194,6 @@ export default function LeaderboardRoute() {
 						entries={entries}
 						isLoading={isLoading}
 						myRank={myRank}
-						resetInfo={getResetInfo()}
 						type={type}
 						timeframe={timeframe}
 						onTypeChange={handleTypeChange}

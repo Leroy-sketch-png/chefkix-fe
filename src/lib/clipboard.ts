@@ -52,9 +52,11 @@ interface ShareContent {
 	url?: string
 }
 
+export type ShareContentResult = 'shared' | 'copied' | 'cancelled' | 'failed'
+
 /**
  * Share via native Web Share API (mobile), with clipboard fallback on desktop.
- * Returns 'shared' | 'copied' | 'failed'.
+ * Returns the completed action, including an explicit user cancellation.
  *
  * @example
  * const result = await shareContent({ title: 'Recipe', url: window.location.href })
@@ -62,7 +64,7 @@ interface ShareContent {
  */
 export async function shareContent(
 	content: ShareContent,
-): Promise<'shared' | 'copied' | 'failed'> {
+): Promise<ShareContentResult> {
 	if (typeof window === 'undefined') return 'failed'
 
 	// Try native share (mobile browsers, some desktop)
@@ -71,8 +73,8 @@ export async function shareContent(
 			await navigator.share(content)
 			return 'shared'
 		} catch (err) {
-			// User cancelled or not supported — fall through to clipboard
-			if ((err as DOMException)?.name === 'AbortError') return 'failed'
+			// Cancellation is intentional and must not fall through to clipboard.
+			if ((err as DOMException)?.name === 'AbortError') return 'cancelled'
 		}
 	}
 

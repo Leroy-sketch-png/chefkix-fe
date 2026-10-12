@@ -26,6 +26,7 @@ import {
 	X,
 	History,
 	TrendingUp,
+	Loader2,
 } from 'lucide-react'
 import Image, { type ImageProps } from 'next/image'
 import Link from 'next/link'
@@ -50,10 +51,14 @@ import {
 	ICON_BUTTON_TAP,
 	DURATION_S,
 } from '@/lib/motion'
-import { getTrendingSearches, unifiedSearch } from '@/services/search'
+import {
+	autocompleteSearch,
+	getTrendingSearches,
+	unifiedSearch,
+} from '@/services/search'
 import { toggleFollow } from '@/services/social'
 import { toggleSaveRecipe } from '@/services/recipe'
-import { UserSearchDoc } from '@/lib/types/search'
+import { type SearchType, UserSearchDoc } from '@/lib/types/search'
 import {
 	toPostSearchResult,
 	toRecipeSearchResult,
@@ -73,8 +78,20 @@ import {
 	formatPositiveSocialCount,
 	isPositiveSocialMetric,
 } from '@/lib/positive-social-proof'
+import { getSearchSuggestionLabels } from '@/lib/search-suggestions'
+import {
+	hasMoreSearchResults,
+	mergeUniqueSearchResults,
+} from '@/lib/search-pagination'
+import { createAsyncRequestAuthority } from '@/lib/async-request-authority'
 
 type SearchTab = 'recipes' | 'people' | 'posts'
+
+const SEARCH_TYPE_BY_TAB: Record<SearchTab, SearchType> = {
+	recipes: 'recipes',
+	people: 'users',
+	posts: 'posts',
+}
 
 interface PersonResult {
 	id: string
@@ -463,6 +480,9 @@ function SearchContent() {
 	const [retryKey, setRetryKey] = useState(0)
 	const [recentSearches, setRecentSearches] = useState<string[]>([])
 	const [trendingSearches, setTrendingSearches] = useState<string[]>([])
+	const [autocompleteTerms, setAutocompleteTerms] = useState<string[]>([])
+	const [isAutocompleteLoading, setIsAutocompleteLoading] = useState(false)
+	const autocompleteRequestRef = useRef(0)
 	const [isNavigating, startNavigationTransition] = useTransition()
 	const [results, setResults] = useState<{
 		recipes: RecipeSearchResult[]
@@ -478,6 +498,18 @@ function SearchContent() {
 		people: 0,
 		posts: 0,
 	})
+	const [resultPages, setResultPages] = useState<Record<SearchTab, number>>({
+		recipes: 1,
+		people: 1,
+		posts: 1,
+	})
+	const [loadingMoreTab, setLoadingMoreTab] = useState<SearchTab | null>(null)
+	const [loadMoreErrorTab, setLoadMoreErrorTab] = useState<SearchTab | null>(
+		null,
+	)
+	const loadMoreLockRef = useRef(false)
+	const paginationAuthorityRef = useRef(createAsyncRequestAuthority())
+	const searchGenerationRef = useRef(0)
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	// Clean up debounce timer on unmount
@@ -488,6 +520,36 @@ function SearchContent() {
 			}
 		}
 	}, [])
+
+	useEffect(() => {
+		const trimmed = searchInput.trim()
+		const requestId = ++autocompleteRequestRef.current
+		let cancelled = false
+
+		if (trimmed.length < 2) {
+			setAutocompleteTerms([])
+			setIsAutocompleteLoading(false)
+			return
+		}
+
+		setIsAutocompleteLoading(true)
+		const timer = setTimeout(async () => {
+			const response = await autocompleteSearch(trimmed, 'all', 8)
+			if (cancelled || requestId !== autocompleteRequestRef.current) return
+
+			setAutocompleteTerms(
+				response.success
+					? getSearchSuggestionLabels(response.data, trimmed, 6)
+					: [],
+			)
+			setIsAutocompleteLoading(false)
+		}, 150)
+
+		return () => {
+			cancelled = true
+			clearTimeout(timer)
+		}
+	}, [searchInput])
 
 	// Update input when URL changes from browser nav (back/forward)
 	useEffect(() => {
@@ -542,10 +604,26 @@ function SearchContent() {
 		}, 300)
 	}
 
+	const submitSearchTerm = (term: string) => {
+		const trimmed = term.trim()
+		if (!trimmed) return
+		if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+		setSearchInput(trimmed)
+		setAutocompleteTerms([])
+		isInternalNav.current = true
+		router.replace(`/search?q=${encodeURIComponent(trimmed)}`)
+	}
+
 	// Fetch search results via unified Typesense search
 	useEffect(() => {
 		if (!query) return
 		let cancelled = false
+		searchGenerationRef.current += 1
+		paginationAuthorityRef.current.reset()
+		loadMoreLockRef.current = false
+		setLoadingMoreTab(null)
+		setLoadMoreErrorTab(null)
+		setResultPages({ recipes: 1, people: 1, posts: 1 })
 
 		const fetchResults = async () => {
 			setIsLoading(true)
@@ -596,8 +674,104 @@ function SearchContent() {
 		}
 	}, [query, retryKey])
 
+	const handleLoadMore = async () => {
+		const tab = activeTab
+		const loadedCount = results[tab].length
+		if (
+			loadMoreLockRef.current ||
+			!hasMoreSearchResults(loadedCount, resultCounts[tab])
+		) {
+			return
+		}
+
+		loadMoreLockRef.current = true
+		setLoadingMoreTab(tab)
+		setLoadMoreErrorTab(null)
+		const generation = searchGenerationRef.current
+		const ticket = paginationAuthorityRef.current.begin()
+		const nextPage = resultPages[tab] + 1
+
+		try {
+			const response = await unifiedSearch(
+				query,
+				SEARCH_TYPE_BY_TAB[tab],
+				20,
+				nextPage,
+			)
+			if (
+				generation !== searchGenerationRef.current ||
+				!paginationAuthorityRef.current.isCurrent(ticket)
+			) {
+				return
+			}
+			if (!response.success || !response.data) {
+				throw new Error(response.message || 'Search page failed')
+			}
+
+			if (tab === 'recipes') {
+				const page = response.data.recipes
+				if (!page) throw new Error('Recipe search page missing')
+				const incoming = page.hits.map(hit =>
+					toRecipeSearchResult(hit.document),
+				)
+				setResults(previous => ({
+					...previous,
+					recipes: mergeUniqueSearchResults(previous.recipes, incoming),
+				}))
+				setResultCounts(previous => ({
+					...previous,
+					recipes: page.found ?? previous.recipes,
+				}))
+			} else if (tab === 'people') {
+				const page = response.data.users
+				if (!page) throw new Error('People search page missing')
+				const incoming = page.hits.map(hit => transformUserDoc(hit.document))
+				setResults(previous => ({
+					...previous,
+					people: mergeUniqueSearchResults(previous.people, incoming),
+				}))
+				setResultCounts(previous => ({
+					...previous,
+					people: page.found ?? previous.people,
+				}))
+			} else {
+				const page = response.data.posts
+				if (!page) throw new Error('Post search page missing')
+				const incoming = page.hits.map(hit => toPostSearchResult(hit.document))
+				setResults(previous => ({
+					...previous,
+					posts: mergeUniqueSearchResults(previous.posts, incoming),
+				}))
+				setResultCounts(previous => ({
+					...previous,
+					posts: page.found ?? previous.posts,
+				}))
+			}
+
+			setResultPages(previous => ({ ...previous, [tab]: nextPage }))
+		} catch (loadError) {
+			if (
+				generation === searchGenerationRef.current &&
+				paginationAuthorityRef.current.isCurrent(ticket)
+			) {
+				logDevError('Loading more search results failed:', loadError)
+				setLoadMoreErrorTab(tab)
+			}
+		} finally {
+			if (paginationAuthorityRef.current.isCurrent(ticket)) {
+				loadMoreLockRef.current = false
+				if (generation === searchGenerationRef.current) setLoadingMoreTab(null)
+			}
+		}
+	}
+
 	const totalResults =
 		resultCounts.recipes + resultCounts.people + resultCounts.posts
+	const activeLoadedCount = results[activeTab].length
+	const hasMoreActiveResults = hasMoreSearchResults(
+		activeLoadedCount,
+		resultCounts[activeTab],
+	)
 
 	const tabs: TabItem<SearchTab>[] = [
 		{
@@ -648,12 +822,6 @@ function SearchContent() {
 		).slice(0, 4)
 		const trendingTermsForDeck = mapTrendingTerms(trendingSearches)
 
-		const handleSuggestionClick = (term: string) => {
-			setSearchInput(term)
-			isInternalNav.current = true
-			router.replace(`/search?q=${encodeURIComponent(term)}`)
-		}
-
 		const handleRemoveRecent = (term: string) => {
 			removeRecentSearch(term)
 			setRecentSearches(getRecentSearches())
@@ -680,11 +848,16 @@ function SearchContent() {
 									onClear={() => handleSearchInputChange('')}
 									searchPlaceholder={t('searchPlaceholder')}
 									clearLabel={t('clearSearch')}
+									autocompleteTerms={autocompleteTerms}
+									autocompleteLabel={t('liveSuggestions')}
+									autocompleteLoadingLabel={t('loadingSuggestions')}
+									isAutocompleteLoading={isAutocompleteLoading}
+									onAutocompleteSelect={submitSearchTerm}
 									suggestionsLabel={t('suggestions')}
 									suggestionTerms={visibleSuggestionTerms}
 									recentSearchesLabel={t('recentSearches')}
 									recentSearches={recentSearches}
-									onSuggestionClick={handleSuggestionClick}
+									onSuggestionClick={submitSearchTerm}
 									onRemoveRecent={handleRemoveRecent}
 									getRemoveRecentLabel={term =>
 										t('removeRecentSearch', { term })
@@ -784,6 +957,11 @@ function SearchContent() {
 						onClear={() => handleSearchInputChange('')}
 						searchPlaceholder={t('searchPlaceholder')}
 						clearLabel={t('clearSearch')}
+						autocompleteTerms={autocompleteTerms}
+						autocompleteLabel={t('liveSuggestions')}
+						autocompleteLoadingLabel={t('loadingSuggestions')}
+						isAutocompleteLoading={isAutocompleteLoading}
+						onAutocompleteSelect={submitSearchTerm}
 						tabs={tabs}
 						activeTab={activeTab}
 						onTabChange={setActiveTab}
@@ -964,6 +1142,43 @@ function SearchContent() {
 								</>
 							)}
 						</AnimatePresence>
+
+						{!isLoading && activeLoadedCount > 0 && (
+							<div className='mt-6 flex flex-col items-center gap-3 border-t border-border-subtle pt-5'>
+								{loadMoreErrorTab === activeTab && (
+									<p role='alert' className='text-center text-sm text-error'>
+										{t('loadMoreFailed')}
+									</p>
+								)}
+								{hasMoreActiveResults && (
+									<button
+										type='button'
+										onClick={handleLoadMore}
+										disabled={loadingMoreTab !== null}
+										aria-label={
+											loadMoreErrorTab === activeTab
+												? t('retryLoadMore')
+												: t('loadMore')
+										}
+										className='inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/8 px-5 py-2.5 text-sm font-bold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-60'
+									>
+										{loadingMoreTab === activeTab && (
+											<Loader2
+												className='size-4 animate-spin'
+												aria-hidden='true'
+											/>
+										)}
+										<span aria-live='polite'>
+											{loadingMoreTab === activeTab
+												? t('loadingMoreResults')
+												: loadMoreErrorTab === activeTab
+													? t('retryLoadMore')
+													: t('loadMore')}
+										</span>
+									</button>
+								)}
+							</div>
+						)}
 					</section>
 				</PageContainer>
 			</div>

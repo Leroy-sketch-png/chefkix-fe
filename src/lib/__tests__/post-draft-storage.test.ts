@@ -44,6 +44,13 @@ const postPageSource = fs.readFileSync(
 	path.join(process.cwd(), 'src/app/(main)/post/new/page.tsx'),
 	'utf8',
 )
+const autosaveSource = fs.readFileSync(
+	path.join(process.cwd(), 'src/hooks/usePostDraftAutosave.ts'),
+	'utf8',
+)
+const messages = JSON.parse(
+	fs.readFileSync(path.join(process.cwd(), 'messages/en.json'), 'utf8'),
+) as Record<string, Record<string, string>>
 
 describe('post draft storage', () => {
 	beforeEach(() => {
@@ -126,9 +133,18 @@ describe('post draft storage', () => {
 		expect(providerSource).toContain('await postDraftRepository.save({')
 		expect(rewardsSource).toContain('void runAction')
 		expect(rewardsSource).toContain("void runAction('postLater', onClose)")
-		expect(postPageSource).toContain(
-			'content.trim() || photoFiles.length > 0 || sessionId',
-		)
+		expect(postPageSource).toContain('usePostDraftAutosave({')
+		expect(autosaveSource).toContain('await repository.save({')
+		expect(autosaveSource).toContain('await repository.clear(')
+		expect(autosaveSource).toContain('latestSignatureRef.current')
+		expect(messages.post).toMatchObject({
+			draftUnsaved: 'Unsaved changes',
+			draftSaving: 'Saving draft...',
+			draftSaved: 'Draft saved',
+			draftSaveFailed: 'Draft not saved',
+			draftRetry: 'Try saving again',
+			draftLeaveWarning: 'Your latest post changes have not been saved yet.',
+		})
 		expect(lifecycleSource).not.toMatch(
 			/pendingPostSession|pendingPostPhotos|postDraftContent|postDraftPhotos|postDraftTs/,
 		)

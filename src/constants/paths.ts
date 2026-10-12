@@ -21,6 +21,8 @@ export const PATHS = {
 	SCAN: '/scan',
 	COPILOT: '/copilot',
 	CREATE_POST: '/post/new',
+	COLLECTIONS: '/collections',
+	SHOPPING_LISTS: '/shopping-lists',
 	PROFILE: '/profile',
 	SETTINGS: '/settings',
 	AUTH: {

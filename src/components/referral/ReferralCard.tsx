@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/i18n/hooks'
 import { parseError } from '@/lib/error-utils'
 import { normalizeReferralCode } from '@/lib/referral-intent'
+import { copyToClipboard, shareContent } from '@/lib/clipboard'
 import {
 	BUTTON_HOVER,
 	BUTTON_TAP,
@@ -163,7 +164,8 @@ export default function ReferralCard() {
 	const handleCopy = useCallback(async () => {
 		if (!codeData || !canShareCode) return
 		try {
-			await navigator.clipboard.writeText(codeData.code)
+			if (!(await copyToClipboard(codeData.code)))
+				throw new Error('Copy failed')
 			if (!mountedRef.current) return
 			setCopied(true)
 			toast.success(t('toastCodeCopied'))
@@ -187,20 +189,9 @@ export default function ReferralCard() {
 			text: t('shareBody', { code: codeData.code }),
 			url: shareUrl,
 		}
-		try {
-			if (navigator.share) {
-				await navigator.share(shareData)
-			} else {
-				await navigator.clipboard.writeText(
-					`${shareData.text}\n${shareData.url}`,
-				)
-				toast.success(t('toastInviteCopied'))
-			}
-		} catch (error) {
-			if ((error as Error).name !== 'AbortError') {
-				toast.error(t('toastShareFailed'))
-			}
-		}
+		const result = await shareContent(shareData)
+		if (result === 'copied') toast.success(t('toastInviteCopied'))
+		if (result === 'failed') toast.error(t('toastShareFailed'))
 	}, [canShareCode, codeData, t])
 
 	const handleRedeem = useCallback(async () => {

@@ -1,11 +1,20 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
+import {
+	useState,
+	useRef,
+	useEffect,
+	useCallback,
+	useMemo,
+	Suspense,
+} from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from '@/i18n/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	ChefHat,
+	Compass,
 	Copy,
 	Check,
 	ArrowRight,
@@ -19,6 +28,12 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { toast } from 'sonner'
+import { copyToClipboard } from '@/lib/clipboard'
+import {
+	getRoomCodeFromParams,
+	isValidRoomCode,
+	normalizeRoomCode,
+} from '@/lib/room-code'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -33,6 +48,14 @@ function CookTogetherContent() {
 	const [copied, setCopied] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const mountedRef = useRef(true)
+	const autoJoinAttemptRef = useRef<string | null>(null)
+	const inviteRoomCode = useMemo(
+		() => getRoomCodeFromParams(searchParams),
+		[searchParams],
+	)
+	const inviteRole =
+		searchParams.get('role') === 'SPECTATOR' ? 'SPECTATOR' : undefined
 
 	const { roomCode, isInRoom, joinRoom } = useCookingStore()
 	const authHydrated = useAuthStore(s => s.isHydrated)
@@ -40,66 +63,65 @@ function CookTogetherContent() {
 	// Clean up copy timer on unmount
 	useEffect(() => {
 		return () => {
+			mountedRef.current = false
 			if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current)
 		}
 	}, [])
 
 	// Auto-fill room code from URL params (invite deep link / Watch button)
 	useEffect(() => {
-		const urlRoomCode = searchParams.get('roomCode')
-		if (urlRoomCode) {
-			setRoomCodeInput(urlRoomCode.toUpperCase())
+		if (inviteRoomCode) {
+			setRoomCodeInput(inviteRoomCode)
 		}
-	}, [searchParams])
+	}, [inviteRoomCode])
 
-	// Auto-join if roomCode param provided (from invite notification or Watch/Join button)
+	// Auto-join if an invite code is provided (from notification or Watch/Join).
 	useEffect(() => {
-		const urlRoomCode = searchParams.get('roomCode')
-		const urlRole = searchParams.get('role')
+		const inviteKey = `${inviteRoomCode}:${inviteRole ?? 'COOK'}`
 		if (!authHydrated) {
 			return
 		}
-		if (urlRoomCode && !isInRoom && !isJoining) {
-			let cancelled = false
+		if (
+			isValidRoomCode(inviteRoomCode) &&
+			!useCookingStore.getState().isInRoom &&
+			autoJoinAttemptRef.current !== inviteKey
+		) {
+			autoJoinAttemptRef.current = inviteKey
 			const autoJoin = async () => {
 				setIsJoining(true)
 				try {
-					const success = await joinRoom(
-						urlRoomCode.toUpperCase(),
-						urlRole || undefined,
-					)
-					if (cancelled) return
+					const success = await joinRoom(inviteRoomCode, inviteRole)
+					if (!mountedRef.current) return
 					if (success) {
 						toast.success(
-							urlRole === 'SPECTATOR' ? t('ctWatching') : t('toastJoinedRoom'),
+							inviteRole === 'SPECTATOR'
+								? t('ctWatching')
+								: t('toastJoinedRoom'),
 						)
 						router.push('/cook-together/room')
 					} else {
 						toast.error(t('toastJoinRoomFull'))
 					}
 				} catch {
-					if (!cancelled) toast.error(t('toastJoinRoomFailed'))
+					if (mountedRef.current) toast.error(t('toastJoinRoomFailed'))
 				} finally {
-					if (!cancelled) setIsJoining(false)
+					if (mountedRef.current) setIsJoining(false)
 				}
 			}
-			autoJoin()
-			return () => {
-				cancelled = true
-			}
+			void autoJoin()
 		}
-	}, [authHydrated, searchParams, isInRoom, isJoining, joinRoom, router, t])
+	}, [authHydrated, inviteRoomCode, inviteRole, joinRoom, router, t])
 
 	// Auto-focus the input on mount
 	useEffect(() => {
-		if (!searchParams.get('roomCode')) {
+		if (!inviteRoomCode) {
 			inputRef.current?.focus()
 		}
-	}, [searchParams])
+	}, [inviteRoomCode])
 
 	const handleJoin = useCallback(async () => {
-		const code = roomCodeInput.trim().toUpperCase()
-		if (!code || code.length < 6) {
+		const code = normalizeRoomCode(roomCodeInput)
+		if (!isValidRoomCode(code)) {
 			toast.error(t('toastInvalidRoomCode'))
 			return
 		}
@@ -123,7 +145,7 @@ function CookTogetherContent() {
 	const handleCopyRoomCode = useCallback(async () => {
 		if (!roomCode) return
 		try {
-			await navigator.clipboard.writeText(roomCode)
+			if (!(await copyToClipboard(roomCode))) throw new Error('Copy failed')
 			setCopied(true)
 			toast.success(t('toastRoomCodeCopied'))
 			copiedTimerRef.current = setTimeout(() => setCopied(false), 2000)
@@ -201,6 +223,44 @@ function CookTogetherContent() {
 					)}
 				</AnimatePresence>
 
+				{/* Host a Room */}
+				<PremiumSurface
+					eyebrow={t('ctHostRoomEyebrow')}
+					chipText={t('ctHostRoomChip')}
+					className='mb-6 p-3'
+					tone='xp'
+				>
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={TRANSITION_SPRING}
+						className='flex flex-col gap-5 rounded-radius border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6 md:flex-row md:items-center md:justify-between md:p-8'
+					>
+						<div className='flex items-start gap-3'>
+							<div className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-accent-purple'>
+								<ChefHat className='size-5 text-white' />
+							</div>
+							<div>
+								<h2 className='text-xl font-bold text-text-primary'>
+									{t('ctHostRoom')}
+								</h2>
+								<p className='mt-1 max-w-2xl text-sm leading-relaxed text-text-secondary'>
+									{t('ctHostRoomDesc')}
+								</p>
+							</div>
+						</div>
+
+						<Link
+							href='/explore?from=cook-together'
+							className='inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-warm transition-all hover:bg-brand/90 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 md:w-auto'
+						>
+							<Compass className='size-4' />
+							{t('ctChooseRecipe')}
+							<ArrowRight className='size-4' />
+						</Link>
+					</motion.div>
+				</PremiumSurface>
+
 				{/* Join a Room Card */}
 				<PremiumSurface
 					eyebrow={t('ctJoinRoomEyebrow')}
@@ -233,11 +293,10 @@ function CookTogetherContent() {
 								type='text'
 								value={roomCodeInput}
 								onChange={e =>
-									setRoomCodeInput(e.target.value.toUpperCase().slice(0, 6))
+									setRoomCodeInput(normalizeRoomCode(e.target.value))
 								}
 								onKeyDown={handleKeyDown}
 								placeholder={t('ctRoomCodePlaceholder')}
-								maxLength={6}
 								aria-label={t('ctRoomCodeLabel')}
 								className='min-w-0 flex-1 rounded-xl border border-border-subtle bg-bg px-3 py-2.5 font-mono text-base tracking-widest text-text-primary placeholder:text-text-muted focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 sm:px-4 sm:py-3 sm:text-xl'
 								disabled={isJoining}
@@ -245,7 +304,7 @@ function CookTogetherContent() {
 							<button
 								type='button'
 								onClick={handleJoin}
-								disabled={isJoining || roomCodeInput.trim().length < 6}
+								disabled={isJoining || !isValidRoomCode(roomCodeInput)}
 								className='flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-3 py-2.5 font-medium text-white transition-all hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-6 sm:py-3'
 							>
 								{isJoining ? (

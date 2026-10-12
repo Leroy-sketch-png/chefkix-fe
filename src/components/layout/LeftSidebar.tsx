@@ -104,7 +104,7 @@ const secondaryNavItems: NavItem[] = [
 		requiresAuth: true,
 	},
 	{
-		href: '/collections',
+		href: PATHS.COLLECTIONS,
 		icon: FolderHeart,
 		labelKey: 'collections',
 		requiresAuth: true,

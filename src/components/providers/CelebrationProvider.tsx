@@ -38,6 +38,7 @@ import type { Badge } from '@/lib/types/gamification'
 import type { CompletedChallengeReward } from '@/services/cookingSession'
 import { useAuth } from '@/hooks/useAuth'
 import { postDraftRepository } from '@/lib/post-draft-storage'
+import { shareContent } from '@/lib/clipboard'
 
 // ============================================
 // SHARE HELPER
@@ -54,24 +55,9 @@ async function shareWithFallback(
 	},
 	t: (key: string) => string,
 ) {
-	// Try native share API first
-	if (navigator.share) {
-		try {
-			await navigator.share(data)
-			return
-		} catch {
-			// User cancelled or share failed, fall through to clipboard
-		}
-	}
-
-	// Fallback: copy to clipboard
-	const shareText = `${data.text} ${data.url}`
-	try {
-		await navigator.clipboard.writeText(shareText)
-		toast.success(t('toastLinkCopied'))
-	} catch {
-		toast.error(t('toastShareFailed'))
-	}
+	const result = await shareContent(data)
+	if (result === 'copied') toast.success(t('toastLinkCopied'))
+	if (result === 'failed') toast.error(t('toastShareFailed'))
 }
 
 // ============================================
@@ -665,7 +651,9 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 					onPostNow={() => {
 						const sessionId = firstCookData.sessionId
 						handleFirstCookClose()
-						router.push(sessionId ? `/post/new?session=${sessionId}` : '/post/new')
+						router.push(
+							sessionId ? `/post/new?session=${sessionId}` : '/post/new',
+						)
 					}}
 					onShareAchievement={() => {
 						shareWithFallback(

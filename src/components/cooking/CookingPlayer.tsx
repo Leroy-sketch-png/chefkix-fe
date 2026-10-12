@@ -12,6 +12,7 @@ import type { KitchenInteractionMode } from '@/store/cookingStore'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslations } from 'next-intl'
 import { RoomParticipantsBar } from './RoomParticipantsBar'
+import { RoomReactionControl } from './RoomReactionControl'
 import { useCelebration } from '@/components/providers/CelebrationProvider'
 import { useReducedMotionPreference } from '@/components/providers/ReducedMotionProvider'
 import { useRuntimePreferences } from '@/components/providers/RuntimePreferencesProvider'
@@ -542,7 +543,7 @@ export const CookingPlayer = () => {
 		sendStepCompleted,
 		sendTimerStarted,
 		sendTimerCompleted,
-		sendReaction: _sendReaction,
+		sendReaction,
 		sendSessionCompleted,
 		isConnected: isRoomConnected,
 	} = useRoomSocket({
@@ -1812,12 +1813,21 @@ export const CookingPlayer = () => {
 
 										{/* Co-cooking participants */}
 										{isInRoom && roomCode && (
-											<RoomParticipantsBar
-												participants={participants}
-												roomCode={roomCode}
-												currentUserId={useAuthStore.getState().user?.userId}
-												totalSteps={totalSteps}
-											/>
+											<div className='flex flex-col items-center gap-2'>
+												<RoomParticipantsBar
+													participants={participants}
+													roomCode={roomCode}
+													currentUserId={useAuthStore.getState().user?.userId}
+													totalSteps={totalSteps}
+												/>
+												{participants.length > 1 && (
+													<RoomReactionControl
+														isConnected={isRoomConnected}
+														kitchenMode={kitchenMode}
+														onSelect={sendReaction}
+													/>
+												)}
+											</div>
 										)}
 									</div>
 								</div>

@@ -9,6 +9,8 @@ import { ProfileNotFound } from '@/components/profile/ProfileNotFound'
 import { ProfilePageShell } from '@/components/profile/ProfilePageShell'
 import { useAuth } from '@/hooks/useAuth'
 import { Profile } from '@/lib/types'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 
 type UserProfileComponentProps = {
 	profile: Profile
@@ -165,7 +167,7 @@ export function ProfilePageClient() {
 				<div className='mb-4'>
 					<button
 						type='button'
-						onClick={() => router.back()}
+						onClick={() => navigateBackOrFallback(router, PATHS.COMMUNITY)}
 						className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-secondary shadow-card transition-colors hover:bg-bg-elevated hover:text-text-primary'
 						aria-label={t('ariaGoBack')}
 					>
