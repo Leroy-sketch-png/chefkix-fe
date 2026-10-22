@@ -5,6 +5,7 @@ import {
 	ShoppingListResponse,
 	ShoppingListSummary,
 	CreateFromMealPlanRequest,
+	CreateFromCookPlanRequest,
 	CreateFromRecipeRequest,
 	CreateCustomListRequest,
 	AddCustomItemRequest,
@@ -12,6 +13,22 @@ import {
 import { API_ENDPOINTS } from '@/constants'
 
 // ── Create ──────────────────────────────────────────────────────
+
+export async function createFromCookPlan(
+	req: CreateFromCookPlanRequest,
+): Promise<ShoppingListResponse> {
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.FROM_COOK_PLAN,
+			req,
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] createFromCookPlan failed:', err)
+		throw err
+	}
+}
 
 export async function createFromMealPlan(
 	req: CreateFromMealPlanRequest,
@@ -113,6 +130,21 @@ export async function getSharedShoppingList(
 		return res.data.data
 	} catch (err) {
 		logDevError('[ShoppingList] getSharedShoppingList failed:', err)
+		throw err
+	}
+}
+
+export async function copySharedShoppingList(
+	shareToken: string,
+): Promise<ShoppingListResponse> {
+	try {
+		const res = await api.post<ApiResponse<ShoppingListResponse>>(
+			API_ENDPOINTS.SHOPPING_LISTS.COPY_SHARED(shareToken),
+		)
+		if (!res.data.data) throw new Error('No data returned')
+		return res.data.data
+	} catch (err) {
+		logDevError('[ShoppingList] copySharedShoppingList failed:', err)
 		throw err
 	}
 }

@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { ErrorState } from '@/components/ui/error-state'
 import { logDevError } from '@/lib/dev-log'
 import { useTranslations } from '@/i18n/hooks'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 
 export default function RecipeDetailError({
 	error,
@@ -16,6 +19,7 @@ export default function RecipeDetailError({
 	reset: () => void
 }) {
 	const t = useTranslations('common')
+	const router = useRouter()
 
 	useEffect(() => {
 		logDevError('[RecipeDetailError]', error)
@@ -36,7 +40,7 @@ export default function RecipeDetailError({
 					actions={
 						<Button
 							variant='outline'
-							onClick={() => window.history.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.EXPLORE)}
 							className='gap-2'
 						>
 							<ArrowLeft className='size-4' />

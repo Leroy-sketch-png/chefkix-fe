@@ -44,9 +44,9 @@ export interface Collection {
 	/** Number of users enrolled in this learning path */
 	enrolledCount?: number
 	/** Completion rate (0.0 - 1.0) */
-	completionRate?: number
+	completionRate?: number | null
 	/** Average rating (1.0 - 5.0) */
-	averageRating?: number
+	averageRating?: number | null
 	/** Difficulty progression stages for learning paths */
 	difficultyProgression?: DifficultyStep[]
 	/** Whether this collection is admin-featured (Season's Best, curated) */

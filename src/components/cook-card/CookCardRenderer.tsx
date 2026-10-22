@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import type { CookCardData } from '@/lib/types/cookCard'
 import { getCookCardData } from '@/services/cookCard'
 import Image from 'next/image'
+import { copyToClipboard } from '@/lib/clipboard'
 
 // Card dimensions (Instagram story ratio 4:5)
 const CARD_WIDTH = 1080
@@ -411,7 +412,9 @@ export default function CookCardRenderer({
 					url: data.shareUrl,
 				})
 			} else {
-				await navigator.clipboard.writeText(data.shareUrl)
+				if (!(await copyToClipboard(data.shareUrl))) {
+					throw new Error('Clipboard unavailable')
+				}
 				toast.success(t('toastLinkCopied'))
 			}
 		} catch {

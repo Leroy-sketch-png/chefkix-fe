@@ -15,6 +15,8 @@ import {
 	ChevronRight,
 	History,
 	Loader2,
+	AlertTriangle,
+	RefreshCw,
 } from 'lucide-react'
 import { DuelsSection } from '@/components/duels/DuelsSection'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -46,6 +48,10 @@ import {
 	toChallengeBannerRecipes,
 	type ChallengeBannerRecipe,
 } from '@/lib/challenge-recipes'
+import {
+	getFailedChallengeStreams,
+	type ChallengeStream,
+} from '@/lib/challenge-availability'
 
 // ============================================
 // PAGE
@@ -75,6 +81,7 @@ export default function ChallengesPage() {
 	>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(false)
+	const [failedStreams, setFailedStreams] = useState<ChallengeStream[]>([])
 	const [retryKey, setRetryKey] = useState(0)
 
 	useEffect(() => {
@@ -82,6 +89,7 @@ export default function ChallengesPage() {
 
 		const fetchChallenges = async () => {
 			setLoading(true)
+			setFailedStreams([])
 			// Fetch each independently so one failure doesn't kill the others
 			const [dailyRes, weeklyRes, communityRes, seasonalRes] =
 				await Promise.all([
@@ -115,25 +123,32 @@ export default function ChallengesPage() {
 					completed: data.completed,
 					matchingRecipes: toChallengeBannerRecipes(data.matchingRecipes),
 				})
+			} else {
+				setDailyChallenge(null)
 			}
 			if (weeklyRes?.success && weeklyRes.data) {
 				setWeeklyChallenge(weeklyRes.data)
+			} else {
+				setWeeklyChallenge(null)
 			}
 			if (communityRes?.success && communityRes.data) {
 				setCommunityChallenges(communityRes.data)
+			} else {
+				setCommunityChallenges([])
 			}
 			if (seasonalRes?.success && seasonalRes.data) {
 				setSeasonalChallenges(seasonalRes.data)
+			} else {
+				setSeasonalChallenges([])
 			}
-			// Only show global error if ALL calls failed or returned nothing
-			if (
-				!dailyRes?.success &&
-				!weeklyRes?.success &&
-				!communityRes?.success &&
-				!seasonalRes?.success
-			) {
-				setError(true)
-			}
+			const unavailable = getFailedChallengeStreams({
+				daily: dailyRes,
+				weekly: weeklyRes,
+				community: communityRes,
+				seasonal: seasonalRes,
+			})
+			setFailedStreams(unavailable)
+			setError(unavailable.length === 4)
 			setLoading(false)
 		}
 
@@ -149,6 +164,9 @@ export default function ChallengesPage() {
 		!dailyChallenge &&
 		!weeklyChallenge &&
 		!loading
+	const unavailableStreamLabels = failedStreams
+		.map(stream => t(stream))
+		.join(', ')
 
 	if (error) {
 		return (
@@ -158,6 +176,7 @@ export default function ChallengesPage() {
 					message={t('failedToLoadDesc')}
 					onRetry={() => {
 						setError(false)
+						setFailedStreams([])
 						setRetryKey(k => k + 1)
 					}}
 				/>
@@ -196,6 +215,36 @@ export default function ChallengesPage() {
 							}}
 							className='mb-6'
 						/>
+
+						{failedStreams.length > 0 && (
+							<div
+								role='status'
+								aria-live='polite'
+								className='mb-6 flex flex-col gap-3 rounded-xl border border-warning/30 bg-warning/8 p-4 sm:flex-row sm:items-center sm:justify-between'
+							>
+								<div className='flex items-start gap-3'>
+									<AlertTriangle className='mt-0.5 size-5 shrink-0 text-warning' />
+									<div>
+										<p className='text-sm font-bold text-text-primary'>
+											{t('partialUnavailableTitle')}
+										</p>
+										<p className='mt-1 text-sm text-text-secondary'>
+											{t('partialUnavailableDesc', {
+												streams: unavailableStreamLabels,
+											})}
+										</p>
+									</div>
+								</div>
+								<button
+									type='button'
+									onClick={() => setRetryKey(key => key + 1)}
+									className='inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-brand/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+								>
+									<RefreshCw className='size-4' />
+									{t('retryUnavailable')}
+								</button>
+							</div>
+						)}
 
 						{/* Cooking Duels — 1v1 friend challenges */}
 						<DuelsSection />

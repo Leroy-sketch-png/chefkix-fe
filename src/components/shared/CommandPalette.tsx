@@ -32,6 +32,7 @@ import { API_ENDPOINTS } from '@/constants'
 import { PATHS } from '@/constants/paths'
 import { useAuthStore } from '@/store/authStore'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
+import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 import { logDevError } from '@/lib/dev-log'
 
 // ============================================
@@ -267,10 +268,9 @@ function useSearchResults(
 				if (!recipeRes.data?.success) {
 					logDevError('[CommandPalette] recipe search failed:', recipeRes.data)
 				}
-				const recipes =
-					recipeRes.data?.success
-						? recipeRes.data?.data?.content ?? recipeRes.data?.data ?? []
-						: []
+				const recipes = recipeRes.data?.success
+					? (recipeRes.data?.data?.content ?? recipeRes.data?.data ?? [])
+					: []
 				const recipeResults: SearchResult[] = (
 					Array.isArray(recipes) ? recipes : []
 				)
@@ -296,7 +296,7 @@ function useSearchResults(
 					logDevError('[CommandPalette] user search failed:', userRes.data)
 				}
 				const users = userRes.data?.success
-					? userRes.data?.data?.content ?? userRes.data?.data ?? []
+					? (userRes.data?.data?.content ?? userRes.data?.data ?? [])
 					: []
 				const userResults: SearchResult[] = (Array.isArray(users) ? users : [])
 					.slice(0, 5)
@@ -373,6 +373,7 @@ function addRecentItem(id: string) {
 
 export function CommandPalette() {
 	const t = useTranslations('shared')
+	const modifierSymbol = useModifierSymbol()
 	const [open, setOpen] = useState(false)
 	const [query, setQuery] = useState('')
 	const isAuthenticated = useAuthStore(s => s.isAuthenticated)
@@ -425,10 +426,6 @@ export function CommandPalette() {
 		if (!open) setQuery('')
 	}, [open])
 
-	const isMac =
-		typeof navigator !== 'undefined' &&
-		/Mac|iPhone|iPad/.test(navigator.userAgent)
-
 	// Collect recent navigation items
 	const recentIds = getRecentItems()
 	const allItems = [...navItems, ...actionItems]
@@ -473,7 +470,7 @@ export function CommandPalette() {
 							className='flex-1 bg-transparent py-4 text-base text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-brand/50 placeholder:text-text-muted'
 						/>
 						<kbd className='hidden rounded-md border border-border-subtle bg-bg-elevated px-2 py-0.5 text-xs text-text-muted sm:inline-block'>
-							{isMac ? '⌘' : 'Ctrl'}+K
+							{modifierSymbol}+K
 						</kbd>
 					</div>
 

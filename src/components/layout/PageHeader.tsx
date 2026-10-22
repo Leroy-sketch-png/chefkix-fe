@@ -7,6 +7,8 @@ import { TRANSITION_SPRING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 
 // ─────────────────────────────────────────────────────────────────
 // Types
@@ -48,6 +50,8 @@ export interface PageHeaderProps {
 	className?: string
 	/** Show back button (for SECONDARY pages reached via links) */
 	showBack?: boolean
+	/** Product-safe destination when the page was opened directly or externally */
+	backHref?: string
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -112,6 +116,7 @@ export function PageHeader({
 	marginBottom = 'lg',
 	className,
 	showBack = false,
+	backHref = PATHS.DASHBOARD,
 }: PageHeaderProps) {
 	const router = useRouter()
 	const t = useTranslations('pageHeader')
@@ -128,7 +133,7 @@ export function PageHeader({
 			{showBack && (
 				<button
 					type='button'
-					onClick={() => router.back()}
+					onClick={() => navigateBackOrFallback(router, backHref)}
 					className='mb-3 inline-flex items-center gap-1.5 rounded-xl border border-border-subtle bg-bg-card px-3 py-1.5 text-sm font-medium text-text-secondary shadow-card transition-colors hover:border-brand/30 hover:bg-bg-elevated hover:text-text-primary'
 				>
 					<ArrowLeft className='size-4' />

@@ -11,7 +11,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Clock, FileText, Trash2, Edit3, AlertCircle, Copy } from 'lucide-react'
 import { EmptyStateGamified } from '@/components/shared'
-import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_SPRING,

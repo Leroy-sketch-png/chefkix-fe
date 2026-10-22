@@ -22,6 +22,8 @@ import { StaggerContainer } from '@/components/ui/stagger-animation'
 import { Users, UserCheck, Heart, ArrowLeft, Sparkles } from 'lucide-react'
 import { TRANSITION_SPRING, BUTTON_SUBTLE_TAP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { useTranslations } from 'next-intl'
 import {
 	PremiumSurface,
@@ -272,7 +274,7 @@ function FollowersContent() {
 					<div className='flex items-center gap-3'>
 						<motion.button
 							type='button'
-							onClick={() => router.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.PROFILE)}
 							whileTap={BUTTON_SUBTLE_TAP}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 							aria-label={t('ariaGoBack')}

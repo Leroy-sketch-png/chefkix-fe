@@ -53,6 +53,7 @@ import {
 } from '@/lib/motion'
 import { logDevError } from '@/lib/dev-log'
 import { toast } from 'sonner'
+import { copyToClipboard } from '@/lib/clipboard'
 import {
 	createClientMessageId,
 	createOptimisticMessage,
@@ -457,7 +458,7 @@ function MessagesContent() {
 	const handleCopy = useCallback(
 		async (content: string) => {
 			try {
-				await navigator.clipboard.writeText(content)
+				if (!(await copyToClipboard(content))) throw new Error('Copy failed')
 			} catch {
 				toast.error(t('failedToCopy'))
 			}

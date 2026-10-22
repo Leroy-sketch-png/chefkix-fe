@@ -26,6 +26,7 @@ import { useRoomSocket } from '@/hooks/useRoomSocket'
 import type { RoomEvent } from '@/lib/types/room'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { toast } from 'sonner'
+import { copyToClipboard } from '@/lib/clipboard'
 import {
 	PremiumSurface,
 	SurfaceSectionHeader,
@@ -234,10 +235,14 @@ export default function CookingRoomPage() {
 
 	const handleCopyCode = useCallback(async () => {
 		if (!roomCode) return
-		await navigator.clipboard.writeText(roomCode)
-		setCopied(true)
-		toast.success(t('toastRoomCodeCopied'))
-		setTimeout(() => setCopied(false), 2000)
+		if (await copyToClipboard(roomCode)) {
+			setCopied(true)
+			toast.success(t('toastRoomCodeCopied'))
+			setTimeout(() => setCopied(false), 2000)
+			return
+		}
+
+		toast.error(t('toastCopyFailed'))
 	}, [roomCode, t])
 
 	const handleStartCooking = useCallback(() => {

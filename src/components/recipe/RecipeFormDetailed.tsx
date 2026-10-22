@@ -39,6 +39,7 @@ import {
 	DURATION_S,
 } from '@/lib/motion'
 import { useCookingStore } from '@/store/cookingStore'
+import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 import { useUiStore } from '@/store/uiStore'
 import { formDataToRecipe } from '@/lib/recipeTransforms'
 import type { Difficulty } from '@/lib/types/gamification'
@@ -174,12 +175,6 @@ const SUGGESTED_TAGS = [
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
-
-// Platform detection for keyboard shortcuts
-const isMac =
-	typeof navigator !== 'undefined' &&
-	/Mac|iPhone|iPad/.test(navigator.userAgent)
-const modKey = isMac ? '⌘' : 'Ctrl'
 
 const generateId = () => crypto.randomUUID()
 
@@ -687,6 +682,7 @@ export const RecipeFormDetailed = ({
 	className,
 }: RecipeFormDetailedProps) => {
 	const t = useTranslations('recipe')
+	const modKey = useModifierSymbol()
 	const categoryOptions: ComboboxOption[] = CATEGORY_KEYS.map(cat => ({
 		value: cat.value,
 		label: t(cat.labelKey),
@@ -871,7 +867,7 @@ export const RecipeFormDetailed = ({
 	// Keyboard shortcuts: Ctrl/⌘+S = save draft, Ctrl/⌘+Enter = publish
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
-			const isMod = isMac ? e.metaKey : e.ctrlKey
+			const isMod = e.metaKey || e.ctrlKey
 
 			// Ctrl/⌘ + S = Save Draft
 			if (isMod && e.key === 's') {

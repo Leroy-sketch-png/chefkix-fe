@@ -11,7 +11,7 @@ import {
 	BUTTON_TAP,
 	BUTTON_SUBTLE_HOVER,
 } from '@/lib/motion'
-import { modKey } from '@/lib/recipeCreateUtils'
+import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import {
@@ -52,6 +52,7 @@ export const XpPreviewModal = ({
 	isPublishing = false,
 }: XpPreviewModalProps) => {
 	const t = useTranslations('recipe')
+	const modKey = useModifierSymbol()
 	const [showConfirm, setShowConfirm] = useState(false)
 	const publishIntentLockRef = useRef(false)
 

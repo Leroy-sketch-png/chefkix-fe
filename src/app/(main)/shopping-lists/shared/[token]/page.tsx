@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
 	ShoppingCart,
@@ -10,6 +10,8 @@ import {
 	Package,
 	UserPlus,
 	AlertCircle,
+	ListPlus,
+	Loader2,
 } from 'lucide-react'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -17,7 +19,10 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { ErrorState } from '@/components/ui/error-state'
 import { Button } from '@/components/ui/button'
 import { TRANSITION_SPRING, LIST_ITEM_TAP, DURATION_S } from '@/lib/motion'
-import { getSharedShoppingList } from '@/services/shoppingList'
+import {
+	copySharedShoppingList,
+	getSharedShoppingList,
+} from '@/services/shoppingList'
 import type {
 	ShoppingListResponse,
 	ShoppingListItem,
@@ -26,6 +31,9 @@ import { CATEGORY_CONFIG } from '@/lib/types/shoppingList'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
+import { useAuth } from '@/hooks/useAuth'
+import { shoppingListPath } from '@/lib/shopping-list-route'
+import { toast } from 'sonner'
 
 // ── Skeleton ─────────────────────────────────────────────────────
 
@@ -71,12 +79,31 @@ function SharedListSkeleton() {
 
 export default function SharedShoppingListPage() {
 	const params = useParams<{ token: string }>()
+	const router = useRouter()
 	const t = useTranslations('sharedShoppingList')
-	const tCommon = useTranslations('common')
+	const { isAuthenticated } = useAuth()
 
 	const [list, setList] = useState<ShoppingListResponse | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<'not-found' | 'network' | null>(null)
+	const [isCopying, setIsCopying] = useState(false)
+	const copyInFlightRef = useRef(false)
+
+	const copyToMyLists = async () => {
+		if (!params.token || copyInFlightRef.current) return
+		copyInFlightRef.current = true
+		setIsCopying(true)
+		try {
+			const copy = await copySharedShoppingList(params.token)
+			toast.success(t('copySuccess'))
+			router.push(shoppingListPath(copy.id))
+		} catch {
+			toast.error(t('copyFailed'))
+		} finally {
+			copyInFlightRef.current = false
+			setIsCopying(false)
+		}
+	}
 
 	// ── Fetch shared list ────────────────────────────────────────
 
@@ -205,6 +232,7 @@ export default function SharedShoppingListPage() {
 						title={list.name}
 						subtitle={t('sharedSubtitle', { count: totalCount })}
 						showBack
+						backHref={PATHS.SHOPPING_LISTS}
 						gradient='warm'
 						icon={ShoppingCart}
 					/>
@@ -332,7 +360,7 @@ export default function SharedShoppingListPage() {
 						)
 					})}
 
-					{/* CTA — Sign Up / Create your own */}
+					{/* CTA — adopt for authenticated recipients, acquire guests */}
 					<motion.div
 						initial={{ opacity: 0, y: 16 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -342,17 +370,42 @@ export default function SharedShoppingListPage() {
 						}}
 						className='mt-8 rounded-radius-lg border border-border-subtle bg-bg-card p-6 text-center shadow-card'
 					>
-						<UserPlus className='mx-auto mb-3 size-8 text-brand' />
+						{isAuthenticated ? (
+							<ListPlus className='mx-auto mb-3 size-8 text-brand' />
+						) : (
+							<UserPlus className='mx-auto mb-3 size-8 text-brand' />
+						)}
 						<h3 className='mb-1 text-lg font-semibold text-text-primary'>
-							{t('ctaTitle')}
+							{t(isAuthenticated ? 'copyTitle' : 'ctaTitle')}
 						</h3>
-						<p className='mb-4 text-sm text-text-secondary'>{t('ctaDesc')}</p>
+						<p className='mb-4 text-sm text-text-secondary'>
+							{t(isAuthenticated ? 'copyDesc' : 'ctaDesc')}
+						</p>
 						<div className='flex justify-center gap-3'>
-							<Link href={PATHS.AUTH.SIGN_UP}>
-								<Button variant='default' size='lg'>
-									{t('ctaSignUp')}
+							{isAuthenticated ? (
+								<Button
+									variant='default'
+									size='lg'
+									onClick={() => void copyToMyLists()}
+									disabled={isCopying}
+									aria-busy={isCopying}
+								>
+									{isCopying ? (
+										<Loader2 className='animate-spin' />
+									) : (
+										<ListPlus />
+									)}
+									{isCopying ? t('copying') : t('copyAction')}
 								</Button>
-							</Link>
+							) : (
+								<Link
+									href={`${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(`/shopping-lists/shared/${params.token}`)}`}
+								>
+									<Button variant='default' size='lg'>
+										{t('ctaSignUp')}
+									</Button>
+								</Link>
+							)}
 							<Link href={PATHS.EXPLORE}>
 								<Button variant='outline' size='lg'>
 									{t('ctaBrowse')}

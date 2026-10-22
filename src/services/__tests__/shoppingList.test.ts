@@ -1,10 +1,15 @@
 import { api } from '@/lib/axios'
 import { logDevError } from '@/lib/dev-log'
-import { getUserShoppingLists } from '@/services/shoppingList'
+import {
+	copySharedShoppingList,
+	createFromCookPlan,
+	getUserShoppingLists,
+} from '@/services/shoppingList'
 
 jest.mock('@/lib/axios', () => ({
 	api: {
 		get: jest.fn(),
+		post: jest.fn(),
 	},
 }))
 
@@ -12,7 +17,7 @@ jest.mock('@/lib/dev-log', () => ({
 	logDevError: jest.fn(),
 }))
 
-const mockedApi = api as unknown as { get: jest.Mock }
+const mockedApi = api as unknown as { get: jest.Mock; post: jest.Mock }
 const mockedLogDevError = logDevError as jest.Mock
 
 const summary = {
@@ -82,5 +87,46 @@ describe('getUserShoppingLists', () => {
 
 		await expect(getUserShoppingLists()).rejects.toThrow('Network offline')
 		expect(mockedLogDevError).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('createFromCookPlan', () => {
+	it('posts only the authoritative plan identifier to the dedicated endpoint', async () => {
+		const saved = { id: 'list-1', source: 'Cook Plan' }
+		mockedApi.post.mockResolvedValueOnce({
+			data: { success: true, statusCode: 201, data: saved },
+		})
+
+		await expect(createFromCookPlan({ cookPlanId: 'plan-1' })).resolves.toBe(
+			saved,
+		)
+		expect(mockedApi.post).toHaveBeenCalledWith(
+			'/api/v1/shopping-lists/from-cook-plan',
+			{ cookPlanId: 'plan-1' },
+		)
+	})
+})
+
+describe('copySharedShoppingList', () => {
+	it('posts the share token to the authenticated copy endpoint', async () => {
+		const saved = { id: 'recipient-list', source: 'Custom' }
+		mockedApi.post.mockResolvedValueOnce({
+			data: { success: true, statusCode: 201, data: saved },
+		})
+
+		await expect(copySharedShoppingList('shared-token')).resolves.toBe(saved)
+		expect(mockedApi.post).toHaveBeenCalledWith(
+			'/api/v1/shopping-lists/shared/shared-token/copy',
+		)
+	})
+
+	it('rejects an empty success envelope instead of claiming a copy exists', async () => {
+		mockedApi.post.mockResolvedValueOnce({
+			data: { success: true, statusCode: 201 },
+		})
+
+		await expect(copySharedShoppingList('shared-token')).rejects.toThrow(
+			'No data returned',
+		)
 	})
 })

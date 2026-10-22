@@ -303,11 +303,14 @@ export const API_ENDPOINTS = {
 	// Shopping Lists (standalone persistent lists)
 	SHOPPING_LISTS: {
 		BASE: `${API_PREFIX}/shopping-lists`,
+		FROM_COOK_PLAN: `${API_PREFIX}/shopping-lists/from-cook-plan`,
 		FROM_MEAL_PLAN: `${API_PREFIX}/shopping-lists/from-meal-plan`,
 		FROM_RECIPE: `${API_PREFIX}/shopping-lists/from-recipe`,
 		CUSTOM: `${API_PREFIX}/shopping-lists/custom`,
 		GET: (id: string) => `${API_PREFIX}/shopping-lists/${id}`,
 		SHARED: (token: string) => `${API_PREFIX}/shopping-lists/shared/${token}`,
+		COPY_SHARED: (token: string) =>
+			`${API_PREFIX}/shopping-lists/shared/${token}/copy`,
 		TOGGLE_ITEM: (id: string, itemId: string) =>
 			`${API_PREFIX}/shopping-lists/${id}/items/${itemId}/toggle`,
 		ADD_ITEM: (id: string) => `${API_PREFIX}/shopping-lists/${id}/items`,

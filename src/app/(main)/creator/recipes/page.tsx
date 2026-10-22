@@ -29,6 +29,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -439,7 +441,7 @@ export default function MyRecipesPage() {
 						<button
 							type='button'
 							aria-label={t('ariaGoBack')}
-							onClick={() => router.back()}
+							onClick={() => navigateBackOrFallback(router, PATHS.CREATOR)}
 							className='flex size-10 items-center justify-center rounded-xl border border-border bg-bg-card text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary'
 						>
 							<ArrowLeft className='size-5' />

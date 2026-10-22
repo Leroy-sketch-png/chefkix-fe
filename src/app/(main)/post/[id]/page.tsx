@@ -13,6 +13,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { PostDetailSkeleton } from './PostDetailSkeleton'
+import { PATHS } from '@/constants/paths'
+import { navigateBackOrFallback } from '@/lib/safe-navigation'
 
 /**
  * Post Detail Page
@@ -105,7 +107,7 @@ export default function PostDetailPage() {
 				<div className='space-y-4'>
 					<button
 						type='button'
-						onClick={() => router.back()}
+						onClick={() => navigateBackOrFallback(router, PATHS.FEED)}
 						className='inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-elevated hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-bg'
 						aria-label={t('ariaGoBack')}
 					>

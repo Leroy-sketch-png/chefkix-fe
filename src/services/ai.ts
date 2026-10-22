@@ -429,7 +429,7 @@ export const suggestSubstitutions = async (
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
 				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
-			...(resolvedSessionId && { session_id: resolvedSessionId }),
+				...(resolvedSessionId && { session_id: resolvedSessionId }),
 			},
 			{
 				headers: allergenFlags?.length

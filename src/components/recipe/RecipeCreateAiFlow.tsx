@@ -85,16 +85,17 @@ import type {
 
 // ── Extracted utilities ─────────────────────────────────────────────
 import {
-	modKey,
 	RECALCULATION_THRESHOLD,
 	validateRecipeForPublish,
 	mapBackendErrorToEnglish,
 	calculateRecipeChangePercent,
 	transformProcessedRecipe,
 } from '@/lib/recipeCreateUtils'
+import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 
 // ── Extracted sub-components ────────────────────────────────────────
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
+import { saveLocalRecipeDraft } from '@/lib/local-recipe-draft'
 import { MethodCard } from './MethodCard'
 import { PasteArea } from './PasteArea'
 import { RecipeParsingOverlay } from './RecipeParsingOverlay'
@@ -235,6 +236,7 @@ export const RecipeCreateAiFlow = ({
 	initialManualDraft,
 }: RecipeCreateAiFlowProps) => {
 	const t = useTranslations('recipe')
+	const modKey = useModifierSymbol()
 	const tShared = useTranslations('shared')
 	const cuisineOptions: ComboboxOption[] = CUISINE_OPTION_SPECS.map(option => ({
 		value: option.value,
@@ -1441,7 +1443,7 @@ export const RecipeCreateAiFlow = ({
 									<RecipeFormDetailed
 										initialData={initialManualDraft}
 										onSubmit={async data => {
-											localStorage.removeItem('chefkix-recipe-draft')
+											saveLocalRecipeDraft(data)
 											const parsed: ParsedRecipe = {
 												title: data.title,
 												description: data.description,
@@ -1493,19 +1495,7 @@ export const RecipeCreateAiFlow = ({
 												})),
 												detectedBadges: [],
 											}
-											try {
-												const draft = {
-													type: 'manual' as const,
-													data,
-													savedAt: new Date().toISOString(),
-												}
-												localStorage.setItem(
-													'chefkix-recipe-draft',
-													JSON.stringify(draft),
-												)
-											} catch {
-												// ignored: localStorage save is best-effort
-											}
+											saveLocalRecipeDraft(data)
 											await handleSaveDraft(parsed)
 										}}
 										isSaving={isSaving}

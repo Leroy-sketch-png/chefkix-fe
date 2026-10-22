@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { storyViewPath } from '@/lib/story-share'
 
 interface Props {
 	storyId: string
@@ -50,7 +51,7 @@ export default function RepliedStoryPreview({
 		return <div className={className}>{preview}</div>
 	}
 
-	const linkHref = `/story/view/${encodeURIComponent(storyOwnerId)}?startAt=${encodeURIComponent(storyId)}`
+	const linkHref = storyViewPath(storyOwnerId, storyId)
 
 	return (
 		<Link

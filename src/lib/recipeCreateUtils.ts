@@ -12,12 +12,6 @@ import type {
 import type { Difficulty } from '@/lib/types/gamification'
 import type { processRecipe } from '@/services/ai'
 
-// ── Platform detection ──────────────────────────────────────────────
-const isMac =
-	typeof navigator !== 'undefined' &&
-	/Mac|iPhone|iPad/.test(navigator.userAgent)
-export const modKey = isMac ? '⌘' : 'Ctrl'
-
 // ── Recalculation threshold ─────────────────────────────────────────
 /**
  * Threshold for triggering XP recalculation.

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { copyToClipboard } from '@/lib/clipboard'
 
 /**
  * Copy text to clipboard with success/error state tracking.
@@ -24,7 +25,7 @@ export function useClipboard({ timeout = 2000 } = {}) {
 	const copy = useCallback(
 		async (text: string) => {
 			try {
-				await navigator.clipboard.writeText(text)
+				if (!(await copyToClipboard(text))) throw new Error('Copy failed')
 				setCopied(true)
 				setError(null)
 				if (timerRef.current) clearTimeout(timerRef.current)
