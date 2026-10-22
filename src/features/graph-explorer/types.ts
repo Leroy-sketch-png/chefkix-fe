@@ -78,7 +78,13 @@ export interface GraphEvidenceResponse {
 		observedSha256?: string
 	}
 	evidence?: {
-		identityResolution?: { status: 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS' }
+		identityResolution?: {
+			status: 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS'
+			requestedSourceIngredientId?: string
+			sourceIngredientId?: string
+			requestedCandidateIngredientId?: string
+			candidateIngredientId?: string
+		}
 		trainPairEvidence?: {
 			seenInTrain?: boolean | null
 			trainCount?: number | null

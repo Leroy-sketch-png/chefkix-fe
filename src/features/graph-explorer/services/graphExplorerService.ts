@@ -135,6 +135,13 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 	const decision = isRecord(evidenceValue?.decision)
 		? evidenceValue.decision
 		: undefined
+	const requestedSourceIngredientId =
+		asString(identity?.requestedSourceIngredientId) || undefined
+	const sourceIngredientId = asString(identity?.sourceIngredientId) || undefined
+	const requestedCandidateIngredientId =
+		asString(identity?.requestedCandidateIngredientId) || undefined
+	const candidateIngredientId =
+		asString(identity?.candidateIngredientId) || undefined
 	const evidence = evidenceValue
 		? {
 				identityResolution:
@@ -143,6 +150,10 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 					IDENTITY_STATUSES.has(identity.status)
 						? {
 								status: identity.status as 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS',
+								requestedSourceIngredientId,
+								sourceIngredientId,
+								requestedCandidateIngredientId,
+								candidateIngredientId,
 							}
 						: undefined,
 				trainPairEvidence: trainPair
@@ -170,6 +181,7 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 			}
 		: undefined
 	const identityStatus = evidence?.identityResolution?.status
+	const identityResolution = evidence?.identityResolution
 	const seenInTrain = evidence?.trainPairEvidence?.seenInTrain
 	const trainCount = evidence?.trainPairEvidence?.trainCount
 	const calibrationStatus = evidence?.calibration?.status
@@ -178,6 +190,12 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 		response.status === 'AVAILABLE' &&
 		(artifactIntegrity?.status !== 'VERIFIED' ||
 			identityStatus !== 'RESOLVED' ||
+			!identityResolution?.requestedSourceIngredientId ||
+			identityResolution.sourceIngredientId !==
+				identityResolution.requestedSourceIngredientId ||
+			!identityResolution.requestedCandidateIngredientId ||
+			identityResolution.candidateIngredientId !==
+				identityResolution.requestedCandidateIngredientId ||
 			seenInTrain === null ||
 			seenInTrain === undefined ||
 			trainCount === null ||
@@ -234,7 +252,19 @@ export async function getGraphEvidence(
 				: new Error('Graph evidence could not be reached.')
 		}
 	}
-	return normalizeGraphEvidence(payload)
+	const normalized = normalizeGraphEvidence(payload)
+	if (
+		normalized.status === 'AVAILABLE' &&
+		(normalized.evidence?.identityResolution?.requestedSourceIngredientId !==
+			sourceIngredientId ||
+			normalized.evidence?.identityResolution
+				?.requestedCandidateIngredientId !== candidateIngredientId)
+	) {
+		throw new Error(
+			'The graph evidence response does not match the requested ingredient pair.',
+		)
+	}
+	return normalized
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {

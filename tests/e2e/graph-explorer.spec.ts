@@ -11,6 +11,7 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
 	const searchTerms: string[] = []
 	const evidenceRequests: string[] = []
+	let sendMismatchedEvidence = false
 	const nodes = [
 		{
 			id: 'butter',
@@ -102,9 +103,16 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 	)
 	await page.route('**/api/v1/graph/evidence**', async route => {
 		const url = new URL(route.request().url())
-		evidenceRequests.push(
-			`${url.searchParams.get('sourceIngredientId')}:${url.searchParams.get('candidateIngredientId')}`,
-		)
+		const sourceIngredientId = url.searchParams.get('sourceIngredientId') ?? ''
+		const candidateIngredientId =
+			url.searchParams.get('candidateIngredientId') ?? ''
+		evidenceRequests.push(`${sourceIngredientId}:${candidateIngredientId}`)
+		const resolvedSourceId = sendMismatchedEvidence
+			? 'different-source'
+			: sourceIngredientId
+		const resolvedCandidateId = sendMismatchedEvidence
+			? 'different-candidate'
+			: candidateIngredientId
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -117,7 +125,13 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 					observedSha256: 'a'.repeat(64),
 				},
 				evidence: {
-					identityResolution: { status: 'RESOLVED' },
+					identityResolution: {
+						status: 'RESOLVED',
+						requestedSourceIngredientId: sourceIngredientId,
+						sourceIngredientId: resolvedSourceId,
+						requestedCandidateIngredientId: candidateIngredientId,
+						candidateIngredientId: resolvedCandidateId,
+					},
 					trainPairEvidence: {
 						seenInTrain: true,
 						trainCount: 2,
@@ -164,6 +178,17 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		await expect(panel).toContainText('Artifact manifest SHA-256')
 		await expect(panel).toContainText('Decision: Abstain')
 		expect(evidenceRequests).toEqual(['butter:coconut oil'])
+		sendMismatchedEvidence = true
+		await page.getByRole('button', { name: 'Explore Butter' }).press('Enter')
+		await edge.click()
+		await expect(panel).toContainText(
+			'Graph evidence is unavailable. No substitution decision was made.',
+		)
+		await expect(panel).not.toContainText('Artifact manifest SHA-256')
+		expect(evidenceRequests).toEqual([
+			'butter:coconut oil',
+			'butter:coconut oil',
+		])
 	} else {
 		await expect(page.getByTestId('graph-evidence-panel')).toHaveCount(0)
 		expect(evidenceRequests).toEqual([])

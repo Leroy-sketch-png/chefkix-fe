@@ -388,7 +388,13 @@ describe('live graph API', () => {
 				observedSha256: hash,
 			},
 			evidence: {
-				identityResolution: { status: 'RESOLVED' },
+				identityResolution: {
+					status: 'RESOLVED',
+					requestedSourceIngredientId: '12',
+					sourceIngredientId: '12',
+					requestedCandidateIngredientId: '34',
+					candidateIngredientId: '34',
+				},
 				trainPairEvidence: {
 					seenInTrain: true,
 					trainCount: 2,
@@ -453,5 +459,60 @@ describe('live graph API', () => {
 				},
 			}),
 		).toThrow('response is incomplete')
+		expect(() =>
+			normalizeGraphEvidence({
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: hash,
+					observedSha256: hash,
+				},
+				evidence: {
+					identityResolution: {
+						status: 'RESOLVED',
+						requestedSourceIngredientId: '12',
+						sourceIngredientId: 'different-source',
+						requestedCandidateIngredientId: '34',
+						candidateIngredientId: 'different-candidate',
+					},
+					trainPairEvidence: { seenInTrain: true, trainCount: 2 },
+					calibration: { status: 'ok' },
+					decision: { decision: 'ABSTAIN' },
+				},
+			}),
+		).toThrow('response is incomplete')
+	})
+
+	it('rejects available evidence returned for a different requested pair', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		const hash = 'a'.repeat(64)
+		;(api.get as jest.Mock).mockResolvedValueOnce({
+			data: {
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: hash,
+					observedSha256: hash,
+				},
+				evidence: {
+					identityResolution: {
+						status: 'RESOLVED',
+						requestedSourceIngredientId: 'other-source',
+						sourceIngredientId: 'other-source',
+						requestedCandidateIngredientId: 'other-candidate',
+						candidateIngredientId: 'other-candidate',
+					},
+					trainPairEvidence: { seenInTrain: true, trainCount: 2 },
+					calibration: { status: 'no_guarantee' },
+					decision: { decision: 'ABSTAIN' },
+				},
+			},
+		})
+
+		await expect(getGraphEvidence('12', '34')).rejects.toThrow(
+			'does not match the requested ingredient pair',
+		)
 	})
 })
