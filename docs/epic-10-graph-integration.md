@@ -1,6 +1,6 @@
 # Epic 10 graph explorer handoff
 
-The graph explorer loads its graph from the monolith knowledge API. The local demo graph is used only when `NEXT_PUBLIC_GRAPH_EXPLORER_MOCK=true`.
+The public `/explore/graph` route is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`. While disabled it does not mount the Explorer or request graph data. The sample graph remains available only for local development with `NEXT_PUBLIC_GRAPH_EXPLORER_MOCK=true`.
 
 ## API contract
 
@@ -17,7 +17,7 @@ The API returns a bounded first page sorted by canonical name. `root` returns ou
 
 `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.
 
-The graph explorer still uses the bounded legacy knowledge graph for its map. Until the canonical graph artifact and its IDs are accepted and integrated, shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
+When explicitly enabled for local integration work, the Explorer map still uses the bounded legacy knowledge API. This is not an accepted M-C artifact load and must not be enabled as the product graph until the canonical hash-pinned artifact, its IDs, and the graph-product route are accepted and integrated. Shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
 
 The monolith ships a small seed set; production collection contents may differ. A full Leader graph import remains a separate data task; this contract keeps both the response and the rendered graph bounded when that data arrives.
 

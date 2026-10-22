@@ -2,10 +2,13 @@ import { expect, test } from '@playwright/test'
 
 const graphEvidenceEnabled =
 	process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED === 'true'
+const graphExplorerEnabled =
+	process.env.NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED === 'true'
 
 test('graph search and ingredient inspection preserve evidence labels', async ({
 	page,
 }) => {
+	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
 	const searchTerms: string[] = []
 	const evidenceRequests: string[] = []
 	const nodes = [
@@ -165,4 +168,22 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		await expect(page.getByTestId('graph-evidence-panel')).toHaveCount(0)
 		expect(evidenceRequests).toEqual([])
 	}
+})
+
+test('graph explorer stays disabled without its explicit feature flag', async ({
+	page,
+}) => {
+	test.skip(graphExplorerEnabled, 'Requires the Explorer build flag to be off.')
+	const graphRequests: string[] = []
+	await page.route('**/api/v1/knowledge/graph**', async route => {
+		graphRequests.push(route.request().url())
+		await route.abort()
+	})
+
+	await page.goto('/explore/graph')
+	await expect(page.getByTestId('graph-explorer-disabled')).toContainText(
+		'Graph Explorer is disabled',
+	)
+	await expect(page.getByTestId('graph-content')).toHaveCount(0)
+	expect(graphRequests).toEqual([])
 })
