@@ -40,19 +40,26 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		const query = url.searchParams.get('q')
 		if (query) searchTerms.push(query)
 		const data = query
-			? {
-					nodes: [
-						{
-							id: 'peanut',
-							name: 'Peanut',
-							category: 'legume',
-							allergen_flags: ['peanut'],
-						},
-					],
-					edges: [],
-					total_node_count: 3,
-					has_more: true,
-				}
+			? query === 'unlisted spice'
+				? {
+						nodes: [],
+						edges: [],
+						total_node_count: 3,
+						has_more: true,
+					}
+				: {
+						nodes: [
+							{
+								id: 'peanut',
+								name: 'Peanut',
+								category: 'legume',
+								allergen_flags: ['peanut'],
+							},
+						],
+						edges: [],
+						total_node_count: 3,
+						has_more: true,
+					}
 			: {
 					nodes,
 					edges,
@@ -166,6 +173,22 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		page.getByRole('button', { name: 'Explore Peanut' }),
 	).toBeVisible()
 	expect(searchTerms).toContain('groundnut')
+
+	await page
+		.getByRole('textbox', { name: 'Search ingredients' })
+		.fill('unlisted spice')
+	await expect(page.getByTestId('graph-search-empty')).toContainText(
+		'not in the current graph',
+	)
+	await expect(
+		page.getByRole('button', { name: 'Explore Unlisted Spice' }),
+	).toHaveCount(0)
+	await expect(
+		page.getByRole('img', {
+			name: 'Ingredient force-directed knowledge graph',
+		}),
+	).toBeVisible()
+	expect(searchTerms).toContain('unlisted spice')
 
 	await page.getByRole('textbox', { name: 'Search ingredients' }).fill('')
 	const edge = page.getByRole('button', {

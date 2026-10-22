@@ -15,6 +15,8 @@ The API returns a bounded first page sorted by canonical name. `root` returns ou
 
 The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and display names, unique node IDs, and a recognized relationship type. It accepts `substitution` (plus the legacy `substitutes` alias), `chemical_similarity`/`chemical-similarity`, and `co_occurrence`/`co-occurrence`. A missing or unknown type fails the graph load visibly instead of being mislabeled as a substitution.
 
+When a successful search returns no ingredients, the Explorer says the ingredient is not in the current graph and does not create a node. This empty result is distinct from a failed search, which keeps its visible error state.
+
 ## Shadow evidence panel
 
 `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. An available response must return matching requested and resolved IDs for both ingredients and declare the train count unit as `TRAIN_PAIRS`; the backend rejects mismatches and the client fails closed on either identity or unit errors. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.

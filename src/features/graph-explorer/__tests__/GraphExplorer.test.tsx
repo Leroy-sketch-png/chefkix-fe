@@ -89,6 +89,37 @@ it('finds an ingredient by remote alias outside the initial page', async () => {
 	expect(screen.getByText('1 search matches')).toBeTruthy()
 })
 
+it('reports an unknown search without inventing a graph node', async () => {
+	jest
+		.mocked(getGraphData)
+		.mockImplementation(async query =>
+			query?.query ? { ...base, nodes: [], edges: [] } : base,
+		)
+
+	render(<GraphExplorer />)
+	await waitFor(() =>
+		expect(screen.getByTestId('graph-content').textContent).toContain('butter'),
+	)
+	fireEvent.change(screen.getByPlaceholderText('Search ingredients…'), {
+		target: { value: 'unlisted spice' },
+	})
+
+	await waitFor(() =>
+		expect(getGraphData).toHaveBeenCalledWith({
+			query: 'unlisted spice',
+			depth: 0,
+			limit: 20,
+		}),
+	)
+	expect(screen.getByTestId('graph-search-empty').textContent).toContain(
+		'not in the current graph',
+	)
+	expect(screen.getByTestId('graph-content').textContent).toContain('butter')
+	expect(screen.getByTestId('graph-content').textContent).not.toContain(
+		'unlisted spice',
+	)
+})
+
 it('shows the grounded compound overlap after an edge is selected', async () => {
 	jest.mocked(getGraphData).mockResolvedValue({
 		...base,

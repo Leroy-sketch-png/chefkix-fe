@@ -386,6 +386,15 @@ export function GraphExplorer() {
 					{error} The current graph remains available.
 				</div>
 			)}
+			{query.trim() && searchData && shown.length === 0 && (
+				<p
+					className='rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm text-text-muted'
+					data-testid='graph-search-empty'
+					role='status'
+				>
+					This ingredient is not in the current graph.
+				</p>
+			)}
 			<GraphCanvas
 				data={visibleData ?? data}
 				query={query}
