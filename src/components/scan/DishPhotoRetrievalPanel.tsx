@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ImagePlus, Loader2, ScanSearch } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { retrieveRecipesFromDishPhoto } from '@/services/photo-intelligence'
@@ -11,25 +11,42 @@ import { PhotoRecipeMatches } from './PhotoRecipeMatches'
 export function DishPhotoRetrievalPanel() {
 	const t = useTranslations('cooking')
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const retrievalAbortRef = useRef<AbortController | null>(null)
 	const [matches, setMatches] = useState<PhotoRecipeMatch[]>([])
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
+	useEffect(
+		() => () => {
+			retrievalAbortRef.current?.abort()
+		},
+		[],
+	)
+
 	const handlePhoto = async (file: File) => {
+		retrievalAbortRef.current?.abort()
+		const controller = new AbortController()
+		retrievalAbortRef.current = controller
 		setLoading(true)
 		setError(null)
 		try {
-			const result = await retrieveRecipesFromDishPhoto(file)
+			const result = await retrieveRecipesFromDishPhoto(file, controller.signal)
+			if (controller.signal.aborted) return
 			setMatches(result.matches)
 		} catch (retrievalError) {
-			setMatches([])
-			setError(
-				retrievalError instanceof Error
-					? retrievalError.message
-					: t('scanDishRetrievalUnavailable'),
-			)
+			if (!controller.signal.aborted) {
+				setMatches([])
+				setError(
+					retrievalError instanceof Error
+						? retrievalError.message
+						: t('scanDishRetrievalUnavailable'),
+				)
+			}
 		} finally {
-			setLoading(false)
+			if (retrievalAbortRef.current === controller) {
+				retrievalAbortRef.current = null
+				if (!controller.signal.aborted) setLoading(false)
+			}
 		}
 	}
 

@@ -56,6 +56,7 @@ export function IngredientScanner({
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 	const streamRef = useRef<MediaStream | null>(null)
 	const cameraTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const detectionAbortRef = useRef<AbortController | null>(null)
 	const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle')
 	const [cameraFacingMode, setCameraFacingMode] =
 		useState<CameraFacingMode>('environment')
@@ -148,6 +149,7 @@ export function IngredientScanner({
 
 	useEffect(() => {
 		return () => {
+			detectionAbortRef.current?.abort()
 			stopCamera()
 		}
 	}, [stopCamera])
@@ -160,6 +162,9 @@ export function IngredientScanner({
 
 	const scanImage = useCallback(
 		async (image: Blob) => {
+			detectionAbortRef.current?.abort()
+			const controller = new AbortController()
+			detectionAbortRef.current = controller
 			setError(null)
 			setDetections([])
 			setImageUrl(URL.createObjectURL(image))
@@ -167,16 +172,20 @@ export function IngredientScanner({
 			stopCamera()
 
 			try {
-				const result = await detectIngredients(image)
+				const result = await detectIngredients(image, controller.signal)
+				if (controller.signal.aborted) return
 				setDetections(result.detections)
 				onScanComplete?.(result, image)
 				toast.success(
 					t('scanFoundResults', { count: result.detections.length }),
 				)
 			} catch {
-				setError(t('scanDetectionUnavailable'))
+				if (!controller.signal.aborted) setError(t('scanDetectionUnavailable'))
 			} finally {
-				setIsScanning(false)
+				if (detectionAbortRef.current === controller) {
+					detectionAbortRef.current = null
+					if (!controller.signal.aborted) setIsScanning(false)
+				}
 			}
 		},
 		[onScanComplete, stopCamera, t],

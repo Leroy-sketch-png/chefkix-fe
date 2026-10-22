@@ -4,14 +4,19 @@ The thesis evidence workspace is available at `/thesis`. It converts the Member 
 
 ## Chapter coverage
 
-| Chapter                  | Workspace coverage                                         | Primary source                            |
-| ------------------------ | ---------------------------------------------------------- | ----------------------------------------- |
-| 5 · Compound Explanation | UI screenshot, pipeline diagram, user-facing example       | `/cook`, Epic 4 compound export           |
-| 6 · Allergen Safety      | safety screenshot, head-to-head figure, constraint flow    | `/demo/allergen-safety`, Epic 5 benchmark |
-| 7 · Behavioral Learning  | feedback screenshot, capture architecture, MRR figure      | `/cook`, Epic 7 simulation export         |
-| 8 · Multi-Modal          | scan screenshot, detection-to-graph demo, pipeline diagram | `/scan`, Epic 8 model endpoints           |
-| 10 · System Architecture | stack diagram, deployment topology, hosting note           | repository topology, infrastructure plan  |
-| 11 · Evaluation          | dashboard screenshot, chart exports, provenance checklist  | `/admin/evaluation`, Epic 3/5/7 exports   |
+| Chapter                                   | Workspace coverage                                                         | Primary source                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------- |
+| 1–3 · Introduction, Related Work, Food KG | Source-bound Lead handoff entries                                          | Current Lead chapter artifacts                      |
+| 4–7 · M1–M4                               | Rejected/open model boundaries; M2 training progress separate from quality | Lead v101 / exact model evidence                    |
+| 8 · Compound Explanation                  | UI screenshot, pipeline diagram, factual compound example                  | `/cook`, official FooDB export                      |
+| 9 · Real LLM Allergen Benchmark           | Labeled illustration now; adjudicated comparison pending                   | `/demo/allergen-safety`, matched reviewed evidence  |
+| 10 · Selective Abstention                 | Frozen protocol; no accepted candidate                                     | Lead protocol and future accepted result            |
+| 11 · Photo → Intelligence Pipeline        | Scan UI and pending device/model evidence                                  | `/scan`, accepted M3/M4 endpoints                   |
+| 12 · System Architecture                  | Stack diagram, deployment topology, hosting evidence                       | Repository topology and deployed runtime            |
+| 13 · Evaluation & Ablation                | Feedback instrument, behavioral MRR, dashboard, figures and provenance     | `/cook`, `/admin/evaluation`, Lead detailed exports |
+| 14 · Conclusion & Future Work             | Negative/open results and human rehearsal handoff                          | Lead draft and scored rehearsal                     |
+
+This numbering follows the 14-chapter Lead v101 plan. Member Epic 11 owns capture/integration support; it does not mark Lead research or writing complete. Behavioral artifacts moved into Chapter 13. Artifact identifiers are updated to the canonical chapter numbers.
 
 The manifest is intentionally data-driven at `src/features/thesis-engineering/data/thesisEvidenceManifest.ts`. New leader deliverables should add or update an artifact there rather than burying a claim inside a component.
 

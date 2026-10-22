@@ -53,7 +53,14 @@ import { logDevError } from '@/lib/dev-log'
 // ============================================
 
 type MeasurementUnit =
-	'cup' | 'tbsp' | 'tsp' | 'g' | 'ml' | 'oz' | 'lb' | 'pieces'
+	| 'cup'
+	| 'tbsp'
+	| 'tsp'
+	| 'g'
+	| 'ml'
+	| 'oz'
+	| 'lb'
+	| 'pieces'
 
 interface Ingredient {
 	id: string

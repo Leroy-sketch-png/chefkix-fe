@@ -119,7 +119,9 @@ interface MiniHeaderProps {
 }
 
 type ProfileHeaderGamifiedProps =
-	OwnProfileProps | OtherUserProfileProps | MiniHeaderProps
+	| OwnProfileProps
+	| OtherUserProfileProps
+	| MiniHeaderProps
 
 const titleConfig: Record<UserTitle, { gradient: string; labelKey: string }> = {
 	BEGINNER: { gradient: 'bg-text-muted', labelKey: 'titleBeginner' },

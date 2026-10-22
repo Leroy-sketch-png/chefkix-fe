@@ -11,6 +11,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "jest",
 		"test:watch": "jest --watch",
+		"test:e2e": "npm run build && playwright test --config=playwright.e2e.config.ts",
 		"visual": "node tests/visual/prepare-run.mjs && npx playwright test --config=playwright.config.ts",
 		"visual:audit": "node tests/visual/run-audit-cycle.mjs",
 		"visual:focus": "node tests/visual/run-focused.mjs",

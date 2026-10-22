@@ -43,9 +43,8 @@ interface SearchDiscoveryCommandDeckProps extends SearchDeckBaseProps {
 	trendingTerms: TrendingTerm[]
 }
 
-interface SearchResultsCommandDeckProps<
-	TTab extends string,
-> extends SearchDeckBaseProps {
+interface SearchResultsCommandDeckProps<TTab extends string>
+	extends SearchDeckBaseProps {
 	mode: 'results'
 	eyebrow: string
 	chipLabel: string
@@ -59,7 +58,8 @@ interface SearchResultsCommandDeckProps<
 }
 
 type SearchCommandDeckProps<TTab extends string> =
-	SearchDiscoveryCommandDeckProps | SearchResultsCommandDeckProps<TTab>
+	| SearchDiscoveryCommandDeckProps
+	| SearchResultsCommandDeckProps<TTab>
 
 export function SearchCommandDeck<TTab extends string>(
 	props: SearchCommandDeckProps<TTab>,

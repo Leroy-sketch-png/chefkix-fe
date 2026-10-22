@@ -2,6 +2,8 @@ import type {
 	IngredientRecipeMatchResponse,
 	DishPhotoRetrievalResponse,
 } from '@/lib/types/photo-intelligence'
+import { aiApi } from '@/lib/axios'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
 
 const INGREDIENT_MATCH_ENDPOINT = '/api/photo-intelligence/ingredient-recipes'
 const DISH_RETRIEVAL_ENDPOINT = '/api/photo-intelligence/dish-retrieval'
@@ -15,6 +17,7 @@ interface ApiPayload<T> {
 /** Query the Lead-owned HGAT adapter with normalized detected ingredient names. */
 export async function findRecipesFromIngredients(
 	ingredients: string[],
+	signal?: AbortSignal,
 ): Promise<IngredientRecipeMatchResponse> {
 	const normalizedIngredients = Array.from(
 		new Set(ingredients.map(ingredient => ingredient.trim()).filter(Boolean)),
@@ -23,14 +26,20 @@ export async function findRecipesFromIngredients(
 		return { matches: [], queryIngredients: [], source: 'backend' }
 	}
 
-	const response = await fetch(INGREDIENT_MATCH_ENDPOINT, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ ingredients: normalizedIngredients }),
-	})
-	const payload =
-		(await response.json()) as ApiPayload<IngredientRecipeMatchResponse>
-	if (!response.ok || !payload.success || !payload.data) {
+	let payload: ApiPayload<IngredientRecipeMatchResponse>
+	try {
+		const response = await aiApi.post<
+			ApiPayload<IngredientRecipeMatchResponse>
+		>(
+			INGREDIENT_MATCH_ENDPOINT,
+			{ ingredients: normalizedIngredients },
+			{ signal },
+		)
+		payload = response.data
+	} catch (error) {
+		throw new Error(getUserFriendlyMessage(error))
+	}
+	if (!payload.success || !payload.data) {
 		throw new Error(
 			payload.message || 'Ingredient recipe matching is unavailable.',
 		)
@@ -41,16 +50,25 @@ export async function findRecipesFromIngredients(
 /** Send a dish photo through the Lead-owned CLIP/cross-modal retrieval adapter. */
 export async function retrieveRecipesFromDishPhoto(
 	image: Blob,
+	signal?: AbortSignal,
 ): Promise<DishPhotoRetrievalResponse> {
 	const body = new FormData()
 	body.append('image', image, 'dish-photo.jpg')
-	const response = await fetch(DISH_RETRIEVAL_ENDPOINT, {
-		method: 'POST',
-		body,
-	})
-	const payload =
-		(await response.json()) as ApiPayload<DishPhotoRetrievalResponse>
-	if (!response.ok || !payload.success || !payload.data) {
+	let payload: ApiPayload<DishPhotoRetrievalResponse>
+	try {
+		const response = await aiApi.post<ApiPayload<DishPhotoRetrievalResponse>>(
+			DISH_RETRIEVAL_ENDPOINT,
+			body,
+			{
+				signal,
+				headers: { 'Content-Type': 'multipart/form-data' },
+			},
+		)
+		payload = response.data
+	} catch (error) {
+		throw new Error(getUserFriendlyMessage(error))
+	}
+	if (!payload.success || !payload.data) {
 		throw new Error(payload.message || 'Dish photo retrieval is unavailable.')
 	}
 	return payload.data

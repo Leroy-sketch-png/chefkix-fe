@@ -1,13 +1,6 @@
 'use client'
 
-import {
-	Beaker,
-	Check,
-	CircleHelp,
-	Scale,
-	ShieldCheck,
-	Sparkles,
-} from 'lucide-react'
+import { Beaker, Check, Scale, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Substitution } from '@/services/ai'
 import { AllergenSafetyIndicator } from './AllergenSafetyIndicator'
@@ -15,6 +8,7 @@ import { resolveAllergenSafety } from '@/lib/allergen-safety'
 import {
 	getCompoundExplanation,
 	type NutritionProfile,
+	type CompoundSource,
 } from '@/lib/compound-explanation'
 
 interface CompoundExplanationProps {
@@ -23,12 +17,17 @@ interface CompoundExplanationProps {
 }
 
 interface SourceBadgeProps {
-	source: 'chemistry' | 'llm' | 'hybrid'
+	source: CompoundSource
+	isGrounded: boolean
 	isMock: boolean
 }
 
-const formatNutrition = (value: number) =>
-	Number.isInteger(value) ? String(value) : value.toFixed(1)
+const formatNutrition = (value: number | null | undefined) =>
+	value == null
+		? 'Unavailable'
+		: Number.isInteger(value)
+			? String(value)
+			: value.toFixed(1)
 
 const confidenceTone = (score: number) =>
 	score >= 0.8
@@ -49,7 +48,7 @@ const confidenceTone = (score: number) =>
 					label: 'use with care',
 				}
 
-const SourceBadge = ({ source, isMock }: SourceBadgeProps) => {
+const SourceBadge = ({ source, isMock, isGrounded }: SourceBadgeProps) => {
 	const isChemistry = source === 'chemistry' || source === 'hybrid'
 	return (
 		<span
@@ -65,7 +64,11 @@ const SourceBadge = ({ source, isMock }: SourceBadgeProps) => {
 			) : (
 				<Sparkles className='size-3' />
 			)}
-			{isChemistry ? 'Chemistry-grounded' : 'LLM-suggested'}
+			{isGrounded
+				? 'Compound presence evidence'
+				: source === 'llm'
+					? 'LLM-suggested'
+					: 'Source unverified'}
 			{isMock && <span className='font-normal opacity-75'>· demo</span>}
 		</span>
 	)
@@ -99,13 +102,17 @@ const ConfidenceBar = ({ score }: { score: number }) => {
 	)
 }
 
-const OverlapBar = ({ overlapPercent }: { overlapPercent: number }) => {
+const OverlapBar = ({ overlapPercent }: { overlapPercent: number | null }) => {
+	if (overlapPercent === null)
+		return (
+			<p className='text-xs text-text-muted'>Compound overlap unavailable</p>
+		)
 	const shared = Math.round(Math.max(0, Math.min(100, overlapPercent)))
 	return (
 		<div className='space-y-2' data-testid='compound-overlap'>
 			<div className='flex items-center justify-between text-xs'>
 				<span className='font-medium text-text-secondary'>
-					Compound overlap
+					Compound presence overlap
 				</span>
 				<span className='font-bold text-brand'>{shared}% shared</span>
 			</div>
@@ -168,32 +175,6 @@ const NutritionComparison = ({
 	)
 }
 
-const SafetyStatus = ({ safe }: { safe: boolean | null }) => {
-	if (safe === null) {
-		return (
-			<span className='inline-flex items-center gap-1 text-2xs text-text-muted'>
-				<CircleHelp className='size-3' />
-				Safety pending
-			</span>
-		)
-	}
-	return (
-		<span
-			className={cn(
-				'inline-flex items-center gap-1 text-2xs',
-				safe ? 'text-success' : 'text-destructive',
-			)}
-		>
-			{safe ? (
-				<ShieldCheck className='size-3' />
-			) : (
-				<CircleHelp className='size-3' />
-			)}
-			{safe ? 'Allergen profile compatible' : 'Check allergen profile'}
-		</span>
-	)
-}
-
 export const CompoundExplanation = ({
 	originalIngredient,
 	substitution,
@@ -211,7 +192,7 @@ export const CompoundExplanation = ({
 					</div>
 					<div>
 						<p className='text-xs font-semibold text-text-primary'>
-							Why this works
+							Substitution evidence
 						</p>
 						<p className='text-2xs text-text-muted'>
 							Evidence behind this suggestion
@@ -221,6 +202,7 @@ export const CompoundExplanation = ({
 				<SourceBadge
 					source={insight?.source ?? substitution.source ?? 'llm'}
 					isMock={insight?.isMock ?? false}
+					isGrounded={insight?.isGrounded ?? false}
 				/>
 			</div>
 
@@ -231,6 +213,17 @@ export const CompoundExplanation = ({
 					<p className='text-xs leading-relaxed text-text-secondary'>
 						{insight.explanation}
 					</p>
+					{insight.sourceAuthority && (
+						<p className='text-2xs text-text-muted'>
+							Source: {insight.sourceAuthority}
+						</p>
+					)}
+					{insight.sourceSha256 && (
+						<details className='break-all text-2xs text-text-muted'>
+							<summary>Evidence fingerprint</summary>
+							{insight.sourceSha256}
+						</details>
+					)}
 					<OverlapBar overlapPercent={insight.overlapPercent} />
 					<div className='space-y-2'>
 						<p className='text-xs font-medium text-text-secondary'>
@@ -258,9 +251,10 @@ export const CompoundExplanation = ({
 						original={insight.originalNutrition}
 						substitute={insight.substituteNutrition}
 					/>
-					<SafetyStatus
-						safe={insight.allergenSafe ?? substitution.allergenSafe ?? null}
-					/>
+					<p className='text-2xs text-text-muted'>
+						Presence overlap does not establish cooking suitability or allergen
+						safety.
+					</p>
 				</>
 			) : (
 				<div className='rounded-lg border border-dashed border-border-subtle bg-bg-elevated/40 p-2.5 text-2xs leading-relaxed text-text-muted'>
@@ -292,7 +286,7 @@ const ComparisonMetric = ({
 		<div className='text-2xs text-text-muted'>{label}</div>
 		<div className='mt-1 text-xs font-bold text-text-primary'>
 			{value}
-			{unit}
+			{value === 'Unavailable' ? '' : unit}
 		</div>
 	</div>
 )
@@ -346,17 +340,11 @@ export const CompoundComparison = ({
 						<div className='grid grid-cols-3 gap-1'>
 							<ComparisonMetric
 								label='Overlap'
-								value={
-									insight ? String(Math.round(insight.overlapPercent)) : '—'
-								}
+								value={formatNutrition(insight?.overlapPercent)}
 							/>
 							<ComparisonMetric
 								label='Calories'
-								value={
-									insight
-										? String(Math.round(insight.substituteNutrition.calories))
-										: '—'
-								}
+								value={formatNutrition(insight?.substituteNutrition.calories)}
 								unit=''
 							/>
 							<ComparisonMetric

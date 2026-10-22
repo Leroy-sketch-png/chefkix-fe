@@ -214,10 +214,10 @@ export default function MealPlannerPage() {
 	const hasPlan = Boolean(plan?.cookBatches.length)
 	const planMatchesControls = Boolean(
 		plan &&
-		plan.mode === mode &&
-		plan.householdSize === householdSize &&
-		plan.maxActiveMinutes === maxActiveMinutes &&
-		plan.pantryFirst === pantryFirst,
+			plan.mode === mode &&
+			plan.householdSize === householdSize &&
+			plan.maxActiveMinutes === maxActiveMinutes &&
+			plan.pantryFirst === pantryFirst,
 	)
 	const hasPendingChanges = Boolean(plan) && !planMatchesControls
 	const showPlan = hasPlan && planMatchesControls && !generating

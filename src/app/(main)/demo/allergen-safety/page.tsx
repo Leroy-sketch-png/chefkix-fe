@@ -1,17 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import {
 	AlertTriangle,
-	ArrowRight,
 	Ban,
 	Check,
 	FlaskConical,
 	ShieldCheck,
 	Sparkles,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { AllergenSafetyIndicator } from '@/components/recipe/AllergenSafetyIndicator'
 import type { AllergenSafetyResult } from '@/lib/allergen-safety'
 
@@ -20,14 +16,15 @@ interface DemoCandidate {
 	detail: string
 	safety: AllergenSafetyResult
 }
-const ironChefResponse: DemoCandidate[] = [
+const guardedExample: DemoCandidate[] = [
 	{
 		name: 'Sunflower seed butter',
 		detail: 'Closest texture match without the peanut family.',
 		safety: {
-			status: 'safe',
+			status: 'check',
 			flaggedAllergens: [],
-			reason: 'No peanut-family match found in the saved profile.',
+			reason:
+				'No direct peanut-family match in this illustration; safety is unverified.',
 			source: 'demo',
 		},
 	},
@@ -35,9 +32,10 @@ const ironChefResponse: DemoCandidate[] = [
 		name: 'Pumpkin seed butter',
 		detail: 'Nut-free option with a savory, roasted profile.',
 		safety: {
-			status: 'safe',
+			status: 'check',
 			flaggedAllergens: [],
-			reason: 'No peanut-family match found in the saved profile.',
+			reason:
+				'No direct peanut-family match in this illustration; safety is unverified.',
 			source: 'demo',
 		},
 	},
@@ -53,14 +51,15 @@ const ironChefResponse: DemoCandidate[] = [
 	},
 ]
 
-const gptResponse: DemoCandidate[] = [
+const unfilteredExample: DemoCandidate[] = [
 	{
 		name: 'Peanut flour',
 		detail: 'Suggested as a thickener without checking the saved profile.',
 		safety: {
 			status: 'blocked',
 			flaggedAllergens: ['peanuts'],
-			reason: 'Contains peanuts — violation missed by the comparison model.',
+			reason:
+				'Illustrative peanut-family match; no model response was collected.',
 			source: 'demo',
 		},
 	},
@@ -70,7 +69,8 @@ const gptResponse: DemoCandidate[] = [
 		safety: {
 			status: 'blocked',
 			flaggedAllergens: ['peanuts'],
-			reason: 'Contains peanuts — violation missed by the comparison model.',
+			reason:
+				'Illustrative peanut-family match; no model response was collected.',
 			source: 'demo',
 		},
 	},
@@ -153,8 +153,8 @@ function ResponseColumn({
 				)}
 				<span className='text-text-secondary'>
 					{guarded
-						? '2 unsafe candidates blocked before primary display.'
-						: '2 allergen violations remain visible in this comparison response.'}
+						? 'Illustration of a blocked candidate and two candidates needing verification.'
+						: 'Scripted examples of flagged and uncertain candidates.'}
 				</span>
 			</div>
 		</section>
@@ -162,74 +162,42 @@ function ResponseColumn({
 }
 
 export default function AllergenSafetyDemoPage() {
-	const [prompt, setPrompt] = useState(
-		'I’m allergic to peanuts. Substitute for peanut butter in this recipe.',
-	)
-	const [hasCompared, setHasCompared] = useState(false)
-
 	return (
 		<main className='min-h-screen bg-bg-primary py-8 sm:py-12'>
 			<div className='mx-auto max-w-6xl space-y-8 px-4 sm:px-6'>
 				<header className='max-w-3xl'>
 					<div className='mb-3 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand'>
-						<FlaskConical className='size-3.5' /> Epic 6 · safety benchmark
+						<FlaskConical className='size-3.5' /> Epic 6 · interface
+						illustration
 					</div>
 					<h1 className='text-3xl font-black tracking-tight text-text-primary sm:text-4xl'>
 						Allergen safety, made visible.
 					</h1>
 					<p className='mt-3 text-sm leading-relaxed text-text-secondary sm:text-base'>
-						Compare a chemistry-aware, profile-constrained response with a
-						generic LLM response. Every status is explicit: Safe, Check, or
-						Blocked.
+						These scripted candidates demonstrate safety indicators. No provider
+						was called, and no comparative safety result is available.
 					</p>
 				</header>
 
-				<section className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-5'>
-					<label
-						htmlFor='allergen-demo-prompt'
-						className='text-sm font-semibold text-text-primary'
-					>
-						Test prompt
-					</label>
-					<div className='mt-2 flex flex-col gap-3 sm:flex-row'>
-						<Input
-							id='allergen-demo-prompt'
-							value={prompt}
-							onChange={event => setPrompt(event.target.value)}
-							className='min-h-11 flex-1'
-						/>
-						<Button
-							type='button'
-							className='min-h-11 sm:min-w-36'
-							onClick={() => setHasCompared(true)}
-						>
-							Run comparison <ArrowRight className='ml-2 size-4' />
-						</Button>
-					</div>
-					<div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-text-muted'>
-						<span className='rounded-full bg-destructive/10 px-2.5 py-1 font-semibold text-destructive'>
-							Profile: peanuts
-						</span>
-						<span>EU/FDA profile contract from Epic 3</span>
-					</div>
-					{hasCompared && (
-						<p className='mt-3 text-xs text-success'>
-							Comparison ready for: “{prompt}”
-						</p>
-					)}
+				<section className='rounded-2xl border border-border-subtle bg-bg-card p-5'>
+					<h2 className='font-semibold'>Fixed illustration: peanut allergy</h2>
+					<p className='mt-2 text-sm text-text-secondary'>
+						Substitute for peanut butter. These examples explain the interface
+						and do not respond to a custom prompt.
+					</p>
 				</section>
 
 				<div className='grid gap-5 lg:grid-cols-2'>
 					<ResponseColumn
-						title='IRON CHEF response'
-						caption='Profile-aware guard with unsafe candidates filtered before display.'
-						items={ironChefResponse}
+						title='Guarded interface example'
+						caption='Scripted examples of profile checks; safety remains unverified.'
+						items={guardedExample}
 						guarded
 					/>
 					<ResponseColumn
-						title='GPT-4o response'
-						caption='Generic comparison output shown to make missed violations tangible.'
-						items={gptResponse}
+						title='Unfiltered interface example'
+						caption='Scripted candidates, with no attribution to an AI provider.'
+						items={unfilteredExample}
 						guarded={false}
 					/>
 				</div>
@@ -237,9 +205,10 @@ export default function AllergenSafetyDemoPage() {
 				<div className='flex items-start gap-2 rounded-xl border border-warning/20 bg-warning/5 p-3 text-xs leading-relaxed text-text-muted'>
 					<AlertTriangle className='mt-0.5 size-4 shrink-0 text-warning' />
 					<p>
-						This is a thesis-demo comparison using placeholder benchmark data.
-						Always verify ingredients, brands, and cross-contact warnings with
-						the product label and a qualified professional.
+						Illustration only. Matched provider runs and independent
+						adjudication are required before a benchmark comparison. Always
+						verify ingredients, brands, and cross-contact warnings with the
+						product label and a qualified professional.
 					</p>
 				</div>
 			</div>

@@ -1,11 +1,254 @@
 import type { ThesisEvidenceManifest } from '../types'
 
 export const thesisEvidenceManifest: ThesisEvidenceManifest = {
-	version: 'epic-11-v1',
-	updatedAt: '2026-08-24',
+	version: 'lead-v101-member-v2',
+	updatedAt: '2026-10-04',
 	chapters: [
 		{
+			id: '1',
+			title: 'Introduction: Three Failures',
+			focus:
+				'Lead evidence collected; draft needed. Explain generalization, safety uncertainty, and explanation limits.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-1-lead-evidence',
+					chapterId: '1',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Lead evidence collected; draft needed. Explain generalization, safety uncertainty, and explanation limits.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '2',
+			title: 'Related Work',
+			focus:
+				'Lead draft exists. Audit citations and distinguish reproduced baselines from paper-reported results.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-2-lead-evidence',
+					chapterId: '2',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Lead draft exists. Audit citations and distinguish reproduced baselines from paper-reported results.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '3',
+			title: 'Multi-Signal Food KG',
+			focus:
+				'Graph reconstruction verified; USDA partial. Capture bounded graph coverage and source/license boundaries.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-3-lead-evidence',
+					chapterId: '3',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Graph reconstruction verified; USDA partial. Capture bounded graph coverage and source/license boundaries.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '4',
+			title: 'IRON CHEF GNN: Fusion Paradox & SAG (M1)',
+			focus:
+				'Corrected SAG and true-context dual encoder are verified negative results. An accepted model is absent.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-4-lead-evidence',
+					chapterId: '4',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Corrected SAG and true-context dual encoder are verified negative results. An accepted model is absent.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
 			id: '5',
+			title: 'ChefKix-Mistral-7B (M2)',
+			focus:
+				'Lead v99: DPO complete; post-DPO SFT verified through 70/561. Step 140, predictions, scoring, and model quality remain unverified.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-5-lead-evidence',
+					chapterId: '5',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Lead v99: DPO complete; post-DPO SFT verified through 70/561. Step 140, predictions, scoring, and model quality remain unverified.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '6',
+			title: 'ChefKix-VLM (M3)',
+			focus:
+				'Historical mock adapter rejected. Fifty rights-bound candidates await two independent reviews; training is absent.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-6-lead-evidence',
+					chapterId: '6',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Historical mock adapter rejected. Fifty rights-bound candidates await two independent reviews; training is absent.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '7',
+			title: 'ChefKix-CLIP (M4)',
+			focus:
+				'Frozen-feature projection trained and rejected. Product serving requires a future accepted rights-cleared result.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-7-lead-evidence',
+					chapterId: '7',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Frozen-feature projection trained and rejected. Product serving requires a future accepted rights-cleared result.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '10',
+			title: 'Selective Abstention',
+			focus:
+				'Protocol frozen; accepted candidate absent. Do not report calibrated risk or coverage results.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-10-lead-evidence',
+					chapterId: '10',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Protocol frozen; accepted candidate absent. Do not report calibrated risk or coverage results.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '14',
+			title: 'Conclusion & Future Work',
+			focus:
+				'Lead draft exists. Preserve negative results and open gates; recorded/scored human defense rehearsal remains required.',
+			criteria: [
+				'Bind the chapter to the current Lead ledger and source artifacts',
+				'Keep missing results and rejected candidates explicit',
+			],
+			artifacts: [
+				{
+					id: 'chapter-14-lead-evidence',
+					chapterId: '14',
+					title: 'Lead evidence handoff',
+					kind: 'example',
+					description:
+						'Lead draft exists. Preserve negative results and open gates; recorded/scored human defense rehearsal remains required.',
+					dependency:
+						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+					status: 'pending-data',
+					captureBrief: [
+						'Obtain the actual source artifact; a backlog summary is not independent verification.',
+						'Record dataset, split, protocol, seed count, hashes, and claim limits where applicable.',
+					],
+				},
+			],
+		},
+		{
+			id: '8',
 			title: 'Compound Explanation',
 			focus:
 				'Make chemistry-grounded substitution reasoning visible and defensible.',
@@ -16,8 +259,8 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 			artifacts: [
 				{
-					id: 'chapter-5-compound-ui',
-					chapterId: '5',
+					id: 'chapter-8-compound-ui',
+					chapterId: '8',
 					title: 'Compound explanation UI screenshot',
 					kind: 'screenshot',
 					description:
@@ -28,16 +271,16 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					status: 'ready',
 					captureBrief: [
 						'Use a substitution with the expanded explanation visible.',
-						'Include the chemistry-grounded badge and nutritional comparison.',
+						'Include compound provenance; missing nutrition stays unavailable.',
 					],
 				},
 				{
-					id: 'chapter-5-pipeline',
-					chapterId: '5',
+					id: 'chapter-8-pipeline',
+					chapterId: '8',
 					title: 'Compound explanation pipeline diagram',
 					kind: 'diagram',
 					description:
-						'Trace FooDB and FlavorDB data through the compound engine into the substitution response.',
+						'Trace official FooDB compound-presence records into the substitution response; functional suitability is not established.',
 					dependency: 'Leader Epic 4 compound engine contract',
 					status: 'ready',
 					captureBrief: [
@@ -46,8 +289,8 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-5-example',
-					chapterId: '5',
+					id: 'chapter-8-example',
+					chapterId: '8',
 					title: 'User-facing chemistry example',
 					kind: 'example',
 					description:
@@ -62,19 +305,19 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 		},
 		{
-			id: '6',
-			title: 'Allergen Safety',
+			id: '9',
+			title: 'Real LLM Allergen Benchmark',
 			focus:
-				'Show the hard safety constraint and the evidence behind the comparison.',
+				'Show tri-state policy behavior and the limits of unadjudicated evidence.',
 			criteria: [
 				'Screenshot safety indicators',
-				'Capture the IRON CHEF versus GPT-4o comparison',
+				'Capture the clearly labeled interface illustration; comparative rates remain gated',
 				'Include controlled violation-rate evidence',
 			],
 			artifacts: [
 				{
-					id: 'chapter-6-safety-ui',
-					chapterId: '6',
+					id: 'chapter-9-safety-ui',
+					chapterId: '9',
 					title: 'Safety comparison UI screenshot',
 					kind: 'screenshot',
 					description:
@@ -85,12 +328,12 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					status: 'ready',
 					captureBrief: [
 						'Use the peanut-butter scenario.',
-						'Keep the specific allergen warning and comparison columns visible.',
+						'Keep the illustration label and specific allergen warning visible.',
 					],
 				},
 				{
-					id: 'chapter-6-head-to-head',
-					chapterId: '6',
+					id: 'chapter-9-head-to-head',
+					chapterId: '9',
 					title: 'Head-to-head safety evidence',
 					kind: 'figure',
 					description:
@@ -104,8 +347,8 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-6-constraint',
-					chapterId: '6',
+					id: 'chapter-9-constraint',
+					chapterId: '9',
 					title: 'Allergen constraint flow',
 					kind: 'diagram',
 					description:
@@ -120,67 +363,10 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 				},
 			],
 		},
+
 		{
-			id: '7',
-			title: 'Behavioral Learning',
-			focus:
-				'Explain how cooking feedback becomes training signal without overstating results.',
-			criteria: [
-				'Screenshot the feedback instrument flow',
-				'Document the data-capture architecture',
-				'Show the static-versus-feedback MRR result when exported',
-			],
-			artifacts: [
-				{
-					id: 'chapter-7-feedback-ui',
-					chapterId: '7',
-					title: 'Feedback instrument screenshot',
-					kind: 'screenshot',
-					description:
-						'Show the explicit substitution outcome and taste feedback controls in the cooking flow.',
-					route: '/cook',
-					dependency: 'Existing CookingPlayer feedback instrument',
-					status: 'ready',
-					captureBrief: [
-						'Capture the outcome choices and optional taste feedback.',
-						'Avoid including private user/session identifiers.',
-					],
-				},
-				{
-					id: 'chapter-7-capture-flow',
-					chapterId: '7',
-					title: 'Feedback data-capture architecture',
-					kind: 'diagram',
-					description:
-						'Trace a user choice through the API event and into the behavioral simulation export.',
-					dependency:
-						'Substitution feedback event contract and Leader Epic 7 simulation',
-					status: 'ready',
-					captureBrief: [
-						'Show the user action, persisted event, replay corpus, and MRR evaluation.',
-						'Mark feedback as an input signal, not proof of model improvement by itself.',
-					],
-				},
-				{
-					id: 'chapter-7-mrr',
-					chapterId: '7',
-					title: 'Behavioral MRR figure',
-					kind: 'figure',
-					description:
-						'Export static HGAT versus feedback-updated HGAT MRR and delta.',
-					route: '/admin/evaluation#behavioral',
-					dependency: 'Leader Epic 7 behavioral simulation export',
-					status: 'pending-data',
-					captureBrief: [
-						'Export the behavioral chart after the held-out corpus values arrive.',
-						'Report simulation configuration beside the delta.',
-					],
-				},
-			],
-		},
-		{
-			id: '8',
-			title: 'Multi-Modal Pipeline',
+			id: '11',
+			title: 'Photo → Intelligence Pipeline',
 			focus:
 				'Show the investor-facing path from camera input to graph-grounded recipes.',
 			criteria: [
@@ -190,8 +376,8 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 			artifacts: [
 				{
-					id: 'chapter-8-scan',
-					chapterId: '8',
+					id: 'chapter-11-scan',
+					chapterId: '11',
 					title: 'Photo pipeline screenshot',
 					kind: 'screenshot',
 					description:
@@ -206,9 +392,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-8-flow',
+					id: 'chapter-11-flow',
 					title: 'Detection-to-graph demo flow',
-					chapterId: '8',
+					chapterId: '11',
 					kind: 'demo',
 					description:
 						'Demonstrate detected ingredients becoming a bounded graph neighborhood query.',
@@ -222,13 +408,14 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-8-architecture',
+					id: 'chapter-11-architecture',
 					title: 'Multi-modal pipeline diagram',
-					chapterId: '8',
+					chapterId: '11',
 					kind: 'diagram',
 					description:
 						'Show image capture, detection, recipe retrieval, graph reasoning, and UI presentation.',
-					dependency: 'Leader Epic 6/8 model endpoint plan',
+					dependency:
+						'Leader L29 offline-chain boundary and M3/M4 serving gates',
 					status: 'ready',
 					captureBrief: [
 						'Keep pending endpoints visually distinct.',
@@ -238,7 +425,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 		},
 		{
-			id: '10',
+			id: '12',
 			title: 'System Architecture',
 			focus:
 				'Make the complete IRON CHEF v3 stack and deployment assumptions easy to defend.',
@@ -249,9 +436,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 			artifacts: [
 				{
-					id: 'chapter-10-stack',
+					id: 'chapter-12-stack',
 					title: 'IRON CHEF v3 stack diagram',
-					chapterId: '10',
+					chapterId: '12',
 					kind: 'diagram',
 					description:
 						'Present FE, monolith, AI service, model registry, and leader export boundaries.',
@@ -263,9 +450,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-10-deployment',
+					id: 'chapter-12-deployment',
 					title: 'Deployment topology',
-					chapterId: '10',
+					chapterId: '12',
 					kind: 'diagram',
 					description:
 						'Document browser hosting, API hosting, AI runtime, storage, and environment boundaries.',
@@ -278,9 +465,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-10-cost',
+					id: 'chapter-12-cost',
 					title: '$0-hosting evidence note',
-					chapterId: '10',
+					chapterId: '12',
 					kind: 'example',
 					description:
 						'List free-tier assumptions and the boundaries where paid capacity begins.',
@@ -294,8 +481,8 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 		},
 		{
-			id: '11',
-			title: 'Evaluation Figures',
+			id: '13',
+			title: 'Evaluation & Ablation',
 			focus:
 				'Export thesis-ready evidence without confusing placeholders with measured results.',
 			criteria: [
@@ -305,9 +492,55 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			],
 			artifacts: [
 				{
-					id: 'chapter-11-dashboard',
+					id: 'chapter-13-feedback-ui',
+					chapterId: '13',
+					title: 'Feedback instrument screenshot',
+					kind: 'screenshot',
+					description:
+						'Show the explicit substitution outcome and taste feedback controls in the cooking flow.',
+					route: '/cook',
+					dependency: 'Existing CookingPlayer feedback instrument',
+					status: 'ready',
+					captureBrief: [
+						'Capture the outcome choices and optional taste feedback.',
+						'Avoid including private user/session identifiers.',
+					],
+				},
+				{
+					id: 'chapter-13-capture-flow',
+					chapterId: '13',
+					title: 'Feedback data-capture architecture',
+					kind: 'diagram',
+					description:
+						'Trace a user choice through the API event and into the behavioral simulation export.',
+					dependency:
+						'Substitution feedback event contract and Leader Epic 7 simulation',
+					status: 'ready',
+					captureBrief: [
+						'Show the user action, persisted event, replay corpus, and MRR evaluation.',
+						'Mark feedback as an input signal, not proof of model improvement by itself.',
+					],
+				},
+				{
+					id: 'chapter-13-mrr',
+					chapterId: '13',
+					title: 'Behavioral MRR figure',
+					kind: 'figure',
+					description:
+						'Export static HGAT versus feedback-updated HGAT MRR and delta.',
+					route: '/admin/evaluation#behavioral',
+					dependency:
+						'Leader acceptance-proxy simulation export and rejected production gate',
+					status: 'pending-data',
+					captureBrief: [
+						'Export the behavioral chart after the held-out corpus values arrive.',
+						'Report simulation configuration beside the delta.',
+					],
+				},
+				{
+					id: 'chapter-13-dashboard',
 					title: 'Evaluation dashboard screenshot',
-					chapterId: '11',
+					chapterId: '13',
 					kind: 'screenshot',
 					description:
 						'Show the thesis evidence command center and readiness state.',
@@ -320,9 +553,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-11-figures',
+					id: 'chapter-13-figures',
 					title: 'Thesis-ready chart exports',
-					chapterId: '11',
+					chapterId: '13',
 					kind: 'figure',
 					description:
 						'Export benchmark, ablation, allergen, and behavioral figures at 2x PNG resolution.',
@@ -335,9 +568,9 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					],
 				},
 				{
-					id: 'chapter-11-provenance',
+					id: 'chapter-13-provenance',
 					title: 'Figure provenance checklist',
-					chapterId: '11',
+					chapterId: '13',
 					kind: 'example',
 					description:
 						'Attach dataset version, update date, evaluation split, and placeholder status to every figure.',
@@ -352,3 +585,5 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 		},
 	],
 }
+
+thesisEvidenceManifest.chapters.sort((a, b) => Number(a.id) - Number(b.id))

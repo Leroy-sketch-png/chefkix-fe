@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postDraftRepository } from '@/lib/post-draft-storage'
 
 export type PostDraftSaveState =
-	'idle' | 'unsaved' | 'saving' | 'saved' | 'error'
+	| 'idle'
+	| 'unsaved'
+	| 'saving'
+	| 'saved'
+	| 'error'
 
 interface PostDraftRepository {
 	save: typeof postDraftRepository.save

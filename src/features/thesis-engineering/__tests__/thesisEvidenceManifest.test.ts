@@ -2,15 +2,13 @@ import { thesisEvidenceManifest } from '../data/thesisEvidenceManifest'
 
 describe('thesis evidence manifest', () => {
 	it('maps every Epic 11 backlog chapter to capture criteria', () => {
-		expect(thesisEvidenceManifest.chapters.map(chapter => chapter.id)).toEqual([
-			'5',
-			'6',
-			'7',
-			'8',
-			'10',
-			'11',
-		])
+		expect(thesisEvidenceManifest.chapters.map(chapter => chapter.id)).toEqual(
+			Array.from({ length: 14 }, (_, i) => String(i + 1)),
+		)
 		for (const chapter of thesisEvidenceManifest.chapters) {
+			expect(
+				chapter.artifacts.every(artifact => artifact.chapterId === chapter.id),
+			).toBe(true)
 			expect(chapter.criteria.length).toBeGreaterThan(0)
 			expect(chapter.artifacts.length).toBeGreaterThan(0)
 		}

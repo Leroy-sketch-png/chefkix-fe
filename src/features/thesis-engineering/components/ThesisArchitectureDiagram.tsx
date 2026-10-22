@@ -3,7 +3,7 @@ export function ThesisArchitectureDiagram() {
 		<section className='rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card'>
 			<div className='mb-5'>
 				<p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-primary'>
-					Chapter 10 · System architecture
+					Chapter 12 · System architecture
 				</p>
 				<h2 className='mt-1 text-lg font-bold text-text-primary'>
 					IRON CHEF v3 evidence map
@@ -80,8 +80,12 @@ export function ThesisArchitectureDiagram() {
 							label: 'Monolith API',
 							detail: 'auth · sessions · knowledge',
 						},
-						{ x: 514, label: 'AI service', detail: 'HGAT · vision · copilot' },
-						{ x: 754, label: 'Evidence UI', detail: 'trusted explanations' },
+						{ x: 514, label: 'AI service', detail: 'model acceptance pending' },
+						{
+							x: 754,
+							label: 'Evidence UI',
+							detail: 'source + status + limits',
+						},
 					].map(box => (
 						<g key={box.label}>
 							<rect
@@ -154,7 +158,7 @@ export function ThesisArchitectureDiagram() {
 				<div className='rounded-xl bg-bg-elevated/60 p-3'>
 					<p className='font-semibold text-text-primary'>Evidence boundary</p>
 					<p className='mt-1 leading-5 text-text-muted'>
-						Every thesis figure carries dataset version and provenance.
+						Attach dataset version and provenance before using a thesis figure.
 					</p>
 				</div>
 				<div className='rounded-xl bg-amber-500/5 p-3'>

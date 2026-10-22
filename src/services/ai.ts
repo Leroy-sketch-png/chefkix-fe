@@ -199,7 +199,10 @@ export type ContentType =
 
 // Ingredient Substitution
 export type SubstitutionReason =
-	'allergy' | 'unavailable' | 'preference' | 'dietary'
+	| 'allergy'
+	| 'unavailable'
+	| 'preference'
+	| 'dietary'
 
 export interface SubstitutionRequest {
 	ingredient: string
@@ -230,7 +233,12 @@ export interface SubstitutionResponse {
 }
 
 export type RemixType =
-	'vegetarian' | 'vegan' | 'gluten-free' | 'spicy' | 'healthy' | 'quick'
+	| 'vegetarian'
+	| 'vegan'
+	| 'gluten-free'
+	| 'spicy'
+	| 'healthy'
+	| 'quick'
 
 export interface RemixRecipeRequest {
 	recipe_title: string

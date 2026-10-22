@@ -1,37 +1,81 @@
 import { NextResponse } from 'next/server'
 import { normalizePhotoRecipeMatches } from '@/lib/photo-intelligence-contract'
+import {
+	createPhotoUpstreamSignal,
+	getPhotoProxyAuthFailure,
+	isRequestBodyTooLarge,
+	MAX_RECIPE_MATCH_REQUEST_BYTES,
+	photoProxyError,
+	photoUpstreamError,
+} from '@/lib/photo-intelligence-proxy'
 
 const getEndpoint = () => process.env.HGAT_RECIPE_MATCH_BACKEND_URL?.trim()
 
 /** Proxy the stable FE contract to the Lead's HGAT ingredient-to-recipe endpoint. */
 export async function POST(request: Request) {
-	const endpoint = getEndpoint()
-	if (!endpoint) {
-		return NextResponse.json(
-			{
-				success: false,
-				message: 'Ingredient recipe matching is waiting for the HGAT endpoint.',
-				code: 'INTEGRATION_PENDING',
-			},
-			{ status: 503 },
+	const authFailure = await getPhotoProxyAuthFailure(request)
+	if (authFailure) return authFailure
+	if (isRequestBodyTooLarge(request, MAX_RECIPE_MATCH_REQUEST_BYTES)) {
+		return photoProxyError(
+			'The ingredient list is too large.',
+			413,
+			'REQUEST_TOO_LARGE',
 		)
 	}
 
-	const body = await request.json().catch(() => null)
+	const endpoint = getEndpoint()
+	if (!endpoint) {
+		return photoProxyError(
+			'Ingredient recipe matching is waiting for the HGAT endpoint.',
+			503,
+			'INTEGRATION_PENDING',
+		)
+	}
+
+	const rawBody = await request.text().catch(() => '')
+	if (
+		new TextEncoder().encode(rawBody).byteLength >
+		MAX_RECIPE_MATCH_REQUEST_BYTES
+	) {
+		return photoProxyError(
+			'The ingredient list is too large.',
+			413,
+			'REQUEST_TOO_LARGE',
+		)
+	}
+	let body: unknown
+	try {
+		body = JSON.parse(rawBody)
+	} catch {
+		body = null
+	}
 	if (
 		!body ||
 		typeof body !== 'object' ||
-		!Array.isArray((body as { ingredients?: unknown }).ingredients)
+		!Array.isArray((body as { ingredients?: unknown }).ingredients) ||
+		(body as { ingredients: unknown[] }).ingredients.length === 0 ||
+		(body as { ingredients: unknown[] }).ingredients.length > 100 ||
+		!(body as { ingredients: unknown[] }).ingredients.every(
+			ingredient =>
+				typeof ingredient === 'string' &&
+				ingredient.trim().length > 0 &&
+				ingredient.trim().length <= 120,
+		)
 	) {
-		return NextResponse.json(
-			{
-				success: false,
-				message: 'Provide an ingredients array.',
-				code: 'INVALID_REQUEST',
-			},
-			{ status: 400 },
+		return photoProxyError(
+			'Provide between 1 and 100 ingredient names, each no longer than 120 characters.',
+			400,
+			'INVALID_REQUEST',
 		)
 	}
+	const ingredients = Array.from(
+		new Set(
+			(body as { ingredients: string[] }).ingredients.map(value =>
+				value.trim(),
+			),
+		),
+	)
+	const { signal, timeoutSignal } = createPhotoUpstreamSignal(request)
 
 	try {
 		const upstreamResponse = await fetch(endpoint, {
@@ -40,48 +84,46 @@ export async function POST(request: Request) {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(body),
+			body: JSON.stringify({ ingredients }),
 			cache: 'no-store',
+			signal,
 		})
 		const upstreamPayload = await upstreamResponse.json().catch(() => null)
 		if (!upstreamResponse.ok) {
-			return NextResponse.json(
-				{
-					success: false,
-					message:
-						(upstreamPayload as { message?: string } | null)?.message ||
-						'HGAT recipe matching is unavailable.',
-				},
-				{ status: upstreamResponse.status },
+			return photoProxyError(
+				(upstreamPayload as { message?: string } | null)?.message ||
+					'HGAT recipe matching is unavailable.',
+				upstreamResponse.status,
+				'UPSTREAM_UNAVAILABLE',
 			)
 		}
 
 		const matches = normalizePhotoRecipeMatches(upstreamPayload)
 		if (!matches) {
-			return NextResponse.json(
-				{
-					success: false,
-					message: 'HGAT returned an invalid recipe match response.',
-				},
-				{ status: 502 },
+			return photoProxyError(
+				'HGAT returned an invalid recipe match response.',
+				502,
+				'INVALID_UPSTREAM_RESPONSE',
 			)
 		}
-		const requestIngredients = (
-			body as { ingredients: unknown[] }
-		).ingredients.filter((item): item is string => typeof item === 'string')
-		return NextResponse.json({
-			success: true,
-			data: {
-				matches,
-				queryIngredients: requestIngredients,
-				source: 'backend',
-			},
-			meta: { source: 'backend' },
-		})
-	} catch {
 		return NextResponse.json(
-			{ success: false, message: 'HGAT recipe matching is unavailable.' },
-			{ status: 502 },
+			{
+				success: true,
+				data: {
+					matches,
+					queryIngredients: ingredients,
+					source: 'backend',
+				},
+				meta: { source: 'backend' },
+			},
+			{
+				headers: { 'Cache-Control': 'no-store' },
+			},
+		)
+	} catch {
+		return photoUpstreamError(
+			timeoutSignal,
+			'HGAT recipe matching is unavailable.',
 		)
 	}
 }

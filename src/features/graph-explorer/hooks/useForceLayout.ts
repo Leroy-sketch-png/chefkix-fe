@@ -4,6 +4,8 @@ import {
 	forceCollide,
 	forceLink,
 	forceManyBody,
+	forceX,
+	forceY,
 	forceSimulation,
 	type SimulationNodeDatum,
 } from 'd3-force'
@@ -41,15 +43,21 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 				'link',
 				forceLink<ForceNode, { source: string; target: string }>(links)
 					.id(node => node.id)
-					.distance(105)
+					.distance(160)
 					.strength(0.8),
 			)
-			.force('charge', forceManyBody<ForceNode>().strength(-180))
+			.force('charge', forceManyBody<ForceNode>().strength(-650))
+			.force('x', forceX<ForceNode>(width / 2).strength(0.055))
+			.force('y', forceY<ForceNode>(height / 2).strength(0.055))
 			.force('center', forceCenter(width / 2, height / 2))
-			.force('collision', forceCollide<ForceNode>().radius(22))
+			.force('collision', forceCollide<ForceNode>().radius(48))
 
 		simulationRef.current = simulation
-		const publish = () =>
+		const publish = () => {
+			for (const node of nodes) {
+				node.x = Math.max(80, Math.min(width - 80, node.x ?? width / 2))
+				node.y = Math.max(55, Math.min(height - 75, node.y ?? height / 2))
+			}
 			setPositions(
 				new Map(
 					nodes.map(node => [
@@ -58,6 +66,7 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 					]),
 				),
 			)
+		}
 		simulation.on('tick', publish)
 		publish()
 

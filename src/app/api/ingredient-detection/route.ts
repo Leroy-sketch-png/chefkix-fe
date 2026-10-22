@@ -1,4 +1,13 @@
 import { NextResponse } from 'next/server'
+import {
+	createPhotoUpstreamSignal,
+	getPhotoProxyAuthFailure,
+	isRequestBodyTooLarge,
+	MAX_PHOTO_BYTES,
+	MAX_PHOTO_REQUEST_BYTES,
+	photoProxyError,
+	photoUpstreamError,
+} from '@/lib/photo-intelligence-proxy'
 
 const getRealDetectionEndpoint = () =>
 	process.env.INGREDIENT_DETECTION_BACKEND_URL?.trim()
@@ -51,12 +60,13 @@ const getUpstreamDetections = (payload: unknown) => {
 	return Array.isArray(record.detections) ? record.detections : null
 }
 
-async function proxyToRealDetector(image: File) {
+async function proxyToRealDetector(request: Request, image: File) {
 	const endpoint = getRealDetectionEndpoint()
 	if (!endpoint) return null
 
 	const body = new FormData()
 	body.append('image', image, image.name || 'ingredient-scan.jpg')
+	const { signal, timeoutSignal } = createPhotoUpstreamSignal(request)
 
 	try {
 		const upstreamResponse = await fetch(endpoint, {
@@ -64,6 +74,7 @@ async function proxyToRealDetector(image: File) {
 			body,
 			headers: { Accept: 'application/json' },
 			cache: 'no-store',
+			signal,
 		})
 		const upstreamPayload = await upstreamResponse.json().catch(() => null)
 
@@ -75,7 +86,10 @@ async function proxyToRealDetector(image: File) {
 						(upstreamPayload as { message?: string } | null)?.message ||
 						'Detection service is unavailable.',
 				},
-				{ status: upstreamResponse.status },
+				{
+					status: upstreamResponse.status,
+					headers: { 'Cache-Control': 'no-store' },
+				},
 			)
 		}
 
@@ -86,59 +100,87 @@ async function proxyToRealDetector(image: File) {
 					success: false,
 					message: 'Detection service returned an invalid response.',
 				},
-				{ status: 502 },
+				{ status: 502, headers: { 'Cache-Control': 'no-store' } },
 			)
 		}
 
-		return NextResponse.json({
-			success: true,
-			data: { detections },
-			meta: { source: 'real' },
-		})
-	} catch {
 		return NextResponse.json(
-			{ success: false, message: 'Detection service is unavailable.' },
-			{ status: 502 },
+			{
+				success: true,
+				data: { detections },
+				meta: { source: 'real' },
+			},
+			{ headers: { 'Cache-Control': 'no-store' } },
+		)
+	} catch {
+		return photoUpstreamError(
+			timeoutSignal,
+			'Detection service is unavailable.',
 		)
 	}
 }
 
 export async function POST(request: Request) {
-	const formData = await request.formData()
+	const authFailure = await getPhotoProxyAuthFailure(request)
+	if (authFailure) return authFailure
+	if (isRequestBodyTooLarge(request, MAX_PHOTO_REQUEST_BYTES)) {
+		return photoProxyError(
+			'The image is too large to scan.',
+			413,
+			'IMAGE_TOO_LARGE',
+		)
+	}
+
+	const formData = await request.formData().catch(() => null)
+	if (!formData) {
+		return photoProxyError(
+			'Please provide a valid image upload.',
+			400,
+			'INVALID_REQUEST',
+		)
+	}
 	const image = formData.get('image')
 
 	if (!(image instanceof File) || !image.type.startsWith('image/')) {
-		return NextResponse.json(
-			{ success: false, message: 'Please provide an image to scan.' },
-			{ status: 400 },
+		return photoProxyError(
+			'Please provide an image to scan.',
+			400,
+			'INVALID_REQUEST',
 		)
 	}
 
 	if (image.size === 0) {
-		return NextResponse.json(
-			{ success: false, message: 'The selected image is empty.' },
-			{ status: 400 },
+		return photoProxyError(
+			'The selected image is empty.',
+			400,
+			'INVALID_REQUEST',
+		)
+	}
+	if (image.size > MAX_PHOTO_BYTES) {
+		return photoProxyError(
+			'The image is too large to scan.',
+			413,
+			'IMAGE_TOO_LARGE',
 		)
 	}
 
-	const realResponse = await proxyToRealDetector(image)
+	const realResponse = await proxyToRealDetector(request, image)
 	if (realResponse) return realResponse
 
 	if (!isMockDetectionsEnabled()) {
-		return NextResponse.json(
-			{
-				success: false,
-				code: 'INTEGRATION_PENDING',
-				message:
-					'Ingredient detection is waiting for the configured YOLOv8 service.',
-			},
-			{ status: 503 },
+		return photoProxyError(
+			'Ingredient detection is waiting for the configured YOLOv8 service.',
+			503,
+			'INTEGRATION_PENDING',
 		)
 	}
 
-	return NextResponse.json({
-		success: true,
-		data: { detections: MOCK_DETECTIONS },
-		meta: { source: 'mock', replaceWith: 'YOLOv8 ingredient detector' },
-	})
+	return NextResponse.json(
+		{
+			success: true,
+			data: { detections: MOCK_DETECTIONS },
+			meta: { source: 'mock', replaceWith: 'YOLOv8 ingredient detector' },
+		},
+		{ headers: { 'Cache-Control': 'no-store' } },
+	)
 }

@@ -1,11 +1,15 @@
 import { detectIngredients } from '@/services/ingredient-detection'
+import { aiApi } from '@/lib/axios'
+
+jest.mock('@/lib/axios', () => ({
+	aiApi: { post: jest.fn() },
+}))
 
 describe('ingredient detection service', () => {
-	const fetchMock = jest.fn()
+	const postMock = aiApi.post as jest.Mock
 
 	beforeEach(() => {
-		fetchMock.mockReset()
-		global.fetch = fetchMock as unknown as typeof fetch
+		postMock.mockReset()
 	})
 
 	it('sends the captured image as multipart form data', async () => {
@@ -19,28 +23,34 @@ describe('ingredient detection service', () => {
 				},
 			],
 		}
-		fetchMock.mockResolvedValue({
-			ok: true,
-			json: async () => ({ success: true, data: response }),
+		postMock.mockResolvedValue({
+			data: { success: true, data: response },
 		})
 
 		const image = new Blob(['image'], { type: 'image/jpeg' })
-		await expect(detectIngredients(image)).resolves.toEqual(response)
-
-		expect(fetchMock).toHaveBeenCalledWith(
-			'/api/ingredient-detection',
-			expect.objectContaining({ method: 'POST' }),
+		const controller = new AbortController()
+		await expect(detectIngredients(image, controller.signal)).resolves.toEqual(
+			response,
 		)
-		const request = fetchMock.mock.calls[0]?.[1]
-		expect(request?.body).toBeInstanceOf(FormData)
-		expect((request?.body as FormData).get('image')).toBeInstanceOf(File)
+
+		expect(postMock).toHaveBeenCalledWith(
+			'/api/ingredient-detection',
+			expect.any(FormData),
+			{
+				signal: controller.signal,
+				headers: { 'Content-Type': 'multipart/form-data' },
+			},
+		)
+		const body = postMock.mock.calls[0]?.[1] as FormData
+		expect(body.get('image')).toBeInstanceOf(File)
 	})
 
 	it('surfaces API failures for the UI to handle', async () => {
-		fetchMock.mockResolvedValue({
-			ok: false,
-			status: 503,
-			json: async () => ({ success: false, message: 'Scan unavailable' }),
+		postMock.mockRejectedValue({
+			response: {
+				status: 503,
+				data: { success: false, message: 'Scan unavailable' },
+			},
 		})
 
 		await expect(

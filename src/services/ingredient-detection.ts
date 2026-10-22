@@ -1,4 +1,6 @@
 import type { IngredientDetectionResult } from '@/lib/types/ingredient-detection'
+import { aiApi } from '@/lib/axios'
+import { getUserFriendlyMessage } from '@/lib/error-utils'
 
 // Keep the browser contract stable. The same-origin route owns mock/real
 // provider selection so the UI never needs to know where the model runs.
@@ -18,17 +20,27 @@ interface DetectionApiResponse {
  */
 export async function detectIngredients(
 	image: Blob,
+	signal?: AbortSignal,
 ): Promise<IngredientDetectionResult> {
 	const body = new FormData()
 	body.append('image', image, 'ingredient-scan.jpg')
 
-	const response = await fetch(DETECTION_ENDPOINT, {
-		method: 'POST',
-		body,
-	})
-	const payload = (await response.json()) as DetectionApiResponse
+	let payload: DetectionApiResponse
+	try {
+		const response = await aiApi.post<DetectionApiResponse>(
+			DETECTION_ENDPOINT,
+			body,
+			{
+				signal,
+				headers: { 'Content-Type': 'multipart/form-data' },
+			},
+		)
+		payload = response.data
+	} catch (error) {
+		throw new Error(getUserFriendlyMessage(error))
+	}
 
-	if (!response.ok || !payload.success || !payload.data) {
+	if (!payload.success || !payload.data) {
 		throw new Error(payload.message || 'Ingredient detection failed')
 	}
 
