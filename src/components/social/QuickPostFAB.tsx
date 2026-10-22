@@ -245,8 +245,16 @@ export const QuickPostFAB = ({
 					toast.error(t('fabModerationFailed'))
 					return
 				}
-				if (moderationResult.data?.action === 'block') {
-					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+				if (moderationResult.data?.action !== 'approve') {
+					if (moderationResult.data?.action === 'flag') {
+						toast.warning(
+							moderationResult.data.reason || t('fabContentFlagged'),
+						)
+					} else if (moderationResult.data?.action === 'block') {
+						toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+					} else {
+						toast.error(t('fabModerationFailed'))
+					}
 					return
 				}
 
@@ -295,8 +303,16 @@ export const QuickPostFAB = ({
 					toast.error(t('fabModerationFailed'))
 					return
 				}
-				if (moderationResult.data?.action === 'block') {
-					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+				if (moderationResult.data?.action !== 'approve') {
+					if (moderationResult.data?.action === 'flag') {
+						toast.warning(
+							moderationResult.data.reason || t('fabContentFlagged'),
+						)
+					} else if (moderationResult.data?.action === 'block') {
+						toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+					} else {
+						toast.error(t('fabModerationFailed'))
+					}
 					return
 				}
 
@@ -343,8 +359,16 @@ export const QuickPostFAB = ({
 					toast.error(t('fabModerationFailed'))
 					return
 				}
-				if (moderationResult.data?.action === 'block') {
-					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+				if (moderationResult.data?.action !== 'approve') {
+					if (moderationResult.data?.action === 'flag') {
+						toast.warning(
+							moderationResult.data.reason || t('fabContentFlagged'),
+						)
+					} else if (moderationResult.data?.action === 'block') {
+						toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+					} else {
+						toast.error(t('fabModerationFailed'))
+					}
 					return
 				}
 
@@ -392,12 +416,15 @@ export const QuickPostFAB = ({
 				toast.error(t('fabModerationFailed'))
 				return
 			}
-			if (moderationResult.data?.action === 'block') {
-				toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+			if (moderationResult.data?.action !== 'approve') {
+				if (moderationResult.data?.action === 'flag') {
+					toast.warning(moderationResult.data.reason || t('fabContentFlagged'))
+				} else if (moderationResult.data?.action === 'block') {
+					toast.error(moderationResult.data.reason || t('fabContentBlocked'))
+				} else {
+					toast.error(t('fabModerationFailed'))
+				}
 				return
-			}
-			if (moderationResult.data?.action === 'flag') {
-				toast.warning(moderationResult.data.reason || t('fabContentFlagged'))
 			}
 
 			const response = await createPost({

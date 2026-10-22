@@ -10,10 +10,7 @@ type ApiCalls = {
 	linkPost: number
 }
 
-async function prepareAuthenticatedPage(
-	page: Page,
-	guardAction: 'approve' | 'block',
-) {
+async function prepareAuthenticatedPage(page: Page, guardAction: string) {
 	const calls: ApiCalls = {
 		guard: 0,
 		createPost: 0,
@@ -181,7 +178,7 @@ async function prepareAuthenticatedPage(
 
 	return {
 		calls,
-		setGuardAction: (action: 'approve' | 'block') => {
+		setGuardAction: (action: string) => {
 			activeGuardAction = action
 		},
 	}
@@ -207,6 +204,27 @@ test('moderation blocks unsafe captions and approved cook posts claim XP', async
 	expect(calls.createPost).toBe(0)
 	expect(calls.linkPost).toBe(0)
 
+	setGuardAction('flag')
+	await caption.fill('flagged caption')
+	await submit.click()
+	await expect(submit).toBeEnabled()
+	await expect.poll(() => calls.guard).toBe(2)
+	await expect(
+		page.getByText(
+			"Your post needs a moderation check and wasn't published. Please try again later.",
+		),
+	).toBeVisible()
+	expect(calls.createPost).toBe(0)
+	expect(calls.linkPost).toBe(0)
+
+	setGuardAction('unexpected')
+	await caption.fill('unconfirmed caption')
+	await submit.click()
+	await expect(submit).toBeEnabled()
+	await expect.poll(() => calls.guard).toBe(3)
+	expect(calls.createPost).toBe(0)
+	expect(calls.linkPost).toBe(0)
+
 	setGuardAction('approve')
 	await caption.fill('Cooked Miso Ramen!')
 	await expect(submit).toContainText('Post for up to 80 XP')
@@ -220,7 +238,7 @@ test('moderation blocks unsafe captions and approved cook posts claim XP', async
 			}),
 		)
 		.toBe(80)
-	await expect.poll(() => calls.guard).toBe(2)
+	await expect.poll(() => calls.guard).toBe(4)
 	expect(calls.createPost).toBe(1)
 	expect(calls.linkPost).toBe(1)
 	expect(calls.createPostContentType).toMatch(
