@@ -120,8 +120,8 @@ export class GhostDriver {
 
 	constructor(name: string) {
 		this.state = {
-			x: window.innerWidth / 2,
-			y: window.innerHeight / 2,
+			x: typeof window === 'undefined' ? 0 : window.innerWidth / 2,
+			y: typeof window === 'undefined' ? 0 : window.innerHeight / 2,
 			clicking: false,
 			typing: false,
 			visible: false,
