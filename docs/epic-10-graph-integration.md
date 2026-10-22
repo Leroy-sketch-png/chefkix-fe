@@ -19,6 +19,8 @@ The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and disp
 
 `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. An available response must return matching requested and resolved IDs for both ingredients and declare the train count unit as `TRAIN_PAIRS`; the backend rejects mismatches and the client fails closed on either identity or unit errors. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.
 
+Evidence loading is bound to the currently selected edge. If the user selects another edge before an earlier request completes, the late response is ignored.
+
 When explicitly enabled for local integration work, the Explorer map still uses the bounded legacy knowledge API. This is not an accepted M-C artifact load and must not be enabled as the product graph until the canonical hash-pinned artifact, its IDs, and the graph-product route are accepted and integrated. Shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
 
 The monolith ships a small seed set; production collection contents may differ. A full Leader graph import remains a separate data task; this contract keeps both the response and the rendered graph bounded when that data arrives.

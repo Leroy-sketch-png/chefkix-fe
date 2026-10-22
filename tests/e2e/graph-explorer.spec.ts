@@ -274,3 +274,102 @@ test('graph explorer refuses malformed identities and response shapes', async ({
 		}),
 	).toHaveCount(0)
 })
+
+test('the latest selected edge owns evidence when requests finish out of order', async ({
+	page,
+}) => {
+	test.skip(!graphEvidenceEnabled, 'Requires the explicit evidence build flag.')
+	let releaseFirstResponse: (() => void) | undefined
+	let markFirstRequestStarted: (() => void) | undefined
+	const firstRequestStarted = new Promise<void>(resolve => {
+		markFirstRequestStarted = resolve
+	})
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			contentType: 'application/json',
+			body: JSON.stringify({
+				nodes: [
+					{ id: 'butter', name: 'Butter' },
+					{ id: 'coconut oil', name: 'Coconut Oil' },
+					{ id: 'olive oil', name: 'Olive Oil' },
+				],
+				edges: [
+					{
+						source: 'butter',
+						target: 'coconut oil',
+						type: 'substitution',
+						compound_overlap: 0,
+					},
+					{
+						source: 'butter',
+						target: 'olive oil',
+						type: 'substitution',
+						compound_overlap: 0,
+					},
+				],
+			}),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', async route => {
+		const url = new URL(route.request().url())
+		const sourceId = url.searchParams.get('sourceIngredientId') ?? ''
+		const candidateId = url.searchParams.get('candidateIngredientId') ?? ''
+		const trainCount = candidateId === 'coconut oil' ? 2 : 4
+		if (candidateId === 'coconut oil') {
+			markFirstRequestStarted?.()
+			await new Promise<void>(resolve => {
+				releaseFirstResponse = resolve
+			})
+		}
+		await route.fulfill({
+			contentType: 'application/json',
+			body: JSON.stringify({
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: 'a'.repeat(64),
+					observedSha256: 'a'.repeat(64),
+				},
+				evidence: {
+					identityResolution: {
+						status: 'RESOLVED',
+						requestedSourceIngredientId: sourceId,
+						sourceIngredientId: sourceId,
+						requestedCandidateIngredientId: candidateId,
+						candidateIngredientId: candidateId,
+					},
+					trainPairEvidence: {
+						seenInTrain: trainCount > 0,
+						trainCount,
+						unit: 'TRAIN_PAIRS',
+					},
+					calibration: { status: 'no_guarantee' },
+					decision: { decision: 'ABSTAIN' },
+				},
+			}),
+		})
+	})
+
+	await page.goto('/explore/graph')
+	await page
+		.getByRole('button', { name: 'View Butter to Coconut Oil relationship' })
+		.click()
+	await firstRequestStarted
+	await page
+		.getByRole('button', { name: 'View Butter to Olive Oil relationship' })
+		.click()
+	const panel = page.getByTestId('graph-evidence-panel')
+	await expect(panel).toContainText('Train pair support: 4')
+
+	const firstResponse = page.waitForResponse(response => {
+		const url = new URL(response.url())
+		return url.searchParams.get('candidateIngredientId') === 'coconut oil'
+	})
+	if (!releaseFirstResponse)
+		throw new Error('First evidence request did not wait.')
+	releaseFirstResponse()
+	await firstResponse
+	await expect(panel).toContainText('Train pair support: 4')
+	await expect(panel).not.toContainText('Train pair support: 2')
+})
