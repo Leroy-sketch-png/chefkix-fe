@@ -54,6 +54,7 @@ function asStringArray(value: unknown) {
 const SHA256 = /^[a-f\d]{64}$/i
 const GRAPH_EVIDENCE_STATUSES = new Set(['AVAILABLE', 'UNAVAILABLE', 'REFUSED'])
 const IDENTITY_STATUSES = new Set(['RESOLVED', 'UNKNOWN', 'AMBIGUOUS'])
+const TRAIN_PAIR_UNIT = 'TRAIN_PAIRS'
 const CALIBRATION_STATUSES = new Set([
 	'ok',
 	'uninformative',
@@ -168,7 +169,10 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 								trainPair.trainCount >= 0
 									? trainPair.trainCount
 									: null,
-							unit: asString(trainPair.unit) || undefined,
+							unit:
+								trainPair.unit === TRAIN_PAIR_UNIT
+									? (TRAIN_PAIR_UNIT as 'TRAIN_PAIRS')
+									: undefined,
 						}
 					: undefined,
 				calibration: calibration
@@ -184,6 +188,7 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 	const identityResolution = evidence?.identityResolution
 	const seenInTrain = evidence?.trainPairEvidence?.seenInTrain
 	const trainCount = evidence?.trainPairEvidence?.trainCount
+	const trainPairUnit = evidence?.trainPairEvidence?.unit
 	const calibrationStatus = evidence?.calibration?.status
 
 	if (
@@ -196,6 +201,7 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 			!identityResolution.requestedCandidateIngredientId ||
 			identityResolution.candidateIngredientId !==
 				identityResolution.requestedCandidateIngredientId ||
+			trainPairUnit !== TRAIN_PAIR_UNIT ||
 			seenInTrain === null ||
 			seenInTrain === undefined ||
 			trainCount === null ||

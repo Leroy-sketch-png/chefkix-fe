@@ -88,7 +88,7 @@ export interface GraphEvidenceResponse {
 		trainPairEvidence?: {
 			seenInTrain?: boolean | null
 			trainCount?: number | null
-			unit?: string
+			unit?: 'TRAIN_PAIRS'
 		}
 		calibration?: { status?: string }
 		decision?: { decision?: 'ABSTAIN' }

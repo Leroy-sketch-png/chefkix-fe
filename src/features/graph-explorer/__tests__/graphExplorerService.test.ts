@@ -419,7 +419,11 @@ describe('live graph API', () => {
 				},
 				evidence: {
 					identityResolution: { status: 'RESOLVED' },
-					trainPairEvidence: { seenInTrain: true, trainCount: 2 },
+					trainPairEvidence: {
+						seenInTrain: true,
+						trainCount: 2,
+						unit: 'TRAIN_PAIRS',
+					},
 					calibration: { status: 'ok' },
 					decision: { decision: 'SHOW' },
 				},
@@ -482,6 +486,33 @@ describe('live graph API', () => {
 				},
 			}),
 		).toThrow('response is incomplete')
+		expect(() =>
+			normalizeGraphEvidence({
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: hash,
+					observedSha256: hash,
+				},
+				evidence: {
+					identityResolution: {
+						status: 'RESOLVED',
+						requestedSourceIngredientId: '12',
+						sourceIngredientId: '12',
+						requestedCandidateIngredientId: '34',
+						candidateIngredientId: '34',
+					},
+					trainPairEvidence: {
+						seenInTrain: true,
+						trainCount: 2,
+						unit: 'PAIR_ROWS',
+					},
+					calibration: { status: 'ok' },
+					decision: { decision: 'ABSTAIN' },
+				},
+			}),
+		).toThrow('response is incomplete')
 	})
 
 	it('rejects available evidence returned for a different requested pair', async () => {
@@ -504,7 +535,11 @@ describe('live graph API', () => {
 						requestedCandidateIngredientId: 'other-candidate',
 						candidateIngredientId: 'other-candidate',
 					},
-					trainPairEvidence: { seenInTrain: true, trainCount: 2 },
+					trainPairEvidence: {
+						seenInTrain: true,
+						trainCount: 2,
+						unit: 'TRAIN_PAIRS',
+					},
 					calibration: { status: 'no_guarantee' },
 					decision: { decision: 'ABSTAIN' },
 				},

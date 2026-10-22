@@ -11,7 +11,7 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
 	const searchTerms: string[] = []
 	const evidenceRequests: string[] = []
-	let sendMismatchedEvidence = false
+	let evidenceFault: 'none' | 'identity' | 'unit' = 'none'
 	const nodes = [
 		{
 			id: 'butter',
@@ -107,12 +107,12 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		const candidateIngredientId =
 			url.searchParams.get('candidateIngredientId') ?? ''
 		evidenceRequests.push(`${sourceIngredientId}:${candidateIngredientId}`)
-		const resolvedSourceId = sendMismatchedEvidence
-			? 'different-source'
-			: sourceIngredientId
-		const resolvedCandidateId = sendMismatchedEvidence
-			? 'different-candidate'
-			: candidateIngredientId
+		const resolvedSourceId =
+			evidenceFault === 'identity' ? 'different-source' : sourceIngredientId
+		const resolvedCandidateId =
+			evidenceFault === 'identity'
+				? 'different-candidate'
+				: candidateIngredientId
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -135,7 +135,7 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 					trainPairEvidence: {
 						seenInTrain: true,
 						trainCount: 2,
-						unit: 'TRAIN_PAIRS',
+						unit: evidenceFault === 'unit' ? 'PAIR_ROWS' : 'TRAIN_PAIRS',
 					},
 					calibration: { status: 'no_guarantee' },
 					decision: {
@@ -178,7 +178,14 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		await expect(panel).toContainText('Artifact manifest SHA-256')
 		await expect(panel).toContainText('Decision: Abstain')
 		expect(evidenceRequests).toEqual(['butter:coconut oil'])
-		sendMismatchedEvidence = true
+		evidenceFault = 'identity'
+		await page.getByRole('button', { name: 'Explore Butter' }).press('Enter')
+		await edge.click()
+		await expect(panel).toContainText(
+			'Graph evidence is unavailable. No substitution decision was made.',
+		)
+		await expect(panel).not.toContainText('Artifact manifest SHA-256')
+		evidenceFault = 'unit'
 		await page.getByRole('button', { name: 'Explore Butter' }).press('Enter')
 		await edge.click()
 		await expect(panel).toContainText(
@@ -186,6 +193,7 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		)
 		await expect(panel).not.toContainText('Artifact manifest SHA-256')
 		expect(evidenceRequests).toEqual([
+			'butter:coconut oil',
 			'butter:coconut oil',
 			'butter:coconut oil',
 		])
