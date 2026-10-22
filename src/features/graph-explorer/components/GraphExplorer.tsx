@@ -8,6 +8,7 @@ import {
 	SlidersHorizontal,
 } from 'lucide-react'
 import {
+	graphEdgeKey,
 	getGraphData,
 	getGraphCompoundOverlap,
 	getGraphEvidence,
@@ -120,7 +121,7 @@ export function GraphExplorer() {
 	}, [data])
 	const loadEdgeDetail = useCallback(
 		async (edge: GraphEdge) => {
-			const key = `${edge.source}:${edge.target}:${edge.type}`
+			const key = graphEdgeKey(edge)
 			if (isGraphEvidenceEnabled()) {
 				const requestId = ++evidenceRequestId.current
 				setGraphEvidence({ edgeKey: key, state: 'loading' })
@@ -158,9 +159,7 @@ export function GraphExplorer() {
 					graph && {
 						...graph,
 						edges: graph.edges.map(item =>
-							`${item.source}:${item.target}:${item.type}` === key
-								? { ...item, ...detail }
-								: item,
+							graphEdgeKey(item) === key ? { ...item, ...detail } : item,
 						),
 					}
 				setData(update)

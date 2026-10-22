@@ -184,6 +184,31 @@ describe('graph explorer data contract', () => {
 		expect(merged.loadedRootId).toBe('butter')
 	})
 
+	it('does not merge distinct edges whose IDs contain the edge-key delimiter', () => {
+		const graph = normalizeGraphData(
+			{
+				nodes: [
+					{ id: 'a:b', name: 'A:B' },
+					{ id: 'c', name: 'C' },
+					{ id: 'a', name: 'A' },
+					{ id: 'b:c', name: 'B:C' },
+				],
+				edges: [
+					{ source: 'a:b', target: 'c', type: 'substitution' },
+					{ source: 'a', target: 'b:c', type: 'substitution' },
+				],
+			},
+			'leader-api',
+		)
+		const merged = mergeGraphData(graph, {
+			nodes: [],
+			edges: [],
+			source: 'leader-api',
+		})
+
+		expect(merged.edges).toHaveLength(2)
+	})
+
 	it('preserves the global hasMore flag after loading a neighborhood', () => {
 		const base = normalizeGraphData(
 			{ nodes: [{ id: 'butter', name: 'Butter' }], edges: [], hasMore: true },

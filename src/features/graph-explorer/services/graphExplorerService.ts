@@ -14,6 +14,12 @@ import type {
 const SAMPLE_LIMIT = 100
 const RENDER_LIMIT = 500
 
+export function graphEdgeKey(
+	edge: Pick<GraphEdge, 'source' | 'target' | 'type'>,
+) {
+	return JSON.stringify([edge.source, edge.target, edge.type])
+}
+
 export interface GraphQuery {
 	rootId?: string
 	query?: string
@@ -485,18 +491,11 @@ export function mergeGraphData(
 					: 'pending',
 		})
 	})
-	const edges = new Map(
-		base.edges.map(edge => [
-			`${edge.source}:${edge.target}:${edge.type}`,
-			edge,
-		]),
-	)
-	addition.edges.forEach(edge =>
-		edges.set(`${edge.source}:${edge.target}:${edge.type}`, {
-			...edges.get(`${edge.source}:${edge.target}:${edge.type}`),
-			...edge,
-		}),
-	)
+	const edges = new Map(base.edges.map(edge => [graphEdgeKey(edge), edge]))
+	addition.edges.forEach(edge => {
+		const key = graphEdgeKey(edge)
+		edges.set(key, { ...edges.get(key), ...edge })
+	})
 	// ponytail: Keep the latest 500 nodes in the force layout; add paging if a larger view is needed.
 	const boundedNodes = [...nodes.values()].slice(-RENDER_LIMIT)
 	const visibleIds = new Set(boundedNodes.map(node => node.id))

@@ -483,6 +483,80 @@ test('provider error details stay out of the rendered graph page', async ({
 		.not.toContain(secretSentinel)
 })
 
+test('edge selection keeps colon-containing ingredient IDs distinct', async ({
+	page,
+}, testInfo) => {
+	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
+	const evidencePairs: string[] = []
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				data: {
+					nodes: [
+						{ id: 'a:b', name: 'A:B', category: 'ingredient' },
+						{ id: 'c', name: 'C', category: 'ingredient' },
+						{ id: 'a', name: 'A', category: 'ingredient' },
+						{ id: 'b:c', name: 'B:C', category: 'ingredient' },
+					],
+					edges: [
+						{ source: 'a:b', target: 'c', type: 'substitution' },
+						{ source: 'a', target: 'b:c', type: 'substitution' },
+					],
+					total_node_count: 4,
+					has_more: false,
+				},
+			}),
+		}),
+	)
+	await page.route('**/api/v1/compound/analyze-pair', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ success: true, data: {} }),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', async route => {
+		const url = new URL(route.request().url())
+		evidencePairs.push(
+			JSON.stringify([
+				url.searchParams.get('sourceIngredientId'),
+				url.searchParams.get('candidateIngredientId'),
+			]),
+		)
+		await route.fulfill({
+			status: 503,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				contractVersion: 'graph-evidence.v1',
+				status: 'UNAVAILABLE',
+				unavailableReason: 'PROVIDER_ERROR',
+			}),
+		})
+	})
+
+	await page.goto('/explore/graph')
+	await page.getByRole('button', { name: 'View A to B:C relationship' }).click()
+	await expect(page.getByLabel('Relationship details')).toContainText('A → B:C')
+	if (graphEvidenceEnabled) {
+		await expect
+			.poll(() => evidencePairs)
+			.toContain(JSON.stringify(['a', 'b:c']))
+		await expect(page.getByTestId('graph-evidence-panel')).toContainText(
+			'Graph evidence is unavailable.',
+		)
+	}
+	await page.getByRole('button', { name: 'Dismiss' }).click()
+	if (testInfo.project.name === 'desktop-chromium') {
+		await page.screenshot({
+			path: testInfo.outputPath('graph-edge-colon-ids.png'),
+			fullPage: true,
+		})
+	}
+})
+
 test('graph demo uses only local assets and graph API arms when evidence falls back', async ({
 	page,
 }, testInfo) => {

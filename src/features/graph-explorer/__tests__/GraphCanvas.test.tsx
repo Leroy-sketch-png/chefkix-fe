@@ -8,6 +8,10 @@ jest.mock('../hooks/useForceLayout', () => ({
 			['butter', { x: 100, y: 100 }],
 			['coconut oil', { x: 200, y: 200 }],
 			['ginger', { x: 300, y: 300 }],
+			['a:b', { x: 400, y: 400 }],
+			['c', { x: 500, y: 500 }],
+			['a', { x: 600, y: 600 }],
+			['b:c', { x: 700, y: 700 }],
 		]),
 		dragNode: jest.fn(),
 		pinNode: jest.fn(),
@@ -77,6 +81,37 @@ it('opens graph nodes and edges from the keyboard', () => {
 	)
 	expect(onEdgeSelect).toHaveBeenCalledWith(data.edges[0])
 	expect(screen.getByLabelText('Relationship details')).toBeTruthy()
+})
+
+it('keeps selected edge details distinct when ingredient IDs contain colons', () => {
+	const data: GraphData = {
+		nodes: [
+			{ id: 'a:b', name: 'A:B', category: 'ingredient', allergenFlags: [] },
+			{ id: 'c', name: 'C', category: 'ingredient', allergenFlags: [] },
+			{ id: 'a', name: 'A', category: 'ingredient', allergenFlags: [] },
+			{ id: 'b:c', name: 'B:C', category: 'ingredient', allergenFlags: [] },
+		],
+		edges: [
+			{ source: 'a:b', target: 'c', type: 'substitution' },
+			{ source: 'a', target: 'b:c', type: 'substitution' },
+		],
+	}
+	render(
+		<GraphCanvas
+			data={data}
+			query=''
+			signals={['substitution']}
+			searchPosition={0}
+			searchMatchCount={0}
+		/>,
+	)
+
+	fireEvent.click(
+		screen.getByRole('button', { name: 'View A to B:C relationship' }),
+	)
+	expect(screen.getByLabelText('Relationship details')).toHaveTextContent(
+		'A → B:C',
+	)
 })
 
 it('centers a searched ingredient even when it has no documented link', () => {

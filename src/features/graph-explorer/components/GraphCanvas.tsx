@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
+import { graphEdgeKey } from '../services/graphExplorerService'
 import type {
 	GraphData,
 	GraphEdge,
@@ -53,8 +54,6 @@ const signalLabels: Record<GraphSignal, string> = {
 	co_occurrence: 'Co-occurrence',
 }
 const initialView = { x: 0, y: 0, scale: 1 }
-const edgeKey = (edge: GraphEdge) =>
-	`${edge.source}:${edge.target}:${edge.type}`
 
 export function GraphCanvas({
 	data,
@@ -80,7 +79,7 @@ export function GraphCanvas({
 	const [selected, setSelected] = useState<string | null>(null)
 	const [selectedEdgeKey, setSelectedEdgeKey] = useState<string | null>(null)
 	const selectedEdge = data.edges.find(
-		edge => edgeKey(edge) === selectedEdgeKey,
+		edge => graphEdgeKey(edge) === selectedEdgeKey,
 	)
 	const selectedEdgeEvidence =
 		selectedEdgeKey && graphEvidence?.edgeKey === selectedEdgeKey
@@ -209,7 +208,7 @@ export function GraphCanvas({
 
 	function selectEdge(edge: GraphEdge) {
 		setSelected(null)
-		setSelectedEdgeKey(edgeKey(edge))
+		setSelectedEdgeKey(graphEdgeKey(edge))
 		onEdgeSelect?.(edge)
 	}
 
@@ -303,7 +302,7 @@ export function GraphCanvas({
 							if (!source || !target) return null
 							return (
 								<g
-									key={edgeKey(edge)}
+									key={graphEdgeKey(edge)}
 									role='button'
 									tabIndex={0}
 									aria-label={`View ${nodeNames.get(edge.source) ?? edge.source} to ${nodeNames.get(edge.target) ?? edge.target} relationship`}
@@ -330,19 +329,19 @@ export function GraphCanvas({
 										x2={target.x}
 										y2={target.y}
 										stroke={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? '#fff'
 												: signalColors[edge.type]
 										}
 										strokeOpacity={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? 1
 												: edge.confidence === undefined
 													? 0.65
 													: 0.35 + edge.confidence * 0.6
 										}
 										strokeWidth={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? 4
 												: edge.confidence === undefined
 													? 2
