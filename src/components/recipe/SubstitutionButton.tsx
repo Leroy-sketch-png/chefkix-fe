@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
@@ -21,6 +21,8 @@ import {
 } from '@/services/ai'
 import { submitSubstitutionFeedback } from '@/services/cookingSession'
 import { SubstitutionEvidencePanel } from './SubstitutionEvidencePanel'
+import { parseResearchSubstitutionResponse } from './research-substitution-contract'
+import { calculateSubstitutionDialogPosition } from './substitution-dialog-position'
 
 interface SubstitutionButtonProps {
 	ingredientName: string
@@ -59,7 +61,17 @@ export function SubstitutionButton({
 		Record<string, 'submitting' | 'accepted' | 'rejected' | 'error'>
 	>({})
 	const buttonRef = useRef<HTMLButtonElement>(null)
+	const dialogRef = useRef<HTMLDivElement>(null)
+	const closeButtonRef = useRef<HTMLButtonElement>(null)
+	const wasOpenRef = useRef(false)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
+	const attachCloseButton = useCallback(
+		(node: HTMLButtonElement | null) => {
+			closeButtonRef.current = node
+			if (node && open) node.focus()
+		},
+		[open],
+	)
 
 	const REASON_LABEL_KEYS: Record<SubstitutionReason, string> = {
 		unavailable: 'reasonUnavailable',
@@ -70,13 +82,84 @@ export function SubstitutionButton({
 
 	useEscapeKey(open, () => setOpen(false))
 
-	useEffect(() => {
-		if (open && buttonRef.current) {
-			const rect = buttonRef.current.getBoundingClientRect()
-			setPos({
-				top: rect.bottom + 8,
-				left: Math.max(8, Math.min(rect.left, window.innerWidth - 520)),
+	useLayoutEffect(() => {
+		if (open) {
+			wasOpenRef.current = true
+			return
+		}
+		if (wasOpenRef.current) {
+			buttonRef.current?.focus()
+			wasOpenRef.current = false
+		}
+	}, [open])
+
+	useLayoutEffect(() => {
+		if (!open) return
+
+		const placeDialog = () => {
+			const trigger = buttonRef.current?.getBoundingClientRect()
+			const panel = dialogRef.current?.getBoundingClientRect()
+			if (!trigger || !panel) return
+
+			const position = calculateSubstitutionDialogPosition(trigger, panel, {
+				width: window.innerWidth,
+				height: window.innerHeight,
 			})
+			setPos(current =>
+				current.top === position.top && current.left === position.left
+					? current
+					: position,
+			)
+		}
+
+		placeDialog()
+		window.addEventListener('resize', placeDialog)
+		window.addEventListener('scroll', placeDialog, true)
+		return () => {
+			window.removeEventListener('resize', placeDialog)
+			window.removeEventListener('scroll', placeDialog, true)
+		}
+	}, [open])
+
+	useLayoutEffect(() => {
+		if (!open) return
+
+		const focusableSelector =
+			'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		const getFocusable = () => {
+			const dialog = dialogRef.current
+			return Array.from(
+				dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+			).filter(element => element.getAttribute('aria-hidden') !== 'true')
+		}
+
+		const containFocus = (event: KeyboardEvent) => {
+			const dialog = dialogRef.current
+			if (event.key !== 'Tab' || !dialog) return
+			const focusable = getFocusable()
+			if (focusable.length === 0) {
+				event.preventDefault()
+				dialog.focus()
+				return
+			}
+
+			const first = focusable[0]
+			const last = focusable[focusable.length - 1]
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault()
+				last.focus()
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault()
+				first.focus()
+			} else if (!dialog.contains(document.activeElement)) {
+				event.preventDefault()
+				;(event.shiftKey ? last : first).focus()
+			}
+		}
+
+		document.addEventListener('keydown', containFocus)
+		return () => {
+			document.removeEventListener('keydown', containFocus)
 		}
 	}, [open])
 
@@ -90,7 +173,13 @@ export function SubstitutionButton({
 				// Never send profile, allergy, dietary, recipe-context, or session
 				// fields through this research-only caller. Abstention is terminal;
 				// this branch must not fall through to the legacy Gemini request.
-				setResearchEvidence(await researchMode.fetcher(ingredientName))
+				const response = await researchMode.fetcher(ingredientName)
+				const evidence = parseResearchSubstitutionResponse(response)
+				if (!evidence) {
+					setError(t('researchGenericAbstention'))
+					return
+				}
+				setResearchEvidence(evidence)
 				return
 			}
 			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
@@ -178,6 +267,8 @@ export function SubstitutionButton({
 				)}
 				title={t('findSubstituteFor', { ingredient: ingredientName })}
 				aria-label={t('findSubstituteFor', { ingredient: ingredientName })}
+				aria-haspopup='dialog'
+				aria-expanded={open}
 			>
 				<ArrowLeftRight className='size-3.5' />
 			</button>
@@ -190,16 +281,16 @@ export function SubstitutionButton({
 							onMouseDown={() => setOpen(false)}
 						>
 							<motion.div
+								ref={dialogRef}
 								initial={{ opacity: 0, y: -4, scale: 0.96 }}
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
 								transition={{ duration: DURATION_S.fast }}
-								className='fixed max-h-[min(42rem,calc(100vh-1rem))] w-[min(32rem,calc(100vw-1rem))] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
-								style={{
-									top: Math.min(pos.top, window.innerHeight - 16),
-									left: pos.left,
-								}}
+								className='fixed max-h-[min(42rem,calc(100dvh-1rem))] w-[min(32rem,calc(100vw-1rem))] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
+								style={{ top: pos.top, left: pos.left }}
 								role='dialog'
+								aria-modal='true'
+								tabIndex={-1}
 								aria-label={t('findSubstituteFor', {
 									ingredient: ingredientName,
 								})}
@@ -211,6 +302,7 @@ export function SubstitutionButton({
 										{t('swapIngredient', { ingredient: ingredientName })}
 									</h4>
 									<button
+										ref={attachCloseButton}
 										type='button'
 										onClick={() => setOpen(false)}
 										aria-label={t('subClose')}

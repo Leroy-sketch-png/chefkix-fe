@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SubstitutionButton } from '../SubstitutionButton'
+import { parseResearchSubstitutionResponse } from '../research-substitution-contract'
+import { calculateSubstitutionDialogPosition } from '../substitution-dialog-position'
 import { suggestSubstitutions } from '@/services/ai'
 import type { ResearchSubstitutionResponse } from '@/services/ai'
 
@@ -108,6 +110,75 @@ describe('SubstitutionButton research evidence consumer', () => {
 		expect(mockedSuggest).not.toHaveBeenCalled()
 	})
 
+	it('withholds a contradictory response instead of rendering candidates', async () => {
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'ready',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256: 'a'.repeat(64),
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'no_guarantee',
+				bindingStatus: 'missing',
+				manifestSha256: null,
+				calibrationCaseCount: 0,
+				noGuaranteeReason: 'missing_artifact',
+			},
+			disposition: 'recommendations',
+			rankerProvenance: { rankerId: 'recorded', scorerSha256: 'b'.repeat(64) },
+			hardFilterProvenance: null,
+			abstentionReasons: [],
+			candidates: [
+				{
+					candidateId: 'graph-12',
+					rank: 1,
+					name: 'sunflower oil',
+					fooDbId: null,
+					knownNode: true,
+					trainPairCount: 4,
+					seen: true,
+					ratio: null,
+					confidenceScore: null,
+				},
+			],
+		})
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(await screen.findByText('researchGenericAbstention')).toBeTruthy()
+		expect(screen.queryByText('sunflower oil')).toBeNull()
+		expect(mockedSuggest).not.toHaveBeenCalled()
+	})
+
+	it('announces a modal, contains keyboard focus, and restores focus on close', async () => {
+		const fetcher = jest.fn().mockResolvedValue(unresolvedIdentity)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+		const trigger = screen.getByRole('button', {
+			name: 'findSubstituteFor:butter',
+		})
+		fireEvent.click(trigger)
+
+		const dialog = await screen.findByRole('dialog')
+		const close = screen.getByRole('button', { name: 'subClose' })
+		expect(dialog).toHaveAttribute('aria-modal', 'true')
+		await waitFor(() => expect(close).toHaveFocus())
+		fireEvent.keyDown(close, { key: 'Tab' })
+		expect(close).toHaveFocus()
+		fireEvent.keyDown(close, { key: 'Escape' })
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+		expect(trigger).toHaveFocus()
+	})
+
 	it('shows available FooDB identity but not nullable confidence or ratio estimates', async () => {
 		const fetcher = jest.fn().mockResolvedValue({
 			contractVersion: 'graph-evidence-v1',
@@ -160,5 +231,46 @@ describe('SubstitutionButton research evidence consumer', () => {
 		expect(screen.queryByText('1:2')).toBeNull()
 		expect(screen.queryByText('91%')).toBeNull()
 		await waitFor(() => expect(mockedSuggest).not.toHaveBeenCalled())
+	})
+})
+
+describe('research substitution dialog positioning', () => {
+	const viewport = { width: 390, height: 800 }
+	const rect = (
+		top: number,
+		bottom: number,
+		left: number,
+		width: number,
+		height: number,
+	) => ({ top, bottom, left, width, height }) as DOMRect
+
+	it('places the panel below when it fits', () => {
+		expect(
+			calculateSubstitutionDialogPosition(
+				rect(100, 120, 24, 300, 200),
+				rect(0, 0, 0, 300, 200),
+				viewport,
+			),
+		).toEqual({ top: 128, left: 24 })
+	})
+
+	it('flips above a bottom-edge trigger when there is room', () => {
+		expect(
+			calculateSubstitutionDialogPosition(
+				rect(730, 750, 360, 300, 300),
+				rect(0, 0, 0, 300, 300),
+				viewport,
+			),
+		).toEqual({ top: 422, left: 82 })
+	})
+
+	it('clamps tall panels inside the viewport and preserves internal scrolling', () => {
+		expect(
+			calculateSubstitutionDialogPosition(
+				rect(100, 120, 24, 300, 1000),
+				rect(0, 0, 0, 374, 1000),
+				viewport,
+			),
+		).toEqual({ top: 8, left: 8 })
 	})
 })
