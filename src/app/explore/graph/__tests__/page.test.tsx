@@ -28,5 +28,10 @@ it('mounts the graph explorer only when the explicit build flag is true', () => 
 	render(<PublicGraphExplorerPage />)
 
 	expect(screen.getByTestId('graph-explorer')).toHaveTextContent('Explorer')
+	expect(
+		screen.getByTestId('graph-explorer-preview-boundary'),
+	).toHaveTextContent(
+		'This preview uses the bounded legacy Knowledge API. It is not the accepted hash-pinned study graph. Only relationships whose targets resolve to known ingredients are shown; unresolved alternatives are omitted. This preview does not provide calibrated substitution or allergy-safety decisions.',
+	)
 	expect(screen.queryByTestId('graph-explorer-disabled')).toBeNull()
 })

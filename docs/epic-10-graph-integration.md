@@ -17,6 +17,16 @@ The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and disp
 
 When a successful search returns no ingredients, the Explorer says the ingredient is not in the current graph and does not create a node. This empty result is distinct from a failed search, which keeps its visible error state.
 
+## Local live FE-to-Monolith smoke
+
+`tests/e2e/graph-explorer-live.spec.ts` is an opt-in headed browser check with API route interception disabled. Build the FE with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true` and `NEXT_PUBLIC_BASE_URL=http://localhost:8080`, run the Monolith against an isolated Mongo database, and allow the E2E origin `http://localhost:3200` through `app.cors.allowed-origins`. Then set `CHEFKIX_LIVE_MONOLITH=true` and run:
+
+```powershell
+npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer-live.spec.ts --workers=1
+```
+
+The 2026-10-23 headed Chrome run passed on desktop and iPhone-sized Chromium. The isolated legacy seed returned 25 nodes and 5 edges, including the exact declared alias `lemon juice` resolving to canonical `lemon`; selecting Salt also loaded the `salt` root neighborhood with the `salt` → `lemon` edge through the repository alias query. An unknown search returned no nodes or edges. Of 59 seeded substitution statements, 4 resolve through canonical names, 1 through an explicit alias, and 54 remain unresolved. The test verifies the unknown-identity behavior, exact alias edge, root expansion, and preview boundary. This is a local legacy API smoke check; it does not load or accept the hash-pinned Leader artifact, call the live shadow evidence provider, establish research identity mapping, or certify deployed behavior.
+
 ## Shadow evidence panel
 
 `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. An available response must return matching requested and resolved IDs for both ingredients and declare the train count unit as `TRAIN_PAIRS`; the backend rejects mismatches and the client fails closed on either identity or unit errors. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.

@@ -158,6 +158,9 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 	await expect(
 		page.getByRole('heading', { name: 'Explore how ingredients connect.' }),
 	).toBeVisible()
+	await expect(
+		page.getByTestId('graph-explorer-preview-boundary'),
+	).toContainText('not the accepted hash-pinned study graph')
 	await expect(page.getByText('Source: Knowledge API')).toBeVisible()
 
 	await page.getByRole('button', { name: 'Explore Butter' }).press('Enter')
