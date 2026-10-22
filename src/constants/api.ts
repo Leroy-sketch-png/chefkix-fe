@@ -352,6 +352,7 @@ export const API_ENDPOINTS = {
 	},
 	KNOWLEDGE: {
 		GRAPH: `${API_PREFIX}/knowledge/graph`,
+		GRAPH_EVIDENCE: `${API_PREFIX}/graph/evidence`,
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
 		INGREDIENT: (name: string) => `${API_PREFIX}/knowledge/ingredients/${name}`,
 		SUBSTITUTIONS: (name: string) =>

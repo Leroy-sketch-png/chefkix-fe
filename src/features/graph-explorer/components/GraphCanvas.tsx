@@ -9,8 +9,18 @@ import {
 } from 'react'
 import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
-import type { GraphData, GraphEdge, GraphSignal } from '../types'
-import { GraphEdgeDetailPanel, GraphNodeDetailPanel } from './GraphDetailPanel'
+import { graphEdgeKey } from '../services/graphExplorerService'
+import type {
+	GraphData,
+	GraphEdge,
+	GraphEvidenceLoadState,
+	GraphSignal,
+} from '../types'
+import {
+	GraphEdgeDetailPanel,
+	GraphEvidencePanel,
+	GraphNodeDetailPanel,
+} from './GraphDetailPanel'
 
 const width = 760
 const height = 540
@@ -44,8 +54,6 @@ const signalLabels: Record<GraphSignal, string> = {
 	co_occurrence: 'Co-occurrence',
 }
 const initialView = { x: 0, y: 0, scale: 1 }
-const edgeKey = (edge: GraphEdge) =>
-	`${edge.source}:${edge.target}:${edge.type}`
 
 export function GraphCanvas({
 	data,
@@ -54,6 +62,7 @@ export function GraphCanvas({
 	searchTargetId,
 	searchPosition,
 	searchMatchCount,
+	graphEvidence,
 	onNodeSelect,
 	onEdgeSelect,
 }: {
@@ -63,14 +72,19 @@ export function GraphCanvas({
 	searchTargetId?: string
 	searchPosition: number
 	searchMatchCount: number
+	graphEvidence?: GraphEvidenceLoadState
 	onNodeSelect?: (nodeId: string) => void
 	onEdgeSelect?: (edge: GraphEdge) => void
 }) {
 	const [selected, setSelected] = useState<string | null>(null)
 	const [selectedEdgeKey, setSelectedEdgeKey] = useState<string | null>(null)
 	const selectedEdge = data.edges.find(
-		edge => edgeKey(edge) === selectedEdgeKey,
+		edge => graphEdgeKey(edge) === selectedEdgeKey,
 	)
+	const selectedEdgeEvidence =
+		selectedEdgeKey && graphEvidence?.edgeKey === selectedEdgeKey
+			? graphEvidence
+			: undefined
 	const [view, setView] = useState(initialView)
 	const dragRef = useRef<string | null>(null)
 	const panRef = useRef<{
@@ -194,7 +208,7 @@ export function GraphCanvas({
 
 	function selectEdge(edge: GraphEdge) {
 		setSelected(null)
-		setSelectedEdgeKey(edgeKey(edge))
+		setSelectedEdgeKey(graphEdgeKey(edge))
 		onEdgeSelect?.(edge)
 	}
 
@@ -288,7 +302,7 @@ export function GraphCanvas({
 							if (!source || !target) return null
 							return (
 								<g
-									key={edgeKey(edge)}
+									key={graphEdgeKey(edge)}
 									role='button'
 									tabIndex={0}
 									aria-label={`View ${nodeNames.get(edge.source) ?? edge.source} to ${nodeNames.get(edge.target) ?? edge.target} relationship`}
@@ -315,19 +329,19 @@ export function GraphCanvas({
 										x2={target.x}
 										y2={target.y}
 										stroke={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? '#fff'
 												: signalColors[edge.type]
 										}
 										strokeOpacity={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? 1
 												: edge.confidence === undefined
 													? 0.65
 													: 0.35 + edge.confidence * 0.6
 										}
 										strokeWidth={
-											selectedEdgeKey === edgeKey(edge)
+											selectedEdgeKey === graphEdgeKey(edge)
 												? 4
 												: edge.confidence === undefined
 													? 2
@@ -521,11 +535,16 @@ export function GraphCanvas({
 							) : null
 						})()}
 					{selectedEdge && (
-						<GraphEdgeDetailPanel
-							edge={selectedEdge}
-							sourceName={nodeNames.get(selectedEdge.source)}
-							targetName={nodeNames.get(selectedEdge.target)}
-						/>
+						<>
+							<GraphEdgeDetailPanel
+								edge={selectedEdge}
+								sourceName={nodeNames.get(selectedEdge.source)}
+								targetName={nodeNames.get(selectedEdge.target)}
+							/>
+							{selectedEdgeEvidence && (
+								<GraphEvidencePanel state={selectedEdgeEvidence} />
+							)}
+						</>
 					)}
 				</div>
 				<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-sm'>

@@ -1029,14 +1029,14 @@ export const RecipeCreateAiFlow = ({
 				const guardResult = await guardContent(recipeText, 'recipe').catch(
 					() => null,
 				)
-				if (guardResult?.success && guardResult.data?.action === 'block') {
-					diag.warn('recipe', 'PUBLISH blocked by content guard', {
-						reasons: guardResult.data.reasons,
+				if (!guardResult?.success || guardResult.data?.action !== 'approve') {
+					diag.warn('recipe', 'PUBLISH did not receive content approval', {
+						action: guardResult?.data?.action,
 					})
 					toast.error(t('aiFlowCannotPublish'), {
 						description:
-							guardResult.data.reasons?.[0] ||
-							'Content violates community guidelines.',
+							guardResult?.data?.reasons?.[0] ||
+							'Unable to verify content. Please try again.',
 					})
 					releasePublishLock()
 					return

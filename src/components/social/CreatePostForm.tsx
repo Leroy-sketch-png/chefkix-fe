@@ -146,21 +146,26 @@ export const CreatePostForm = ({
 			return
 		}
 
-		if (moderationResult.data) {
-			if (moderationResult.data.action === 'block') {
+		const moderationAction = moderationResult.data?.action
+		if (moderationAction !== 'approve') {
+			if (moderationAction === 'block') {
 				diag.warn('social', 'POST_BLOCKED_BY_MODERATION', {
 					reason: moderationResult.data.reason,
 				})
 				toast.error(moderationResult.data.reason || t('createPostBlocked'))
-				setIsSubmitting(false)
-				return
-			}
-			if (moderationResult.data.action === 'flag') {
+			} else if (moderationAction === 'flag') {
 				diag.warn('social', 'POST_FLAGGED_BY_MODERATION', {
 					reason: moderationResult.data.reason,
 				})
 				toast.warning(moderationResult.data.reason || t('createPostFlagged'))
+			} else {
+				diag.warn('social', 'POST_MODERATION_UNCONFIRMED', {
+					action: moderationAction,
+				})
+				toast.error(t('createPostModerationFailed'))
 			}
+			setIsSubmitting(false)
+			return
 		}
 
 		const tagList = tags

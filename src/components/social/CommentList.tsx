@@ -153,25 +153,30 @@ export const CommentList = ({
 				return
 			}
 
-			if (moderationResult.data) {
-				if (moderationResult.data.action === 'block') {
+			const moderationAction = moderationResult.data?.action
+			if (moderationAction !== 'approve') {
+				if (moderationAction === 'block') {
 					diag.warn('social', 'COMMENT_BLOCKED_BY_MODERATION', {
 						reason: moderationResult.data.reason,
 					})
 					toast.error(
 						moderationResult.data.reason || t('moderationBlockComment'),
 					)
-					setIsSubmitting(false)
-					return
-				}
-				if (moderationResult.data.action === 'flag') {
+				} else if (moderationAction === 'flag') {
 					diag.warn('social', 'COMMENT_FLAGGED_BY_MODERATION', {
 						reason: moderationResult.data.reason,
 					})
 					toast.warning(
 						moderationResult.data.reason || t('moderationFlagComment'),
 					)
+				} else {
+					diag.warn('social', 'COMMENT_MODERATION_UNCONFIRMED', {
+						action: moderationAction,
+					})
+					toast.error(t('moderationVerifyFailed'))
 				}
+				setIsSubmitting(false)
+				return
 			}
 
 			diag.request('social', 'createComment', {
@@ -200,7 +205,9 @@ export const CommentList = ({
 				setTaggedUserIds([])
 				mentionInputRef.current?.clear()
 				toast.success(t('commentPosted'))
-				trackEvent('POST_COMMENTED', postId, 'post', { commentId: response.data.id })
+				trackEvent('POST_COMMENTED', postId, 'post', {
+					commentId: response.data.id,
+				})
 				onCommentCreated?.()
 			} else {
 				diag.error('social', 'COMMENT_CREATE_FAILED', {

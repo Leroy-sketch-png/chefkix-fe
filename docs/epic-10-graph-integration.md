@@ -1,6 +1,6 @@
 # Epic 10 graph explorer handoff
 
-The graph explorer loads its graph from the monolith knowledge API. The local demo graph is used only when `NEXT_PUBLIC_GRAPH_EXPLORER_MOCK=true`.
+The public `/explore/graph` route is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true`. While disabled it does not mount the Explorer or request graph data. The sample graph remains available only for local development with `NEXT_PUBLIC_GRAPH_EXPLORER_MOCK=true`.
 
 ## API contract
 
@@ -12,6 +12,18 @@ The graph explorer loads its graph from the monolith knowledge API. The local de
 ```
 
 The API returns a bounded first page sorted by canonical name. `root` returns outgoing substitution neighbors to depth 0–2; `q` searches names and aliases. The allowed limit is 1–500. Selecting a node loads its neighborhood and detail; typing in search loads matching ingredients after a short debounce. The force layout retains at most 500 recent nodes. The response includes `totalNodeCount` and `hasMore`, and contains only edges whose endpoints are present in its node page.
+
+The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and display names, unique node IDs, and a recognized relationship type. It accepts `substitution` (plus the legacy `substitutes` alias), `chemical_similarity`/`chemical-similarity`, and `co_occurrence`/`co-occurrence`. A missing or unknown type fails the graph load visibly instead of being mislabeled as a substitution.
+
+When a successful search returns no ingredients, the Explorer says the ingredient is not in the current graph and does not create a node. This empty result is distinct from a failed search, which keeps its visible error state.
+
+## Shadow evidence panel
+
+`NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. An available response must return matching requested and resolved IDs for both ingredients and declare the train count unit as `TRAIN_PAIRS`; the backend rejects mismatches and the client fails closed on either identity or unit errors. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.
+
+Evidence loading is bound to the currently selected edge. If the user selects another edge before an earlier request completes, the late response is ignored.
+
+When explicitly enabled for local integration work, the Explorer map still uses the bounded legacy knowledge API. This is not an accepted M-C artifact load and must not be enabled as the product graph until the canonical hash-pinned artifact, its IDs, and the graph-product route are accepted and integrated. Shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
 
 The monolith ships a small seed set; production collection contents may differ. A full Leader graph import remains a separate data task; this contract keeps both the response and the rendered graph bounded when that data arrives.
 

@@ -5,6 +5,7 @@ import type {
 	CompoundMolecule,
 	GraphData,
 	GraphEdge,
+	GraphEvidenceResponse,
 	GraphNode,
 	NutritionSnapshot,
 	TechniqueContext,
@@ -12,6 +13,12 @@ import type {
 
 const SAMPLE_LIMIT = 100
 const RENDER_LIMIT = 500
+
+export function graphEdgeKey(
+	edge: Pick<GraphEdge, 'source' | 'target' | 'type'>,
+) {
+	return JSON.stringify([edge.source, edge.target, edge.type])
+}
 
 export interface GraphQuery {
 	rootId?: string
@@ -50,15 +57,242 @@ function asStringArray(value: unknown) {
 		: []
 }
 
+const SHA256 = /^[a-f\d]{64}$/i
+const GRAPH_EVIDENCE_STATUSES = new Set(['AVAILABLE', 'UNAVAILABLE', 'REFUSED'])
+const IDENTITY_STATUSES = new Set(['RESOLVED', 'UNKNOWN', 'AMBIGUOUS'])
+const TRAIN_PAIR_UNIT = 'TRAIN_PAIRS'
+const CALIBRATION_STATUSES = new Set([
+	'ok',
+	'uninformative',
+	'vacuous',
+	'no_guarantee',
+	'abstain',
+])
+const ARTIFACT_INTEGRITY_STATUSES = new Set([
+	'VERIFIED',
+	'MISSING',
+	'INVALID',
+	'UNVERIFIED',
+])
+
+export function isGraphEvidenceEnabled() {
+	return process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED === 'true'
+}
+
+export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
+	const response = unwrapData(value)
+	if (
+		!isRecord(response) ||
+		response.contractVersion !== 'graph-evidence.v1' ||
+		typeof response.status !== 'string' ||
+		!GRAPH_EVIDENCE_STATUSES.has(response.status)
+	) {
+		throw new Error('The graph evidence response is invalid.')
+	}
+
+	let artifactIntegrity: GraphEvidenceResponse['artifactIntegrity']
+	if (response.artifactIntegrity !== undefined) {
+		const integrity = response.artifactIntegrity
+		if (
+			!isRecord(integrity) ||
+			typeof integrity.status !== 'string' ||
+			!ARTIFACT_INTEGRITY_STATUSES.has(integrity.status)
+		) {
+			throw new Error('The graph evidence integrity record is invalid.')
+		}
+		const expectedSha256 = asString(integrity.expectedSha256) || undefined
+		const observedSha256 = asString(integrity.observedSha256) || undefined
+		if (
+			integrity.status === 'VERIFIED' &&
+			(!expectedSha256 ||
+				!observedSha256 ||
+				!SHA256.test(expectedSha256) ||
+				!SHA256.test(observedSha256) ||
+				expectedSha256.toLowerCase() !== observedSha256.toLowerCase())
+		) {
+			throw new Error('The graph evidence artifact fingerprint is invalid.')
+		}
+		artifactIntegrity = {
+			status: integrity.status as NonNullable<
+				GraphEvidenceResponse['artifactIntegrity']
+			>['status'],
+			expectedSha256:
+				expectedSha256 && SHA256.test(expectedSha256)
+					? expectedSha256
+					: undefined,
+			observedSha256:
+				observedSha256 && SHA256.test(observedSha256)
+					? observedSha256
+					: undefined,
+		}
+	}
+
+	const evidenceValue = isRecord(response.evidence)
+		? response.evidence
+		: undefined
+	const identity = isRecord(evidenceValue?.identityResolution)
+		? evidenceValue.identityResolution
+		: undefined
+	const trainPair = isRecord(evidenceValue?.trainPairEvidence)
+		? evidenceValue.trainPairEvidence
+		: undefined
+	const calibration = isRecord(evidenceValue?.calibration)
+		? evidenceValue.calibration
+		: undefined
+	const decision = isRecord(evidenceValue?.decision)
+		? evidenceValue.decision
+		: undefined
+	const requestedSourceIngredientId =
+		asString(identity?.requestedSourceIngredientId) || undefined
+	const sourceIngredientId = asString(identity?.sourceIngredientId) || undefined
+	const requestedCandidateIngredientId =
+		asString(identity?.requestedCandidateIngredientId) || undefined
+	const candidateIngredientId =
+		asString(identity?.candidateIngredientId) || undefined
+	const evidence = evidenceValue
+		? {
+				identityResolution:
+					identity &&
+					typeof identity.status === 'string' &&
+					IDENTITY_STATUSES.has(identity.status)
+						? {
+								status: identity.status as 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS',
+								requestedSourceIngredientId,
+								sourceIngredientId,
+								requestedCandidateIngredientId,
+								candidateIngredientId,
+							}
+						: undefined,
+				trainPairEvidence: trainPair
+					? {
+							seenInTrain:
+								typeof trainPair.seenInTrain === 'boolean'
+									? trainPair.seenInTrain
+									: null,
+							trainCount:
+								typeof trainPair.trainCount === 'number' &&
+								Number.isSafeInteger(trainPair.trainCount) &&
+								trainPair.trainCount >= 0
+									? trainPair.trainCount
+									: null,
+							unit:
+								trainPair.unit === TRAIN_PAIR_UNIT
+									? (TRAIN_PAIR_UNIT as 'TRAIN_PAIRS')
+									: undefined,
+						}
+					: undefined,
+				calibration: calibration
+					? { status: asString(calibration.status) || undefined }
+					: undefined,
+				decision:
+					decision?.decision === 'ABSTAIN'
+						? { decision: 'ABSTAIN' as const }
+						: undefined,
+			}
+		: undefined
+	const identityStatus = evidence?.identityResolution?.status
+	const identityResolution = evidence?.identityResolution
+	const seenInTrain = evidence?.trainPairEvidence?.seenInTrain
+	const trainCount = evidence?.trainPairEvidence?.trainCount
+	const trainPairUnit = evidence?.trainPairEvidence?.unit
+	const calibrationStatus = evidence?.calibration?.status
+
+	if (
+		response.status === 'AVAILABLE' &&
+		(artifactIntegrity?.status !== 'VERIFIED' ||
+			identityStatus !== 'RESOLVED' ||
+			!identityResolution?.requestedSourceIngredientId ||
+			identityResolution.sourceIngredientId !==
+				identityResolution.requestedSourceIngredientId ||
+			!identityResolution.requestedCandidateIngredientId ||
+			identityResolution.candidateIngredientId !==
+				identityResolution.requestedCandidateIngredientId ||
+			trainPairUnit !== TRAIN_PAIR_UNIT ||
+			seenInTrain === null ||
+			seenInTrain === undefined ||
+			trainCount === null ||
+			trainCount === undefined ||
+			seenInTrain !== trainCount > 0 ||
+			!calibrationStatus ||
+			!CALIBRATION_STATUSES.has(calibrationStatus) ||
+			evidence?.decision?.decision !== 'ABSTAIN')
+	) {
+		throw new Error('The available graph evidence response is incomplete.')
+	}
+	if (
+		response.status === 'REFUSED' &&
+		(!artifactIntegrity || artifactIntegrity.status === 'VERIFIED')
+	) {
+		throw new Error('The refused graph artifact has no valid integrity state.')
+	}
+	const unavailableReason = asString(response.unavailableReason) || undefined
+	if (response.status === 'UNAVAILABLE' && !unavailableReason) {
+		throw new Error('The unavailable graph evidence response has no reason.')
+	}
+
+	return {
+		contractVersion: 'graph-evidence.v1',
+		status: response.status as GraphEvidenceResponse['status'],
+		unavailableReason,
+		artifactIntegrity,
+		evidence,
+	}
+}
+
+function errorResponseData(error: unknown): unknown {
+	if (!isRecord(error) || !isRecord(error.response)) return undefined
+	return error.response.data
+}
+
+export async function getGraphEvidence(
+	sourceIngredientId: string,
+	candidateIngredientId: string,
+): Promise<GraphEvidenceResponse | undefined> {
+	if (!isGraphEvidenceEnabled()) return undefined
+
+	let payload: unknown
+	try {
+		const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE, {
+			params: { sourceIngredientId, candidateIngredientId },
+		})
+		payload = response.data ?? response
+	} catch (error) {
+		payload = errorResponseData(error)
+		if (payload === undefined) {
+			throw error instanceof Error
+				? error
+				: new Error('Graph evidence could not be reached.')
+		}
+	}
+	const normalized = normalizeGraphEvidence(payload)
+	if (
+		normalized.status === 'AVAILABLE' &&
+		(normalized.evidence?.identityResolution?.requestedSourceIngredientId !==
+			sourceIngredientId ||
+			normalized.evidence?.identityResolution
+				?.requestedCandidateIngredientId !== candidateIngredientId)
+	) {
+		throw new Error(
+			'The graph evidence response does not match the requested ingredient pair.',
+		)
+	}
+	return normalized
+}
+
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {
-	const type = asString(value).toLowerCase()
+	const type = asString(value).trim().toLowerCase()
+	if (type === 'substitution' || type === 'substitutes') {
+		return 'substitution'
+	}
 	if (type === 'chemical_similarity' || type === 'chemical-similarity') {
 		return 'chemical_similarity'
 	}
 	if (type === 'co_occurrence' || type === 'co-occurrence') {
 		return 'co_occurrence'
 	}
-	return 'substitution'
+	throw new Error(
+		'The ingredient graph contains an unsupported relationship type.',
+	)
 }
 
 function normalizeNutrition(value: unknown): NutritionSnapshot | undefined {
@@ -196,12 +430,20 @@ export function normalizeGraphData(
 ): GraphData {
 	const payload = unwrapData(value)
 	const graph = isRecord(payload) ? payload : {}
-	const nodes = Array.isArray(graph.nodes)
-		? graph.nodes.map(normalizeGraphNode)
-		: []
-	const edges = Array.isArray(graph.edges)
-		? graph.edges.map(normalizeGraphEdge)
-		: []
+	if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
+		throw new Error('The ingredient graph response is invalid.')
+	}
+	const nodes = graph.nodes.map(normalizeGraphNode)
+	const edges = graph.edges.map(normalizeGraphEdge)
+	const nodeIds = new Set<string>()
+	for (const node of nodes) {
+		if (!node.id.trim() || !node.name.trim() || nodeIds.has(node.id)) {
+			throw new Error(
+				'The ingredient graph contains an invalid ingredient identity.',
+			)
+		}
+		nodeIds.add(node.id)
+	}
 	const limit = query?.limit
 	const boundedNodes =
 		limit && nodes.length > limit
@@ -249,18 +491,11 @@ export function mergeGraphData(
 					: 'pending',
 		})
 	})
-	const edges = new Map(
-		base.edges.map(edge => [
-			`${edge.source}:${edge.target}:${edge.type}`,
-			edge,
-		]),
-	)
-	addition.edges.forEach(edge =>
-		edges.set(`${edge.source}:${edge.target}:${edge.type}`, {
-			...edges.get(`${edge.source}:${edge.target}:${edge.type}`),
-			...edge,
-		}),
-	)
+	const edges = new Map(base.edges.map(edge => [graphEdgeKey(edge), edge]))
+	addition.edges.forEach(edge => {
+		const key = graphEdgeKey(edge)
+		edges.set(key, { ...edges.get(key), ...edge })
+	})
 	// ponytail: Keep the latest 500 nodes in the force layout; add paging if a larger view is needed.
 	const boundedNodes = [...nodes.values()].slice(-RENDER_LIMIT)
 	const visibleIds = new Set(boundedNodes.map(node => node.id))

@@ -407,23 +407,28 @@ export const Comment = ({
 				return
 			}
 
-			if (moderationResult.data) {
-				if (moderationResult.data.action === 'block') {
+			const moderationAction = moderationResult.data?.action
+			if (moderationAction !== 'approve') {
+				if (moderationAction === 'block') {
 					diag.warn('social', 'REPLY_BLOCKED_BY_MODERATION', {
 						reason: moderationResult.data.reason,
 					})
 					toast.error(moderationResult.data.reason || t('moderationBlockReply'))
-					setIsSubmittingReply(false)
-					return
-				}
-				if (moderationResult.data.action === 'flag') {
+				} else if (moderationAction === 'flag') {
 					diag.warn('social', 'REPLY_FLAGGED_BY_MODERATION', {
 						reason: moderationResult.data.reason,
 					})
 					toast.warning(
 						moderationResult.data.reason || t('moderationFlagReply'),
 					)
+				} else {
+					diag.warn('social', 'REPLY_MODERATION_UNCONFIRMED', {
+						action: moderationAction,
+					})
+					toast.error(t('moderationVerifyFailed'))
 				}
+				setIsSubmittingReply(false)
+				return
 			}
 
 			diag.request('social', 'createReply', {
