@@ -126,6 +126,23 @@ describe('graph explorer data contract', () => {
 		}
 	})
 
+	it('rejects unknown relationship types instead of labeling them as substitutions', () => {
+		for (const type of [undefined, 'similar_to', 'subsitution']) {
+			expect(() =>
+				normalizeGraphData(
+					{
+						nodes: [
+							{ id: 'butter', name: 'Butter' },
+							{ id: 'coconut-oil', name: 'Coconut Oil' },
+						],
+						edges: [{ source: 'butter', target: 'coconut-oil', type }],
+					},
+					'leader-api',
+				),
+			).toThrow('unsupported relationship type')
+		}
+	})
+
 	it('merges neighborhood pages without duplicate nodes or edges', () => {
 		const base = normalizeGraphData(
 			{
@@ -260,7 +277,13 @@ describe('graph explorer data contract', () => {
 					{ id: 'b', name: 'B' },
 				],
 				edges: [
-					{ source: 'a', target: 'b', confidence: 2, compoundOverlap: -1 },
+					{
+						source: 'a',
+						target: 'b',
+						type: 'substitution',
+						confidence: 2,
+						compoundOverlap: -1,
+					},
 				],
 			},
 			'leader-api',

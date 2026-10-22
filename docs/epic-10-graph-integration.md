@@ -13,7 +13,7 @@ The public `/explore/graph` route is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER
 
 The API returns a bounded first page sorted by canonical name. `root` returns outgoing substitution neighbors to depth 0–2; `q` searches names and aliases. The allowed limit is 1–500. Selecting a node loads its neighborhood and detail; typing in search loads matching ingredients after a short debounce. The force layout retains at most 500 recent nodes. The response includes `totalNodeCount` and `hasMore`, and contains only edges whose endpoints are present in its node page.
 
-The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and display names, and unique node IDs. A malformed graph payload fails the graph load visibly instead of rendering blank or duplicate identities.
+The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and display names, unique node IDs, and a recognized relationship type. It accepts `substitution` (plus the legacy `substitutes` alias), `chemical_similarity`/`chemical-similarity`, and `co_occurrence`/`co-occurrence`. A missing or unknown type fails the graph load visibly instead of being mislabeled as a substitution.
 
 ## Shadow evidence panel
 

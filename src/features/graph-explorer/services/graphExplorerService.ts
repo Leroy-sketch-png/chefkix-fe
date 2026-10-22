@@ -274,14 +274,19 @@ export async function getGraphEvidence(
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {
-	const type = asString(value).toLowerCase()
+	const type = asString(value).trim().toLowerCase()
+	if (type === 'substitution' || type === 'substitutes') {
+		return 'substitution'
+	}
 	if (type === 'chemical_similarity' || type === 'chemical-similarity') {
 		return 'chemical_similarity'
 	}
 	if (type === 'co_occurrence' || type === 'co-occurrence') {
 		return 'co_occurrence'
 	}
-	return 'substitution'
+	throw new Error(
+		'The ingredient graph contains an unsupported relationship type.',
+	)
 }
 
 function normalizeNutrition(value: unknown): NutritionSnapshot | undefined {

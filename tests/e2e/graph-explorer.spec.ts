@@ -273,6 +273,23 @@ test('graph explorer refuses malformed identities and response shapes', async ({
 			name: 'Ingredient force-directed knowledge graph',
 		}),
 	).toHaveCount(0)
+
+	graphResponse = {
+		nodes: [
+			{ id: 'butter', name: 'Butter' },
+			{ id: 'coconut-oil', name: 'Coconut Oil' },
+		],
+		edges: [{ source: 'butter', target: 'coconut-oil', type: 'similar_to' }],
+	}
+	await page.reload()
+	await expect(page.getByRole('main').getByRole('alert')).toContainText(
+		'ingredient graph could not be loaded',
+	)
+	await expect(
+		page.getByRole('img', {
+			name: 'Ingredient force-directed knowledge graph',
+		}),
+	).toHaveCount(0)
 })
 
 test('the latest selected edge owns evidence when requests finish out of order', async ({
