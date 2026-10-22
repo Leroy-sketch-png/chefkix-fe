@@ -5,6 +5,8 @@ const sessionId = 'session-e2e'
 type ApiCalls = {
 	guard: number
 	createPost: number
+	createPostContentType: string
+	createPostBody: string
 	linkPost: number
 }
 
@@ -12,7 +14,13 @@ async function prepareAuthenticatedPage(
 	page: Page,
 	guardAction: 'approve' | 'block',
 ) {
-	const calls: ApiCalls = { guard: 0, createPost: 0, linkPost: 0 }
+	const calls: ApiCalls = {
+		guard: 0,
+		createPost: 0,
+		createPostContentType: '',
+		createPostBody: '',
+		linkPost: 0,
+	}
 	let activeGuardAction = guardAction
 	const corsHeaders = {
 		'access-control-allow-origin': 'http://localhost:3200',
@@ -145,6 +153,8 @@ async function prepareAuthenticatedPage(
 
 		if (url.pathname.endsWith('/posts') && method === 'POST') {
 			calls.createPost += 1
+			calls.createPostContentType = request.headers()['content-type'] ?? ''
+			calls.createPostBody = request.postData() ?? ''
 			await route.fulfill({
 				status: 200,
 				headers: { ...corsHeaders, 'content-type': 'application/json' },
@@ -213,6 +223,13 @@ test('moderation blocks unsafe captions and approved cook posts claim XP', async
 	await expect.poll(() => calls.guard).toBe(2)
 	expect(calls.createPost).toBe(1)
 	expect(calls.linkPost).toBe(1)
+	expect(calls.createPostContentType).toMatch(
+		/^multipart\/form-data; boundary=.+$/,
+	)
+	expect(calls.createPostBody).toContain('name="content"')
+	expect(calls.createPostBody).toContain('Cooked Miso Ramen!')
+	expect(calls.createPostBody).toContain('name="sessionId"')
+	expect(calls.createPostBody).toContain(sessionId)
 	await expect
 		.poll(() =>
 			page.evaluate(() => {
