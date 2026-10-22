@@ -17,6 +17,7 @@ const customJestConfig = {
 	testPathIgnorePatterns: [
 		'<rootDir>/node_modules/',
 		'<rootDir>/.next/',
+		'<rootDir>/tests/e2e/',
 		'<rootDir>/tests/visual/',
 		'visual[\\\\/]visual-runner\\.spec\\.ts$',
 	],

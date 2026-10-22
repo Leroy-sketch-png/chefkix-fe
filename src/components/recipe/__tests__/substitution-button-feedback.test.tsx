@@ -88,7 +88,6 @@ describe('SubstitutionButton feedback evidence', () => {
 				'unavailable',
 				'Recipe: Pasta',
 				undefined,
-				undefined,
 				'session-1',
 			),
 		)
