@@ -17,11 +17,25 @@ export default function PublicGraphExplorerPage() {
 					</h1>
 					<p className='mt-3 max-w-2xl text-sm leading-6 text-text-muted md:text-base'>
 						{graphExplorerEnabled
-							? 'Follow documented swaps and other ingredient relationships. Select a connection for its context, or browse the full ingredient index to inspect an ingredient.'
+							? 'Preview ingredient relationships from the bounded Knowledge API. This preview is not an accepted study graph or a safety decision.'
 							: 'Verified graph data is not available yet. This view stays off until a hash-pinned graph artifact is accepted.'}
 					</p>
 				</div>
 			</header>
+			{graphExplorerEnabled && (
+				<aside
+					aria-label='Graph preview limitation'
+					className='rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm leading-6 text-text-muted'
+					data-testid='graph-explorer-preview-boundary'
+					role='note'
+				>
+					This preview uses the bounded legacy Knowledge API. It is not the
+					accepted hash-pinned study graph. Only relationships whose targets
+					resolve to known ingredients are shown; unresolved alternatives are
+					omitted. This preview does not provide calibrated substitution or
+					allergy-safety decisions.
+				</aside>
+			)}
 			{graphExplorerEnabled ? (
 				<GraphExplorer />
 			) : (
