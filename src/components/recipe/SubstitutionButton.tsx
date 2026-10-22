@@ -64,7 +64,12 @@ export function SubstitutionButton({
 	const dialogRef = useRef<HTMLDivElement>(null)
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
 	const wasOpenRef = useRef(false)
+	const [dialogMounted, setDialogMounted] = useState(false)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
+	const attachDialog = useCallback((node: HTMLDivElement | null) => {
+		dialogRef.current = node
+		setDialogMounted(Boolean(node))
+	}, [])
 	const attachCloseButton = useCallback(
 		(node: HTMLButtonElement | null) => {
 			closeButtonRef.current = node
@@ -94,7 +99,7 @@ export function SubstitutionButton({
 	}, [open])
 
 	useLayoutEffect(() => {
-		if (!open) return
+		if (!open || !dialogMounted) return
 
 		const placeDialog = () => {
 			const trigger = buttonRef.current?.getBoundingClientRect()
@@ -119,7 +124,15 @@ export function SubstitutionButton({
 			window.removeEventListener('resize', placeDialog)
 			window.removeEventListener('scroll', placeDialog, true)
 		}
-	}, [open])
+	}, [
+		open,
+		dialogMounted,
+		loading,
+		researchEvidence,
+		substitutions,
+		error,
+		feedbackState,
+	])
 
 	useLayoutEffect(() => {
 		if (!open) return
@@ -281,7 +294,7 @@ export function SubstitutionButton({
 							onMouseDown={() => setOpen(false)}
 						>
 							<motion.div
-								ref={dialogRef}
+								ref={attachDialog}
 								initial={{ opacity: 0, y: -4, scale: 0.96 }}
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
