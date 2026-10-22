@@ -17,14 +17,23 @@ import {
 	suggestSubstitutions,
 	type Substitution,
 	type SubstitutionReason,
+	type ResearchSubstitutionResponse,
 } from '@/services/ai'
 import { submitSubstitutionFeedback } from '@/services/cookingSession'
+import { SubstitutionEvidencePanel } from './SubstitutionEvidencePanel'
 
 interface SubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle?: string
 	className?: string
 	sessionId?: string
+	/**
+	 * Explicitly injected, trusted research caller. Omitted by default; it
+	 * receives only the source ingredient and must keep credentials server-side.
+	 */
+	researchMode?: {
+		fetcher: (sourceIngredient: string) => Promise<ResearchSubstitutionResponse>
+	}
 }
 
 export function SubstitutionButton({
@@ -32,6 +41,7 @@ export function SubstitutionButton({
 	recipeTitle,
 	className,
 	sessionId,
+	researchMode,
 }: SubstitutionButtonProps) {
 	const { user } = useAuth()
 	const t = useTranslations('recipe')
@@ -41,6 +51,8 @@ export function SubstitutionButton({
 	const [substitutions, setSubstitutions] = useState<Substitution[] | null>(
 		null,
 	)
+	const [researchEvidence, setResearchEvidence] =
+		useState<ResearchSubstitutionResponse | null>(null)
 	const [reason, setReason] = useState<SubstitutionReason>('unavailable')
 	const [error, setError] = useState<string | null>(null)
 	const [feedbackState, setFeedbackState] = useState<
@@ -72,7 +84,15 @@ export function SubstitutionButton({
 		setReason(r)
 		setLoading(true)
 		setError(null)
+		setResearchEvidence(null)
 		try {
+			if (researchMode) {
+				// Never send profile, allergy, dietary, recipe-context, or session
+				// fields through this research-only caller. Abstention is terminal;
+				// this branch must not fall through to the legacy Gemini request.
+				setResearchEvidence(await researchMode.fetcher(ingredientName))
+				return
+			}
 			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
 			const res = user?.allergenFlags?.length
 				? await suggestSubstitutions(
@@ -88,6 +108,7 @@ export function SubstitutionButton({
 						r,
 						context,
 						undefined,
+						undefined,
 						sessionId,
 					)
 			if (res.success && res.data) {
@@ -96,7 +117,9 @@ export function SubstitutionButton({
 				setError(res.message || t('failedToGetSuggestions'))
 			}
 		} catch {
-			setError(t('failedToGetSuggestions'))
+			setError(
+				t(researchMode ? 'researchRequestFailed' : 'failedToGetSuggestions'),
+			)
 		} finally {
 			setLoading(false)
 		}
@@ -108,6 +131,7 @@ export function SubstitutionButton({
 		}
 		setOpen(true)
 		setSubstitutions(null)
+		setResearchEvidence(null)
 		setError(null)
 		setFeedbackState({})
 		handleFetch('unavailable')
@@ -196,26 +220,28 @@ export function SubstitutionButton({
 									</button>
 								</div>
 
-								{/* Reason Tabs */}
-								<div className='mb-3 flex gap-1'>
-									{(['unavailable', 'allergy', 'preference'] as const).map(
-										r => (
-											<button
-												type='button'
-												key={r}
-												onClick={() => handleFetch(r)}
-												disabled={loading}
-												className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
-													reason === r
-														? 'bg-brand/15 text-brand'
-														: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
-												}`}
-											>
-												{t(REASON_LABEL_KEYS[r])}
-											</button>
-										),
-									)}
-								</div>
+								{/* The v1 research caller has no frozen reason-specific method. */}
+								{!researchMode && (
+									<div className='mb-3 flex gap-1'>
+										{(['unavailable', 'allergy', 'preference'] as const).map(
+											r => (
+												<button
+													type='button'
+													key={r}
+													onClick={() => handleFetch(r)}
+													disabled={loading}
+													className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
+														reason === r
+															? 'bg-brand/15 text-brand'
+															: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
+													}`}
+												>
+													{t(REASON_LABEL_KEYS[r])}
+												</button>
+											),
+										)}
+									</div>
+								)}
 
 								{/* Content */}
 								{loading ? (
@@ -226,6 +252,14 @@ export function SubstitutionButton({
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{error}
 									</p>
+								) : researchMode ? (
+									researchEvidence ? (
+										<SubstitutionEvidencePanel evidence={researchEvidence} />
+									) : (
+										<p className='py-4 text-center text-xs text-text-muted'>
+											{t('researchNoEvidenceYet')}
+										</p>
+									)
 								) : substitutions && substitutions.length > 0 ? (
 									<div className='space-y-3'>
 										<CompoundComparison

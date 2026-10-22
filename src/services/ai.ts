@@ -232,6 +232,84 @@ export interface SubstitutionResponse {
 	substitutions: Substitution[]
 }
 
+/**
+ * Versioned research-route response. This is a type-only consumer contract:
+ * callers must inject a trusted, server-owned fetcher; this module never sends
+ * the purpose-specific research credential from a browser.
+ */
+export interface ResearchGraphCandidate {
+	candidateId: string
+	rank: number
+	name: string
+	fooDbId: string | null
+	knownNode: boolean
+	trainPairCount: number
+	seen: boolean
+	ratio: string | null
+	confidenceScore: number | null
+}
+
+export interface ResearchArtifactProvenance {
+	artifactId: string
+	manifestSha256: string
+	sourceSplit: 'train'
+	transformationId: string
+}
+
+export interface ResearchRankerProvenance {
+	rankerId: string
+	scorerSha256: string
+}
+
+export interface ResearchHardFilterProvenance {
+	policyId: string
+	policySha256: string
+}
+
+export type ResearchAbstentionReason =
+	| 'graph_unavailable'
+	| 'calibration_not_ok'
+	| 'empty_filtered_pool'
+	| 'source_identity_unresolved'
+	| 'hard_filter_unavailable'
+
+export interface ResearchGraphEvidenceResponse {
+	contractVersion: 'graph-evidence-v1'
+	graphStatus: 'not_configured' | 'invalid' | 'ready'
+	graphProvenance: ResearchArtifactProvenance | null
+	calibration: {
+		status: 'ok' | 'uninformative' | 'vacuous' | 'no_guarantee' | 'abstain'
+		bindingStatus: 'missing' | 'mismatched' | 'compatible'
+		manifestSha256: string | null
+		calibrationCaseCount: number
+		noGuaranteeReason:
+			| 'insufficient_support'
+			| 'missing_artifact'
+			| 'mismatched_artifact'
+			| 'inference_assumptions_unresolved'
+			| 'unsupported_domain'
+			| null
+	}
+	disposition: 'recommendations' | 'abstain'
+	rankerProvenance: ResearchRankerProvenance | null
+	hardFilterProvenance: ResearchHardFilterProvenance | null
+	abstentionReasons: ResearchAbstentionReason[]
+	candidates: ResearchGraphCandidate[]
+}
+
+export interface ResearchIdentityAbstentionResponse {
+	contractVersion: 'graph-preflight-v2'
+	sourceIdentityStatus: 'unresolved' | 'ambiguous'
+	sourceIngredientId: null
+	graphStatus: 'not_evaluated'
+	disposition: 'abstain'
+	abstentionReason: 'source_identity_unresolved' | 'source_identity_ambiguous'
+}
+
+export type ResearchSubstitutionResponse =
+	| ResearchGraphEvidenceResponse
+	| ResearchIdentityAbstentionResponse
+
 export type RemixType =
 	| 'vegetarian'
 	| 'vegan'
