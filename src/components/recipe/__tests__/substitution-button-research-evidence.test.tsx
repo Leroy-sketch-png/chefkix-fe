@@ -1,0 +1,164 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { SubstitutionButton } from '../SubstitutionButton'
+import { suggestSubstitutions } from '@/services/ai'
+import type { ResearchSubstitutionResponse } from '@/services/ai'
+
+const mockedRequireAuth = jest.fn(() => true)
+
+jest.mock('next-intl', () => ({
+	useTranslations:
+		() => (key: string, values?: Record<string, string | number>) =>
+			values ? `${key}:${Object.values(values).join(',')}` : key,
+}))
+
+jest.mock('@/services/ai', () => ({
+	suggestSubstitutions: jest.fn(),
+}))
+
+jest.mock('@/services/cookingSession', () => ({
+	submitSubstitutionFeedback: jest.fn(),
+}))
+
+jest.mock('@/hooks/useAuthActionGuard', () => ({
+	useAuthActionGuard: () => ({ requireAuth: mockedRequireAuth }),
+}))
+
+const mockedSuggest = jest.mocked(suggestSubstitutions)
+
+const unresolvedIdentity: ResearchSubstitutionResponse = {
+	contractVersion: 'graph-preflight-v2',
+	sourceIdentityStatus: 'unresolved',
+	sourceIngredientId: null,
+	graphStatus: 'not_evaluated',
+	disposition: 'abstain',
+	abstentionReason: 'source_identity_unresolved',
+}
+
+describe('SubstitutionButton research evidence consumer', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+		mockedRequireAuth.mockReturnValue(true)
+	})
+
+	it('is opt-in, sends only the source ingredient to its injected caller, and never falls back on abstention', async () => {
+		const fetcher = jest.fn().mockResolvedValue(unresolvedIdentity)
+		render(
+			<SubstitutionButton
+				ingredientName='new source'
+				recipeTitle='private recipe title'
+				researchMode={{ fetcher }}
+			/>,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:new source' }),
+		)
+
+		await screen.findByText('researchIdentityUnresolved')
+		expect(fetcher).toHaveBeenCalledTimes(1)
+		expect(fetcher).toHaveBeenCalledWith('new source')
+		expect(mockedSuggest).not.toHaveBeenCalled()
+		expect(screen.queryByText('reasonAllergy')).toBeNull()
+		expect(screen.queryByText('private recipe title')).toBeNull()
+	})
+
+	it('withholds candidates when allergen evidence is unavailable and disclaims safety', async () => {
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'not_configured',
+			graphProvenance: null,
+			calibration: {
+				status: 'no_guarantee',
+				bindingStatus: 'missing',
+				manifestSha256: null,
+				calibrationCaseCount: 0,
+				noGuaranteeReason: 'missing_artifact',
+			},
+			disposition: 'abstain',
+			rankerProvenance: null,
+			hardFilterProvenance: null,
+			abstentionReasons: ['graph_unavailable', 'hard_filter_unavailable'],
+			candidates: [],
+		} satisfies ResearchSubstitutionResponse)
+		render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+
+		await screen.findByText('researchRecommendationsWithheld')
+		expect(screen.getByText('researchAllergenEvidenceUnavailable')).toBeTruthy()
+		expect(screen.getByText('researchNotSafetyAssessment')).toBeTruthy()
+		expect(mockedSuggest).not.toHaveBeenCalled()
+	})
+
+	it('keeps a failed research request visible and does not fall back to legacy suggestions', async () => {
+		const fetcher = jest.fn().mockRejectedValue(new Error('offline'))
+		render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+
+		expect(await screen.findByText('researchRequestFailed')).toBeTruthy()
+		expect(mockedSuggest).not.toHaveBeenCalled()
+	})
+
+	it('shows available FooDB identity but not nullable confidence or ratio estimates', async () => {
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'ready',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256: 'a'.repeat(64),
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'ok',
+				bindingStatus: 'compatible',
+				manifestSha256: 'a'.repeat(64),
+				calibrationCaseCount: 200,
+				noGuaranteeReason: null,
+			},
+			disposition: 'recommendations',
+			rankerProvenance: { rankerId: 'recorded', scorerSha256: 'b'.repeat(64) },
+			hardFilterProvenance: {
+				policyId: 'recorded',
+				policySha256: 'c'.repeat(64),
+			},
+			abstentionReasons: [],
+			candidates: [
+				{
+					candidateId: 'graph-12',
+					rank: 1,
+					name: 'sunflower oil',
+					fooDbId: 'FDB000123',
+					knownNode: true,
+					trainPairCount: 4,
+					seen: true,
+					ratio: '1:2',
+					confidenceScore: 0.91,
+				},
+			],
+		} satisfies ResearchSubstitutionResponse)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(await screen.findByText('sunflower oil')).toBeTruthy()
+		expect(screen.getByText('researchFooDbId:FDB000123')).toBeTruthy()
+		expect(screen.getByText('researchPreviouslySupported:4')).toBeTruthy()
+		expect(screen.queryByText('1:2')).toBeNull()
+		expect(screen.queryByText('91%')).toBeNull()
+		await waitFor(() => expect(mockedSuggest).not.toHaveBeenCalled())
+	})
+})
