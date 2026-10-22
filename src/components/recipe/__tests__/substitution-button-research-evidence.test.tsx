@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SubstitutionButton } from '../SubstitutionButton'
 import { parseResearchSubstitutionResponse } from '../research-substitution-contract'
 import { calculateSubstitutionDialogPosition } from '../substitution-dialog-position'
@@ -177,6 +177,121 @@ describe('SubstitutionButton research evidence consumer', () => {
 		fireEvent.keyDown(close, { key: 'Escape' })
 		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 		expect(trigger).toHaveFocus()
+	})
+
+	it('repositions when asynchronous dialog content changes its size', async () => {
+		const viewportDescriptors = {
+			width: Object.getOwnPropertyDescriptor(window, 'innerWidth'),
+			height: Object.getOwnPropertyDescriptor(window, 'innerHeight'),
+		}
+		Object.defineProperties(window, {
+			innerWidth: { configurable: true, value: 1024 },
+			innerHeight: { configurable: true, value: 768 },
+		})
+		const originalRect = HTMLElement.prototype.getBoundingClientRect
+		jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+			function (this: HTMLElement) {
+				if (this.getAttribute('role') === 'dialog') {
+					const dialogHeight = this.textContent?.includes('sunflower oil')
+						? 300
+						: 120
+					return {
+						top: 0,
+						bottom: dialogHeight,
+						left: 0,
+						width: 300,
+						height: dialogHeight,
+					} as DOMRect
+				}
+				if (this.hasAttribute('aria-haspopup')) {
+					return {
+						top: 730,
+						bottom: 750,
+						left: 320,
+						width: 40,
+						height: 20,
+					} as DOMRect
+				}
+				return originalRect.call(this)
+			},
+		)
+
+		try {
+			let resolveFetch!: (value: ResearchSubstitutionResponse) => void
+			const response: ResearchSubstitutionResponse = {
+				contractVersion: 'graph-evidence-v1',
+				graphStatus: 'ready',
+				graphProvenance: {
+					artifactId: 'graph-2026-01',
+					manifestSha256: 'a'.repeat(64),
+					sourceSplit: 'train',
+					transformationId: 'graph-v1',
+				},
+				calibration: {
+					status: 'ok',
+					bindingStatus: 'compatible',
+					manifestSha256: 'a'.repeat(64),
+					calibrationCaseCount: 20,
+					noGuaranteeReason: null,
+				},
+				disposition: 'recommendations',
+				rankerProvenance: {
+					rankerId: 'recorded',
+					scorerSha256: 'b'.repeat(64),
+				},
+				hardFilterProvenance: {
+					policyId: 'recorded',
+					policySha256: 'c'.repeat(64),
+				},
+				abstentionReasons: [],
+				candidates: [
+					{
+						candidateId: 'graph-12',
+						rank: 1,
+						name: 'sunflower oil',
+						fooDbId: null,
+						knownNode: true,
+						trainPairCount: 4,
+						seen: true,
+						ratio: null,
+						confidenceScore: null,
+					},
+				],
+			}
+			const fetcher = jest.fn(
+				() =>
+					new Promise<ResearchSubstitutionResponse>(resolve => {
+						resolveFetch = resolve
+					}),
+			)
+			render(
+				<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+			)
+			fireEvent.click(
+				screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+			)
+			const dialog = await screen.findByRole('dialog')
+			await waitFor(() =>
+				expect(Number.parseInt(dialog.style.top, 10)).toBeGreaterThan(0),
+			)
+			const initialTop = Number.parseInt(dialog.style.top, 10)
+			await act(async () => resolveFetch(response))
+			await screen.findByText('sunflower oil')
+
+			await waitFor(() =>
+				expect(Number.parseInt(dialog.style.top, 10)).toBeLessThan(initialTop),
+			)
+		} finally {
+			jest.restoreAllMocks()
+			for (const [key, descriptor] of Object.entries({
+				innerWidth: viewportDescriptors.width,
+				innerHeight: viewportDescriptors.height,
+			})) {
+				if (descriptor) {
+					Object.defineProperty(window, key, descriptor)
+				}
+			}
+		}
 	})
 
 	it('shows available FooDB identity but not nullable confidence or ratio estimates', async () => {
