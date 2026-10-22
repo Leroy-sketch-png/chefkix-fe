@@ -103,6 +103,29 @@ describe('graph explorer data contract', () => {
 		})
 	})
 
+	it('rejects graph payloads with missing or duplicate ingredient identities', () => {
+		for (const nodes of [
+			[{ id: '', name: 'Butter' }],
+			[{ id: 'butter', name: '  ' }],
+			[
+				{ id: 'butter', name: 'Butter' },
+				{ id: 'butter', name: 'Clarified Butter' },
+			],
+		]) {
+			expect(() =>
+				normalizeGraphData({ nodes, edges: [] }, 'leader-api'),
+			).toThrow('invalid ingredient identity')
+		}
+	})
+
+	it('rejects graph responses without node and edge arrays', () => {
+		for (const graph of [{ edges: [] }, { nodes: [], edges: {} }]) {
+			expect(() => normalizeGraphData(graph, 'leader-api')).toThrow(
+				'ingredient graph response is invalid',
+			)
+		}
+	})
+
 	it('merges neighborhood pages without duplicate nodes or edges', () => {
 		const base = normalizeGraphData(
 			{

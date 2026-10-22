@@ -13,6 +13,8 @@ The public `/explore/graph` route is disabled unless `NEXT_PUBLIC_GRAPH_EXPLORER
 
 The API returns a bounded first page sorted by canonical name. `root` returns outgoing substitution neighbors to depth 0–2; `q` searches names and aliases. The allowed limit is 1–500. Selecting a node loads its neighborhood and detail; typing in search loads matching ingredients after a short debounce. The force layout retains at most 500 recent nodes. The response includes `totalNodeCount` and `hasMore`, and contains only edges whose endpoints are present in its node page.
 
+The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and display names, and unique node IDs. A malformed graph payload fails the graph load visibly instead of rendering blank or duplicate identities.
+
 ## Shadow evidence panel
 
 `NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. An available response must return matching requested and resolved IDs for both ingredients and declare the train count unit as `TRAIN_PAIRS`; the backend rejects mismatches and the client fails closed on either identity or unit errors. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.

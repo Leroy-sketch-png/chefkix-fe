@@ -419,12 +419,20 @@ export function normalizeGraphData(
 ): GraphData {
 	const payload = unwrapData(value)
 	const graph = isRecord(payload) ? payload : {}
-	const nodes = Array.isArray(graph.nodes)
-		? graph.nodes.map(normalizeGraphNode)
-		: []
-	const edges = Array.isArray(graph.edges)
-		? graph.edges.map(normalizeGraphEdge)
-		: []
+	if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)) {
+		throw new Error('The ingredient graph response is invalid.')
+	}
+	const nodes = graph.nodes.map(normalizeGraphNode)
+	const edges = graph.edges.map(normalizeGraphEdge)
+	const nodeIds = new Set<string>()
+	for (const node of nodes) {
+		if (!node.id.trim() || !node.name.trim() || nodeIds.has(node.id)) {
+			throw new Error(
+				'The ingredient graph contains an invalid ingredient identity.',
+			)
+		}
+		nodeIds.add(node.id)
+	}
 	const limit = query?.limit
 	const boundedNodes =
 		limit && nodes.length > limit

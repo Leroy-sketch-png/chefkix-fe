@@ -220,3 +220,57 @@ test('graph explorer stays disabled without its explicit feature flag', async ({
 	await expect(page.getByTestId('graph-content')).toHaveCount(0)
 	expect(graphRequests).toEqual([])
 })
+
+test('graph explorer refuses malformed identities and response shapes', async ({
+	page,
+}) => {
+	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
+	let graphResponse: Record<string, unknown> = {
+		nodes: [{ id: '', name: 'Butter' }],
+		edges: [],
+	}
+	await page.route('**/api/v1/knowledge/graph**', async route =>
+		route.fulfill({
+			contentType: 'application/json',
+			body: JSON.stringify(graphResponse),
+		}),
+	)
+
+	await page.goto('/explore/graph')
+	await expect(page.getByRole('main').getByRole('alert')).toContainText(
+		'ingredient graph could not be loaded',
+	)
+	await expect(
+		page.getByRole('img', {
+			name: 'Ingredient force-directed knowledge graph',
+		}),
+	).toHaveCount(0)
+
+	graphResponse = {
+		nodes: [
+			{ id: 'butter', name: 'Butter' },
+			{ id: 'butter', name: 'Clarified Butter' },
+		],
+		edges: [],
+	}
+	await page.reload()
+	await expect(page.getByRole('main').getByRole('alert')).toContainText(
+		'ingredient graph could not be loaded',
+	)
+	await expect(
+		page.getByRole('img', {
+			name: 'Ingredient force-directed knowledge graph',
+		}),
+	).toHaveCount(0)
+
+	graphResponse = { nodes: [] }
+	await page.reload()
+	await expect(page.getByRole('main').getByRole('alert')).toContainText(
+		'ingredient graph could not be loaded',
+	)
+	await expect(
+		page.getByRole('img', {
+			name: 'Ingredient force-directed knowledge graph',
+		}),
+	).toHaveCount(0)
+})
