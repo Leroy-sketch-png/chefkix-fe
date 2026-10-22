@@ -482,3 +482,108 @@ test('provider error details stay out of the rendered graph page', async ({
 		.poll(() => browserOutput.join('\n'))
 		.not.toContain(secretSentinel)
 })
+
+test('graph demo uses only local assets and graph API arms when evidence falls back', async ({
+	page,
+}, testInfo) => {
+	test.skip(
+		!graphExplorerEnabled || !graphEvidenceEnabled,
+		'Requires the explicit Explorer and evidence build flags.',
+	)
+	const appOrigin = 'http://localhost:3200'
+	const graphApiPaths = new Set([
+		'/api/v1/knowledge/graph',
+		'/api/v1/compound/analyze-pair',
+		'/api/v1/graph/evidence',
+	])
+	const blockedRequests: string[] = []
+	const graphApiRequests = new Set<string>()
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				data: {
+					nodes: [
+						{
+							id: 'butter',
+							name: 'Butter',
+							category: 'fat',
+							allergen_flags: [],
+						},
+						{
+							id: 'coconut oil',
+							name: 'Coconut Oil',
+							category: 'oil',
+							allergen_flags: [],
+						},
+					],
+					edges: [
+						{ source: 'butter', target: 'coconut oil', type: 'substitution' },
+					],
+					total_node_count: 2,
+					has_more: false,
+				},
+			}),
+		}),
+	)
+	await page.route('**/api/v1/compound/analyze-pair', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ success: true, data: {} }),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', route =>
+		route.fulfill({
+			status: 503,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				contractVersion: 'graph-evidence.v1',
+				status: 'UNAVAILABLE',
+				unavailableReason: 'PROVIDER_ERROR',
+			}),
+		}),
+	)
+	await page.route('**/*', async route => {
+		const url = new URL(route.request().url())
+		const localHost = ['localhost', '127.0.0.1'].includes(url.hostname)
+		if (url.origin === appOrigin && !url.pathname.startsWith('/api/')) {
+			await route.continue()
+			return
+		}
+		if (localHost && graphApiPaths.has(url.pathname)) {
+			graphApiRequests.add(`${route.request().method()} ${url.pathname}`)
+			await route.fallback()
+			return
+		}
+		blockedRequests.push(url.origin + url.pathname)
+		await route.abort()
+	})
+
+	await page.goto('/explore/graph')
+	await page
+		.getByRole('button', { name: 'View Butter to Coconut Oil relationship' })
+		.click()
+	const panel = page.getByTestId('graph-evidence-panel')
+	await expect(panel).toContainText('Graph evidence is unavailable.')
+	await expect(panel).toContainText('No substitution decision was made.')
+	await page.getByRole('button', { name: 'Dismiss' }).click()
+	await expect.poll(() => graphApiRequests.size).toBe(3)
+	await page.waitForLoadState('networkidle')
+	expect(blockedRequests).toEqual([])
+	expect([...graphApiRequests].sort()).toEqual(
+		[
+			'POST /api/v1/compound/analyze-pair',
+			'GET /api/v1/graph/evidence',
+			'GET /api/v1/knowledge/graph',
+		].sort(),
+	)
+	if (testInfo.project.name === 'desktop-chromium') {
+		await page.screenshot({
+			path: testInfo.outputPath('graph-demo-fallback.png'),
+			fullPage: true,
+		})
+	}
+})
