@@ -878,6 +878,8 @@
 		"swapIngredient": "Swap: {ingredient}",
 		"researchEvidenceResults": "Research evidence results",
 		"researchEvidenceBoundary": "Ranked using the recorded graph and filter evidence. This is not a food-safety assessment.",
+		"researchGraphManifestHashLabel": "Graph manifest SHA-256 (returned provenance)",
+		"researchGraphSourceSplitLabel": "Graph source split",
 		"researchRank": "Rank {rank}",
 		"researchFooDbId": "FooDB ID: {id}",
 		"researchFooDbIdUnavailable": "FooDB identifier unavailable",

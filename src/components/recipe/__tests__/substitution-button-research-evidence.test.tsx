@@ -158,6 +158,196 @@ describe('SubstitutionButton research evidence consumer', () => {
 		expect(mockedSuggest).not.toHaveBeenCalled()
 	})
 
+	it('shows the returned graph manifest digest and source split for recommendations', async () => {
+		const manifestSha256 = '1234567890abcdef'.repeat(4)
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'ready',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256,
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'ok',
+				bindingStatus: 'compatible',
+				manifestSha256: 'a'.repeat(64),
+				calibrationCaseCount: 200,
+				noGuaranteeReason: null,
+			},
+			disposition: 'recommendations',
+			rankerProvenance: { rankerId: 'recorded', scorerSha256: 'b'.repeat(64) },
+			hardFilterProvenance: {
+				policyId: 'recorded',
+				policySha256: 'c'.repeat(64),
+			},
+			abstentionReasons: [],
+			candidates: [
+				{
+					candidateId: 'graph-12',
+					rank: 1,
+					name: 'sunflower oil',
+					fooDbId: null,
+					knownNode: true,
+					trainPairCount: 4,
+					seen: true,
+					ratio: null,
+					confidenceScore: null,
+				},
+			],
+		} satisfies ResearchSubstitutionResponse)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(await screen.findByText('sunflower oil')).toBeTruthy()
+		expect(screen.getByText('researchGraphManifestHashLabel')).toBeTruthy()
+		expect(screen.getByText(manifestSha256)).toBeTruthy()
+		expect(screen.getByText('researchGraphSourceSplitLabel')).toBeTruthy()
+		expect(screen.getByText('train')).toBeTruthy()
+	})
+
+	it('shows available graph provenance with abstention without exposing candidates', async () => {
+		const manifestSha256 = 'fedcba0987654321'.repeat(4)
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'ready',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256,
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'no_guarantee',
+				bindingStatus: 'missing',
+				manifestSha256: null,
+				calibrationCaseCount: 0,
+				noGuaranteeReason: 'missing_artifact',
+			},
+			disposition: 'abstain',
+			rankerProvenance: null,
+			hardFilterProvenance: null,
+			abstentionReasons: ['calibration_not_ok'],
+			candidates: [],
+		} satisfies ResearchSubstitutionResponse)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(
+			await screen.findByText('researchRecommendationsWithheld'),
+		).toBeTruthy()
+		expect(screen.getByText(manifestSha256)).toBeTruthy()
+		expect(screen.queryByText('sunflower oil')).toBeNull()
+	})
+
+	it('shows returned provenance for a non-ready abstention when it is present', async () => {
+		const manifestSha256 = '0f1e2d3c4b5a6978'.repeat(4)
+		const fetcher = jest.fn().mockResolvedValue({
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'not_configured',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256,
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'no_guarantee',
+				bindingStatus: 'missing',
+				manifestSha256: null,
+				calibrationCaseCount: 0,
+				noGuaranteeReason: 'missing_artifact',
+			},
+			disposition: 'abstain',
+			rankerProvenance: null,
+			hardFilterProvenance: null,
+			abstentionReasons: ['graph_unavailable'],
+			candidates: [],
+		} satisfies ResearchSubstitutionResponse)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(
+			await screen.findByText('researchRecommendationsWithheld'),
+		).toBeTruthy()
+		expect(screen.getByText(manifestSha256)).toBeTruthy()
+	})
+
+	it('omits graph provenance when it is absent', async () => {
+		const responses: ResearchSubstitutionResponse[] = [
+			{
+				contractVersion: 'graph-evidence-v1',
+				graphStatus: 'ready',
+				graphProvenance: null,
+				calibration: {
+					status: 'no_guarantee',
+					bindingStatus: 'missing',
+					manifestSha256: null,
+					calibrationCaseCount: 0,
+					noGuaranteeReason: 'missing_artifact',
+				},
+				disposition: 'abstain',
+				rankerProvenance: null,
+				hardFilterProvenance: null,
+				abstentionReasons: ['graph_unavailable'],
+				candidates: [],
+			},
+			{
+				contractVersion: 'graph-evidence-v1',
+				graphStatus: 'not_configured',
+				graphProvenance: null,
+				calibration: {
+					status: 'no_guarantee',
+					bindingStatus: 'missing',
+					manifestSha256: null,
+					calibrationCaseCount: 0,
+					noGuaranteeReason: 'missing_artifact',
+				},
+				disposition: 'abstain',
+				rankerProvenance: null,
+				hardFilterProvenance: null,
+				abstentionReasons: ['graph_unavailable'],
+				candidates: [],
+			},
+		]
+
+		for (const [index, response] of responses.entries()) {
+			const fetcher = jest.fn().mockResolvedValue(response)
+			const { unmount } = render(
+				<SubstitutionButton
+					ingredientName={`source-${index}`}
+					researchMode={{ fetcher }}
+				/>,
+			)
+			fireEvent.click(
+				screen.getByRole('button', {
+					name: `findSubstituteFor:source-${index}`,
+				}),
+			)
+			expect(
+				await screen.findByText('researchRecommendationsWithheld'),
+			).toBeTruthy()
+			expect(screen.queryByText('researchGraphManifestHashLabel')).toBeNull()
+			unmount()
+		}
+	})
+
 	it('announces a modal, contains keyboard focus, and restores focus on close', async () => {
 		const fetcher = jest.fn().mockResolvedValue(unresolvedIdentity)
 		render(
@@ -189,8 +379,9 @@ describe('SubstitutionButton research evidence consumer', () => {
 			innerHeight: { configurable: true, value: 768 },
 		})
 		const originalRect = HTMLElement.prototype.getBoundingClientRect
-		jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-			function (this: HTMLElement) {
+		jest
+			.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+			.mockImplementation(function (this: HTMLElement) {
 				if (this.getAttribute('role') === 'dialog') {
 					const dialogHeight = this.textContent?.includes('sunflower oil')
 						? 300
@@ -213,8 +404,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 					} as DOMRect
 				}
 				return originalRect.call(this)
-			},
-		)
+			})
 
 		try {
 			let resolveFetch!: (value: ResearchSubstitutionResponse) => void
@@ -265,7 +455,10 @@ describe('SubstitutionButton research evidence consumer', () => {
 					}),
 			)
 			render(
-				<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+				<SubstitutionButton
+					ingredientName='butter'
+					researchMode={{ fetcher }}
+				/>,
 			)
 			fireEvent.click(
 				screen.getByRole('button', { name: 'findSubstituteFor:butter' }),

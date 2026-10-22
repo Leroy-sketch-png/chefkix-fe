@@ -30,6 +30,27 @@ function translateAbstentionReason(
 	}
 }
 
+function GraphProvenanceFooter({ evidence }: SubstitutionEvidencePanelProps) {
+	const t = useTranslations('recipe')
+	const provenance =
+		evidence.contractVersion === 'graph-evidence-v1' && evidence.graphProvenance
+
+	if (!provenance) return null
+
+	return (
+		<dl className='mt-3 border-t border-border-subtle pt-2 text-xs text-text-muted'>
+			<div>
+				<dt className='font-medium'>{t('researchGraphManifestHashLabel')}</dt>
+				<dd className='break-all font-mono'>{provenance.manifestSha256}</dd>
+			</div>
+			<div className='mt-1'>
+				<dt className='font-medium'>{t('researchGraphSourceSplitLabel')}</dt>
+				<dd>{provenance.sourceSplit}</dd>
+			</div>
+		</dl>
+	)
+}
+
 /** Render only evidence actually present in the versioned research response. */
 export function SubstitutionEvidencePanel({
 	evidence,
@@ -80,6 +101,7 @@ export function SubstitutionEvidencePanel({
 						{t('researchNotSafetyAssessment')}
 					</p>
 				)}
+				<GraphProvenanceFooter evidence={evidence} />
 			</div>
 		)
 	}
@@ -116,6 +138,7 @@ export function SubstitutionEvidencePanel({
 					</li>
 				))}
 			</ul>
+			<GraphProvenanceFooter evidence={evidence} />
 		</div>
 	)
 }
