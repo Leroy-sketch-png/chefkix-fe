@@ -413,3 +413,72 @@ test('the latest selected edge owns evidence when requests finish out of order',
 	await expect(panel).toContainText('Train pair support: 4')
 	await expect(panel).not.toContainText('Train pair support: 2')
 })
+
+test('provider error details stay out of the rendered graph page', async ({
+	page,
+}) => {
+	test.skip(
+		!graphExplorerEnabled || !graphEvidenceEnabled,
+		'Requires the explicit Explorer and evidence build flags.',
+	)
+	const secretSentinel = 'CHEFKIX_T11_SECRET_SENTINEL_20261023'
+	const browserOutput: string[] = []
+	page.on('console', message => browserOutput.push(message.text()))
+	page.on('pageerror', error => browserOutput.push(error.message))
+
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				data: {
+					nodes: [
+						{
+							id: 'butter',
+							name: 'Butter',
+							category: 'fat',
+							allergen_flags: [],
+						},
+						{
+							id: 'coconut oil',
+							name: 'Coconut Oil',
+							category: 'oil',
+							allergen_flags: [],
+						},
+					],
+					edges: [
+						{ source: 'butter', target: 'coconut oil', type: 'substitution' },
+					],
+					total_node_count: 2,
+					has_more: false,
+				},
+			}),
+		}),
+	)
+	await page.route('**/api/v1/compound/analyze-pair', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({ success: true, data: {} }),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', route =>
+		route.fulfill({
+			status: 503,
+			contentType: 'application/json',
+			body: JSON.stringify({ message: secretSentinel, debug: secretSentinel }),
+		}),
+	)
+
+	await page.goto('/explore/graph')
+	await page
+		.getByRole('button', { name: 'View Butter to Coconut Oil relationship' })
+		.click()
+	const panel = page.getByTestId('graph-evidence-panel')
+	await expect(panel).toContainText('Graph evidence is unavailable.')
+	await expect(page.locator('body')).not.toContainText(secretSentinel)
+	await expect
+		.poll(() => browserOutput.join('\n'))
+		.not.toContain(secretSentinel)
+})
