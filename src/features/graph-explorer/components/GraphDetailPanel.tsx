@@ -1,4 +1,4 @@
-import type { GraphEdge, GraphNode } from '../types'
+import type { GraphEdge, GraphEvidenceLoadState, GraphNode } from '../types'
 
 function formatDelta(value: number | undefined) {
 	if (value === undefined) return 'Pending'
@@ -199,6 +199,67 @@ export function GraphEdgeDetailPanel({
 					</p>
 				)}
 			</div>
+		</section>
+	)
+}
+
+export function GraphEvidencePanel({
+	state,
+}: {
+	state: GraphEvidenceLoadState
+}) {
+	return (
+		<section
+			className='border-t border-border-subtle p-4 text-sm'
+			aria-label='Graph evidence shadow details'
+			data-testid='graph-evidence-panel'
+		>
+			<div className='font-semibold text-text-primary'>
+				Train-only graph evidence (shadow)
+			</div>
+			<p className='mt-1 text-xs text-text-muted'>
+				Evidence inspection only. This panel never recommends a substitute.
+			</p>
+			{state.state === 'loading' && (
+				<p className='mt-2 text-text-muted' role='status'>
+					Loading graph evidence…
+				</p>
+			)}
+			{state.state === 'error' && (
+				<p className='mt-2 text-text-muted' role='status'>
+					Graph evidence is unavailable. No substitution decision was made.
+				</p>
+			)}
+			{state.state === 'loaded' &&
+				(state.response.status === 'UNAVAILABLE' ? (
+					<p className='mt-2 text-text-muted' role='status'>
+						Graph evidence unavailable:{' '}
+						{state.response.unavailableReason
+							?.replaceAll('_', ' ')
+							.toLowerCase() ?? 'reason not supplied'}
+						. No substitution decision was made.
+					</p>
+				) : state.response.status === 'REFUSED' ? (
+					<p className='mt-2 text-text-muted' role='status'>
+						Artifact integrity was refused. Graph evidence was not rendered.
+					</p>
+				) : (
+					<div className='mt-2 space-y-1 text-xs text-text-muted'>
+						<p>
+							Artifact manifest SHA-256:{' '}
+							{state.response.artifactIntegrity?.observedSha256}
+						</p>
+						<p>
+							Train pair support:{' '}
+							{state.response.evidence?.trainPairEvidence?.trainCount ??
+								'Unavailable'}
+						</p>
+						<p>
+							Calibration status: {state.response.evidence?.calibration?.status}
+						</p>
+						<p>Decision: Abstain</p>
+					</div>
+				))}
 		</section>
 	)
 }

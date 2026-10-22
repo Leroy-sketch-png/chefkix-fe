@@ -67,3 +67,28 @@ export interface GraphData {
 	hasMore?: boolean
 	loadedRootId?: string
 }
+
+export interface GraphEvidenceResponse {
+	contractVersion: 'graph-evidence.v1'
+	status: 'AVAILABLE' | 'UNAVAILABLE' | 'REFUSED'
+	unavailableReason?: string
+	artifactIntegrity?: {
+		status: 'VERIFIED' | 'MISSING' | 'INVALID' | 'UNVERIFIED'
+		expectedSha256?: string
+		observedSha256?: string
+	}
+	evidence?: {
+		identityResolution?: { status: 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS' }
+		trainPairEvidence?: {
+			seenInTrain?: boolean | null
+			trainCount?: number | null
+			unit?: string
+		}
+		calibration?: { status?: string }
+		decision?: { decision?: 'ABSTAIN' }
+	}
+}
+
+export type GraphEvidenceLoadState =
+	| { edgeKey: string; state: 'loading' | 'error' }
+	| { edgeKey: string; state: 'loaded'; response: GraphEvidenceResponse }

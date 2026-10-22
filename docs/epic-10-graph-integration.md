@@ -13,6 +13,12 @@ The graph explorer loads its graph from the monolith knowledge API. The local de
 
 The API returns a bounded first page sorted by canonical name. `root` returns outgoing substitution neighbors to depth 0–2; `q` searches names and aliases. The allowed limit is 1–500. Selecting a node loads its neighborhood and detail; typing in search loads matching ingredients after a short debounce. The force layout retains at most 500 recent nodes. The response includes `totalNodeCount` and `hasMore`, and contains only edges whose endpoints are present in its node page.
 
+## Shadow evidence panel
+
+`NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED` defaults to `false`. When enabled at build time, selecting an edge also requests `GET /api/v1/graph/evidence` with its exact source and candidate IDs. The panel displays a manifest hash only when the backend reports matching verified SHA-256 values, along with train-pair count, calibration status, and abstention. Typed unavailable/refused responses remain visible. The panel never recommends a substitute, and this client flag does not enable the backend endpoint. The monolith keeps its own graph-evidence flag disabled by default.
+
+The graph explorer still uses the bounded legacy knowledge graph for its map. Until the canonical graph artifact and its IDs are accepted and integrated, shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
+
 The monolith ships a small seed set; production collection contents may differ. A full Leader graph import remains a separate data task; this contract keeps both the response and the rendered graph bounded when that data arrives.
 
 The adapter accepts the backend naming (`canonicalName`, `allergenFlags`) and the planned export naming (`canonical_name`, `allergen_flags`, `compound_data`, `nutritionalSnapshot`, `technique_context`). The monolith's `substitutionRatio` is displayed as a quantity ratio; it is never converted into confidence.

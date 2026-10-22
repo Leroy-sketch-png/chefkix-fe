@@ -1,9 +1,13 @@
 import { expect, test } from '@playwright/test'
 
+const graphEvidenceEnabled =
+	process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED === 'true'
+
 test('graph search and ingredient inspection preserve evidence labels', async ({
 	page,
 }) => {
 	const searchTerms: string[] = []
+	const evidenceRequests: string[] = []
 	const nodes = [
 		{
 			id: 'butter',
@@ -79,6 +83,52 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 			}),
 		}),
 	)
+	await page.route('**/api/v1/compound/analyze-pair', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				data: {
+					is_compound_grounded: true,
+					overlap_percentage: 0.42,
+					overlap_semantics: 'Jaccard of official presence profiles',
+				},
+			}),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', async route => {
+		const url = new URL(route.request().url())
+		evidenceRequests.push(
+			`${url.searchParams.get('sourceIngredientId')}:${url.searchParams.get('candidateIngredientId')}`,
+		)
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: 'a'.repeat(64),
+					observedSha256: 'a'.repeat(64),
+				},
+				evidence: {
+					identityResolution: { status: 'RESOLVED' },
+					trainPairEvidence: {
+						seenInTrain: true,
+						trainCount: 2,
+						unit: 'TRAIN_PAIRS',
+					},
+					calibration: { status: 'no_guarantee' },
+					decision: {
+						decision: 'ABSTAIN',
+						reason: 'No approved decision rule.',
+					},
+				},
+			}),
+		})
+	})
 
 	await page.goto('/explore/graph')
 	await expect(
@@ -99,4 +149,20 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		page.getByRole('button', { name: 'Explore Peanut' }),
 	).toBeVisible()
 	expect(searchTerms).toContain('groundnut')
+
+	await page.getByRole('textbox', { name: 'Search ingredients' }).fill('')
+	const edge = page.getByRole('button', {
+		name: 'View Butter to Coconut Oil relationship',
+	})
+	await expect(edge).toBeVisible()
+	await edge.click()
+	if (graphEvidenceEnabled) {
+		const panel = page.getByTestId('graph-evidence-panel')
+		await expect(panel).toContainText('Artifact manifest SHA-256')
+		await expect(panel).toContainText('Decision: Abstain')
+		expect(evidenceRequests).toEqual(['butter:coconut oil'])
+	} else {
+		await expect(page.getByTestId('graph-evidence-panel')).toHaveCount(0)
+		expect(evidenceRequests).toEqual([])
+	}
 })

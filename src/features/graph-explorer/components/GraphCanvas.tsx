@@ -9,8 +9,17 @@ import {
 } from 'react'
 import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
-import type { GraphData, GraphEdge, GraphSignal } from '../types'
-import { GraphEdgeDetailPanel, GraphNodeDetailPanel } from './GraphDetailPanel'
+import type {
+	GraphData,
+	GraphEdge,
+	GraphEvidenceLoadState,
+	GraphSignal,
+} from '../types'
+import {
+	GraphEdgeDetailPanel,
+	GraphEvidencePanel,
+	GraphNodeDetailPanel,
+} from './GraphDetailPanel'
 
 const width = 760
 const height = 540
@@ -54,6 +63,7 @@ export function GraphCanvas({
 	searchTargetId,
 	searchPosition,
 	searchMatchCount,
+	graphEvidence,
 	onNodeSelect,
 	onEdgeSelect,
 }: {
@@ -63,6 +73,7 @@ export function GraphCanvas({
 	searchTargetId?: string
 	searchPosition: number
 	searchMatchCount: number
+	graphEvidence?: GraphEvidenceLoadState
 	onNodeSelect?: (nodeId: string) => void
 	onEdgeSelect?: (edge: GraphEdge) => void
 }) {
@@ -71,6 +82,10 @@ export function GraphCanvas({
 	const selectedEdge = data.edges.find(
 		edge => edgeKey(edge) === selectedEdgeKey,
 	)
+	const selectedEdgeEvidence =
+		selectedEdgeKey && graphEvidence?.edgeKey === selectedEdgeKey
+			? graphEvidence
+			: undefined
 	const [view, setView] = useState(initialView)
 	const dragRef = useRef<string | null>(null)
 	const panRef = useRef<{
@@ -521,11 +536,16 @@ export function GraphCanvas({
 							) : null
 						})()}
 					{selectedEdge && (
-						<GraphEdgeDetailPanel
-							edge={selectedEdge}
-							sourceName={nodeNames.get(selectedEdge.source)}
-							targetName={nodeNames.get(selectedEdge.target)}
-						/>
+						<>
+							<GraphEdgeDetailPanel
+								edge={selectedEdge}
+								sourceName={nodeNames.get(selectedEdge.source)}
+								targetName={nodeNames.get(selectedEdge.target)}
+							/>
+							{selectedEdgeEvidence && (
+								<GraphEvidencePanel state={selectedEdgeEvidence} />
+							)}
+						</>
 					)}
 				</div>
 				<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-sm'>

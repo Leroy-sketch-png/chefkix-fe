@@ -5,6 +5,7 @@ import type {
 	CompoundMolecule,
 	GraphData,
 	GraphEdge,
+	GraphEvidenceResponse,
 	GraphNode,
 	NutritionSnapshot,
 	TechniqueContext,
@@ -48,6 +49,192 @@ function asStringArray(value: unknown) {
 	return Array.isArray(value)
 		? value.filter(item => typeof item === 'string')
 		: []
+}
+
+const SHA256 = /^[a-f\d]{64}$/i
+const GRAPH_EVIDENCE_STATUSES = new Set(['AVAILABLE', 'UNAVAILABLE', 'REFUSED'])
+const IDENTITY_STATUSES = new Set(['RESOLVED', 'UNKNOWN', 'AMBIGUOUS'])
+const CALIBRATION_STATUSES = new Set([
+	'ok',
+	'uninformative',
+	'vacuous',
+	'no_guarantee',
+	'abstain',
+])
+const ARTIFACT_INTEGRITY_STATUSES = new Set([
+	'VERIFIED',
+	'MISSING',
+	'INVALID',
+	'UNVERIFIED',
+])
+
+export function isGraphEvidenceEnabled() {
+	return process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED === 'true'
+}
+
+export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
+	const response = unwrapData(value)
+	if (
+		!isRecord(response) ||
+		response.contractVersion !== 'graph-evidence.v1' ||
+		typeof response.status !== 'string' ||
+		!GRAPH_EVIDENCE_STATUSES.has(response.status)
+	) {
+		throw new Error('The graph evidence response is invalid.')
+	}
+
+	let artifactIntegrity: GraphEvidenceResponse['artifactIntegrity']
+	if (response.artifactIntegrity !== undefined) {
+		const integrity = response.artifactIntegrity
+		if (
+			!isRecord(integrity) ||
+			typeof integrity.status !== 'string' ||
+			!ARTIFACT_INTEGRITY_STATUSES.has(integrity.status)
+		) {
+			throw new Error('The graph evidence integrity record is invalid.')
+		}
+		const expectedSha256 = asString(integrity.expectedSha256) || undefined
+		const observedSha256 = asString(integrity.observedSha256) || undefined
+		if (
+			integrity.status === 'VERIFIED' &&
+			(!expectedSha256 ||
+				!observedSha256 ||
+				!SHA256.test(expectedSha256) ||
+				!SHA256.test(observedSha256) ||
+				expectedSha256.toLowerCase() !== observedSha256.toLowerCase())
+		) {
+			throw new Error('The graph evidence artifact fingerprint is invalid.')
+		}
+		artifactIntegrity = {
+			status: integrity.status as NonNullable<
+				GraphEvidenceResponse['artifactIntegrity']
+			>['status'],
+			expectedSha256:
+				expectedSha256 && SHA256.test(expectedSha256)
+					? expectedSha256
+					: undefined,
+			observedSha256:
+				observedSha256 && SHA256.test(observedSha256)
+					? observedSha256
+					: undefined,
+		}
+	}
+
+	const evidenceValue = isRecord(response.evidence)
+		? response.evidence
+		: undefined
+	const identity = isRecord(evidenceValue?.identityResolution)
+		? evidenceValue.identityResolution
+		: undefined
+	const trainPair = isRecord(evidenceValue?.trainPairEvidence)
+		? evidenceValue.trainPairEvidence
+		: undefined
+	const calibration = isRecord(evidenceValue?.calibration)
+		? evidenceValue.calibration
+		: undefined
+	const decision = isRecord(evidenceValue?.decision)
+		? evidenceValue.decision
+		: undefined
+	const evidence = evidenceValue
+		? {
+				identityResolution:
+					identity &&
+					typeof identity.status === 'string' &&
+					IDENTITY_STATUSES.has(identity.status)
+						? {
+								status: identity.status as 'RESOLVED' | 'UNKNOWN' | 'AMBIGUOUS',
+							}
+						: undefined,
+				trainPairEvidence: trainPair
+					? {
+							seenInTrain:
+								typeof trainPair.seenInTrain === 'boolean'
+									? trainPair.seenInTrain
+									: null,
+							trainCount:
+								typeof trainPair.trainCount === 'number' &&
+								Number.isSafeInteger(trainPair.trainCount) &&
+								trainPair.trainCount >= 0
+									? trainPair.trainCount
+									: null,
+							unit: asString(trainPair.unit) || undefined,
+						}
+					: undefined,
+				calibration: calibration
+					? { status: asString(calibration.status) || undefined }
+					: undefined,
+				decision:
+					decision?.decision === 'ABSTAIN'
+						? { decision: 'ABSTAIN' as const }
+						: undefined,
+			}
+		: undefined
+	const identityStatus = evidence?.identityResolution?.status
+	const seenInTrain = evidence?.trainPairEvidence?.seenInTrain
+	const trainCount = evidence?.trainPairEvidence?.trainCount
+	const calibrationStatus = evidence?.calibration?.status
+
+	if (
+		response.status === 'AVAILABLE' &&
+		(artifactIntegrity?.status !== 'VERIFIED' ||
+			identityStatus !== 'RESOLVED' ||
+			seenInTrain === null ||
+			seenInTrain === undefined ||
+			trainCount === null ||
+			trainCount === undefined ||
+			seenInTrain !== trainCount > 0 ||
+			!calibrationStatus ||
+			!CALIBRATION_STATUSES.has(calibrationStatus) ||
+			evidence?.decision?.decision !== 'ABSTAIN')
+	) {
+		throw new Error('The available graph evidence response is incomplete.')
+	}
+	if (
+		response.status === 'REFUSED' &&
+		(!artifactIntegrity || artifactIntegrity.status === 'VERIFIED')
+	) {
+		throw new Error('The refused graph artifact has no valid integrity state.')
+	}
+	const unavailableReason = asString(response.unavailableReason) || undefined
+	if (response.status === 'UNAVAILABLE' && !unavailableReason) {
+		throw new Error('The unavailable graph evidence response has no reason.')
+	}
+
+	return {
+		contractVersion: 'graph-evidence.v1',
+		status: response.status as GraphEvidenceResponse['status'],
+		unavailableReason,
+		artifactIntegrity,
+		evidence,
+	}
+}
+
+function errorResponseData(error: unknown): unknown {
+	if (!isRecord(error) || !isRecord(error.response)) return undefined
+	return error.response.data
+}
+
+export async function getGraphEvidence(
+	sourceIngredientId: string,
+	candidateIngredientId: string,
+): Promise<GraphEvidenceResponse | undefined> {
+	if (!isGraphEvidenceEnabled()) return undefined
+
+	let payload: unknown
+	try {
+		const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE, {
+			params: { sourceIngredientId, candidateIngredientId },
+		})
+		payload = response.data ?? response
+	} catch (error) {
+		payload = errorResponseData(error)
+		if (payload === undefined) {
+			throw error instanceof Error
+				? error
+				: new Error('Graph evidence could not be reached.')
+		}
+	}
+	return normalizeGraphEvidence(payload)
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {

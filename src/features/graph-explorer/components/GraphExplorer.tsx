@@ -10,12 +10,19 @@ import {
 import {
 	getGraphData,
 	getGraphCompoundOverlap,
+	getGraphEvidence,
 	getGraphNodeDetail,
 	getGraphNeighborhood,
+	isGraphEvidenceEnabled,
 	mergeGraphData,
 } from '../services/graphExplorerService'
 import { GraphCanvas } from './GraphCanvas'
-import type { GraphData, GraphEdge, GraphSignal } from '../types'
+import type {
+	GraphData,
+	GraphEdge,
+	GraphEvidenceLoadState,
+	GraphSignal,
+} from '../types'
 
 const signals: Array<{ value: GraphSignal | 'all'; label: string }> = [
 	{ value: 'all', label: 'All signals' },
@@ -28,10 +35,12 @@ export function GraphExplorer() {
 	const [data, setData] = useState<GraphData | null>(null)
 	const [searchData, setSearchData] = useState<GraphData | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const [graphEvidence, setGraphEvidence] = useState<GraphEvidenceLoadState>()
 	const [loadingNeighborhood, setLoadingNeighborhood] = useState(false)
 	const loadedRoots = useRef(new Set<string>())
 	const pendingRoots = useRef(new Set<string>())
 	const requestedEdges = useRef(new Set<string>())
+	const evidenceRequestId = useRef(0)
 	const [query, setQuery] = useState('')
 	const [searchIndex, setSearchIndex] = useState(0)
 	const [visibleSignals, setVisibleSignals] = useState<GraphSignal[]>(
@@ -112,6 +121,26 @@ export function GraphExplorer() {
 	const loadEdgeDetail = useCallback(
 		async (edge: GraphEdge) => {
 			const key = `${edge.source}:${edge.target}:${edge.type}`
+			if (isGraphEvidenceEnabled()) {
+				const requestId = ++evidenceRequestId.current
+				setGraphEvidence({ edgeKey: key, state: 'loading' })
+				void getGraphEvidence(edge.source, edge.target)
+					.then(response => {
+						if (requestId !== evidenceRequestId.current) return
+						setGraphEvidence(
+							response
+								? { edgeKey: key, state: 'loaded', response }
+								: { edgeKey: key, state: 'error' },
+						)
+					})
+					.catch(() => {
+						if (requestId === evidenceRequestId.current)
+							setGraphEvidence({ edgeKey: key, state: 'error' })
+					})
+			} else {
+				evidenceRequestId.current += 1
+				setGraphEvidence(undefined)
+			}
 			if (edge.compoundOverlap !== undefined || requestedEdges.current.has(key))
 				return
 			const source = visibleData?.nodes.find(
@@ -364,6 +393,7 @@ export function GraphExplorer() {
 				searchTargetId={activeSearchId}
 				searchPosition={shown.length ? searchIndex + 1 : 0}
 				searchMatchCount={shown.length}
+				graphEvidence={graphEvidence}
 				onNodeSelect={loadNeighborhood}
 				onEdgeSelect={loadEdgeDetail}
 			/>
