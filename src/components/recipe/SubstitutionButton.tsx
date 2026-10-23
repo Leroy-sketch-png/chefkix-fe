@@ -15,6 +15,7 @@ import { resolveAllergenSafety } from '@/lib/allergen-safety'
 import { CompoundComparison, CompoundExplanation } from './CompoundExplanation'
 import {
 	suggestSubstitutions,
+	fetchResearchSubstitutionEvidence,
 	type Substitution,
 	type SubstitutionReason,
 	type ResearchSubstitutionResponse,
@@ -45,6 +46,11 @@ export function SubstitutionButton({
 	sessionId,
 	researchMode,
 }: SubstitutionButtonProps) {
+	const activeResearchMode =
+		researchMode ??
+		(process.env.NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED === 'true'
+			? { fetcher: fetchResearchSubstitutionEvidence }
+			: undefined)
 	const { user } = useAuth()
 	const t = useTranslations('recipe')
 	const { requireAuth } = useAuthActionGuard()
@@ -182,11 +188,11 @@ export function SubstitutionButton({
 		setError(null)
 		setResearchEvidence(null)
 		try {
-			if (researchMode) {
+			if (activeResearchMode) {
 				// Never send profile, allergy, dietary, recipe-context, or session
 				// fields through this research-only caller. Abstention is terminal;
 				// this branch must not fall through to the legacy Gemini request.
-				const response = await researchMode.fetcher(ingredientName)
+				const response = await activeResearchMode.fetcher(ingredientName)
 				const evidence = parseResearchSubstitutionResponse(response)
 				if (!evidence) {
 					setError(t('researchGenericAbstention'))
@@ -220,7 +226,11 @@ export function SubstitutionButton({
 			}
 		} catch {
 			setError(
-				t(researchMode ? 'researchRequestFailed' : 'failedToGetSuggestions'),
+				t(
+					activeResearchMode
+						? 'researchRequestFailed'
+						: 'failedToGetSuggestions',
+				),
 			)
 		} finally {
 			setLoading(false)
@@ -326,7 +336,7 @@ export function SubstitutionButton({
 								</div>
 
 								{/* The v1 research caller has no frozen reason-specific method. */}
-								{!researchMode && (
+								{!activeResearchMode && (
 									<div className='mb-3 flex gap-1'>
 										{(['unavailable', 'allergy', 'preference'] as const).map(
 											r => (
@@ -357,7 +367,7 @@ export function SubstitutionButton({
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{error}
 									</p>
-								) : researchMode ? (
+								) : activeResearchMode ? (
 									researchEvidence ? (
 										<SubstitutionEvidencePanel evidence={researchEvidence} />
 									) : (
