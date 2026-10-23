@@ -19,6 +19,8 @@ When a successful search returns no ingredients, the Explorer says the ingredien
 
 Search failures use their own status state. A later successful query clears that search message, and clearing the query removes it; neither action clears an unrelated neighborhood or compound error. The graph SVG measures its map container and recomputes layout dimensions on resize, so narrow screens render the full map without the previous 620 px minimum-width overflow.
 
+Zoom, zoom-out, and reset controls stay in the map header, outside the SVG area. This prevents the floating toolbar from covering a node label or intercepting a node click; the headed viewport regression checks both canvas fit and toolbar placement.
+
 If compound-overlap detail returns no result, the Explorer releases its request marker so selecting the edge again can retry after the provider recovers. The component regression and headed browser case cover the empty-first-response, successful-retry path.
 
 ## Local live FE-to-Monolith smoke

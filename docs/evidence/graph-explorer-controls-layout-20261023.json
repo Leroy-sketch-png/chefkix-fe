@@ -1,0 +1,56 @@
+{
+	"id": "member-graph-explorer-controls-layout-20261023",
+	"recorded_at": "2026-10-23T23:41:11+07:00",
+	"repository": "chefkix-fe",
+	"base_commit": "3837b171a8e33d115312c617dd2911012a8954a4",
+	"scope": "Keep Graph Explorer zoom controls from obscuring interactive map nodes",
+	"root_cause": {
+		"behavior": "The floating zoom toolbar covered graph node labels and intercepted clicks when a node occupied the map's upper-right area.",
+		"cause": "The toolbar was absolutely positioned over the SVG without reserving any space in the graph canvas."
+	},
+	"change": "Move zoom, zoom-out, and reset controls into a labeled group in the map header, outside the interactive SVG canvas.",
+	"failure_first": {
+		"regression": "relationship map fits its viewport without horizontal clipping",
+		"before_fix": "The added headed mobile assertion failed because the controls group was absent; the prior real mobile screenshot showed the floating controls over a node label.",
+		"after_fix": "The controls group is present above the canvas on both configured viewport projects."
+	},
+	"verification": {
+		"production_build": {
+			"command": "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED=false npm run build",
+			"result": "Passed with type validation and 62 generated pages; existing caniuse-lite age and edge-runtime static-generation warnings remain."
+		},
+		"jest": {
+			"command": "npm test -- --runInBand",
+			"result": "214 suites passed, 1 suite skipped; 868 tests passed, 1 skipped."
+		},
+		"headed_browser": {
+			"command": "npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer.spec.ts tests/e2e/graph-explorer-live.spec.ts --headed --workers=1",
+			"result": "18 passed and 2 expected feature-off skips across desktop Chromium and iPhone-sized Chromium. The viewport regression checks that the SVG fits its container and the controls sit outside the canvas. Both live FE-to-Monolith cases ran with API interception off.",
+			"feature_flags": {
+				"NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+				"NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": true,
+				"NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED": false,
+				"CHEFKIX_LIVE_MONOLITH": true
+			}
+		},
+		"changed_file_checks": {
+			"commands": [
+				"npx eslint src/features/graph-explorer/components/GraphCanvas.tsx tests/e2e/graph-explorer.spec.ts",
+				"npx prettier --check src/features/graph-explorer/components/GraphCanvas.tsx tests/e2e/graph-explorer.spec.ts",
+				"git diff --check"
+			],
+			"result": "Passed."
+		},
+		"local_backend": "The live local knowledge endpoint returned HTTP 200 with 25 nodes and 5 edges from the isolated legacy seed database."
+	},
+	"manual_mobile_browser": {
+		"browser": "Codex in-app Chromium at http://localhost:3200/explore/graph, iPhone-sized viewport",
+		"screenshot": "test-results/e2e/graph-explorer-mobile-final.png",
+		"result": "Live search rendered the relationship map; SVG width 356 px, canvas width 356 px, scroll width 356 px, and controls bottom stayed above canvas top. The toolbar no longer obscures graph nodes.",
+		"data_boundary": "Isolated local legacy API and Mongo seed; not the accepted hash-pinned graph artifact."
+	},
+	"limitations": [
+		"The live integration uses local legacy seed data; most browser evidence and error-path scenarios use fixtures.",
+		"The accepted hash-pinned Leader graph artifact and route are still absent, so this does not establish rights, recommendation calibration, or deployed behavior."
+	]
+}

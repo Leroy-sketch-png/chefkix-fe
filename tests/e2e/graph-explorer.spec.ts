@@ -295,6 +295,15 @@ test('relationship map fits its viewport without horizontal clipping', async ({
 		viewport: svg.parentElement?.getBoundingClientRect().width ?? 0,
 	}))
 	expect(widths.graph).toBeLessThanOrEqual(widths.viewport + 1)
+	const controls = page.locator('[aria-label="Relationship map controls"]')
+	await expect(controls).toHaveCount(1)
+	const controlsBox = await controls.boundingBox()
+	const canvasBox = await graph.locator('..').boundingBox()
+	expect(controlsBox).not.toBeNull()
+	expect(canvasBox).not.toBeNull()
+	expect(controlsBox!.y + controlsBox!.height).toBeLessThanOrEqual(
+		canvasBox!.y + 1,
+	)
 })
 
 test('graph explorer stays disabled without its explicit feature flag', async ({

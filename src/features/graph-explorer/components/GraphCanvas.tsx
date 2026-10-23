@@ -268,10 +268,42 @@ export function GraphCanvas({
 							or line to inspect it.
 						</p>
 					</div>
-					<span className='rounded-full border border-border-medium bg-bg-elevated px-3 py-1 text-xs font-medium text-text-muted'>
-						{layoutData.edges.length} visible{' '}
-						{layoutData.edges.length === 1 ? 'link' : 'links'}
-					</span>
+					<div className='flex flex-wrap items-center gap-2 self-start'>
+						<span className='rounded-full border border-border-medium bg-bg-elevated px-3 py-1 text-xs font-medium text-text-muted'>
+							{layoutData.edges.length} visible{' '}
+							{layoutData.edges.length === 1 ? 'link' : 'links'}
+						</span>
+						<div
+							role='group'
+							aria-label='Relationship map controls'
+							className='flex shrink-0 gap-1 rounded-xl border border-border-subtle bg-bg-card/90 p-1 shadow-sm'
+						>
+							<button
+								type='button'
+								aria-label='Zoom in'
+								onClick={() => changeZoom(0.15)}
+								className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
+							>
+								<ZoomIn className='size-4' />
+							</button>
+							<button
+								type='button'
+								aria-label='Zoom out'
+								onClick={() => changeZoom(-0.15)}
+								className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
+							>
+								<ZoomOut className='size-4' />
+							</button>
+							<button
+								type='button'
+								aria-label='Reset graph view'
+								onClick={resetView}
+								className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
+							>
+								<RotateCcw className='size-4' />
+							</button>
+						</div>
+					</div>
 				</div>
 				<div
 					ref={canvasRef}
@@ -464,32 +496,6 @@ export function GraphCanvas({
 							</div>
 						</div>
 					)}
-					<div className='absolute right-3 top-3 flex gap-1 rounded-xl border border-border-subtle bg-bg-card/90 p-1 shadow-sm'>
-						<button
-							type='button'
-							aria-label='Zoom in'
-							onClick={() => changeZoom(0.15)}
-							className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
-						>
-							<ZoomIn className='size-4' />
-						</button>
-						<button
-							type='button'
-							aria-label='Zoom out'
-							onClick={() => changeZoom(-0.15)}
-							className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
-						>
-							<ZoomOut className='size-4' />
-						</button>
-						<button
-							type='button'
-							aria-label='Reset graph view'
-							onClick={resetView}
-							className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
-						>
-							<RotateCcw className='size-4' />
-						</button>
-					</div>
 					{query && (
 						<div className='absolute bottom-3 left-3 flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card/90 px-3 py-2 text-xs text-text-muted'>
 							<LocateFixed className='size-3.5' />
