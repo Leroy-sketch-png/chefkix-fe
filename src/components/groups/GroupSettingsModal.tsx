@@ -24,6 +24,7 @@ import {
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateGroup, changeGroupPrivacy } from '@/services/group'
+import { moderateContent } from '@/services/ai'
 
 interface GroupSettingsModalProps {
 	open: boolean
@@ -49,10 +50,12 @@ export function GroupSettingsModal({
 	// Form state
 	const [name, setName] = useState(group.name)
 	const t = useTranslations('groups')
+	const socialT = useTranslations('social')
 	const [description, setDescription] = useState(group.description || '')
 	const [privacy, setPrivacy] = useState<'PUBLIC' | 'PRIVATE'>(
 		group.privacyType as 'PUBLIC' | 'PRIVATE',
 	)
+	const [confirmationPassword, setConfirmationPassword] = useState('')
 
 	// UI state
 	const [isLoading, setIsLoading] = useState(false)
@@ -63,21 +66,48 @@ export function GroupSettingsModal({
 			toast.error(t('gsNameEmpty'))
 			return
 		}
+		if (privacy !== group.privacyType && !confirmationPassword.trim()) {
+			toast.error(t('gsPasswordRequired'))
+			return
+		}
 
 		setIsLoading(true)
 		try {
+			const updatedName = name.trim()
+			const updatedDescription = description.trim()
+			const textChanged =
+				updatedName !== group.name ||
+				updatedDescription !== (group.description || '')
+			if (textChanged) {
+				const moderationResult = await moderateContent(
+					[updatedName, updatedDescription, ...(group.tags || [])]
+						.map(value => value.trim())
+						.filter(Boolean)
+						.join('\n'),
+					'post_caption',
+				)
+				if (
+					!moderationResult.success ||
+					moderationResult.data?.action !== 'approve'
+				) {
+					toast.error(socialT('createPostModerationFailed'))
+					return
+				}
+			}
+
 			// Update name and description
 			const updatedGroup = await updateGroup(group.id, {
-				name: name.trim(),
-				description: description.trim(),
+				name: updatedName,
+				description: updatedDescription,
 			})
 
 			// Update privacy if changed
 			if (privacy !== group.privacyType) {
-				await changeGroupPrivacy(group.id, privacy)
+				await changeGroupPrivacy(group.id, privacy, confirmationPassword)
 			}
 
 			toast.success(t('gsUpdated'))
+			setConfirmationPassword('')
 			onSettingsUpdated?.(updatedGroup)
 			onOpenChange(false)
 		} catch (error) {
@@ -88,7 +118,13 @@ export function GroupSettingsModal({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog
+			open={open}
+			onOpenChange={nextOpen => {
+				if (!nextOpen) setConfirmationPassword('')
+				onOpenChange(nextOpen)
+			}}
+		>
 			<DialogContent className='max-w-md'>
 				<DialogHeader>
 					<DialogTitle>{t('gsTitle')}</DialogTitle>
@@ -139,17 +175,38 @@ export function GroupSettingsModal({
 						</label>
 						<Select
 							value={privacy}
-							onValueChange={value => setPrivacy(value as 'PUBLIC' | 'PRIVATE')}
+							onValueChange={value => {
+								const nextPrivacy = value as 'PUBLIC' | 'PRIVATE'
+								setPrivacy(nextPrivacy)
+								if (nextPrivacy === group.privacyType) {
+									setConfirmationPassword('')
+								}
+							}}
 						>
 							<SelectTrigger className='bg-bg border-border-subtle'>
 								<SelectValue />
 							</SelectTrigger>
-							<SelectContent>
+							<SelectContent style={{ zIndex: 9001 }}>
 								<SelectItem value='PUBLIC'>{t('gsPublicOption')}</SelectItem>
 								<SelectItem value='PRIVATE'>{t('gsPrivateOption')}</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
+					{privacy !== group.privacyType && (
+						<div>
+							<label className='mb-2 block text-sm font-medium text-text-primary'>
+								{t('gsConfirmPasswordLabel')}
+							</label>
+							<Input
+								type='password'
+								value={confirmationPassword}
+								onChange={event => setConfirmationPassword(event.target.value)}
+								placeholder={t('gsConfirmPasswordPlaceholder')}
+								autoComplete='current-password'
+								className='bg-bg border-border-subtle'
+							/>
+						</div>
+					)}
 
 					{/* Save Button */}
 					<Button
