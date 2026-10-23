@@ -1,8 +1,8 @@
 import type { ThesisEvidenceManifest } from '../types'
 
 export const thesisEvidenceManifest: ThesisEvidenceManifest = {
-	version: 'lead-v101-member-v2',
-	updatedAt: '2026-10-04',
+	version: 'lead-v522-member-v3',
+	updatedAt: '2026-10-23',
 	chapters: [
 		{
 			id: '1',
@@ -22,7 +22,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Lead evidence collected; draft needed. Explain generalization, safety uncertainty, and explanation limits.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -49,7 +49,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Lead draft exists. Audit citations and distinguish reproduced baselines from paper-reported results.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -76,7 +76,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Graph reconstruction verified; USDA partial. Capture bounded graph coverage and source/license boundaries.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -103,7 +103,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Corrected SAG and true-context dual encoder are verified negative results. An accepted model is absent.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -130,7 +130,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Lead v99: DPO complete; post-DPO SFT verified through 70/561. Step 140, predictions, scoring, and model quality remain unverified.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -157,7 +157,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Historical mock adapter rejected. Fifty rights-bound candidates await two independent reviews; training is absent.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -184,7 +184,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Frozen-feature projection trained and rejected. Product serving requires a future accepted rights-cleared result.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -211,7 +211,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Protocol frozen; accepted candidate absent. Do not report calibrated risk or coverage results.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -238,7 +238,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					description:
 						'Lead draft exists. Preserve negative results and open gates; recorded/scored human defense rehearsal remains required.',
 					dependency:
-						'Leader BACKLOG_LEAD.md v101 and hash-bound chapter artifacts',
+						'Leader BACKLOG_LEAD.md v522 and hash-bound chapter artifacts',
 					status: 'pending-data',
 					captureBrief: [
 						'Obtain the actual source artifact; a backlog summary is not independent verification.',
@@ -264,14 +264,15 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					title: 'Compound explanation UI screenshot',
 					kind: 'screenshot',
 					description:
-						'Show confidence, shared compounds, nutrition, and safety in one substitution card.',
+						'Show documented compound overlap when available; keep unsupported nutrition, functional suitability, and safety claims unavailable.',
 					route: '/cook',
 					dependency:
 						'Existing CompoundExplanation surface; real Epic 4 payload for final values',
 					status: 'ready',
 					captureBrief: [
-						'Use a substitution with the expanded explanation visible.',
-						'Include compound provenance; missing nutrition stays unavailable.',
+						'Use a substitution with its expanded explanation visible.',
+						'Include compound provenance; mark nutrition and suitability unavailable unless source evidence is present.',
+						'Do not present compound overlap as confidence, functional equivalence, or allergy safety.',
 					],
 				},
 				{
@@ -368,7 +369,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			id: '11',
 			title: 'Photo → Intelligence Pipeline',
 			focus:
-				'Show the investor-facing path from camera input to graph-grounded recipes.',
+				'Show the photo-to-recipe workflow while keeping model readiness and fallback states explicit.',
 			criteria: [
 				'Capture the photo pipeline UI',
 				'Show ingredient detection flowing into graph query',
@@ -428,7 +429,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			id: '12',
 			title: 'System Architecture',
 			focus:
-				'Make the complete IRON CHEF v3 stack and deployment assumptions easy to defend.',
+				'Make the current IRON CHEF v4 stack and deployment assumptions easy to defend.',
 			criteria: [
 				'Include the full stack architecture diagram',
 				'Document deployment boundaries',
@@ -437,7 +438,7 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 			artifacts: [
 				{
 					id: 'chapter-12-stack',
-					title: 'IRON CHEF v3 stack diagram',
+					title: 'IRON CHEF v4 stack diagram',
 					chapterId: '12',
 					kind: 'diagram',
 					description:
@@ -579,6 +580,23 @@ export const thesisEvidenceManifest: ThesisEvidenceManifest = {
 					captureBrief: [
 						'Copy the schema/version footer into the thesis notes.',
 						'Do not remove pending labels from illustrative values.',
+					],
+				},
+				{
+					id: 'chapter-13-t56-saved-output',
+					chapterId: '13',
+					title: 'Saved-output validation exhibit (T56)',
+					kind: 'demo',
+					description:
+						'Pending integration of the corrected exhibit. The 200-case validation diagnostic is not product-quality evidence and does not establish method superiority.',
+					dependency:
+						'Leader T56 corrected saved-output exhibit and its hash-bound source files',
+					status: 'pending-data',
+					captureBrief: [
+						'Load the corrected, hash-pinned saved-output exhibit; the backlog summary is not the source artifact.',
+						'Keep the 200-case validation result diagnostic; do not call it product quality or method superiority.',
+						'Record browser workflow p95 separately from inference and exhibit generation.',
+						'Keep presenter/listener rehearsal and backup video pending until their evidence exists.',
 					],
 				},
 			],
