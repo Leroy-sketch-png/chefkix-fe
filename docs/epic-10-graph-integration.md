@@ -17,9 +17,18 @@ The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and disp
 
 When a successful search returns no ingredients, the Explorer says the ingredient is not in the current graph and does not create a node. This empty result is distinct from a failed search, which keeps its visible error state.
 
+If compound-overlap detail returns no result, the Explorer releases its request marker so selecting the edge again can retry after the provider recovers. The component regression and headed browser case cover the empty-first-response, successful-retry path.
+
 ## Local live FE-to-Monolith smoke
 
-`tests/e2e/graph-explorer-live.spec.ts` is an opt-in headed browser check with API route interception disabled. Build the FE with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true` and `NEXT_PUBLIC_BASE_URL=http://localhost:8080`, run the Monolith against an isolated Mongo database, and allow the E2E origin `http://localhost:3200` through `app.cors.allowed-origins`. Then set `CHEFKIX_LIVE_MONOLITH=true` and run:
+`tests/e2e/graph-explorer-live.spec.ts` is an opt-in headed browser check with API route interception disabled. Build the FE with `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true` and `NEXT_PUBLIC_BASE_URL=http://localhost:8080`, run the Monolith against an isolated Mongo database, and allow the E2E origin `http://localhost:3200` through `app.cors.allowed-origins`. Set both `CHEFKIX_LIVE_MONOLITH=true` and `NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true` in the Playwright process environment; the spec checks both flags at test time:
+
+```powershell
+$env:CHEFKIX_LIVE_MONOLITH = 'true'
+$env:NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED = 'true'
+```
+
+Then run:
 
 ```powershell
 npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer-live.spec.ts --workers=1

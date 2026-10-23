@@ -318,6 +318,63 @@ test('graph explorer refuses malformed identities and response shapes', async ({
 	).toHaveCount(0)
 })
 
+test('compound detail can retry after an empty provider response', async ({
+	page,
+}) => {
+	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
+	let compoundRequests = 0
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				nodes: [
+					{ id: 'butter', name: 'Butter' },
+					{ id: 'coconut oil', name: 'Coconut Oil' },
+				],
+				edges: [
+					{ source: 'butter', target: 'coconut oil', type: 'substitution' },
+				],
+			}),
+		}),
+	)
+	await page.route('**/api/v1/compound/analyze-pair', async route => {
+		compoundRequests += 1
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				success: true,
+				data:
+					compoundRequests === 1
+						? {}
+						: {
+								is_compound_grounded: true,
+								overlap_percentage: 0.42,
+								overlap_semantics: 'Jaccard of official presence profiles',
+							},
+			}),
+		})
+	})
+
+	await page.goto('/explore/graph')
+	const edge = page.getByRole('button', {
+		name: 'View Butter to Coconut Oil relationship',
+	})
+	await expect(edge).toBeVisible()
+	await edge.click()
+	await expect(page.getByLabel('Relationship details')).toContainText(
+		'FooDB comparison unavailable',
+	)
+	await expect.poll(() => compoundRequests).toBe(1)
+
+	await edge.click()
+	await expect(page.getByLabel('Relationship details')).toContainText(
+		'42% Jaccard overlap of documented compound presence',
+	)
+	await expect.poll(() => compoundRequests).toBe(2)
+})
+
 test('the latest selected edge owns evidence when requests finish out of order', async ({
 	page,
 }) => {
