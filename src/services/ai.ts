@@ -525,6 +525,20 @@ export const suggestSubstitutions = async (
 }
 
 /**
+ * Fetch the source-only, purpose-authenticated research contract. The FE
+ * proxy supplies the research credential and fixes the request reason.
+ */
+export const fetchResearchSubstitutionEvidence = async (
+	sourceIngredient: string,
+): Promise<ResearchSubstitutionResponse> => {
+	const response = await aiApi.post<ResearchSubstitutionResponse>(
+		API_ENDPOINTS.AI.RESEARCH_SUGGEST_SUBSTITUTIONS,
+		{ ingredient: sourceIngredient },
+	)
+	return response.data
+}
+
+/**
  * Remix a recipe with AI-powered variations (vegetarian, spicy, quick, etc.)
  */
 export const remixRecipe = async (

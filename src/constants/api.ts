@@ -241,6 +241,7 @@ export const API_ENDPOINTS = {
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
 		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
+		RESEARCH_SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/research/suggest_substitutions`,
 		REMIX_RECIPE: `${API_PREFIX}/remix_recipe`,
 		// Epic 12 contract; the Leader endpoint can override this path.
 		VOICE_COPILOT: `${API_PREFIX}/voice-copilot`,

@@ -2,7 +2,10 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SubstitutionButton } from '../SubstitutionButton'
 import { parseResearchSubstitutionResponse } from '../research-substitution-contract'
 import { calculateSubstitutionDialogPosition } from '../substitution-dialog-position'
-import { suggestSubstitutions } from '@/services/ai'
+import {
+	fetchResearchSubstitutionEvidence,
+	suggestSubstitutions,
+} from '@/services/ai'
 import type { ResearchSubstitutionResponse } from '@/services/ai'
 
 const mockedRequireAuth = jest.fn(() => true)
@@ -15,6 +18,7 @@ jest.mock('next-intl', () => ({
 
 jest.mock('@/services/ai', () => ({
 	suggestSubstitutions: jest.fn(),
+	fetchResearchSubstitutionEvidence: jest.fn(),
 }))
 
 jest.mock('@/services/cookingSession', () => ({
@@ -26,6 +30,7 @@ jest.mock('@/hooks/useAuthActionGuard', () => ({
 }))
 
 const mockedSuggest = jest.mocked(suggestSubstitutions)
+const mockedFetchResearch = jest.mocked(fetchResearchSubstitutionEvidence)
 
 const unresolvedIdentity: ResearchSubstitutionResponse = {
 	contractVersion: 'graph-preflight-v2',
@@ -39,7 +44,35 @@ const unresolvedIdentity: ResearchSubstitutionResponse = {
 describe('SubstitutionButton research evidence consumer', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
+		delete process.env.NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED
 		mockedRequireAuth.mockReturnValue(true)
+	})
+
+	it('keeps the product substitution caller active when the research flag is absent', async () => {
+		render(<SubstitutionButton ingredientName='butter' />)
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+		await waitFor(() => expect(mockedSuggest).toHaveBeenCalled())
+		expect(mockedFetchResearch).not.toHaveBeenCalled()
+	})
+
+	it('uses the source-only research caller on product surfaces when explicitly enabled', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED = 'true'
+		mockedFetchResearch.mockResolvedValueOnce(unresolvedIdentity)
+		render(
+			<SubstitutionButton
+				ingredientName='butter'
+				recipeTitle='private recipe title'
+			/>,
+		)
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		await screen.findByText('researchIdentityUnresolved')
+		expect(mockedFetchResearch).toHaveBeenCalledWith('butter')
+		expect(mockedSuggest).not.toHaveBeenCalled()
 	})
 
 	it('is opt-in, sends only the source ingredient to its injected caller, and never falls back on abstention', async () => {
