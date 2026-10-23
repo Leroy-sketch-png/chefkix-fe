@@ -9,6 +9,7 @@ import { Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { createGroupPost } from '@/services/post'
+import { moderateContent } from '@/services/ai'
 import { useAuthStore } from '@/store/authStore'
 import { logDevError } from '@/lib/dev-log'
 
@@ -31,6 +32,7 @@ export function GroupCreatePostBox({
 	const [isOpen, setIsOpen] = useState(false)
 	const [content, setContent] = useState('')
 	const t = useTranslations('groups')
+	const socialT = useTranslations('social')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const handleSubmit = async () => {
@@ -41,12 +43,41 @@ export function GroupCreatePostBox({
 
 		setIsSubmitting(true)
 		try {
+			const moderationResult = await moderateContent(
+				content.trim(),
+				'post_caption',
+			)
+			if (!moderationResult.success) {
+				toast.error(socialT('createPostModerationFailed'))
+				return
+			}
+
+			const moderationAction = moderationResult.data?.action
+			if (moderationAction !== 'approve') {
+				if (moderationAction === 'block') {
+					toast.error(socialT('createPostBlocked'))
+				} else if (moderationAction === 'flag') {
+					toast.warning(socialT('createPostFlagged'))
+				} else {
+					toast.error(socialT('createPostModerationFailed'))
+				}
+				return
+			}
+
 			// Create post with group context using the group-specific endpoint
-			await createGroupPost(groupId, {
+			const response = await createGroupPost(groupId, {
 				content: content.trim(),
 				avatarUrl: user?.avatarUrl || '',
 				postType: 'GROUP',
 			})
+
+			if (!response.success || !response.data) {
+				toast.error(t('gpPostFailed'), {
+					position: 'top-right',
+					duration: 3000,
+				})
+				return
+			}
 
 			// Show corner toast with success message
 			toast.success(t('gpPostCreated'), {
