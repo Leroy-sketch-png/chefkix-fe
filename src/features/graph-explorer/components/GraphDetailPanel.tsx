@@ -2,6 +2,13 @@ import type { GraphEdge, GraphEvidenceLoadState, GraphNode } from '../types'
 import { useTranslations } from 'next-intl'
 
 const SHA256 = /^[a-f0-9]{64}$/i
+const CALIBRATION_COPY: Record<string, string> = {
+	ok: 'researchCalibrationStateOk',
+	uninformative: 'researchCalibrationStateUninformative',
+	vacuous: 'researchCalibrationStateVacuous',
+	no_guarantee: 'researchCalibrationStateNoGuarantee',
+	abstain: 'researchCalibrationStateAbstain',
+}
 
 function formatDelta(value: number | undefined) {
 	if (value === undefined) return 'Pending'
@@ -228,6 +235,13 @@ export function GraphEvidencePanel({
 		SHA256.test(integrity.observedSha256)
 			? integrity.observedSha256
 			: undefined
+	const calibrationStatus =
+		state.state === 'loaded' && state.response.status === 'AVAILABLE'
+			? state.response.evidence?.calibration?.status
+			: undefined
+	const calibrationCopyKey = calibrationStatus
+		? (CALIBRATION_COPY[calibrationStatus] ?? 'researchCalibrationStateUnknown')
+		: 'researchCalibrationStateUnknown'
 	return (
 		<section
 			className='border-t border-border-subtle p-4 text-sm'
@@ -297,8 +311,12 @@ export function GraphEvidencePanel({
 								'Unavailable'}
 						</p>
 						<p>
-							Calibration status: {state.response.evidence?.calibration?.status}
+							Calibration status:{' '}
+							{state.response.evidence?.calibration?.status ??
+								t('researchCalibrationStatusUnknown')}
 						</p>
+						<p>{t(calibrationCopyKey)}</p>
+						<p>{t('researchOfflineCoverageIsSeparate')}</p>
 						<p>Decision: Abstain</p>
 					</div>
 				))}

@@ -1,16 +1,17 @@
 import { render, screen } from '@testing-library/react'
+import englishMessages from '../../../../messages/en.json'
 import {
 	GraphEdgeDetailPanel,
 	GraphEvidencePanel,
 } from '../components/GraphDetailPanel'
 import type { GraphEvidenceLoadState } from '../types'
 
-jest.mock('next-intl', () => ({
-	useTranslations: () => (key: string) =>
-		key === 'artifactManifestDeclaredSha256'
-			? 'Manifest-declared SHA-256'
-			: 'Observed artifact SHA-256',
-}))
+jest.mock('next-intl', () => {
+	const messages = require('../../../../messages/en.json').recipe
+	return {
+		useTranslations: () => (key: string) => messages[key] ?? key,
+	}
+})
 
 function renderEvidencePanel(state: GraphEvidenceLoadState) {
 	return render(<GraphEvidencePanel state={state} />)
@@ -117,3 +118,60 @@ it('omits missing or malformed digests from the REFUSED state', () => {
 		screen.queryByText('Graph evidence was rendered.'),
 	).not.toBeInTheDocument()
 })
+
+it.each([
+	['ok', 'researchCalibrationStateOk'],
+	['uninformative', 'researchCalibrationStateUninformative'],
+	['vacuous', 'researchCalibrationStateVacuous'],
+	['no_guarantee', 'researchCalibrationStateNoGuarantee'],
+	['abstain', 'researchCalibrationStateAbstain'],
+])(
+	'explains calibration state %s without making a recommendation',
+	(status, messageKey) => {
+		renderEvidencePanel({
+			edgeKey: 'butter:oil:substitution',
+			state: 'loaded',
+			response: {
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				evidence: {
+					calibration: { status },
+					decision: { decision: 'ABSTAIN' },
+				},
+			},
+		})
+
+		expect(
+			screen.getByText(englishMessages.recipe[messageKey]),
+		).toBeInTheDocument()
+		expect(
+			screen.getByText(
+				englishMessages.recipe.researchOfflineCoverageIsSeparate,
+			),
+		).toBeInTheDocument()
+		expect(screen.getByText('Decision: Abstain')).toBeInTheDocument()
+	},
+)
+
+it.each([undefined, 'future_status'])(
+	'fails closed for unknown calibration status %s',
+	status => {
+		renderEvidencePanel({
+			edgeKey: 'butter:oil:substitution',
+			state: 'loaded',
+			response: {
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				evidence: {
+					calibration: status === undefined ? undefined : { status },
+					decision: { decision: 'ABSTAIN' },
+				},
+			},
+		})
+
+		expect(
+			screen.getByText(englishMessages.recipe.researchCalibrationStateUnknown),
+		).toBeInTheDocument()
+		expect(screen.getByText('Decision: Abstain')).toBeInTheDocument()
+	},
+)
