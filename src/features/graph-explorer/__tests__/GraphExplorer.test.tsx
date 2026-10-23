@@ -161,6 +161,45 @@ it('shows the grounded compound overlap after an edge is selected', async () => 
 	expect(getGraphEvidence).not.toHaveBeenCalled()
 })
 
+it('retries compound overlap after an empty result', async () => {
+	jest.mocked(getGraphData).mockResolvedValue({
+		...base,
+		nodes: [
+			...base.nodes,
+			{
+				id: 'coconut oil',
+				name: 'Coconut Oil',
+				category: 'fat',
+				allergenFlags: [],
+			},
+		],
+		edges: [{ source: 'butter', target: 'coconut oil', type: 'substitution' }],
+	})
+	jest
+		.mocked(getGraphCompoundOverlap)
+		.mockResolvedValueOnce(undefined)
+		.mockResolvedValueOnce({
+			compoundOverlap: 0.42,
+			compoundOverlapSemantics: 'Jaccard of official presence profiles',
+		})
+
+	render(<GraphExplorer />)
+	await waitFor(() =>
+		expect(screen.getByTestId('graph-content').textContent).toContain(
+			'coconut oil',
+		),
+	)
+
+	fireEvent.click(screen.getByText('Load compound overlap'))
+	await waitFor(() => expect(getGraphCompoundOverlap).toHaveBeenCalledTimes(1))
+	fireEvent.click(screen.getByText('Load compound overlap'))
+
+	await waitFor(() => expect(getGraphCompoundOverlap).toHaveBeenCalledTimes(2))
+	await waitFor(() =>
+		expect(screen.getByTestId('graph-content').textContent).toContain('0.42'),
+	)
+})
+
 it('loads abstaining shadow evidence only when the explicit feature flag is on', async () => {
 	process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
 	jest.mocked(getGraphData).mockResolvedValue({

@@ -154,7 +154,10 @@ export function GraphExplorer() {
 			requestedEdges.current.add(key)
 			try {
 				const detail = await getGraphCompoundOverlap(source, target)
-				if (!detail) return
+				if (!detail) {
+					requestedEdges.current.delete(key)
+					return
+				}
 				const update = (graph: GraphData | null) =>
 					graph && {
 						...graph,
