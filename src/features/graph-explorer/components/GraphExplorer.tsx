@@ -36,6 +36,7 @@ export function GraphExplorer() {
 	const [data, setData] = useState<GraphData | null>(null)
 	const [searchData, setSearchData] = useState<GraphData | null>(null)
 	const [error, setError] = useState<string | null>(null)
+	const [searchError, setSearchError] = useState<string | null>(null)
 	const [graphEvidence, setGraphEvidence] = useState<GraphEvidenceLoadState>()
 	const [loadingNeighborhood, setLoadingNeighborhood] = useState(false)
 	const loadedRoots = useRef(new Set<string>())
@@ -59,15 +60,20 @@ export function GraphExplorer() {
 	useEffect(() => {
 		const term = query.trim()
 		setSearchData(null)
-		if (!term) return
+		if (!term) {
+			setSearchError(null)
+			return
+		}
 		let active = true
 		const timer = window.setTimeout(() => {
 			getGraphData({ query: term, depth: 0, limit: 20 })
 				.then(result => {
-					if (active) setSearchData(result)
+					if (!active) return
+					setSearchData(result)
+					setSearchError(null)
 				})
 				.catch(() => {
-					if (active) setError('Ingredient search could not be loaded.')
+					if (active) setSearchError('Ingredient search could not be loaded.')
 				})
 		}, 250)
 		return () => {
@@ -200,6 +206,7 @@ export function GraphExplorer() {
 			)
 			.flatMap(edge => [edge.source, edge.target]),
 	).size
+	const visibleError = searchError ?? error
 
 	if (error && !data)
 		return (
@@ -380,12 +387,12 @@ export function GraphExplorer() {
 					</>
 				)}
 			</div>
-			{error && (
+			{visibleError && (
 				<div
 					className='rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-text-muted'
 					role='status'
 				>
-					{error} The current graph remains available.
+					{visibleError} The current graph remains available.
 				</div>
 			)}
 			{query.trim() && searchData && shown.length === 0 && (

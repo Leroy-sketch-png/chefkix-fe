@@ -120,6 +120,56 @@ it('reports an unknown search without inventing a graph node', async () => {
 	)
 })
 
+it('clears a failed search message after a later search succeeds', async () => {
+	jest.mocked(getGraphData).mockImplementation(async options => {
+		if (!options?.query) return base
+		if (options.query === 'temporary failure') {
+			throw new Error('search unavailable')
+		}
+		return {
+			...base,
+			nodes: [
+				{
+					id: 'peanut',
+					name: 'Peanut',
+					category: 'legume',
+					allergenFlags: ['peanut'],
+				},
+			],
+		}
+	})
+
+	render(<GraphExplorer />)
+	await waitFor(() =>
+		expect(screen.getByTestId('graph-content').textContent).toContain('butter'),
+	)
+	fireEvent.change(screen.getByPlaceholderText('Search ingredients…'), {
+		target: { value: 'temporary failure' },
+	})
+	await waitFor(() =>
+		expect(screen.getByRole('status').textContent).toContain(
+			'Ingredient search could not be loaded.',
+		),
+	)
+
+	fireEvent.change(screen.getByPlaceholderText('Search ingredients…'), {
+		target: { value: 'groundnut' },
+	})
+	await waitFor(() =>
+		expect(screen.getByTestId('graph-content').textContent).toContain('peanut'),
+	)
+	expect(screen.queryByRole('status')).toBeNull()
+
+	fireEvent.change(screen.getByPlaceholderText('Search ingredients…'), {
+		target: { value: 'temporary failure' },
+	})
+	await waitFor(() => expect(screen.getByRole('status')).toBeTruthy())
+	fireEvent.change(screen.getByPlaceholderText('Search ingredients…'), {
+		target: { value: '' },
+	})
+	expect(screen.queryByRole('status')).toBeNull()
+})
+
 it('shows the grounded compound overlap after an edge is selected', async () => {
 	jest.mocked(getGraphData).mockResolvedValue({
 		...base,
