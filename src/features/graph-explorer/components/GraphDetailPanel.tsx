@@ -1,4 +1,7 @@
 import type { GraphEdge, GraphEvidenceLoadState, GraphNode } from '../types'
+import { useTranslations } from 'next-intl'
+
+const SHA256 = /^[a-f0-9]{64}$/i
 
 function formatDelta(value: number | undefined) {
 	if (value === undefined) return 'Pending'
@@ -208,6 +211,23 @@ export function GraphEvidencePanel({
 }: {
 	state: GraphEvidenceLoadState
 }) {
+	const t = useTranslations('recipe')
+	const integrity =
+		state.state === 'loaded' ? state.response.artifactIntegrity : undefined
+	const declaredSha256 =
+		state.state === 'loaded' &&
+		state.response.status === 'REFUSED' &&
+		integrity?.expectedSha256 &&
+		SHA256.test(integrity.expectedSha256)
+			? integrity.expectedSha256
+			: undefined
+	const observedSha256 =
+		state.state === 'loaded' &&
+		state.response.status === 'REFUSED' &&
+		integrity?.observedSha256 &&
+		SHA256.test(integrity.observedSha256)
+			? integrity.observedSha256
+			: undefined
 	return (
 		<section
 			className='border-t border-border-subtle p-4 text-sm'
@@ -240,9 +260,31 @@ export function GraphEvidencePanel({
 						. No substitution decision was made.
 					</p>
 				) : state.response.status === 'REFUSED' ? (
-					<p className='mt-2 text-text-muted' role='status'>
-						Artifact integrity was refused. Graph evidence was not rendered.
-					</p>
+					<div className='mt-2 text-text-muted' role='status'>
+						<p>
+							Artifact integrity was refused. Graph evidence was not rendered.
+						</p>
+						{(declaredSha256 || observedSha256) && (
+							<dl className='mt-2 space-y-1 break-all text-xs'>
+								{declaredSha256 && (
+									<div>
+										<dt className='inline font-medium'>
+											{t('artifactManifestDeclaredSha256')}:{' '}
+										</dt>
+										<dd className='inline'>{declaredSha256}</dd>
+									</div>
+								)}
+								{observedSha256 && (
+									<div>
+										<dt className='inline font-medium'>
+											{t('artifactObservedSha256')}:{' '}
+										</dt>
+										<dd className='inline'>{observedSha256}</dd>
+									</div>
+								)}
+							</dl>
+						)}
+					</div>
 				) : (
 					<div className='mt-2 space-y-1 text-xs text-text-muted'>
 						<p>
