@@ -121,12 +121,16 @@ async function prepareAuthenticatedPage(page: Page) {
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify({
-					contractVersion: 'graph-preflight-v2',
-					sourceIdentityStatus: 'unresolved',
-					sourceIngredientId: null,
-					graphStatus: 'not_evaluated',
-					disposition: 'abstain',
-					abstentionReason: 'source_identity_unresolved',
+					success: true,
+					statusCode: 200,
+					data: {
+						contractVersion: 'graph-preflight-v2',
+						sourceIdentityStatus: 'unresolved',
+						sourceIngredientId: null,
+						graphStatus: 'not_evaluated',
+						disposition: 'abstain',
+						abstentionReason: 'source_identity_unresolved',
+					},
 				}),
 			})
 			return

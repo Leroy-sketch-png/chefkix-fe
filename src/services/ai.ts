@@ -531,11 +531,15 @@ export const suggestSubstitutions = async (
 export const fetchResearchSubstitutionEvidence = async (
 	sourceIngredient: string,
 ): Promise<ResearchSubstitutionResponse> => {
-	const response = await aiApi.post<ResearchSubstitutionResponse>(
+	const response = await aiApi.post<ApiResponse<ResearchSubstitutionResponse>>(
 		API_ENDPOINTS.AI.RESEARCH_SUGGEST_SUBSTITUTIONS,
 		{ ingredient: sourceIngredient },
 	)
-	return response.data
+	const envelope = response.data
+	if (envelope?.success !== true || !envelope.data) {
+		throw new Error('Research substitution response envelope is invalid')
+	}
+	return envelope.data
 }
 
 /**

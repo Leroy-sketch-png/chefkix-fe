@@ -190,10 +190,25 @@ describe('compound AI proxy routes', () => {
 		process.env.IRON_CHEF_RESEARCH_API_KEY =
 			'research-secret-that-is-more-than-thirty-two-characters'
 		const upstream = jest.spyOn(global, 'fetch').mockResolvedValue(
-			new Response('{"contractVersion":"graph-preflight-v2"}', {
-				status: 200,
-				headers: { 'content-type': 'application/json' },
-			}),
+			new Response(
+				JSON.stringify({
+					success: true,
+					statusCode: 200,
+					message: null,
+					data: {
+						contractVersion: 'graph-preflight-v2',
+						sourceIdentityStatus: 'ambiguous',
+						sourceIngredientId: null,
+						graphStatus: 'not_evaluated',
+						disposition: 'abstain',
+						abstentionReason: 'source_identity_ambiguous',
+					},
+				}),
+				{
+					status: 200,
+					headers: { 'content-type': 'application/json' },
+				},
+			),
 		)
 		const response = await POST(
 			request(
@@ -206,6 +221,11 @@ describe('compound AI proxy routes', () => {
 		)
 
 		expect(response.status).toBe(200)
+		const responseBody = await response.text()
+		expect(JSON.parse(responseBody)).toMatchObject({
+			success: true,
+			data: { contractVersion: 'graph-preflight-v2' },
+		})
 		expect(upstream).toHaveBeenCalledWith(
 			'http://ai.internal:8000/api/v1/suggest_substitutions',
 			expect.objectContaining({
@@ -223,7 +243,7 @@ describe('compound AI proxy routes', () => {
 			'X-ChefKix-Allergen-Flags',
 		)
 		expect(response.headers.get('X-Iron-Chef-Research-Key')).toBeNull()
-		expect(await response.text()).not.toContain(
+		expect(responseBody).not.toContain(
 			'research-secret-that-is-more-than-thirty-two-characters',
 		)
 	})
