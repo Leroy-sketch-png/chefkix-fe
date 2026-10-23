@@ -42,6 +42,8 @@ The 2026-10-23 headed Chrome run passed on desktop and iPhone-sized Chromium. Th
 
 Evidence loading is bound to the currently selected edge. If the user selects another edge before an earlier request completes, the late response is ignored.
 
+The headed browser regression in `tests/e2e/graph-explorer.spec.ts` also feeds the evidence panel an `AVAILABLE` response whose expected and observed SHA-256 values differ. The panel must show the unavailable state and omit both the manifest hash and any decision. The case runs in desktop and iPhone-sized Chromium with local API fixtures; it verifies client refusal behavior, not tampering against a live accepted graph artifact.
+
 When explicitly enabled for local integration work, the Explorer map still uses the bounded legacy knowledge API. This is not an accepted M-C artifact load and must not be enabled as the product graph until the canonical hash-pinned artifact, its IDs, and the graph-product route are accepted and integrated. Shadow evidence may report an unknown identity; it must not resolve aliases or fall back to another graph.
 
 The monolith ships a small seed set; production collection contents may differ. A full Leader graph import remains a separate data task; this contract keeps both the response and the rendered graph bounded when that data arrives.

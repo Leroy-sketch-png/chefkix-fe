@@ -11,7 +11,7 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
 	const searchTerms: string[] = []
 	const evidenceRequests: string[] = []
-	let evidenceFault: 'none' | 'identity' | 'unit' = 'none'
+	let evidenceFault: 'none' | 'identity' | 'unit' | 'fingerprint' = 'none'
 	const nodes = [
 		{
 			id: 'butter',
@@ -129,7 +129,8 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 				artifactIntegrity: {
 					status: 'VERIFIED',
 					expectedSha256: 'a'.repeat(64),
-					observedSha256: 'a'.repeat(64),
+					observedSha256:
+						evidenceFault === 'fingerprint' ? 'b'.repeat(64) : 'a'.repeat(64),
 				},
 				evidence: {
 					identityResolution: {
@@ -218,7 +219,16 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 			'Graph evidence is unavailable. No substitution decision was made.',
 		)
 		await expect(panel).not.toContainText('Artifact manifest SHA-256')
+		evidenceFault = 'fingerprint'
+		await page.getByRole('button', { name: 'Explore Butter' }).press('Enter')
+		await edge.click()
+		await expect(panel).toContainText(
+			'Graph evidence is unavailable. No substitution decision was made.',
+		)
+		await expect(panel).not.toContainText('Artifact manifest SHA-256')
+		await expect(panel).not.toContainText('Decision:')
 		expect(evidenceRequests).toEqual([
+			'butter:coconut oil',
 			'butter:coconut oil',
 			'butter:coconut oil',
 			'butter:coconut oil',

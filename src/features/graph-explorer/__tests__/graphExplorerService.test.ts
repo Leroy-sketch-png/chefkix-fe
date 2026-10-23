@@ -486,6 +486,17 @@ describe('live graph API', () => {
 				artifactIntegrity: {
 					status: 'VERIFIED',
 					expectedSha256: hash,
+					observedSha256: 'b'.repeat(64),
+				},
+			}),
+		).toThrow('The graph evidence artifact fingerprint is invalid.')
+		expect(() =>
+			normalizeGraphEvidence({
+				contractVersion: 'graph-evidence.v1',
+				status: 'AVAILABLE',
+				artifactIntegrity: {
+					status: 'VERIFIED',
+					expectedSha256: hash,
 					observedSha256: hash,
 				},
 				evidence: {
