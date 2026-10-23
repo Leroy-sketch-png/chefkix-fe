@@ -39,6 +39,14 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		const url = new URL(route.request().url())
 		const query = url.searchParams.get('q')
 		if (query) searchTerms.push(query)
+		if (query === 'temporary failure') {
+			await route.fulfill({
+				status: 503,
+				contentType: 'application/json',
+				body: JSON.stringify({ message: 'temporary failure' }),
+			})
+			return
+		}
 		const data = query
 			? query === 'unlisted spice'
 				? {
@@ -171,13 +179,31 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 
 	await page
 		.getByRole('textbox', { name: 'Search ingredients' })
+		.fill('temporary failure')
+	const searchError = page
+		.getByRole('status')
+		.filter({ hasText: 'Ingredient search could not be loaded.' })
+	await expect(searchError).toBeVisible()
+
+	await page
+		.getByRole('textbox', { name: 'Search ingredients' })
 		.fill('groundnut')
 	await expect(page.getByText('1 search matches')).toBeVisible()
+	await expect(
+		page
+			.getByRole('status')
+			.filter({ hasText: 'Ingredient search could not be loaded.' }),
+	).toHaveCount(0)
 	await expect(
 		page.getByRole('button', { name: 'Explore Peanut' }),
 	).toBeVisible()
 	expect(searchTerms).toContain('groundnut')
-
+	await page
+		.getByRole('textbox', { name: 'Search ingredients' })
+		.fill('temporary failure')
+	await expect(searchError).toBeVisible()
+	await page.getByRole('textbox', { name: 'Search ingredients' }).fill('')
+	await expect(searchError).toHaveCount(0)
 	await page
 		.getByRole('textbox', { name: 'Search ingredients' })
 		.fill('unlisted spice')
@@ -237,6 +263,38 @@ test('graph search and ingredient inspection preserve evidence labels', async ({
 		await expect(page.getByTestId('graph-evidence-panel')).toHaveCount(0)
 		expect(evidenceRequests).toEqual([])
 	}
+})
+
+test('relationship map fits its viewport without horizontal clipping', async ({
+	page,
+}) => {
+	test.skip(!graphExplorerEnabled, 'Requires the explicit Explorer build flag.')
+	await page.route('**/api/v1/knowledge/graph**', route =>
+		route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				nodes: [
+					{ id: 'butter', name: 'Butter', category: 'dairy' },
+					{ id: 'olive oil', name: 'Olive Oil', category: 'oil' },
+				],
+				edges: [
+					{ source: 'olive oil', target: 'butter', type: 'substitution' },
+				],
+			}),
+		}),
+	)
+
+	await page.goto('/explore/graph')
+	const graph = page.getByRole('img', {
+		name: 'Ingredient force-directed knowledge graph',
+	})
+	await expect(graph).toBeVisible()
+	const widths = await graph.evaluate(svg => ({
+		graph: svg.getBoundingClientRect().width,
+		viewport: svg.parentElement?.getBoundingClientRect().width ?? 0,
+	}))
+	expect(widths.graph).toBeLessThanOrEqual(widths.viewport + 1)
 })
 
 test('graph explorer stays disabled without its explicit feature flag', async ({
@@ -345,6 +403,17 @@ test('compound detail can retry after an empty provider response', async ({
 				edges: [
 					{ source: 'butter', target: 'coconut oil', type: 'substitution' },
 				],
+			}),
+		}),
+	)
+	await page.route('**/api/v1/graph/evidence**', route =>
+		route.fulfill({
+			status: 503,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				contractVersion: 'graph-evidence.v1',
+				status: 'UNAVAILABLE',
+				unavailableReason: 'FEATURE_DISABLED',
 			}),
 		}),
 	)

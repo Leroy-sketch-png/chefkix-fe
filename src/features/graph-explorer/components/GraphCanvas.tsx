@@ -86,6 +86,8 @@ export function GraphCanvas({
 			? graphEvidence
 			: undefined
 	const [view, setView] = useState(initialView)
+	const [canvasWidth, setCanvasWidth] = useState(width)
+	const canvasRef = useRef<HTMLDivElement>(null)
 	const dragRef = useRef<string | null>(null)
 	const panRef = useRef<{
 		startX: number
@@ -94,6 +96,26 @@ export function GraphCanvas({
 	} | null>(null)
 	const focusedSearchRef = useRef<string | null>(null)
 	const userMovedViewRef = useRef(false)
+	const canvasHeight = Math.max(
+		440,
+		Math.min(height, Math.round((canvasWidth * height) / width)),
+	)
+
+	useEffect(() => {
+		const canvas = canvasRef.current
+		if (!canvas) return
+
+		const measure = () => {
+			const nextWidth = Math.round(canvas.getBoundingClientRect().width)
+			if (nextWidth > 0) setCanvasWidth(nextWidth)
+		}
+		measure()
+		if (typeof ResizeObserver === 'undefined') return
+
+		const observer = new ResizeObserver(measure)
+		observer.observe(canvas)
+		return () => observer.disconnect()
+	}, [])
 
 	const layoutData = useMemo(() => {
 		const edges = data.edges.filter(
@@ -109,8 +131,8 @@ export function GraphCanvas({
 	}, [data.edges, data.nodes, query, searchTargetId, signals])
 	const { positions, dragNode, pinNode } = useForceLayout(
 		layoutData,
-		width,
-		height,
+		canvasWidth,
+		canvasHeight,
 	)
 	const degree = useMemo(
 		() =>
@@ -164,14 +186,14 @@ export function GraphCanvas({
 		const node = positions.get(highlightedId)
 		if (!node) return
 		const scale = 1.45
-		const x = node.x - width / scale / 2
-		const y = node.y - height / scale / 2
+		const x = node.x - canvasWidth / scale / 2
+		const y = node.y - canvasHeight / scale / 2
 		setView(previous =>
 			previous.x === x && previous.y === y && previous.scale === scale
 				? previous
 				: { x, y, scale },
 		)
-	}, [highlightedId, positions, query])
+	}, [canvasHeight, canvasWidth, highlightedId, positions, query])
 
 	function getGraphPosition(
 		event: ReactPointerEvent<SVGSVGElement>,
@@ -180,10 +202,11 @@ export function GraphCanvas({
 		return {
 			x:
 				view.x +
-				((event.clientX - rect.left) / rect.width) * (width / view.scale),
+				((event.clientX - rect.left) / rect.width) * (canvasWidth / view.scale),
 			y:
 				view.y +
-				((event.clientY - rect.top) / rect.height) * (height / view.scale),
+				((event.clientY - rect.top) / rect.height) *
+					(canvasHeight / view.scale),
 		}
 	}
 
@@ -216,11 +239,11 @@ export function GraphCanvas({
 		userMovedViewRef.current = true
 		setView(previous => {
 			const scale = Math.max(0.35, Math.min(2.2, previous.scale + delta))
-			const centerX = previous.x + width / previous.scale / 2
-			const centerY = previous.y + height / previous.scale / 2
+			const centerX = previous.x + canvasWidth / previous.scale / 2
+			const centerY = previous.y + canvasHeight / previous.scale / 2
 			return {
-				x: centerX - width / scale / 2,
-				y: centerY - height / scale / 2,
+				x: centerX - canvasWidth / scale / 2,
+				y: centerY - canvasHeight / scale / 2,
 				scale,
 			}
 		})
@@ -251,6 +274,7 @@ export function GraphCanvas({
 					</span>
 				</div>
 				<div
+					ref={canvasRef}
 					className='relative overflow-x-auto bg-bg-elevated/30'
 					style={{
 						backgroundImage:
@@ -259,8 +283,8 @@ export function GraphCanvas({
 					}}
 				>
 					<svg
-						viewBox={`${view.x} ${view.y} ${width / view.scale} ${height / view.scale}`}
-						className='min-h-[440px] min-w-[620px] w-full touch-none cursor-grab md:min-h-[540px]'
+						viewBox={`${view.x} ${view.y} ${canvasWidth / view.scale} ${canvasHeight / view.scale}`}
+						className='block w-full touch-none cursor-grab'
 						role='img'
 						aria-label='Ingredient force-directed knowledge graph'
 						onPointerMove={event => {
@@ -271,10 +295,10 @@ export function GraphCanvas({
 								const rect = event.currentTarget.getBoundingClientRect()
 								const dx =
 									((event.clientX - pan.startX) / rect.width) *
-									(width / pan.view.scale)
+									(canvasWidth / pan.view.scale)
 								const dy =
 									((event.clientY - pan.startY) / rect.height) *
-									(height / pan.view.scale)
+									(canvasHeight / pan.view.scale)
 								setView({ ...pan.view, x: pan.view.x - dx, y: pan.view.y - dy })
 							}
 						}}

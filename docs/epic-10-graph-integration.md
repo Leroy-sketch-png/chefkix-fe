@@ -17,6 +17,8 @@ The client requires `nodes` and `edges` arrays, nonblank ingredient IDs and disp
 
 When a successful search returns no ingredients, the Explorer says the ingredient is not in the current graph and does not create a node. This empty result is distinct from a failed search, which keeps its visible error state.
 
+Search failures use their own status state. A later successful query clears that search message, and clearing the query removes it; neither action clears an unrelated neighborhood or compound error. The graph SVG measures its map container and recomputes layout dimensions on resize, so narrow screens render the full map without the previous 620 px minimum-width overflow.
+
 If compound-overlap detail returns no result, the Explorer releases its request marker so selecting the edge again can retry after the provider recovers. The component regression and headed browser case cover the empty-first-response, successful-retry path.
 
 ## Local live FE-to-Monolith smoke
@@ -34,7 +36,7 @@ Then run:
 npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer-live.spec.ts --workers=1
 ```
 
-The 2026-10-23 headed Chrome run passed on desktop and iPhone-sized Chromium. The isolated legacy seed returned 25 nodes and 5 edges, including the exact declared alias `lemon juice` resolving to canonical `lemon`; selecting Salt also loaded the `salt` root neighborhood with the `salt` → `lemon` edge through the repository alias query. An unknown search returned no nodes or edges. Of 59 seeded substitution statements, 4 resolve through canonical names, 1 through an explicit alias, and 54 remain unresolved. The test verifies the unknown-identity behavior, exact alias edge, root expansion, and preview boundary. This is a local legacy API smoke check; it does not load or accept the hash-pinned Leader artifact, call the live shadow evidence provider, establish research identity mapping, or certify deployed behavior.
+The 2026-10-23 headed Chrome run passed on desktop and iPhone-sized Chromium. The isolated legacy seed returned 25 nodes and 5 edges, including the exact declared alias `lemon juice` resolving to canonical `lemon`; selecting Salt also loaded the `salt` root neighborhood with the `salt` → `lemon` edge through the repository alias query. An unknown search returned no nodes or edges. The responsive map regression failed before the sizing fix (620 px SVG in a 357 px mobile map viewport) and passes on both viewports after the map measures its container. Of 59 seeded substitution statements, 4 resolve through canonical names, 1 through an explicit alias, and 54 remain unresolved. The test verifies the unknown-identity behavior, exact alias edge, root expansion, and preview boundary. This is a local legacy API smoke check; it does not load or accept the hash-pinned Leader artifact, call the live shadow evidence provider, establish research identity mapping, or certify deployed behavior.
 
 ## Shadow evidence panel
 
