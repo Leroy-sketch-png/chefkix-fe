@@ -248,6 +248,8 @@ describe('SubstitutionButton research evidence consumer', () => {
 			await screen.findByText('researchRecommendationsWithheld'),
 		).toBeTruthy()
 		expect(screen.getByText(manifestSha256)).toBeTruthy()
+		expect(screen.getByText('researchGraphSourceSplitLabel')).toBeTruthy()
+		expect(screen.getByText('train')).toBeTruthy()
 		expect(screen.queryByText('sunflower oil')).toBeNull()
 	})
 
@@ -287,6 +289,51 @@ describe('SubstitutionButton research evidence consumer', () => {
 			await screen.findByText('researchRecommendationsWithheld'),
 		).toBeTruthy()
 		expect(screen.getByText(manifestSha256)).toBeTruthy()
+		expect(screen.getByText('researchGraphSourceSplitLabel')).toBeTruthy()
+		expect(screen.getByText('train')).toBeTruthy()
+	})
+
+	it('withholds malformed returned graph provenance', async () => {
+		const malformedResponse = {
+			contractVersion: 'graph-evidence-v1',
+			graphStatus: 'ready',
+			graphProvenance: {
+				artifactId: 'graph-2026-01',
+				manifestSha256: null,
+				sourceSplit: 'train',
+				transformationId: 'graph-v1',
+			},
+			calibration: {
+				status: 'no_guarantee',
+				bindingStatus: 'missing',
+				manifestSha256: null,
+				calibrationCaseCount: 0,
+				noGuaranteeReason: 'missing_artifact',
+			},
+			disposition: 'abstain',
+			rankerProvenance: null,
+			hardFilterProvenance: null,
+			abstentionReasons: ['calibration_not_ok'],
+			candidates: [],
+		}
+		expect(parseResearchSubstitutionResponse(malformedResponse)).toBeNull()
+		const fetcher = jest
+			.fn()
+			.mockResolvedValue(
+				malformedResponse as unknown as ResearchSubstitutionResponse,
+			)
+		render(
+			<SubstitutionButton ingredientName='butter' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		expect(await screen.findByText('researchGenericAbstention')).toBeTruthy()
+		expect(screen.queryByText('researchGraphManifestHashLabel')).toBeNull()
+		expect(screen.queryByText('researchGraphSourceSplitLabel')).toBeNull()
+		expect(mockedSuggest).not.toHaveBeenCalled()
 	})
 
 	it('omits graph provenance when it is absent', async () => {
@@ -344,6 +391,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 				await screen.findByText('researchRecommendationsWithheld'),
 			).toBeTruthy()
 			expect(screen.queryByText('researchGraphManifestHashLabel')).toBeNull()
+			expect(screen.queryByText('researchGraphSourceSplitLabel')).toBeNull()
 			unmount()
 		}
 	})
