@@ -33,7 +33,8 @@ function translateAbstentionReason(
 function GraphProvenanceFooter({ evidence }: SubstitutionEvidencePanelProps) {
 	const t = useTranslations('recipe')
 	const provenance =
-		evidence.contractVersion === 'graph-evidence-v1' && evidence.graphProvenance
+		(evidence.contractVersion === 'graph-evidence-v1' ||
+			evidence.contractVersion === 'graph-evidence-v2') && evidence.graphProvenance
 
 	if (!provenance) return null
 

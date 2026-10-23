@@ -194,7 +194,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 	it('shows the returned graph manifest digest and source split for recommendations', async () => {
 		const manifestSha256 = '1234567890abcdef'.repeat(4)
 		const fetcher = jest.fn().mockResolvedValue({
-			contractVersion: 'graph-evidence-v1',
+			contractVersion: 'graph-evidence-v2',
 			graphStatus: 'ready',
 			graphProvenance: {
 				artifactId: 'graph-2026-01',
@@ -207,6 +207,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 				bindingStatus: 'compatible',
 				manifestSha256: 'a'.repeat(64),
 				calibrationCaseCount: 200,
+				cutoff: 10,
 				noGuaranteeReason: null,
 			},
 			disposition: 'recommendations',
@@ -490,7 +491,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 		try {
 			let resolveFetch!: (value: ResearchSubstitutionResponse) => void
 			const response: ResearchSubstitutionResponse = {
-				contractVersion: 'graph-evidence-v1',
+				contractVersion: 'graph-evidence-v2',
 				graphStatus: 'ready',
 				graphProvenance: {
 					artifactId: 'graph-2026-01',
@@ -502,7 +503,8 @@ describe('SubstitutionButton research evidence consumer', () => {
 					status: 'ok',
 					bindingStatus: 'compatible',
 					manifestSha256: 'a'.repeat(64),
-					calibrationCaseCount: 20,
+					calibrationCaseCount: 200,
+					cutoff: 10,
 					noGuaranteeReason: null,
 				},
 				disposition: 'recommendations',
@@ -570,7 +572,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 
 	it('shows available FooDB identity but not nullable confidence or ratio estimates', async () => {
 		const fetcher = jest.fn().mockResolvedValue({
-			contractVersion: 'graph-evidence-v1',
+			contractVersion: 'graph-evidence-v2',
 			graphStatus: 'ready',
 			graphProvenance: {
 				artifactId: 'graph-2026-01',
@@ -583,6 +585,7 @@ describe('SubstitutionButton research evidence consumer', () => {
 				bindingStatus: 'compatible',
 				manifestSha256: 'a'.repeat(64),
 				calibrationCaseCount: 200,
+				cutoff: 10,
 				noGuaranteeReason: null,
 			},
 			disposition: 'recommendations',
@@ -620,6 +623,157 @@ describe('SubstitutionButton research evidence consumer', () => {
 		expect(screen.queryByText('1:2')).toBeNull()
 		expect(screen.queryByText('91%')).toBeNull()
 		await waitFor(() => expect(mockedSuggest).not.toHaveBeenCalled())
+	})
+})
+
+describe('research graph-evidence cutoff contract', () => {
+	type MutableResponse = {
+		contractVersion: string
+		calibration: Record<string, unknown>
+		disposition: string
+		rankerProvenance: unknown
+		abstentionReasons: string[]
+		candidates: Array<Record<string, unknown>>
+		[key: string]: unknown
+	}
+
+	const supportedResponse = (): MutableResponse => ({
+		contractVersion: 'graph-evidence-v2',
+		graphStatus: 'ready',
+		graphProvenance: {
+			artifactId: 'graph-2026-01',
+			manifestSha256: 'a'.repeat(64),
+			sourceSplit: 'train',
+			transformationId: 'graph-v1',
+		},
+		calibration: {
+			status: 'ok',
+			bindingStatus: 'compatible',
+			manifestSha256: 'b'.repeat(64),
+			calibrationCaseCount: 200,
+			cutoff: 10,
+			noGuaranteeReason: null,
+		},
+		disposition: 'recommendations',
+		rankerProvenance: {
+			rankerId: 'ranker-v1',
+			scorerSha256: 'c'.repeat(64),
+		},
+		hardFilterProvenance: {
+			policyId: 'filter-v1',
+			policySha256: 'd'.repeat(64),
+		},
+		abstentionReasons: [],
+		candidates: [
+			{
+				candidateId: 'node-1',
+				rank: 1,
+				name: 'sunflower oil',
+				fooDbId: null,
+				knownNode: true,
+				trainPairCount: 2,
+				seen: true,
+				ratio: null,
+				confidenceScore: null,
+			},
+		],
+	})
+
+	it('accepts a compatible, sufficiently supported cutoff exactly at 10', () => {
+		expect(parseResearchSubstitutionResponse(supportedResponse())).not.toBeNull()
+	})
+
+	it('accepts a ranked candidate list exactly at its finite cutoff', () => {
+		const value = supportedResponse()
+		value.calibration.cutoff = 2
+		value.candidates.push({
+			...value.candidates[0],
+			candidateId: 'node-2',
+			rank: 2,
+		})
+		expect(parseResearchSubstitutionResponse(value)).not.toBeNull()
+	})
+
+	it.each([
+		['legacy v1 recommendation without a cutoff', (value: MutableResponse) => {
+			value.contractVersion = 'graph-evidence-v1'
+			delete value.calibration.cutoff
+		}],
+		['ok cutoff above 10', (value: MutableResponse) => {
+			value.calibration.cutoff = 11
+		}],
+		['fractional finite cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = 9.5
+		}],
+		['zero finite cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = 0
+		}],
+		['negative finite cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = -1
+		}],
+		['recommendation with an uninformative cutoff', (value: MutableResponse) => {
+			value.calibration.status = 'uninformative'
+			value.calibration.cutoff = 11
+		}],
+		['missing cutoff', (value: MutableResponse) => {
+			delete value.calibration.cutoff
+		}],
+		['null cutoff on an ok state', (value: MutableResponse) => {
+			value.calibration.cutoff = null
+		}],
+		['non-finite cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = Number.POSITIVE_INFINITY
+		}],
+		['NaN cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = Number.NaN
+		}],
+		['insufficient calibration support', (value: MutableResponse) => {
+			value.calibration.calibrationCaseCount = 199
+		}],
+		['candidate count above the cutoff', (value: MutableResponse) => {
+			value.calibration.cutoff = 1
+			value.candidates.push({
+				...value.candidates[0],
+				candidateId: 'node-2',
+				rank: 2,
+			})
+		}],
+		['unknown graph candidate', (value: MutableResponse) => {
+			value.candidates[0].knownNode = false
+		}],
+		['candidate without train support', (value: MutableResponse) => {
+			value.candidates[0].trainPairCount = 0
+			value.candidates[0].seen = false
+		}],
+		['non-contiguous candidate rank', (value: MutableResponse) => {
+			value.candidates[0].rank = 2
+		}],
+	])('refuses %s', (_name, mutate) => {
+		const value = supportedResponse()
+		mutate(value)
+		expect(parseResearchSubstitutionResponse(value)).toBeNull()
+	})
+
+	it('accepts an uninformative finite cutoff only as an empty abstention', () => {
+		const value = supportedResponse()
+		value.calibration.status = 'uninformative'
+		value.calibration.cutoff = 11
+		value.disposition = 'abstain'
+		value.rankerProvenance = null
+		value.abstentionReasons = ['calibration_not_ok']
+		value.candidates = []
+		expect(parseResearchSubstitutionResponse(value)).not.toBeNull()
+	})
+
+	it('accepts a vacuous null cutoff only as an empty abstention', () => {
+		const value = supportedResponse()
+		value.calibration.status = 'vacuous'
+		value.calibration.cutoff = null
+		value.disposition = 'abstain'
+		value.rankerProvenance = null
+		value.abstentionReasons = ['calibration_not_ok']
+		value.candidates = []
+		expect(parseResearchSubstitutionResponse(value)).not.toBeNull()
 	})
 })
 

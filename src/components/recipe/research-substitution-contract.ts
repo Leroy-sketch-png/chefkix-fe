@@ -45,7 +45,9 @@ export function parseResearchSubstitutionResponse(
 		return null
 	}
 
-	if (value.contractVersion !== 'graph-evidence-v1') return null
+	const isV1 = value.contractVersion === 'graph-evidence-v1'
+	const isV2 = value.contractVersion === 'graph-evidence-v2'
+	if (!isV1 && !isV2) return null
 	if (
 		!['not_configured', 'invalid', 'ready'].includes(String(value.graphStatus))
 	) {
@@ -71,6 +73,56 @@ export function parseResearchSubstitutionResponse(
 		return null
 	}
 
+	if (isV1) {
+		// V1 never carried the numeric threshold needed to justify a supported set.
+		if (value.disposition !== 'abstain') return null
+	} else {
+		const cutoff = calibration.cutoff
+		if (
+			!(
+				cutoff === null ||
+				(typeof cutoff === 'number' &&
+					Number.isInteger(cutoff) &&
+					cutoff > 0)
+			)
+		) {
+			return null
+		}
+		const numericCutoff = typeof cutoff === 'number' ? cutoff : null
+		switch (calibration.status) {
+			case 'ok':
+				if (
+					numericCutoff === null ||
+					numericCutoff < 0 ||
+					numericCutoff > 10 ||
+					Number(calibration.calibrationCaseCount) < 200 ||
+					calibration.bindingStatus !== 'compatible' ||
+					!isSha256(calibration.manifestSha256) ||
+					calibration.noGuaranteeReason !== null
+				) {
+					return null
+				}
+				break
+			case 'uninformative':
+				if (
+					numericCutoff === null ||
+					numericCutoff <= 10 ||
+					Number(calibration.calibrationCaseCount) < 200 ||
+					calibration.bindingStatus !== 'compatible' ||
+					!isSha256(calibration.manifestSha256) ||
+					calibration.noGuaranteeReason !== null
+				) {
+					return null
+				}
+				break
+			case 'vacuous':
+			case 'no_guarantee':
+			case 'abstain':
+				if (cutoff !== null) return null
+				break
+		}
+	}
+
 	const reasons = value.abstentionReasons
 	if (
 		!Array.isArray(reasons) ||
@@ -84,7 +136,7 @@ export function parseResearchSubstitutionResponse(
 
 	const candidates = value.candidates
 	const candidateIds = new Set<string>()
-	for (const candidate of candidates) {
+	for (const [index, candidate] of candidates.entries()) {
 		if (
 			!isRecord(candidate) ||
 			!isNonEmptyString(candidate.candidateId) ||
@@ -110,6 +162,7 @@ export function parseResearchSubstitutionResponse(
 		}
 		if (candidateIds.has(candidate.candidateId)) return null
 		candidateIds.add(candidate.candidateId)
+		if (candidate.rank !== index + 1) return null
 	}
 
 	const graphProvenance = value.graphProvenance
@@ -144,6 +197,7 @@ export function parseResearchSubstitutionResponse(
 
 	if (value.disposition === 'recommendations') {
 		if (
+			!isV2 ||
 			value.graphStatus !== 'ready' ||
 			calibration.status !== 'ok' ||
 			calibration.bindingStatus !== 'compatible' ||
@@ -151,12 +205,26 @@ export function parseResearchSubstitutionResponse(
 			!rankerProvenance ||
 			!hardFilterProvenance ||
 			reasons.length !== 0 ||
-			candidates.length === 0
+			candidates.length === 0 ||
+			candidates.length > 20 ||
+			candidates.length > Number(calibration.cutoff) ||
+			candidates.some(
+				candidate => !candidate.knownNode || Number(candidate.trainPairCount) <= 0,
+			)
 		) {
 			return null
 		}
 	} else if (value.disposition === 'abstain') {
-		if (reasons.length === 0) return null
+		if (
+			reasons.length === 0 ||
+			candidates.length !== 0 ||
+			rankerProvenance !== null ||
+			(reasons.includes('empty_filtered_pool') && !hardFilterProvenance) ||
+			(reasons.includes('empty_filtered_pool') &&
+				reasons.includes('hard_filter_unavailable'))
+		) {
+			return null
+		}
 	} else {
 		return null
 	}

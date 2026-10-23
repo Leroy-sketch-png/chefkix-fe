@@ -273,8 +273,7 @@ export type ResearchAbstentionReason =
 	| 'source_identity_unresolved'
 	| 'hard_filter_unavailable'
 
-export interface ResearchGraphEvidenceResponse {
-	contractVersion: 'graph-evidence-v1'
+interface ResearchGraphEvidenceResponseBase {
 	graphStatus: 'not_configured' | 'invalid' | 'ready'
 	graphProvenance: ResearchArtifactProvenance | null
 	calibration: {
@@ -290,12 +289,33 @@ export interface ResearchGraphEvidenceResponse {
 			| 'unsupported_domain'
 			| null
 	}
-	disposition: 'recommendations' | 'abstain'
 	rankerProvenance: ResearchRankerProvenance | null
 	hardFilterProvenance: ResearchHardFilterProvenance | null
 	abstentionReasons: ResearchAbstentionReason[]
 	candidates: ResearchGraphCandidate[]
 }
+
+/** Legacy graph evidence may carry abstention evidence, never a supported set. */
+export interface ResearchGraphEvidenceResponseV1
+	 extends ResearchGraphEvidenceResponseBase {
+	contractVersion: 'graph-evidence-v1'
+	disposition: 'abstain'
+}
+
+/** Final recommendation evidence binds the protocol cutoff explicitly. */
+export interface ResearchGraphEvidenceResponseV2
+	 extends Omit<ResearchGraphEvidenceResponseBase, 'calibration'> {
+	contractVersion: 'graph-evidence-v2'
+	calibration: ResearchGraphEvidenceResponseBase['calibration'] & {
+		/** JSON null represents an unavailable or infinite/vacuous cutoff. */
+		cutoff: number | null
+	}
+	disposition: 'recommendations' | 'abstain'
+}
+
+export type ResearchGraphEvidenceResponse =
+	| ResearchGraphEvidenceResponseV1
+	| ResearchGraphEvidenceResponseV2
 
 export interface ResearchIdentityAbstentionResponse {
 	contractVersion: 'graph-preflight-v2'
