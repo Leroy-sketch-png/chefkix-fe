@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { createGroup } from '@/services/group'
+import { moderateContent } from '@/services/ai'
 import { Group, CreateGroupRequest, PrivacyType } from '@/lib/types/group'
 import { Loader2, Upload } from 'lucide-react'
 
@@ -65,6 +66,7 @@ export const CreateGroupModal = ({
 	onSuccess,
 }: CreateGroupModalProps) => {
 	const t = useTranslations('groups')
+	const socialT = useTranslations('social')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const form = useForm<CreateGroupFormValues>({
@@ -81,10 +83,24 @@ export const CreateGroupModal = ({
 		setIsSubmitting(true)
 		try {
 			const payload: CreateGroupRequest = {
-				name: values.name,
+				name: values.name.trim(),
 				description: values.description || '',
 				privacyType: values.privacyType as PrivacyType,
 				tags: values.tags || [],
+			}
+			const moderationResult = await moderateContent(
+				[payload.name, payload.description, ...payload.tags]
+					.map(value => value.trim())
+					.filter(Boolean)
+					.join('\n'),
+				'post_caption',
+			)
+			if (
+				!moderationResult.success ||
+				moderationResult.data?.action !== 'approve'
+			) {
+				toast.error(socialT('createPostModerationFailed'))
+				return
 			}
 
 			const newGroup = await createGroup(payload)
@@ -170,7 +186,7 @@ export const CreateGroupModal = ({
 												<SelectValue placeholder={t('cgPrivacyPlaceholder')} />
 											</SelectTrigger>
 										</FormControl>
-										<SelectContent>
+										<SelectContent style={{ zIndex: 9001 }}>
 											<SelectItem value='PUBLIC'>
 												<div className='flex flex-col'>
 													<span>{t('cgPublic')}</span>

@@ -2,6 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { GraphCanvas } from '../components/GraphCanvas'
 import type { GraphData } from '../types'
 
+jest.mock('next-intl', () => ({
+	useTranslations: () => (key: string) => key,
+}))
+
 jest.mock('../hooks/useForceLayout', () => ({
 	useForceLayout: () => ({
 		positions: new Map([
