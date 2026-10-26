@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { serializeOrchestratorDiagnosticJson } from './orchestrator-diagnostic-report.mjs'
 import {
 	readOwnDataProperty,
 	safeErrorMessage,
@@ -775,7 +776,7 @@ if (settings.certifyOutputIsDefault) {
 	)
 }
 
-const certificationJson = `${JSON.stringify(sanitizeDiagnosticValue(certification), null, 2)}\n`
+const certificationJson = serializeOrchestratorDiagnosticJson(certification)
 writeArtifactFile(settings.certifyOutput, certificationJson)
 
 if (settings.certifyOutputIsDefault) {
@@ -1168,7 +1169,7 @@ function writeProgressSnapshot(reason = 'progress') {
 		}
 		writeArtifactFile(
 			runProgressPath,
-			`${JSON.stringify(sanitizeDiagnosticValue(payload), null, 2)}\n`,
+			serializeOrchestratorDiagnosticJson(payload),
 		)
 	} catch {
 		// Never fail demo execution because snapshot persistence failed.
@@ -1691,7 +1692,7 @@ addWarning(`Checkpoint auto-continued: ${label}`)
 }
 
 async function runCorePreflight(page, scenarioPlan = []) {
-step(`Preflight probe: base URL ${settings.baseUrl}`)
+step('Preflight probe: configured application endpoint')
 await withRetry('preflight base-url', async () => {
 	const response = await fetchWithHardTimeout(settings.baseUrl, 20000)
 if (!response.ok && response.status !== 404) {
@@ -1700,7 +1701,7 @@ throw new Error(`Base URL unhealthy: HTTP ${response.status}`)
 })
 
 if (settings.preflightBackendRequired) {
-step(`Preflight probe: backend health ${settings.preflightBackendHealthUrl}`)
+step('Preflight probe: configured backend health endpoint')
 await withRetry('preflight backend-health', async () => {
 		let response
 		try {
@@ -1708,7 +1709,7 @@ await withRetry('preflight backend-health', async () => {
 		} catch (error) {
 			if (isConnectionRefusedError(error)) {
 				throw new Error(
-					`Backend is not reachable at ${settings.preflightBackendHealthUrl}. Start the monolith: cd d:/code/chefkix/chefkix-monolith && mvnw spring-boot:run -pl application`,
+					'Backend health endpoint is unreachable. Start the monolith: cd d:/code/chefkix/chefkix-monolith && mvnw spring-boot:run -pl application',
 				)
 			}
 			throw error
@@ -1720,7 +1721,7 @@ throw new Error(`Backend health unhealthy: HTTP ${response.status}`)
 }
 
 if (settings.preflightAuthProbeRequired && !settings.skipLogin) {
-	step(`Preflight probe: auth API ${settings.preflightAuthProbeUrl}`)
+	step('Preflight probe: configured auth API endpoint')
 	await withRetry('preflight auth-api', async () => {
 		const isUsernameProbe = /\/auth\/check-username\b/i.test(settings.preflightAuthProbeUrl)
 		const response = await fetchWithHardTimeout(
@@ -7161,10 +7162,8 @@ runState.finishedAt = new Date().toISOString()
 computeIntegrityScore()
 computeDemoConfidence()
 runState.success = runState.errors.length === 0 && runState.integrity.pass
-	const reportState = sanitizeDiagnosticValue(runState)
-
 const jsonPath = path.join(runArtifactDir, 'run-report.json')
-writeArtifactFile(jsonPath, `${JSON.stringify(reportState, null, 2)}\n`)
+writeArtifactFile(jsonPath, serializeOrchestratorDiagnosticJson(runState))
 
 const lines = [
 '# Demo Driver Run Report',

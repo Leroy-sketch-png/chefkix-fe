@@ -9,6 +9,7 @@ import {
 	sanitizeDiagnosticValue,
 } from '../src/lib/sanitize-diagnostics.mjs'
 import { serializePresenterDiagnosticReport } from './presenter-diagnostic-report.mjs'
+import { serializeOrchestratorDiagnosticJson } from './orchestrator-diagnostic-report.mjs'
 
 test('redacts known credentials, URL userinfo, identifiers, and personal email', () => {
 	const sanitized = sanitizeDiagnosticText(
@@ -239,4 +240,61 @@ test('presenter reports sanitize both persistence paths and omit raw failure out
 	assert.match(successReport, /"stepCount": 6/)
 	assert.match(failureReport, /"ok": false/)
 	assert.match(failureReport, /"pageErrorCount": 1/)
+})
+
+test('orchestrator diagnostic JSON omits URL fields across all persisted sinks', () => {
+	const source = readFileSync(new URL('./live-demo-orchestrator.mjs', import.meta.url), 'utf8')
+	assert.match(source, /writeArtifactFile\(jsonPath, serializeOrchestratorDiagnosticJson\(runState\)\)/)
+	assert.match(source, /serializeOrchestratorDiagnosticJson\(payload\)/)
+	assert.match(source, /const certificationJson = serializeOrchestratorDiagnosticJson\(certification\)/)
+	assert.doesNotMatch(source, /JSON\.stringify\((?:reportState|payload|certification)/)
+	assert.doesNotMatch(source, /step\(`Preflight probe: [^`]*\$\{settings\.(?:baseUrl|preflightBackendHealthUrl|preflightAuthProbeUrl)\}/)
+	assert.match(source, /Backend health endpoint is unreachable\. Start the monolith:/)
+	assert.doesNotMatch(source, /Backend is not reachable at \$\{settings\.preflightBackendHealthUrl\}/)
+
+	const report = serializeOrchestratorDiagnosticJson({
+		runId: 'run-2026-10-27',
+		scenario: 'smoke',
+		baseUrl: 'https://tenant-private.example/demo/PRIVATE_PATH_SENTINEL?token=TOKEN_SENTINEL',
+		settings: {
+			baseUrl: 'https://tenant-private.example/settings/NESTED_PATH_SENTINEL',
+			proxyHref: 'https://proxy-private.example/HREF_SENTINEL',
+		},
+		success: false,
+		forensics: {
+			requestFailures: 2,
+			requests: [{ url: 'https://tenant-private.example/recipes/REQUEST_PATH_SENTINEL?account=PRIVATE_ACCOUNT_SENTINEL' }],
+		},
+	})
+	assert.doesNotMatch(report, /PRIVATE_PATH_SENTINEL|TOKEN_SENTINEL|NESTED_PATH_SENTINEL|HREF_SENTINEL|REQUEST_PATH_SENTINEL|PRIVATE_ACCOUNT_SENTINEL/)
+	const parsed = JSON.parse(report)
+	assert.equal(parsed.success, false)
+	assert.equal(parsed.forensics.requestFailures, 2)
+	assert.equal(parsed.runId, 'run-2026-10-27')
+	assert.deepEqual(Object.keys(parsed.forensics.requests[0]), [])
+
+	const progress = serializeOrchestratorDiagnosticJson({
+		reason: 'step',
+		steps: [{ status: 'failed', count: 1 }],
+		preflight: {
+			selectorChecks: [
+				{ status: 'failed', url: 'https://tenant-private.example/private/PROGRESS_PATH_SENTINEL?session=SESSION_SENTINEL' },
+			],
+		},
+	})
+	assert.doesNotMatch(progress, /PROGRESS_PATH_SENTINEL|SESSION_SENTINEL/)
+	const parsedProgress = JSON.parse(progress)
+	assert.equal(parsedProgress.reason, '[OMITTED_DIAGNOSTIC_TEXT]')
+	assert.equal(parsedProgress.steps[0].count, 1)
+	assert.equal(parsedProgress.preflight.selectorChecks[0].status, 'failed')
+	assert.deepEqual(Object.keys(parsedProgress.preflight.selectorChecks[0]), ['status'])
+
+	const certification = serializeOrchestratorDiagnosticJson({
+		pass: false,
+		passedRuns: 0,
+		runs: [{ run: 1, reportPath: 'C:\\private\\run.json', baseUrl: 'https://tenant-private.example/cert/CERT_PATH_SENTINEL' }],
+	})
+	assert.doesNotMatch(certification, /CERT_PATH_SENTINEL/)
+	assert.equal(JSON.parse(certification).runs[0].run, 1)
+	assert.equal(JSON.parse(certification).runs[0].reportPath, '[OMITTED_DIAGNOSTIC_TEXT]')
 })
