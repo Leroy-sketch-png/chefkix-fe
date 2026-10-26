@@ -8,6 +8,7 @@ import {
 	sanitizeDiagnosticText,
 	sanitizeDiagnosticValue,
 } from '../src/lib/sanitize-diagnostics.mjs'
+import { serializePresenterDiagnosticReport } from './presenter-diagnostic-report.mjs'
 
 test('redacts known credentials, URL userinfo, identifiers, and personal email', () => {
 	const sanitized = sanitizeDiagnosticText(
@@ -190,4 +191,52 @@ test('orchestrator summaries omit local artifact paths from diagnostic sinks', (
 	assert.match(source, /Unable to write configured diagnostic artifact/)
 	assert.equal(source.match(/fs\.writeFileSync\(/g)?.length, 1)
 	assert.equal(source.match(/fs\.mkdirSync\(/g)?.length, 1)
+})
+
+test('presenter reports sanitize both persistence paths and omit raw failure output', () => {
+	const source = readFileSync(new URL('./demo-presenter-check.mjs', import.meta.url), 'utf8')
+	assert.match(source, /serializePresenterDiagnosticReport/)
+	assert.equal(source.match(/writeFile\(reportPath, serializePresenterDiagnosticReport\(report\)\)/g)?.length, 2)
+	assert.doesNotMatch(source, /writeFile\(reportPath, JSON\.stringify\(report/)
+	assert.doesNotMatch(source, /String\(error\?\.stack \|\| error\)/)
+	assert.doesNotMatch(source, /console\.(?:log|error)\(`Presenter check report: \$\{reportPath\}`\)/)
+	assert.match(source, /untrusted diagnostic text was omitted/)
+	assert.match(source, /report could not be saved; filesystem diagnostics were omitted/)
+	assert.match(source, /Presenter browser cleanup failed; diagnostics were omitted/)
+	assert.match(source, /Presenter check could not start; diagnostic details were omitted/)
+
+	const successReport = serializePresenterDiagnosticReport({
+		ok: true,
+		baseUrl: 'https://tenant-private.example/demo/PRIVATE_PATH_SENTINEL?token=TOKEN_SENTINEL',
+		cockpitUrl: 'https://example.invalid/sessions/COCKPIT_SENTINEL',
+		remoteUrl: 'https://example.invalid/profiles/REMOTE_SENTINEL',
+		stepCount: 6,
+		signals: {
+			pageErrors: [],
+			console: [],
+			requests: [{ url: 'https://tenant-private.example/recipes/PRIVATE_RECIPE_PATH?token=NESTED_TOKEN_SENTINEL' }],
+		},
+	})
+	const failureReport = serializePresenterDiagnosticReport({
+		ok: false,
+		baseUrl: 'https://tenant-private.example/demo/PRIVATE_PATH_SENTINEL?token=TOKEN_SENTINEL',
+		cockpitUrl: 'https://example.invalid/sessions/COCKPIT_SENTINEL',
+		remoteUrl: 'https://example.invalid/profiles/REMOTE_SENTINEL',
+		error: 'STACK_SENTINEL C:\\private\\browser\\profile',
+		cockpitText: 'PAGE_TEXT_SENTINEL',
+		pageErrorCount: 1,
+		signals: {
+			pageErrors: [{ message: 'PAGE_ERROR_SENTINEL', url: 'https://demo.test/tenants/PRIVATE_TENANT_PATH' }],
+			console: [{ text: 'CONSOLE_TEXT_SENTINEL', href: 'https://tenant-private.example/private/HREF_PATH_SENTINEL' }],
+		},
+	})
+	for (const serialized of [successReport, failureReport]) {
+		assert.doesNotMatch(serialized, /PRIVATE_PATH_SENTINEL|TOKEN_SENTINEL|COCKPIT_SENTINEL|REMOTE_SENTINEL|PRIVATE_RECIPE_PATH|NESTED_TOKEN_SENTINEL|PRIVATE_TENANT_PATH|HREF_PATH_SENTINEL/)
+	}
+	assert.doesNotMatch(failureReport, /STACK_SENTINEL|private\\browser|PAGE_TEXT_SENTINEL|PAGE_ERROR_SENTINEL|CONSOLE_TEXT_SENTINEL|SESSION_SENTINEL/)
+	assert.deepEqual(Object.keys(JSON.parse(successReport).signals.requests[0]), [])
+	assert.match(successReport, /"ok": true/)
+	assert.match(successReport, /"stepCount": 6/)
+	assert.match(failureReport, /"ok": false/)
+	assert.match(failureReport, /"pageErrorCount": 1/)
 })
