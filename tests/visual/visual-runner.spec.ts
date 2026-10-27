@@ -636,7 +636,7 @@ async function loginViaAPI(): Promise<AuthTokens> {
 
 	const data = await response.json()
 	if (!data.success || !data.data?.accessToken) {
-		throw new Error(`Login response missing token: ${JSON.stringify(data)}`)
+		throw new Error('Login response did not contain the expected access token.')
 	}
 
 	const refreshTokenCookie = extractRefreshTokenCookie(response)
