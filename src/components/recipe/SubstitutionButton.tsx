@@ -396,21 +396,25 @@ export function SubstitutionButton({
 														<span className='text-sm font-medium text-text-primary'>
 															{sub.name}
 														</span>
-														<span
-															className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
-																sub.confidenceScore >= 0.8
-																	? 'bg-success/15 text-success'
-																	: sub.confidenceScore >= 0.5
-																		? 'bg-warning/15 text-warning'
-																		: 'bg-destructive/15 text-destructive'
-															}`}
-														>
-															{Math.round(sub.confidenceScore * 100)}%
-														</span>
+														{sub.confidenceScore != null && (
+															<span
+																className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
+																	sub.confidenceScore >= 0.8
+																		? 'bg-success/15 text-success'
+																		: sub.confidenceScore >= 0.5
+																			? 'bg-warning/15 text-warning'
+																			: 'bg-destructive/15 text-destructive'
+																}`}
+															>
+																{Math.round(sub.confidenceScore * 100)}%
+															</span>
+														)}
 													</div>
-													<p className='mt-0.5 text-xs text-brand/80'>
-														{sub.ratio}
-													</p>
+													{sub.ratio && (
+														<p className='mt-0.5 text-xs text-brand/80'>
+															{sub.ratio}
+														</p>
+													)}
 													{sub.notes && (
 														<p className='mt-0.5 text-xs text-text-muted'>
 															{sub.notes}

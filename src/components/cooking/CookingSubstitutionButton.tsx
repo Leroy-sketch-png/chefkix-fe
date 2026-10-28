@@ -188,20 +188,28 @@ export function CookingSubstitutionButton({
 																<p className='font-semibold text-text-primary'>
 																	{substitution.name}
 																</p>
-																<p className='text-xs text-text-muted'>
-																	{substitution.ratio}
-																</p>
-															</div>
-															<span
-																className={cn(
-																	'rounded-full px-2 py-1 text-xs font-semibold',
-																	confidenceClass(substitution.confidenceScore),
+																{substitution.ratio && (
+																	<p className='text-xs text-text-muted'>
+																		{substitution.ratio}
+																	</p>
 																)}
-															>
-																{t('substitutionConfidence')}{' '}
-																{Math.round(substitution.confidenceScore * 100)}
-																%
-															</span>
+															</div>
+															{substitution.confidenceScore != null && (
+																<span
+																	className={cn(
+																		'rounded-full px-2 py-1 text-xs font-semibold',
+																		confidenceClass(
+																			substitution.confidenceScore,
+																		),
+																	)}
+																>
+																	{t('substitutionConfidence')}{' '}
+																	{Math.round(
+																		substitution.confidenceScore * 100,
+																	)}
+																	%
+																</span>
+															)}
 														</div>
 														<AllergenSafetyIndicator safety={safety} />
 														{substitution.notes && (
