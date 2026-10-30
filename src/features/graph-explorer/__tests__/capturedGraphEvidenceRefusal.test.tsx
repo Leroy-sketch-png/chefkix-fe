@@ -12,8 +12,14 @@ jest.mock('next-intl', () => ({
 }))
 
 const capturedResponsePath = process.env.GRAPH_EVIDENCE_CAPTURED_RESPONSE
-const expectedCaptureSha256 =
+const expectedCaptureSha256_T154 =
 	'e07f9f1987a619d75c07ec8243befddaf5e54c964f8f570e42f591447b8456b0'
+const expectedCaptureSha256_20261030 =
+	'6d1422ec15e8506e7e26fc9a629ebd6ed395e0c83ca599e0a4cb9353c34a9836'
+const supportedCaptureSha256s = new Set([
+	expectedCaptureSha256_T154,
+	expectedCaptureSha256_20261030,
+])
 const capturedResponseDescribe = capturedResponsePath ? describe : describe.skip
 
 capturedResponseDescribe(
@@ -30,7 +36,7 @@ capturedResponseDescribe(
 			const capturedSha256 = createHash('sha256')
 				.update(capturedBytes)
 				.digest('hex')
-			expect(capturedSha256).toBe(expectedCaptureSha256)
+			expect(supportedCaptureSha256s.has(capturedSha256)).toBe(true)
 
 			const capturedJson = JSON.parse(capturedBytes.toString('utf8')) as unknown
 			const response = normalizeGraphEvidence(capturedJson)
