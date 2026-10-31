@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useState, useRef, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslations } from '@/i18n/hooks'
@@ -11,6 +11,7 @@ import {
 	Camera,
 	ChefHat,
 	Clock,
+	ImageOff,
 	Loader2,
 	Sparkles,
 	Trophy,
@@ -39,6 +40,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { hasClaimablePostXp } from '@/lib/cookingXp'
 import {
+	exceedsPostDraftPhotoLimit,
+	MAX_POST_DRAFT_PHOTOS,
+} from '@/lib/post-draft-photos'
+import {
 	TRANSITION_SPRING,
 	fadeInUp,
 	BUTTON_SUBTLE_TAP,
@@ -54,6 +59,13 @@ import {
 	type PostDraftSaveState,
 } from '@/hooks/usePostDraftAutosave'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
+import {
+	createLocalImagePreviewUrlRegistry,
+	removeLocalImagePreview,
+	failLocalImagePreview,
+	markLocalImagePreviewReady,
+	type LocalImagePreview,
+} from '@/lib/local-image-previews'
 import {
 	formatShortcutLabel,
 	useModifierSymbol,
@@ -76,15 +88,6 @@ interface PendingPostLink {
 }
 
 const PENDING_POST_LINK_KEY = 'pendingPostLink'
-
-function fileToDataUrl(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error)
-		reader.readAsDataURL(file)
-	})
-}
 
 function CreatePostContent() {
 	const router = useRouter()
@@ -111,22 +114,34 @@ function CreatePostContent() {
 	const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId)
 
 	const [content, setContent] = useState('')
-	const [photoFiles, setPhotoFiles] = useState<File[]>([])
-	const [previewUrls, setPreviewUrls] = useState<string[]>([])
+	const [photos, setPhotos] = useState<LocalImagePreview[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [reviewRating, setReviewRating] = useState<number>(0)
 	const [isDraftHydrated, setIsDraftHydrated] = useState(false)
 	const [recoveredDraftExists, setRecoveredDraftExists] = useState(false)
 
-	const loadedDraftKey = useRef<string | null>(null)
-
-	// Auth guard — redirect guests to sign-in
+	const nextPhotoId = useRef(0)
+	const previewUrlRegistry = useRef(createLocalImagePreviewUrlRegistry())
+	const photoFiles = useMemo(() => photos.map(photo => photo.file), [photos])
 	useEffect(() => {
-		if (isHydrated && !isAuthenticated) {
-			const returnTo = encodeURIComponent('/post/new')
-			router.replace(`/auth/sign-in?returnTo=${returnTo}`)
+		const registry = previewUrlRegistry.current
+		return () => registry.releaseAll()
+	}, [])
+
+	const createPhotoPreview = (file: File): LocalImagePreview => {
+		const id = nextPhotoId.current++
+		try {
+			return {
+				id,
+				file,
+				previewStatus: 'loading',
+				previewUrl: previewUrlRegistry.current.create(id, file),
+			}
+		} catch (error) {
+			logDevError('Failed to create post photo preview:', error)
+			return { id, file, previewStatus: 'error', previewUrl: null }
 		}
-	}, [isHydrated, isAuthenticated, router])
+	}
 
 	const claimPendingXp = async (currentSessionId: string, postId: string) => {
 		let lastResponse: Awaited<ReturnType<typeof linkPostToSession>> | null =
@@ -210,8 +225,6 @@ function CreatePostContent() {
 		const ownerId = user?.userId
 		if (!isHydrated || !ownerId) return
 		const key = `${ownerId}:${requestedSessionId ?? 'latest'}`
-		if (loadedDraftKey.current === key) return
-		loadedDraftKey.current = key
 		let cancelled = false
 		setIsDraftHydrated(false)
 		setRecoveredDraftExists(false)
@@ -223,11 +236,8 @@ function CreatePostContent() {
 					requestedSessionId,
 				)
 				if (cancelled || !draft) return
-				const urls = await Promise.all(draft.photos.map(fileToDataUrl))
-				if (cancelled) return
 				setContent(draft.content)
-				setPhotoFiles(draft.photos)
-				setPreviewUrls(urls)
+				setPhotos(draft.photos.map(createPhotoPreview))
 				setDraftSessionId(draft.sessionId)
 				setRecoveredDraftExists(true)
 			} catch (error) {
@@ -265,23 +275,19 @@ function CreatePostContent() {
 
 		const MAX_PHOTO_SIZE = 10 * 1024 * 1024 // 10MB
 		const validFiles = files.filter(f => f.size <= MAX_PHOTO_SIZE)
-		const selectedFiles = validFiles.slice(0, 5 - photoFiles.length)
+		const selectedFiles = validFiles.slice(
+			0,
+			Math.max(0, MAX_POST_DRAFT_PHOTOS - photoFiles.length),
+		)
 		if (selectedFiles.length === 0) return
 
-		setPhotoFiles(prev => [...prev, ...selectedFiles])
-
-		selectedFiles.forEach(file => {
-			const reader = new FileReader()
-			reader.onloadend = () => {
-				setPreviewUrls(prev => [...prev, reader.result as string])
-			}
-			reader.readAsDataURL(file)
-		})
+		const selectedPhotos = selectedFiles.map(createPhotoPreview)
+		setPhotos(prev => [...prev, ...selectedPhotos])
 	}
 
-	const removePhoto = (index: number) => {
-		setPhotoFiles(prev => prev.filter((_, i) => i !== index))
-		setPreviewUrls(prev => prev.filter((_, i) => i !== index))
+	const removePhoto = (photoId: number) => {
+		previewUrlRegistry.current.release(photoId)
+		setPhotos(prev => removeLocalImagePreview(prev, photoId))
 	}
 
 	const handleSubmit = async () => {
@@ -289,6 +295,10 @@ function CreatePostContent() {
 
 		if (!content.trim() && photoFiles.length === 0) {
 			toast.error(t('toastAddContent'))
+			return
+		}
+		if (exceedsPostDraftPhotoLimit(photoFiles.length)) {
+			toast.error(t('photoLimit'))
 			return
 		}
 
@@ -402,21 +412,8 @@ function CreatePostContent() {
 						recipeName: session?.recipeTitle || 'Your creation',
 						recipeImageUrl: session?.recipeImage || '',
 						postId,
-						xpRows: [
-							{
-								id: 'cooking',
-								source: 'Cooking',
-								emoji: '🍳',
-								amount: Math.round(xpAwarded * 0.6),
-							},
-							{
-								id: 'sharing',
-								source: 'Sharing',
-								emoji: '📸',
-								amount: Math.round(xpAwarded * 0.4),
-								isHighlight: true,
-							},
-						],
+						// The link endpoint returns an authoritative total, not an attribution breakdown.
+						xpRows: [],
 						totalXp: xpAwarded,
 						currentLevel: level,
 						xpToNextLevel: xpGoal,
@@ -531,6 +528,7 @@ function CreatePostContent() {
 							}
 							tone='success'
 							className='mb-6 p-0'
+							eyebrowClassName='px-3 pt-3'
 						>
 							<motion.div
 								variants={fadeInUp}
@@ -612,6 +610,7 @@ function CreatePostContent() {
 							}
 							tone='streak'
 							className='mb-6 p-0'
+							eyebrowClassName='px-3 pt-3'
 						>
 							<motion.div
 								variants={fadeInUp}
@@ -664,8 +663,8 @@ function CreatePostContent() {
 					{/* Post Form */}
 					<PremiumSurface
 						eyebrow={tc('eyebrows.publishDraft')}
-						chipText={`${content.length}/2000`}
 						className='p-0'
+						eyebrowClassName='px-3 pt-3'
 					>
 						<motion.div
 							variants={fadeInUp}
@@ -747,31 +746,64 @@ function CreatePostContent() {
 
 								{/* Photo Previews */}
 								<AnimatePresence>
-									{previewUrls.length > 0 && (
+									{photos.length > 0 && (
 										<motion.div
 											initial={{ opacity: 0, height: 0 }}
 											animate={{ opacity: 1, height: 'auto' }}
 											exit={{ opacity: 0, height: 0 }}
 											className='mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3'
 										>
-											{previewUrls.map((url, index) => (
+											{photos.map((photo, index) => (
 												<motion.div
-													key={index}
+													key={photo.id}
 													initial={{ opacity: 0, scale: 0.8 }}
 													animate={{ opacity: 1, scale: 1 }}
 													exit={{ opacity: 0, scale: 0.8 }}
 													className='group relative aspect-square overflow-hidden rounded-xl'
 												>
-													<Image
-														src={url}
-														alt={`Preview ${index + 1}`}
-														fill
-														sizes='120px'
-														className='object-cover'
-													/>
+													{photo.previewUrl &&
+														photo.previewStatus !== 'error' && (
+															<Image
+																src={photo.previewUrl}
+																alt={`Preview ${index + 1}`}
+																fill
+																sizes='120px'
+																className={cn(
+																	'object-cover',
+																	photo.previewStatus === 'loading' &&
+																		'opacity-0',
+																)}
+																onLoad={() =>
+																	setPhotos(prev =>
+																		markLocalImagePreviewReady(prev, photo.id),
+																	)
+																}
+																onError={() => {
+																	previewUrlRegistry.current.release(photo.id)
+																	setPhotos(prev =>
+																		failLocalImagePreview(prev, photo.id),
+																	)
+																}}
+															/>
+														)}
+													{photo.previewStatus !== 'ready' && (
+														<div className='flex size-full items-center justify-center bg-bg-hover'>
+															{photo.previewStatus === 'loading' ? (
+																<Loader2
+																	className='size-5 animate-spin text-text-muted'
+																	aria-hidden='true'
+																/>
+															) : (
+																<ImageOff
+																	className='size-5 text-text-muted'
+																	aria-hidden='true'
+																/>
+															)}
+														</div>
+													)}
 													<motion.button
 														type='button'
-														onClick={() => removePhoto(index)}
+														onClick={() => removePhoto(photo.id)}
 														className='absolute right-1 top-1 flex size-9 items-center justify-center rounded-full bg-black/60 text-white opacity-70 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100'
 														whileHover={ICON_BUTTON_HOVER}
 														whileTap={ICON_BUTTON_TAP}
@@ -784,6 +816,11 @@ function CreatePostContent() {
 										</motion.div>
 									)}
 								</AnimatePresence>
+								{exceedsPostDraftPhotoLimit(photoFiles.length) && (
+									<p role='alert' className='mt-2 text-sm text-danger'>
+										{t('photoLimit')}
+									</p>
+								)}
 							</div>
 
 							{/* Footer actions */}
@@ -791,7 +828,8 @@ function CreatePostContent() {
 								<label
 									className={cn(
 										'flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-card hover:text-brand',
-										photoFiles.length >= 5 && 'cursor-not-allowed opacity-50',
+										photoFiles.length >= MAX_POST_DRAFT_PHOTOS &&
+											'cursor-not-allowed opacity-50',
 									)}
 								>
 									<Camera className='size-5' />
@@ -806,7 +844,7 @@ function CreatePostContent() {
 											count: photoFiles.length,
 										})}
 										className='hidden'
-										disabled={photoFiles.length >= 5}
+										disabled={photoFiles.length >= MAX_POST_DRAFT_PHOTOS}
 									/>
 								</label>
 
@@ -814,7 +852,9 @@ function CreatePostContent() {
 									data-testid='post-composer-submit'
 									onClick={handleSubmit}
 									disabled={
-										isSubmitting || (!content.trim() && photoFiles.length === 0)
+										isSubmitting ||
+										exceedsPostDraftPhotoLimit(photoFiles.length) ||
+										(!content.trim() && photoFiles.length === 0)
 									}
 									className={cn(
 										'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold',

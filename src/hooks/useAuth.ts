@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 
 export const useAuth = () => {
 	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+	const isLoggingOut = useAuthStore(state => state.isLoggingOut)
 	const user = useAuthStore(state => state.user)
 	const accessToken = useAuthStore(state => state.accessToken)
 	const isLoading = useAuthStore(state => state.isLoading)
@@ -16,6 +17,7 @@ export const useAuth = () => {
 
 	return {
 		isAuthenticated,
+		isLoggingOut,
 		user,
 		accessToken,
 		token: accessToken,

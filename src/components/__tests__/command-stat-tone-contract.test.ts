@@ -49,12 +49,12 @@ describe('command-stat tone authority', () => {
 		}
 	})
 
-	it('keeps positive social counts successful and zero counts neutral', () => {
+	it('keeps positive counts successful and zero or unavailable counts neutral', () => {
 		expect(readComponent('community/CommunityCommandDeck.tsx')).toContain(
 			"tone={counts.friends > 0 ? 'success' : 'muted'}",
 		)
-		expect(readComponent('challenges/ChallengesCommandDeck.tsx')).toContain(
-			"tone={counts.community > 0 ? 'success' : 'muted'}",
+		expect(readComponent('challenges/ChallengesCommandDeck.tsx')).toMatch(
+			/tone=\{\s*counts\.community !== null && counts\.community > 0\s*\? 'success'\s*:\s*'muted'\s*\}/,
 		)
 	})
 })

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
+import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -15,6 +16,7 @@ import {
 	Info,
 	Trash2,
 	Loader2,
+	ImageOff,
 	ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -44,6 +46,14 @@ import { useReducedMotionPreference } from '@/components/providers/ReducedMotion
 import { hasClaimablePostXp, isNoRecipeXpRun } from '@/lib/cookingXp'
 import type { Badge } from '@/lib/types/gamification'
 import type { CompletedChallengeReward } from '@/services/cookingSession'
+import {
+	createLocalImagePreviewUrlRegistry,
+	failLocalImagePreview,
+	markLocalImagePreviewReady,
+	removeLocalImagePreview,
+	type LocalImagePreview,
+} from '@/lib/local-image-previews'
+import { MAX_STEP_PHOTO_BYTES } from '@/lib/step-photo-store'
 
 // ============================================
 // TYPES
@@ -64,6 +74,7 @@ interface ImmediateRewardsProps {
 	isOpen: boolean
 	onClose: (capturedPhotos?: File[]) => Promise<boolean>
 	sessionId?: string
+	stepPhotos?: File[]
 	recipeName: string
 	recipeImageUrl?: string
 	// XP breakdown
@@ -91,7 +102,7 @@ interface ImmediateRewardsProps {
 	creatorTipXp?: number
 	creatorHandle?: string
 	// Deadline
-	postDeadlineHours: number
+	postDeadlineHours: number | null
 	// Achievement (if unlocked)
 	unlockedAchievement?: Badge | null
 	onPostNow: (capturedPhotos?: File[]) => Promise<boolean>
@@ -100,6 +111,7 @@ interface ImmediateRewardsProps {
 
 const MAX_CAPTURED_PHOTOS = 3
 const FULL_POST_XP_PHOTO_COUNT = 2
+const EMPTY_FILES: File[] = []
 
 // ============================================
 // SUB-COMPONENTS
@@ -194,6 +206,7 @@ export const ImmediateRewards = ({
 	isOpen,
 	onClose,
 	sessionId,
+	stepPhotos = EMPTY_FILES,
 	recipeName,
 	recipeImageUrl,
 	immediateXp,
@@ -216,65 +229,102 @@ export const ImmediateRewards = ({
 }: ImmediateRewardsProps) => {
 	const t = useTranslations('completion')
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
-	const [capturedPhotos, setCapturedPhotos] = useState<File[]>([])
-	const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([])
+	const [photos, setPhotos] = useState<LocalImagePreview[]>([])
 	const [activeAction, setActiveAction] = useState<
 		'postNow' | 'postLater' | null
 	>(null)
 	const actionLockRef = useRef(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const nextPhotoId = useRef(0)
+	const previewUrlRegistry = useRef(createLocalImagePreviewUrlRegistry())
 	const { shouldReduceMotion } = useReducedMotionPreference()
 
 	// Trigger canvas-confetti on mount (respects reduced motion internally)
 	useEffect(() => {
 		if (isOpen) {
 			triggerRecipeCompleteConfetti()
+			setPhotos(
+				stepPhotos.slice(0, MAX_CAPTURED_PHOTOS).map(file => {
+					const id = nextPhotoId.current++
+					try {
+						return {
+							id,
+							file,
+							previewStatus: 'loading' as const,
+							previewUrl: previewUrlRegistry.current.create(id, file),
+						}
+					} catch (error) {
+						logDevError('Failed to create step photo preview:', error)
+						return {
+							id,
+							file,
+							previewStatus: 'error' as const,
+							previewUrl: null,
+						}
+					}
+				}),
+			)
 		}
 		// Reset photos when modal closes
 		if (!isOpen) {
-			setCapturedPhotos([])
-			setPhotoPreviewUrls([])
+			previewUrlRegistry.current.releaseAll()
+			setPhotos([])
 		}
-	}, [isOpen])
+	}, [isOpen, stepPhotos])
+	useEffect(() => {
+		const registry = previewUrlRegistry.current
+		return () => registry.releaseAll()
+	}, [])
 
 	// Handle photo selection/capture
 	const handlePhotoCapture = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const files = Array.from(e.target.files || [])
-			if (files.length === 0) return
+			try {
+				const files = Array.from(e.target.files || [])
+				if (files.length === 0) return
 
-			// Validate file sizes (max 10MB each)
-			const MAX_PHOTO_SIZE = 10 * 1024 * 1024
-			const validFiles = files.filter(f => f.size <= MAX_PHOTO_SIZE)
+				const validFiles = files.filter(
+					file => file.size <= MAX_STEP_PHOTO_BYTES,
+				)
+				if (validFiles.length < files.length) toast.error(t('photoSizeLimit'))
 
-			const newFiles = validFiles.slice(
-				0,
-				MAX_CAPTURED_PHOTOS - capturedPhotos.length,
-			)
-			if (newFiles.length === 0) return
-
-			setCapturedPhotos(prev => [...prev, ...newFiles])
-
-			// Generate preview URLs
-			newFiles.forEach(file => {
-				const reader = new FileReader()
-				reader.onloadend = () => {
-					setPhotoPreviewUrls(prev => [...prev, reader.result as string])
+				const remainingSlots = MAX_CAPTURED_PHOTOS - photos.length
+				const newFiles = validFiles.slice(0, remainingSlots)
+				if (newFiles.length < validFiles.length) {
+					toast.warning(t('photoLimitReached', { max: MAX_CAPTURED_PHOTOS }))
 				}
-				reader.readAsDataURL(file)
-			})
+				if (newFiles.length === 0) return
 
-			// Reset input for re-selection
-			if (fileInputRef.current) {
-				fileInputRef.current.value = ''
+				const selectedPhotos = newFiles.map(file => {
+					const id = nextPhotoId.current++
+					try {
+						return {
+							id,
+							file,
+							previewStatus: 'loading' as const,
+							previewUrl: previewUrlRegistry.current.create(id, file),
+						}
+					} catch (error) {
+						logDevError('Failed to create captured photo preview:', error)
+						return {
+							id,
+							file,
+							previewStatus: 'error' as const,
+							previewUrl: null,
+						}
+					}
+				})
+				setPhotos(prev => [...prev, ...selectedPhotos])
+			} finally {
+				e.target.value = ''
 			}
 		},
-		[capturedPhotos.length],
+		[photos.length, t],
 	)
 
-	const removePhoto = useCallback((index: number) => {
-		setCapturedPhotos(prev => prev.filter((_, i) => i !== index))
-		setPhotoPreviewUrls(prev => prev.filter((_, i) => i !== index))
+	const removePhoto = useCallback((photoId: number) => {
+		previewUrlRegistry.current.release(photoId)
+		setPhotos(prev => removeLocalImagePreview(prev, photoId))
 	}, [])
 
 	const runAction = useCallback(
@@ -286,6 +336,7 @@ export const ImmediateRewards = ({
 			actionLockRef.current = true
 			setActiveAction(action)
 			try {
+				const capturedPhotos = photos.map(photo => photo.file)
 				const didNavigate = await callback(
 					capturedPhotos.length > 0 ? capturedPhotos : undefined,
 				)
@@ -299,7 +350,7 @@ export const ImmediateRewards = ({
 				setActiveAction(null)
 			}
 		},
-		[capturedPhotos],
+		[photos],
 	)
 
 	const handlePostNowClick = useCallback(() => {
@@ -635,25 +686,27 @@ export const ImmediateRewards = ({
 							</div>
 
 							{/* Deadline warning */}
-							{canUnlockPostXp && (
-								<motion.div
-									initial={{ opacity: 0, y: 8 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ delay: 0.8, ...TRANSITION_SPRING }}
-									className='mb-4 flex items-center justify-center gap-2 rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning'
-								>
-									<Clock className='size-4' />
-									<span>
-										{postDeadlineHours >= 24
-											? t('postRewardPolicyDays', {
-													count: Math.floor(postDeadlineHours / 24),
-												})
-											: t('postRewardPolicyHours', {
-													count: postDeadlineHours,
-												})}
-									</span>
-								</motion.div>
-							)}
+							{canUnlockPostXp &&
+								postDeadlineHours != null &&
+								postDeadlineHours > 0 && (
+									<motion.div
+										initial={{ opacity: 0, y: 8 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.8, ...TRANSITION_SPRING }}
+										className='mb-4 flex items-center justify-center gap-2 rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning'
+									>
+										<Clock className='size-4' />
+										<span>
+											{postDeadlineHours >= 24
+												? t('postRewardPolicyDays', {
+														count: Math.floor(postDeadlineHours / 24),
+													})
+												: t('postRewardPolicyHours', {
+														count: Math.ceil(postDeadlineHours),
+													})}
+										</span>
+									</motion.div>
+								)}
 
 							{/* Achievement banner */}
 							{unlockedAchievement && (
@@ -669,7 +722,7 @@ export const ImmediateRewards = ({
 									</span>
 									<span className='text-xs text-text-muted'>
 										{t('photosCount', {
-											count: capturedPhotos.length,
+											count: photos.length,
 											max: MAX_CAPTURED_PHOTOS,
 										})}
 									</span>
@@ -678,23 +731,54 @@ export const ImmediateRewards = ({
 								{/* Photo previews + add button */}
 								<div className='flex gap-2'>
 									{/* Existing photo previews */}
-									{photoPreviewUrls.map((url, index) => (
+									{photos.map((photo, index) => (
 										<motion.div
-											key={index}
+											key={photo.id}
 											initial={{ opacity: 0, scale: 0.8 }}
 											animate={{ opacity: 1, scale: 1 }}
 											className='group relative size-20 flex-shrink-0 overflow-hidden rounded-xl'
 										>
-											<Image
-												src={url}
-												alt={t('capturedPhotoAlt', { number: index + 1 })}
-												fill
-												sizes='80px'
-												className='object-cover'
-											/>
+											{photo.previewUrl && photo.previewStatus !== 'error' && (
+												<Image
+													src={photo.previewUrl}
+													alt={t('capturedPhotoAlt', { number: index + 1 })}
+													fill
+													sizes='80px'
+													className={cn(
+														'object-cover',
+														photo.previewStatus === 'loading' && 'opacity-0',
+													)}
+													onLoad={() =>
+														setPhotos(prev =>
+															markLocalImagePreviewReady(prev, photo.id),
+														)
+													}
+													onError={() => {
+														previewUrlRegistry.current.release(photo.id)
+														setPhotos(prev =>
+															failLocalImagePreview(prev, photo.id),
+														)
+													}}
+												/>
+											)}
+											{photo.previewStatus !== 'ready' && (
+												<div className='absolute inset-0 flex items-center justify-center bg-bg-hover'>
+													{photo.previewStatus === 'loading' ? (
+														<Loader2
+															className='size-5 animate-spin text-text-muted'
+															aria-hidden='true'
+														/>
+													) : (
+														<ImageOff
+															className='size-5 text-text-muted'
+															aria-hidden='true'
+														/>
+													)}
+												</div>
+											)}
 											<button
 												type='button'
-												onClick={() => removePhoto(index)}
+												onClick={() => removePhoto(photo.id)}
 												aria-label={t('removeCapturedPhoto', {
 													number: index + 1,
 												})}
@@ -706,7 +790,7 @@ export const ImmediateRewards = ({
 									))}
 
 									{/* Add photo button */}
-									{capturedPhotos.length < MAX_CAPTURED_PHOTOS && (
+									{photos.length < MAX_CAPTURED_PHOTOS && (
 										<label className='flex size-20 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg-elevated transition-colors hover:border-brand hover:bg-bg-hover'>
 											<div className='flex flex-col items-center gap-1'>
 												<Camera className='size-5 text-text-muted' />
@@ -727,17 +811,17 @@ export const ImmediateRewards = ({
 									)}
 								</div>
 
-								{capturedPhotos.length === 0 && (
+								{photos.length === 0 && (
 									<p className='mt-2 text-xs text-text-muted'>
 										{canUnlockPostXp ? t('photoHintZero') : t('photoHintNoXp')}
 									</p>
 								)}
-								{capturedPhotos.length === 1 && (
+								{photos.length === 1 && (
 									<p className='mt-2 text-xs text-warning'>
 										{t('photoHintOne')}
 									</p>
 								)}
-								{capturedPhotos.length >= FULL_POST_XP_PHOTO_COUNT &&
+								{photos.length >= FULL_POST_XP_PHOTO_COUNT &&
 									canUnlockPostXp && (
 										<p className='mt-2 text-xs text-success'>
 											{t('photoHintFull')}
@@ -791,12 +875,12 @@ export const ImmediateRewards = ({
 										<span className='text-lg font-bold'>
 											{activeAction === 'postNow'
 												? t('preparingPost')
-												: capturedPhotos.length > 0
-													? capturedPhotos.length > 1
+												: photos.length > 0
+													? photos.length > 1
 														? t('sharePhotosPlural', {
-																count: capturedPhotos.length,
+																count: photos.length,
 															})
-														: t('sharePhotos', { count: capturedPhotos.length })
+														: t('sharePhotos', { count: photos.length })
 													: t('shareYourCreation')}
 										</span>
 									</div>

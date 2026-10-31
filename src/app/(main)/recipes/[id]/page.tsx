@@ -1189,7 +1189,7 @@ function RecipeDetailContent() {
 								</motion.button>
 
 								{/* Tier 2: Social actions - compact inline bar */}
-								<div className='flex items-center gap-2'>
+								<div className='grid grid-cols-2 gap-2 min-[440px]:flex'>
 									<motion.button
 										type='button'
 										onClick={handleLike}

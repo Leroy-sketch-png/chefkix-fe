@@ -62,7 +62,7 @@ const successResponse = (
 	config,
 })
 
-const throwUnauthorized = (config: InternalAxiosRequestConfig) => {
+const throwUnauthorized = (config: InternalAxiosRequestConfig): never => {
 	throw new AxiosError(
 		'Unauthorized',
 		'ERR_BAD_REQUEST',
@@ -71,6 +71,17 @@ const throwUnauthorized = (config: InternalAxiosRequestConfig) => {
 		unauthorizedResponse(config),
 	)
 }
+
+const rejectUnauthorized = (config: InternalAxiosRequestConfig): Promise<never> =>
+	Promise.reject(
+		new AxiosError(
+			'Unauthorized',
+			'ERR_BAD_REQUEST',
+			config,
+			undefined,
+			unauthorizedResponse(config),
+		),
+	)
 
 const readAuthHeader = (config: InternalAxiosRequestConfig) => {
 	const directHeader = config.headers?.Authorization
@@ -86,6 +97,9 @@ describe('api refresh retry behavior', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
 		const authState = {
+			isAuthenticated: true,
+			isLoggingOut: false,
+			user: { userId: 'user-1' },
 			accessToken: 'old-token',
 			logout: jest.fn(),
 		}
@@ -182,5 +196,97 @@ describe('api refresh retry behavior', () => {
 		})
 
 		expect(response.data.data.authHeader).toBe('Bearer explicit-token')
+	})
+
+	it('does not refresh a request that fails after logout', async () => {
+		const authState = mockAuthStore.getState()
+		const request = api.get('/notification/unread-count', {
+			adapter: config => {
+				Object.assign(authState, {
+					isAuthenticated: false,
+					user: null,
+					accessToken: null,
+				})
+				return rejectUnauthorized(config as InternalAxiosRequestConfig)
+			},
+		})
+
+		await expect(request).rejects.toMatchObject({
+			response: { status: 401 },
+		})
+		expect(mockRefreshAccessToken).not.toHaveBeenCalled()
+		expect(authState.logout).not.toHaveBeenCalled()
+	})
+
+	it('does not refresh in-flight requests after logout has started', async () => {
+		const authState = mockAuthStore.getState()
+		const request = api.get('/notification/unread-count', {
+			adapter: config => {
+				Object.assign(authState, { isLoggingOut: true })
+				return rejectUnauthorized(config as InternalAxiosRequestConfig)
+			},
+		})
+
+		await expect(request).rejects.toMatchObject({
+			response: { status: 401 },
+		})
+		expect(mockRefreshAccessToken).not.toHaveBeenCalled()
+		expect(authState.logout).not.toHaveBeenCalled()
+	})
+
+	it('does not retry an old request as a different signed-in user', async () => {
+		const authState = mockAuthStore.getState()
+		const adapter = jest.fn((config: InternalAxiosRequestConfig) => {
+			Object.assign(authState, { user: { userId: 'user-2' } })
+			return rejectUnauthorized(config)
+		})
+
+		await expect(api.get('/posts/all', { adapter })).rejects.toMatchObject({
+			response: { status: 401 },
+		})
+		expect(adapter).toHaveBeenCalledTimes(1)
+		expect(mockRefreshAccessToken).not.toHaveBeenCalled()
+	})
+
+	it('does not restore auth or replay a request when refresh finishes after logout', async () => {
+		const authState = mockAuthStore.getState()
+		let publishRefreshedToken: ((token: string) => void) | undefined
+		let finishRefresh:
+			| ((result: {
+					success: boolean
+					token: string | null
+					error: null
+			  }) => void)
+			| undefined
+		mockRefreshAccessToken.mockImplementation(
+			(onTokenRefreshed: (token: string) => void) => {
+				publishRefreshedToken = onTokenRefreshed
+				return new Promise(resolve => {
+					finishRefresh = resolve
+				})
+			},
+		)
+
+		const adapter = jest.fn(async (config: InternalAxiosRequestConfig) => {
+			if (adapter.mock.calls.length === 1) throwUnauthorized(config)
+			return successResponse(config, { ok: true })
+		})
+		const request = api.get('/notification/unread-count', { adapter })
+
+		await new Promise(resolve => setTimeout(resolve, 0))
+		Object.assign(authState, {
+			isAuthenticated: false,
+			isLoggingOut: false,
+			user: null,
+			accessToken: null,
+		})
+		publishRefreshedToken?.('late-token')
+		finishRefresh?.({ success: true, token: 'late-token', error: null })
+
+		await expect(request).rejects.toMatchObject({
+			response: { status: 401 },
+		})
+		expect(adapter).toHaveBeenCalledTimes(1)
+		expect(authState.accessToken).toBeNull()
 	})
 })

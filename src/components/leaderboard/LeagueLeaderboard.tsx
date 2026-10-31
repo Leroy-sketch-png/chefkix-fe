@@ -260,7 +260,7 @@ function DemotionWarning({ xpNeeded }: { xpNeeded: number }) {
 			className='flex items-center justify-center gap-2 py-3 bg-error/10 rounded-xl text-sm text-error'
 		>
 			<AlertTriangle className='size-4' />
-			<span>{t('xpToLeave', { xp: xpNeeded })}</span>
+			<span>{t('xpToLeave', { n: xpNeeded })}</span>
 		</motion.div>
 	)
 }

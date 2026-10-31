@@ -106,11 +106,12 @@ export function createPostDraftRepository(
 		const previous = mutationChains.get(ownerId) ?? Promise.resolve()
 		const next = previous.catch(() => undefined).then(mutation)
 		mutationChains.set(ownerId, next)
-		void next.finally(() => {
+		const clearMutationChain = () => {
 			if (mutationChains.get(ownerId) === next) {
 				mutationChains.delete(ownerId)
 			}
-		})
+		}
+		void next.then(clearMutationChain, clearMutationChain)
 		return next
 	}
 

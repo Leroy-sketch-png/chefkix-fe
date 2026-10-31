@@ -45,14 +45,10 @@ import {
 } from '@/lib/cook-plan-ui'
 import { shoppingListPath } from '@/lib/shopping-list-route'
 import { copyToClipboard } from '@/lib/clipboard'
+import { localDateKey } from '@/lib/local-date-key'
+import { formatCookingTime } from '@/lib/types/recipe'
 
 const MODES: CookPlanMode[] = ['COOK_ONCE_TODAY', 'DINNER_WITH_LEFTOVERS']
-
-function localDateKey() {
-	const now = new Date()
-	const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
-	return local.toISOString().slice(0, 10)
-}
 
 function mealRoleLabel(role: MealRole) {
 	return role.charAt(0) + role.slice(1).toLowerCase()
@@ -222,6 +218,11 @@ export default function MealPlannerPage() {
 	const hasPendingChanges = Boolean(plan) && !planMatchesControls
 	const showPlan = hasPlan && planMatchesControls && !generating
 	const batch = plan?.cookBatches[0]
+	const longestRecipeMinutes =
+		batch?.dishes.reduce(
+			(longest, dish) => Math.max(longest, dish.totalTimeMinutes),
+			0,
+		) ?? 0
 
 	if (loading) {
 		return (
@@ -524,6 +525,13 @@ export default function MealPlannerPage() {
 												budget: plan?.maxActiveMinutes ?? maxActiveMinutes,
 											})}
 										</span>
+										{longestRecipeMinutes > 0 ? (
+											<span className='text-sm text-text-secondary'>
+												{t('longestRecipeSummary', {
+													time: formatCookingTime(longestRecipeMinutes),
+												})}
+											</span>
+										) : null}
 										<span className='flex items-center gap-1.5'>
 											<Utensils className='size-4 text-text-muted' />
 											{t('dishCount', { count: batch.dishes.length })}
@@ -592,13 +600,21 @@ export default function MealPlannerPage() {
 													</div>
 													<ChefHat className='size-4 shrink-0 text-brand' />
 												</div>
-												<div className='mt-4 grid grid-cols-3 gap-2 border-t border-border-subtle pt-3 text-xs'>
+												<div className='mt-4 grid grid-cols-2 gap-2 border-t border-border-subtle pt-3 text-xs md:grid-cols-4'>
 													<div>
 														<p className='text-text-muted'>{t('active')}</p>
 														<p className='mt-0.5 font-semibold text-text-primary'>
 															{t('minutesShort', {
 																count: dish.activeMinutes,
 															})}
+														</p>
+													</div>
+													<div>
+														<p className='text-text-muted'>{t('totalTime')}</p>
+														<p className='mt-0.5 font-semibold text-text-primary'>
+															{dish.totalTimeMinutes > 0
+																? formatCookingTime(dish.totalTimeMinutes)
+																: t('unknownDuration')}
 														</p>
 													</div>
 													<div>

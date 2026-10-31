@@ -168,7 +168,7 @@ function CatchingUpAlert({
 					/>
 				</div>
 				<span className='text-sm font-medium text-text-primary'>
-					{t('xpBehind', { name: competitor.displayName, xp: xpBehind })}
+					{t('xpBehind', { name: competitor.displayName, n: xpBehind })}
 				</span>
 			</div>
 			{onCookToDefend && (

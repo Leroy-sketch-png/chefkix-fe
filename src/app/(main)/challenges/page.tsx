@@ -49,6 +49,7 @@ import {
 	type ChallengeBannerRecipe,
 } from '@/lib/challenge-recipes'
 import {
+	getChallengeCommandMetrics,
 	getFailedChallengeStreams,
 	type ChallengeStream,
 } from '@/lib/challenge-availability'
@@ -167,6 +168,13 @@ export default function ChallengesPage() {
 	const unavailableStreamLabels = failedStreams
 		.map(stream => t(stream))
 		.join(', ')
+	const challengeMetrics = getChallengeCommandMetrics({
+		failedStreams,
+		hasDaily: Boolean(dailyChallenge),
+		hasWeekly: Boolean(weeklyChallenge),
+		communityCount: communityChallenges.length,
+		seasonalStatuses: seasonalChallenges.map(challenge => challenge.status),
+	})
 
 	if (error) {
 		return (
@@ -207,11 +215,12 @@ export default function ChallengesPage() {
 				<div className='grid grid-cols-1 gap-6'>
 					<div>
 						<ChallengesCommandDeck
+							activeChallengeCount={challengeMetrics.activeChallengeCount}
 							counts={{
-								community: communityChallenges.length,
-								seasonal: seasonalChallenges.length,
-								hasDaily: Boolean(dailyChallenge),
-								hasWeekly: Boolean(weeklyChallenge),
+								community: challengeMetrics.communityCount,
+								seasonal: challengeMetrics.seasonalCount,
+								daily: challengeMetrics.dailyCount,
+								weekly: challengeMetrics.weeklyCount,
 							}}
 							className='mb-6'
 						/>

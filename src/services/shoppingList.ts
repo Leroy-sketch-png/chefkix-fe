@@ -203,7 +203,17 @@ export async function removeShoppingItem(
 // ── Delete ──────────────────────────────────────────────────────
 
 export async function deleteShoppingList(listId: string): Promise<void> {
-	await api.delete(API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId))
+	try {
+		const res = await api.delete<ApiResponse<void>>(
+			API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId),
+		)
+		if (!res.data.success) {
+			throw new Error(res.data.message || 'delete shopping list failed')
+		}
+	} catch (err) {
+		logDevError('[ShoppingList] deleteShoppingList failed:', err)
+		throw err
+	}
 }
 
 // ── Share ───────────────────────────────────────────────────────

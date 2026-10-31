@@ -101,7 +101,9 @@ function DraftsListCardContent({
 					<span>
 						{draft.createdAt
 							? t('createdAgo', {
-									time: format.relativeTime(new Date(draft.createdAt)),
+									time: format.relativeTime(new Date(draft.createdAt), {
+										now: new Date(),
+									}),
 								})
 							: t('draft')}
 					</span>

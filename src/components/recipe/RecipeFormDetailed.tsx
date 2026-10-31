@@ -47,6 +47,7 @@ import { calibrateDifficulty } from '@/services/ml'
 import { useTranslations } from 'next-intl'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
 import { logDevError } from '@/lib/dev-log'
+import { recipeDraftRepository } from '@/lib/recipe-draft-repository'
 
 // ============================================
 // TYPES
@@ -98,8 +99,10 @@ interface RecipeFormData {
 
 interface RecipeFormDetailedProps {
 	initialData?: Partial<RecipeFormData>
+	onLocalDraftSaveErrorChange?: (failed: boolean) => void
 	onSubmit?: (data: RecipeFormData) => void
 	onSaveDraft?: (data: RecipeFormData) => void
+	ownerId?: string
 	onCancel?: () => void
 	isSubmitting?: boolean
 	isSaving?: boolean
@@ -197,16 +200,28 @@ const createEmptyStep = (): RecipeStep => ({
 // Image Upload
 const ImageUpload = ({
 	value,
+	file,
 	onChange,
 	label,
 }: {
 	value?: string
+	file?: File
 	onChange: (file: File | null) => void
 	label: string
 }) => {
 	const t = useTranslations('recipe')
 	const [preview, setPreview] = useState<string | undefined>(value)
 	const blobUrlRef = React.useRef<string | null>(null)
+	React.useEffect(() => {
+		if (!file || blobUrlRef.current) return
+		const url = URL.createObjectURL(file)
+		blobUrlRef.current = url
+		setPreview(url)
+		return () => {
+			URL.revokeObjectURL(url)
+			if (blobUrlRef.current === url) blobUrlRef.current = null
+		}
+	}, [file])
 
 	// Sync preview with value prop (for edit mode with existing server URL)
 	React.useEffect(() => {
@@ -394,6 +409,17 @@ const StepRow = ({
 	const [showTimerInput, setShowTimerInput] = useState(!!step.timerSeconds)
 	const fileInputRef = React.useRef<HTMLInputElement>(null)
 	const blobUrlRef = React.useRef<string | null>(null)
+	const [restoredPreviewUrl, setRestoredPreviewUrl] = useState<string>()
+
+	React.useEffect(() => {
+		if (!step.imageFile || step.imageUrl) return
+		const url = URL.createObjectURL(step.imageFile)
+		setRestoredPreviewUrl(url)
+		return () => {
+			URL.revokeObjectURL(url)
+			setRestoredPreviewUrl(undefined)
+		}
+	}, [step.imageFile, step.imageUrl])
 
 	// Cleanup blob URL on unmount
 	React.useEffect(() => {
@@ -450,10 +476,10 @@ const StepRow = ({
 					className='w-full resize-y rounded-xl border-2 border-border bg-bg px-4 py-3 text-sm text-text-primary focus:border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				/>
 				{/* Step Image Preview */}
-				{step.imageUrl && (
+				{(step.imageUrl || restoredPreviewUrl) && (
 					<div className='relative aspect-video w-full max-w-xs overflow-hidden rounded-xl border-2 border-border'>
 						<Image
-							src={step.imageUrl}
+							src={step.imageUrl || restoredPreviewUrl!}
 							alt={t('formStepAlt', { num: index + 1 })}
 							fill
 							sizes='(max-width: 768px) 100vw, 320px'
@@ -670,8 +696,10 @@ const TagInput = ({
 
 export const RecipeFormDetailed = ({
 	initialData,
+	onLocalDraftSaveErrorChange,
 	onSubmit,
 	onSaveDraft,
+	ownerId,
 	onCancel,
 	isSubmitting = false,
 	isSaving = false,
@@ -691,6 +719,7 @@ export const RecipeFormDetailed = ({
 		title: initialData?.title || '',
 		description: initialData?.description || '',
 		coverImageUrl: initialData?.coverImageUrl,
+		coverImageFile: initialData?.coverImageFile,
 		prepTimeMinutes: initialData?.prepTimeMinutes || 0,
 		cookTimeMinutes: initialData?.cookTimeMinutes || 0,
 		servings: initialData?.servings || 4,
@@ -701,11 +730,94 @@ export const RecipeFormDetailed = ({
 		tips: initialData?.tips || '',
 		tags: initialData?.tags || [],
 	})
+	const initialFormDataRef = useRef(formData)
+	const [localDraftStatus, setLocalDraftStatus] = useState<
+		'idle' | 'unsaved' | 'saving' | 'saved' | 'error'
+	>('idle')
+	const hasDraftContent = Boolean(
+		formData.title.trim() ||
+			formData.description.trim() ||
+			formData.tips.trim() ||
+			formData.tags.length ||
+			formData.category ||
+			formData.prepTimeMinutes ||
+			formData.cookTimeMinutes ||
+			formData.coverImageFile ||
+			formData.ingredients.some(
+				item => item.name.trim() || item.amount.trim(),
+			) ||
+			formData.steps.some(step => step.instruction.trim() || step.imageFile),
+	)
+	const hasFormEdits = Object.keys(initialFormDataRef.current).some(
+		key =>
+			!Object.is(
+				formData[key as keyof RecipeFormData],
+				initialFormDataRef.current[key as keyof RecipeFormData],
+			),
+	)
+	const draftOwnerRef = useRef(ownerId)
+	if (!draftOwnerRef.current && ownerId) draftOwnerRef.current = ownerId
+	const persistenceOwnerId =
+		ownerId === draftOwnerRef.current ? ownerId : undefined
+	const latestDraftRef = useRef(formData)
+	const latestOwnerRef = useRef(persistenceOwnerId)
+	const latestHasDraftContentRef = useRef(hasDraftContent)
+	const saveRevisionRef = useRef(0)
+	latestDraftRef.current = formData
+	latestOwnerRef.current = persistenceOwnerId
+	latestHasDraftContentRef.current = hasDraftContent
+
+	const persistLocalDraft = useCallback(
+		async (snapshot: RecipeFormData, accountId: string | undefined) => {
+			if (!accountId) return
+			const revision = ++saveRevisionRef.current
+			setLocalDraftStatus('saving')
+			try {
+				await recipeDraftRepository.save(accountId, snapshot)
+				if (revision === saveRevisionRef.current) setLocalDraftStatus('saved')
+			} catch (error) {
+				logDevError('Failed to autosave manual recipe draft:', error)
+				if (revision === saveRevisionRef.current) setLocalDraftStatus('error')
+			}
+		},
+		[],
+	)
+
+	useEffect(() => {
+		if (!persistenceOwnerId || !hasDraftContent) return
+		setLocalDraftStatus('unsaved')
+		const timer = window.setTimeout(() => {
+			void persistLocalDraft(formData, persistenceOwnerId)
+		}, 600)
+		return () => window.clearTimeout(timer)
+	}, [formData, hasDraftContent, persistenceOwnerId, persistLocalDraft])
+
+	useEffect(() => {
+		onLocalDraftSaveErrorChange?.(
+			hasFormEdits && hasDraftContent && localDraftStatus === 'error',
+		)
+	}, [
+		hasDraftContent,
+		hasFormEdits,
+		localDraftStatus,
+		onLocalDraftSaveErrorChange,
+	])
+
+	useEffect(
+		() => () => {
+			if (latestOwnerRef.current && latestHasDraftContentRef.current) {
+				void persistLocalDraft(latestDraftRef.current, latestOwnerRef.current)
+			}
+		},
+		[persistLocalDraft],
+	)
 
 	// Warn before closing tab if user has entered content
-	const isDirty =
-		formData.title.trim().length > 0 || formData.description.trim().length > 0
-	useBeforeUnloadWarning(isDirty && !isSubmitting)
+	useBeforeUnloadWarning(
+		hasDraftContent &&
+			!isSubmitting &&
+			(!persistenceOwnerId || localDraftStatus !== 'saved'),
+	)
 
 	const updateField = <K extends keyof RecipeFormData>(
 		field: K,
@@ -843,8 +955,23 @@ export const RecipeFormDetailed = ({
 	}
 
 	const handleSaveDraft = useCallback(() => {
+		if (persistenceOwnerId && hasDraftContent) {
+			void persistLocalDraft(formData, persistenceOwnerId)
+		}
 		onSaveDraft?.(formData)
-	}, [formData, onSaveDraft])
+	}, [
+		formData,
+		hasDraftContent,
+		onSaveDraft,
+		persistenceOwnerId,
+		persistLocalDraft,
+	])
+
+	const handleRetryLocalDraft = () => {
+		if (persistenceOwnerId && hasDraftContent) {
+			void persistLocalDraft(formData, persistenceOwnerId)
+		}
+	}
 
 	// Clear individual error when field is updated
 	const updateFieldWithClearError = <K extends keyof RecipeFormData>(
@@ -1075,6 +1202,7 @@ export const RecipeFormDetailed = ({
 						>
 							<ImageUpload
 								value={formData.coverImageUrl}
+								file={formData.coverImageFile}
 								onChange={file => {
 									handleCoverImage(file)
 									if (hasAttemptedSubmit)
@@ -1396,6 +1524,28 @@ export const RecipeFormDetailed = ({
 				</section>
 
 				{/* Form Actions */}
+				{persistenceOwnerId && hasDraftContent && (
+					<div className='mb-4 flex min-h-6 items-center justify-between gap-3 text-xs text-text-secondary'>
+						<p role='status' aria-live='polite'>
+							{localDraftStatus === 'saving' || localDraftStatus === 'unsaved'
+								? t('draftSaving')
+								: localDraftStatus === 'saved'
+									? t('draftSaved')
+									: localDraftStatus === 'error'
+										? t('draftSaveFailed')
+										: ''}
+						</p>
+						{localDraftStatus === 'error' && (
+							<button
+								type='button'
+								onClick={handleRetryLocalDraft}
+								className='font-semibold text-brand underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-brand/50'
+							>
+								{t('draftRetry')}
+							</button>
+						)}
+					</div>
+				)}
 				<div className='flex flex-col items-stretch gap-3 border-t-2 border-border pt-8 sm:flex-row sm:items-center sm:justify-between'>
 					<motion.button
 						type='button'

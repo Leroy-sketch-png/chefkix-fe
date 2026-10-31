@@ -87,6 +87,15 @@ describe('full cooking ingredient reference', () => {
 		expect(playerSource).toContain('setShowIngredientList(true)')
 		expect(playerSource).toContain('<FullIngredientListDialog')
 		expect(playerSource).toContain('if (showIngredientList) return')
+		expect(playerSource).toContain(
+			'ingredientDialogEscapeEvents.current.has(e)',
+		)
+		expect(playerSource).toContain(
+			'const ingredientDialogEscapeEvents = useRef(new WeakSet<KeyboardEvent>())',
+		)
+		expect(playerSource).toContain(
+			"window.addEventListener('keydown', rememberIngredientDialogEscape, true)",
+		)
 		expect(playerSource).not.toContain('.slice(0, 8)')
 		expect(playerSource).not.toContain("t('moreIngredients'")
 		expect(playerSource).toContain('.filter(Boolean)')

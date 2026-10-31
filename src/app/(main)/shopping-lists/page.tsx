@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
 	Plus,
@@ -41,7 +42,6 @@ import {
 import {
 	getUserShoppingLists,
 	getShoppingListById,
-	createFromMealPlan,
 	createFromRecipe,
 	createCustomList,
 	toggleShoppingItem,
@@ -50,7 +50,8 @@ import {
 	deleteShoppingList,
 	regenerateShareToken,
 } from '@/services/shoppingList'
-import { getCurrentMealPlan } from '@/services/mealplan'
+import { createShoppingListFromCurrentCookPlan } from '@/lib/current-cook-plan-shopping-list'
+import { localDateKey } from '@/lib/local-date-key'
 import { autocompleteSearch } from '@/services/search'
 import type {
 	ShoppingListSummary,
@@ -70,6 +71,7 @@ import {
 	shoppingListIdFromSearch,
 	shoppingListPath,
 } from '@/lib/shopping-list-route'
+import { formatShoppingListCopyLine } from '@/lib/shopping-list-format'
 import { copyToClipboard } from '@/lib/clipboard'
 import {
 	PremiumSurface,
@@ -104,6 +106,8 @@ type PendingListMutation =
 	| { type: 'reset-share' }
 
 export default function ShoppingListsPage() {
+	const router = useRouter()
+	const planDate = useMemo(localDateKey, [])
 	// ── State ──────────────────────────────────────────────────────────
 	const [lists, setLists] = useState<ShoppingListSummary[]>([])
 	const [selectedList, setSelectedList] = useState<ShoppingListResponse | null>(
@@ -244,22 +248,27 @@ export default function ShoppingListsPage() {
 		}
 	}
 
-	const handleCreateFromMealPlan = async () => {
+	const handleCreateFromTodayPlan = async () => {
 		setIsCreating(true)
 		try {
-			const plan = await getCurrentMealPlan()
-			if (!plan) {
-				toast.error(t('noMealPlan'))
+			const list = await createShoppingListFromCurrentCookPlan(planDate)
+			if (!list) {
+				setShowCreateMenu(false)
+				toast.info(t('noCookPlan'), {
+					action: {
+						label: t('planToday'),
+						onClick: () => router.push('/meal-planner'),
+					},
+				})
 				return
 			}
-			const list = await createFromMealPlan({ mealPlanId: plan.id })
 			setSelectedList(list)
 			replaceShoppingListUrl(list.id)
 			setShowCreateMenu(false)
 			fetchLists()
-			toast.success(t('createdFromMealPlan'))
+			toast.success(t('createdFromTodayPlan'))
 		} catch {
-			toast.error(t('failedCreateFromMealPlan'))
+			toast.error(t('failedCreateFromTodayPlan'))
 		} finally {
 			setIsCreating(false)
 		}
@@ -398,13 +407,7 @@ export default function ShoppingListsPage() {
 
 	const handleCopyList = async () => {
 		if (!selectedList) return
-		const text = selectedList.items
-			.map(item => {
-				const qty = item.quantity ? ` (${item.quantity})` : ''
-				const check = item.checked ? '✓' : '○'
-				return `${check} ${item.ingredient}${qty}`
-			})
-			.join('\n')
+		const text = selectedList.items.map(formatShoppingListCopyLine).join('\n')
 		try {
 			const copied = await copyToClipboard(
 				`${selectedList.name}\n${'─'.repeat(30)}\n${text}`,
@@ -432,7 +435,8 @@ export default function ShoppingListsPage() {
 				window.location.origin,
 				shareableList.shareToken,
 			)
-			if (!(await copyToClipboard(url))) throw new Error('Clipboard unavailable')
+			if (!(await copyToClipboard(url)))
+				throw new Error('Clipboard unavailable')
 			setShareSuccess(true)
 		} catch {
 			toast.error(t('failedShare'))
@@ -485,15 +489,13 @@ export default function ShoppingListsPage() {
 
 	// ── Progress ───────────────────────────────────────────────────────
 
-	const progress = selectedList
-		? selectedList.totalItems > 0
-			? Math.round(
-					(selectedList.items.filter(i => i.checked).length /
-						selectedList.totalItems) *
-						100,
-				)
+	const selectedListTotalItems = selectedList?.items.length ?? 0
+	const selectedListCheckedItems =
+		selectedList?.items.filter(item => item.checked).length ?? 0
+	const progress =
+		selectedListTotalItems > 0
+			? Math.round((selectedListCheckedItems / selectedListTotalItems) * 100)
 			: 0
-		: 0
 
 	const uncheckedItems = useMemo(
 		() => (selectedList?.items ?? []).filter(i => !i.checked),
@@ -601,6 +603,9 @@ export default function ShoppingListsPage() {
 	// ── Detail View ────────────────────────────────────────────────────
 
 	if (selectedList) {
+		const selectedListName =
+			lists.find(list => list.id === selectedList.id)?.name ?? selectedList.name
+
 		return (
 			<PageTransition>
 				<PageContainer maxWidth='2xl'>
@@ -608,10 +613,11 @@ export default function ShoppingListsPage() {
 						<div className='space-y-6'>
 							<ShoppingListsCommandDeck
 								variant='detail'
+								heading={selectedListName}
 								counts={{
 									lists: lists.length,
-									totalItems: selectedList.totalItems,
-									checkedItems: selectedList.checkedItems,
+									totalItems: selectedListTotalItems,
+									checkedItems: selectedListCheckedItems,
 									progress,
 								}}
 								onPrimaryAction={() => setShowAddItem(true)}
@@ -667,7 +673,7 @@ export default function ShoppingListsPage() {
 							</div>
 
 							{/* Progress bar */}
-							{selectedList.totalItems > 0 && (
+							{selectedListTotalItems > 0 && (
 								<div className='overflow-hidden rounded-full bg-bg-elevated'>
 									<motion.div
 										className='h-2 rounded-full bg-gradient-primary'
@@ -784,8 +790,8 @@ export default function ShoppingListsPage() {
 								<SurfaceSectionHeader
 									eyebrow={t('smartGrouping')}
 									chipText={t('checkedProgress', {
-										checked: selectedList.checkedItems,
-										total: selectedList.totalItems,
+										checked: selectedListCheckedItems,
+										total: selectedListTotalItems,
 									})}
 									className='mb-3'
 								/>
@@ -885,8 +891,8 @@ export default function ShoppingListsPage() {
 							}}
 							onPrimaryAction={() => setShowCreateMenu(!showCreateMenu)}
 							primaryActionLabel={t('newList')}
-							onSecondaryAction={handleCreateFromMealPlan}
-							secondaryActionLabel={t('fromMealPlan')}
+							onSecondaryAction={handleCreateFromTodayPlan}
+							secondaryActionLabel={t('fromTodayPlan')}
 						/>
 
 						<div className='relative'>
@@ -910,15 +916,17 @@ export default function ShoppingListsPage() {
 										>
 											<button
 												type='button'
-												onClick={handleCreateFromMealPlan}
+												onClick={handleCreateFromTodayPlan}
 												disabled={isCreating}
 												className='flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-bg-elevated disabled:opacity-50'
 											>
 												<CalendarDays className='size-4 text-info' />
 												<div>
-													<div className='font-medium'>{t('fromMealPlan')}</div>
+													<div className='font-medium'>
+														{t('fromTodayPlan')}
+													</div>
 													<div className='text-xs text-text-muted'>
-														{t('mealPlanDesc')}
+														{t('todayPlanDesc')}
 													</div>
 												</div>
 											</button>

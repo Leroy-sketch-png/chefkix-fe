@@ -275,6 +275,7 @@ export interface ModerateResponse {
  */
 export const processRecipe = async (
 	rawText: string,
+	signal?: AbortSignal,
 ): Promise<ApiResponse<ProcessedRecipe>> => {
 	const preflightFailure = getDirectAiPreflightFailure<ProcessedRecipe>()
 	if (preflightFailure) return preflightFailure
@@ -283,9 +284,11 @@ export const processRecipe = async (
 		const response = await aiApi.post<ApiResponse<ProcessedRecipe>>(
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
 			{ raw_text: rawText },
+			{ signal },
 		)
 		return response.data
 	} catch (error) {
+		if (signal?.aborted) throw error
 		return handleDirectAiError<ProcessedRecipe>(
 			error,
 			'Failed to process recipe',

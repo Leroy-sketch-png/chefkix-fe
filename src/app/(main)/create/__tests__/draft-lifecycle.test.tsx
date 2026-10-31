@@ -21,6 +21,26 @@ jest.mock('@/services/recipe', () => ({
 	getRecipeById: jest.fn(),
 }))
 
+jest.mock('@/store/authStore', () => {
+	const state = {
+		user: { userId: 'creator-1' },
+	}
+	return {
+		useAuthStore: Object.assign(
+			(selector: (value: typeof state) => unknown) => selector(state),
+			{ getState: () => state },
+		),
+	}
+})
+
+jest.mock('@/lib/recipe-draft-repository', () => ({
+	recipeDraftRepository: {
+		load: jest.fn(async () => null),
+		save: jest.fn(async () => undefined),
+		clear: jest.fn(async () => undefined),
+	},
+}))
+
 jest.mock('framer-motion', () => {
 	const actual = jest.requireActual('framer-motion')
 	return {
@@ -92,6 +112,13 @@ const mockTranslate = (key: string, values?: Record<string, string>) =>
 		olderLocalDraft: 'Older local draft',
 		olderDraftNotice: 'Review this older draft before continuing.',
 		resumeEditing: 'Resume editing',
+		legacyDraftNeedsReview: 'An older recipe draft is on this device',
+		legacyDraftClaimDescription:
+			'It was created before drafts were tied to an account. Restore it only if you recognize it as yours.',
+		claimLegacyDraft: 'Restore to this account',
+		localDraftStorageUnavailable:
+			'This device could not access recipe draft storage.',
+		localDraftCleanupFailed: 'Could not remove this device draft.',
 		discardDraftTitle: 'Discard local draft?',
 		discardDraftDescription: `Delete ${values?.title ?? 'draft'}?`,
 		startFreshDraftTitle: 'Start a new recipe?',
@@ -141,7 +168,8 @@ describe('creator draft lifecycle', () => {
 		} as Awaited<ReturnType<typeof getRecipeById>>)
 
 		render(<CreateRecipePage />)
-		await screen.findByText('Unfinished family soup')
+		await screen.findByText('An older recipe draft is on this device')
+		expect(screen.queryByText('Unfinished family soup')).toBeNull()
 		fireEvent.click(screen.getByRole('button', { name: 'Open server draft' }))
 		await screen.findByText('Editor: Saved curry')
 
@@ -151,21 +179,25 @@ describe('creator draft lifecycle', () => {
 		expect(push).toHaveBeenCalledWith('/recipes/published-id')
 	})
 
-	it('requires confirmation before a fresh recipe replaces local recovery', async () => {
+	it('requires explicit legacy ownership before account-scoped recovery and discard', async () => {
 		saveLocalRecipeDraft(localDraftData)
 		render(<CreateRecipePage />)
+		await screen.findByText('An older recipe draft is on this device')
+		fireEvent.click(
+			screen.getByRole('button', { name: 'Restore to this account' }),
+		)
 		await screen.findByText('Unfinished family soup')
 
 		fireEvent.click(screen.getByRole('button', { name: 'Start new recipe' }))
 		expect(screen.getByText('Start a new recipe?')).not.toBeNull()
-		expect(window.localStorage.getItem(LOCAL_RECIPE_DRAFT_KEY)).not.toBeNull()
+		expect(window.localStorage.getItem(LOCAL_RECIPE_DRAFT_KEY)).toBeNull()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Discard and start' }))
 		await screen.findByText('Editor: New recipe')
 		expect(window.localStorage.getItem(LOCAL_RECIPE_DRAFT_KEY)).toBeNull()
 	})
 
-	it('keeps older recovery available while clearly distinguishing it', async () => {
+	it('keeps older unowned recovery untouched and does not reveal its content before claim', async () => {
 		window.localStorage.setItem(
 			LOCAL_RECIPE_DRAFT_KEY,
 			JSON.stringify({
@@ -177,10 +209,15 @@ describe('creator draft lifecycle', () => {
 
 		render(<CreateRecipePage />)
 
-		expect(await screen.findByText('Older local draft')).not.toBeNull()
 		expect(
-			screen.getByText('Review this older draft before continuing.'),
+			await screen.findByText('An older recipe draft is on this device'),
 		).not.toBeNull()
+		expect(
+			screen.getByText(
+				'It was created before drafts were tied to an account. Restore it only if you recognize it as yours.',
+			),
+		).not.toBeNull()
+		expect(screen.queryByText('Unfinished family soup')).toBeNull()
 		expect(readLocalRecipeDraft().status).toBe('valid')
 	})
 

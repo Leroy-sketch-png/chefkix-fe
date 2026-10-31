@@ -49,6 +49,23 @@ export const api = axios.create({
 	withCredentials: true, // CRITICAL: Send HttpOnly cookies (refresh_token)
 })
 
+type AuthenticatedRequestConfig = InternalAxiosRequestConfig & {
+	_retry?: boolean
+	_authUserId?: string | null
+	_authToken?: string | null
+}
+
+const isSessionActive = (userId: string | null, token?: string | null) => {
+	const current = useAuthStore.getState()
+	return Boolean(
+		userId &&
+		current.isAuthenticated &&
+		!current.isLoggingOut &&
+		current.user?.userId === userId &&
+		(!token || current.accessToken === token),
+	)
+}
+
 /**
  * Separate axios instance for AI features.
  * Browser requests go through the frontend's same-origin proxy so the AI key
@@ -68,12 +85,35 @@ export const aiApi = axios.create({
 })
 
 aiApi.interceptors.request.use(async config => {
-	const { accessToken, login, logout } = useAuthStore.getState()
+	const initialAuth = useAuthStore.getState()
+	const { accessToken } = initialAuth
 	let token = accessToken
 
 	if (token && (isTokenExpired(token) || shouldRefreshToken(token))) {
-		const refreshed = await refreshAccessToken(login, logout)
-		token = refreshed.success ? refreshed.token ?? null : null
+		const ownerId = initialAuth.user?.userId ?? null
+		if (!isSessionActive(ownerId, accessToken)) {
+			throw new Error('Authentication session changed during token refresh')
+		}
+		const refreshed = await refreshAccessToken(
+			newToken => {
+				if (!isSessionActive(ownerId, accessToken)) return
+				useAuthStore.setState({ accessToken: newToken })
+			},
+			() => {
+				if (isSessionActive(ownerId, accessToken)) {
+					useAuthStore.getState().logout()
+				}
+			},
+		)
+		const current = useAuthStore.getState()
+		if (
+			!refreshed.success ||
+			!refreshed.token ||
+			!isSessionActive(ownerId, refreshed.token)
+		) {
+			throw new Error('Authentication session changed during token refresh')
+		}
+		token = current.accessToken
 	}
 
 	const hasExplicitAuthorization =
@@ -92,6 +132,9 @@ api.interceptors.request.use(
 	config => {
 		const state = useAuthStore.getState()
 		const accessToken = state.accessToken
+		;(config as AuthenticatedRequestConfig)._authUserId =
+			state.user?.userId ?? null
+		;(config as AuthenticatedRequestConfig)._authToken = state.accessToken
 		const hasExplicitAuthorization =
 			config.headers.has?.('Authorization') ||
 			config.headers.get?.('Authorization') != null
@@ -142,9 +185,7 @@ api.interceptors.response.use(
 
 	// ERROR: Handle 401s with centralized refresh
 	async (error: AxiosError) => {
-		const originalRequest = error.config as InternalAxiosRequestConfig & {
-			_retry?: boolean
-		}
+		const originalRequest = error.config as AuthenticatedRequestConfig
 
 		// ----------------------------------------------------------------
 		// HANDLE 401 UNAUTHORIZED
@@ -159,12 +200,27 @@ api.interceptors.response.use(
 				return Promise.reject(error)
 			}
 
+			const currentAuth = useAuthStore.getState()
+			if (
+				currentAuth.isLoggingOut ||
+				!currentAuth.isAuthenticated ||
+				!currentAuth.accessToken ||
+				!originalRequest._authUserId ||
+				currentAuth.user?.userId !== originalRequest._authUserId ||
+				currentAuth.accessToken !== originalRequest._authToken
+			) {
+				return Promise.reject(error)
+			}
+
 			originalRequest._retry = true
 
 			// If a refresh is already in progress, wait for it
 			if (isRefreshInProgress()) {
 				const newToken = await waitForRefresh()
-				if (newToken) {
+				if (
+					newToken &&
+					isSessionActive(originalRequest._authUserId, newToken)
+				) {
 					originalRequest.headers.Authorization = `Bearer ${newToken}`
 					return api(originalRequest)
 				}
@@ -175,15 +231,13 @@ api.interceptors.response.use(
 			const result = await refreshAccessToken(
 				// onTokenRefreshed: Update store with new token
 				(newToken: string) => {
-					useAuthStore.setState({
-						accessToken: newToken,
-						isAuthenticated: true,
-					})
+					if (!isSessionActive(originalRequest._authUserId, originalRequest._authToken)) return
+					useAuthStore.setState({ accessToken: newToken })
 				},
 				// onSessionExpired: Clear auth state and redirect
 				() => {
-					const { logout } = useAuthStore.getState()
-					logout()
+					if (!isSessionActive(originalRequest._authUserId, originalRequest._authToken)) return
+					useAuthStore.getState().logout()
 
 					if (typeof window !== 'undefined') {
 						window.location.href = `${PATHS.AUTH.SIGN_IN}?error=${encodeURIComponent(t('httpSessionExpired'))}`
@@ -191,7 +245,11 @@ api.interceptors.response.use(
 				},
 			)
 
-			if (result.success && result.token) {
+			if (
+				result.success &&
+				result.token &&
+				isSessionActive(originalRequest._authUserId, result.token)
+			) {
 				// Retry the original request with the new token
 				originalRequest.headers.Authorization = `Bearer ${result.token}`
 				return api(originalRequest)

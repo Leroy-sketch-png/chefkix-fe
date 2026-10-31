@@ -96,6 +96,7 @@ export function NotificationsCommandDeck({
 						<button
 							type='button'
 							key={filter.id}
+							aria-pressed={isActive}
 							onClick={() => onFilterChange(filter.id)}
 							className={cn(
 								'inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all sm:min-h-10 sm:px-3.5 sm:py-2 sm:text-sm',

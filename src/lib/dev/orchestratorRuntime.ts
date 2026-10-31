@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
+import { probeHttpService, type HealthService } from '@/lib/service-health'
 
 export type OrchestratorLaunchMode = 'single-strict' | 'certify-strict'
 
@@ -96,11 +97,23 @@ function getBackendBaseUrl(): string {
 	return 'http://localhost:8080'
 }
 
-async function probeUrl(url: string): Promise<{
+async function probeUrl(
+	url: string,
+	service?: HealthService,
+): Promise<{
 	ok: boolean
 	statusCode: number | null
 	errorMessage: string | null
 }> {
+	if (service) {
+		const health = await probeHttpService(service, url)
+		return {
+			ok: health.healthy,
+			statusCode: health.statusCode,
+			errorMessage: health.detail ?? null,
+		}
+	}
+
 	try {
 		const response = await fetch(url, {
 			method: 'GET',
@@ -128,10 +141,11 @@ export async function runOrchestratorPreflight(): Promise<OrchestratorPreflightS
 	const backendHealthUrl = `${backendBaseUrl}/api/v1/actuator/health`
 	const authProbeUrl = `${backendBaseUrl}/api/v1/auth/check-username?username=testuser`
 	const runningTaskCount = getRunningTaskCount()
-	const launchCapacityAvailable = runningTaskCount < MAX_CONCURRENT_RUNNING_TASKS
+	const launchCapacityAvailable =
+		runningTaskCount < MAX_CONCURRENT_RUNNING_TASKS
 
 	const [backendHealth, authProbe] = await Promise.all([
-		probeUrl(backendHealthUrl),
+		probeUrl(backendHealthUrl, 'monolith'),
 		probeUrl(authProbeUrl),
 	])
 
@@ -504,12 +518,12 @@ function toPublicTask(task: OrchestratorTaskInternal): OrchestratorTask {
 	const lastOutputAgeSec = Number.isFinite(lastOutputAtMs)
 		? Math.max(0, Math.round((now - lastOutputAtMs) / 1000))
 		: 0
-	const silenceRatio = RUNNING_TASK_SILENCE_TIMEOUT_MS > 0
-		? (lastOutputAgeSec * 1000) / RUNNING_TASK_SILENCE_TIMEOUT_MS
-		: 0
-	const runtimeRatio = task.maxRuntimeMs > 0
-		? (runtimeAgeSec * 1000) / task.maxRuntimeMs
-		: 0
+	const silenceRatio =
+		RUNNING_TASK_SILENCE_TIMEOUT_MS > 0
+			? (lastOutputAgeSec * 1000) / RUNNING_TASK_SILENCE_TIMEOUT_MS
+			: 0
+	const runtimeRatio =
+		task.maxRuntimeMs > 0 ? (runtimeAgeSec * 1000) / task.maxRuntimeMs : 0
 	const riskRatio = Math.max(silenceRatio, runtimeRatio)
 	const watchdogRisk: OrchestratorTask['watchdogRisk'] =
 		riskRatio >= 0.9 ? 'critical' : riskRatio >= 0.75 ? 'warning' : 'healthy'
@@ -587,7 +601,9 @@ export function cleanupOrchestratorTasks(keepLatest = 10): {
 	const tasks = [...getTaskStore().values()].sort((a, b) =>
 		b.startedAt.localeCompare(a.startedAt),
 	)
-	const removable = tasks.slice(boundedKeepLatest).filter(task => task.status !== 'running')
+	const removable = tasks
+		.slice(boundedKeepLatest)
+		.filter(task => task.status !== 'running')
 
 	for (const task of removable) {
 		getTaskStore().delete(task.taskId)
@@ -631,7 +647,8 @@ async function readProgressSummary(
 				core?: string
 			}
 		}
-		const latestScenario = parsed.scenarioResults?.[parsed.scenarioResults.length - 1]
+		const latestScenario =
+			parsed.scenarioResults?.[parsed.scenarioResults.length - 1]
 		const expectedBeats = DEMO_COCKPIT_EXPECTED_BEATS
 		const beatsWithEvidence =
 			typeof parsed.forensics?.beatsWithEvidence === 'number'
@@ -681,8 +698,12 @@ async function readProgressSummary(
 			typeof parsed.forensics?.http5xxResponses === 'number'
 				? parsed.forensics.http5xxResponses
 				: null
-		const warningCount = Array.isArray(parsed.warnings) ? parsed.warnings.length : null
-		const errorCount = Array.isArray(parsed.errors) ? parsed.errors.length : null
+		const warningCount = Array.isArray(parsed.warnings)
+			? parsed.warnings.length
+			: null
+		const errorCount = Array.isArray(parsed.errors)
+			? parsed.errors.length
+			: null
 		const preflightCoreStatus =
 			typeof parsed.preflight?.core === 'string' ? parsed.preflight.core : null
 
@@ -695,7 +716,9 @@ async function readProgressSummary(
 
 		const criticalFindings: string[] = []
 		if ((strictAssertionFailures ?? 0) > 0) {
-			criticalFindings.push(`strict assertion failures: ${strictAssertionFailures}`)
+			criticalFindings.push(
+				`strict assertion failures: ${strictAssertionFailures}`,
+			)
 		}
 		if ((renderAnomalies ?? 0) > 0) {
 			criticalFindings.push(`render anomalies: ${renderAnomalies}`)
@@ -710,7 +733,10 @@ async function readProgressSummary(
 				`value arcs incomplete: ${beatsWithValueArc}/${expectedBeats}`,
 			)
 		}
-		if (beatsWithPhaseCoverage != null && beatsWithPhaseCoverage < expectedBeats) {
+		if (
+			beatsWithPhaseCoverage != null &&
+			beatsWithPhaseCoverage < expectedBeats
+		) {
 			criticalFindings.push(
 				`phase coverage incomplete: ${beatsWithPhaseCoverage}/${expectedBeats}`,
 			)
@@ -756,13 +782,10 @@ async function readProgressSummary(
 	}
 }
 
-export async function getOrchestratorTask(taskId: string): Promise<
-	| {
-		task: OrchestratorTask
-		progress: OrchestratorProgressSummary | null
-	  }
-	| null
-> {
+export async function getOrchestratorTask(taskId: string): Promise<{
+	task: OrchestratorTask
+	progress: OrchestratorProgressSummary | null
+} | null> {
 	enforceRunningTaskHealth()
 
 	const task = getTaskStore().get(taskId)

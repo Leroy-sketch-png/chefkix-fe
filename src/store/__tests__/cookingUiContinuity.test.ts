@@ -1,7 +1,44 @@
 import fs from 'fs'
 import path from 'path'
+import type { User } from '@/lib/types'
+import { useStepPhotoStore } from '@/lib/step-photo-store'
+import { useAuthStore } from '@/store/authStore'
 import { useCookingStore } from '@/store/cookingStore'
 import { resolveCookingCloseMode, useUiStore } from '@/store/uiStore'
+
+const originalCreateObjectURL = Object.getOwnPropertyDescriptor(
+	URL,
+	'createObjectURL',
+)
+const originalRevokeObjectURL = Object.getOwnPropertyDescriptor(
+	URL,
+	'revokeObjectURL',
+)
+const revokeObjectURL = jest.fn()
+
+beforeAll(() => {
+	Object.defineProperty(URL, 'createObjectURL', {
+		configurable: true,
+		value: jest.fn((file: File) => `blob:${file.name}`),
+	})
+	Object.defineProperty(URL, 'revokeObjectURL', {
+		configurable: true,
+		value: revokeObjectURL,
+	})
+})
+
+afterAll(() => {
+	if (originalCreateObjectURL) {
+		Object.defineProperty(URL, 'createObjectURL', originalCreateObjectURL)
+	} else {
+		Reflect.deleteProperty(URL, 'createObjectURL')
+	}
+	if (originalRevokeObjectURL) {
+		Object.defineProperty(URL, 'revokeObjectURL', originalRevokeObjectURL)
+	} else {
+		Reflect.deleteProperty(URL, 'revokeObjectURL')
+	}
+})
 
 const activeSession = {
 	sessionId: 'session-1',
@@ -21,6 +58,9 @@ const loadedRecipe = {
 
 describe('cooking UI continuity', () => {
 	beforeEach(() => {
+		useStepPhotoStore.getState().clearAllPhotos()
+		useAuthStore.setState({ user: null })
+		revokeObjectURL.mockClear()
 		useCookingStore.setState({
 			session: null,
 			recipe: null,
@@ -30,6 +70,11 @@ describe('cooking UI continuity', () => {
 			cookingMode: 'expanded',
 			isCookingPlayerOpen: true,
 		})
+	})
+
+	afterEach(() => {
+		useStepPhotoStore.getState().clearAllPhotos()
+		useAuthStore.setState({ user: null })
 	})
 
 	it.each(['in_progress', 'paused'])(
@@ -88,6 +133,128 @@ describe('cooking UI continuity', () => {
 			cookingMode: 'hidden',
 			isCookingPlayerOpen: false,
 		})
+	})
+
+	it.each([
+		'closeCookingPanel',
+		'minimizeCookingPanel',
+		'toggleCookingPlayer',
+		'setCookingMode',
+		'completeCooking',
+		'abandonCooking',
+		'clearSession',
+		'resumeExistingSession',
+	])('clears matching preview photos when exiting through %s', async action => {
+		const previewSession = {
+			sessionId: 'preview-session-1',
+		} as NonNullable<ReturnType<typeof useCookingStore.getState>['session']>
+		const previewPhoto = new File(['preview'], 'preview.jpg', {
+			type: 'image/jpeg',
+		})
+		useAuthStore.setState({ user: { userId: 'owner-1' } as User })
+		useStepPhotoStore.getState().setSession('preview-session-1', 'owner-1')
+		expect(
+			useStepPhotoStore
+				.getState()
+				.addPhoto('preview-session-1', 'owner-1', 1, previewPhoto),
+		).toBe(true)
+		useCookingStore.setState({ session: previewSession, isPreviewMode: true })
+
+		switch (action) {
+			case 'closeCookingPanel':
+				useUiStore.getState().closeCookingPanel()
+				break
+			case 'minimizeCookingPanel':
+				useUiStore.getState().minimizeCookingPanel()
+				break
+			case 'toggleCookingPlayer':
+				useUiStore.getState().toggleCookingPlayer()
+				break
+			case 'setCookingMode':
+				useUiStore.getState().setCookingMode('hidden')
+				break
+			case 'completeCooking':
+				await useCookingStore.getState().completeCooking()
+				break
+			case 'abandonCooking':
+				await useCookingStore.getState().abandonCooking()
+				break
+			case 'clearSession':
+				useCookingStore.getState().clearSession()
+				break
+			case 'resumeExistingSession':
+				await useCookingStore.getState().resumeExistingSession()
+				break
+		}
+
+		expect(useStepPhotoStore.getState()).toMatchObject({
+			sessionId: null,
+			ownerId: null,
+			photos: [],
+		})
+		expect(revokeObjectURL).toHaveBeenCalledWith('blob:preview.jpg')
+		expect(useCookingStore.getState()).toMatchObject({
+			session: null,
+			isPreviewMode: false,
+		})
+	})
+
+	it.each([
+		['another session', 'other-session', 'owner-1'],
+		['another owner', 'preview-session-1', 'owner-2'],
+	])(
+		'does not clear preview photos for %s',
+		(_label, photoSessionId, photoOwnerId) => {
+			const previewSession = {
+				sessionId: 'preview-session-1',
+			} as NonNullable<ReturnType<typeof useCookingStore.getState>['session']>
+			const photo = new File(['other'], 'other.jpg', { type: 'image/jpeg' })
+			useAuthStore.setState({ user: { userId: 'owner-1' } as User })
+			useStepPhotoStore.getState().setSession(photoSessionId, photoOwnerId)
+			expect(
+				useStepPhotoStore
+					.getState()
+					.addPhoto(photoSessionId, photoOwnerId, 1, photo),
+			).toBe(true)
+			useCookingStore.setState({ session: previewSession, isPreviewMode: true })
+
+			useCookingStore.getState().exitPreview()
+
+			expect(useStepPhotoStore.getState()).toMatchObject({
+				sessionId: photoSessionId,
+				ownerId: photoOwnerId,
+				photos: [expect.objectContaining({ file: photo })],
+			})
+			expect(revokeObjectURL).not.toHaveBeenCalled()
+		},
+	)
+
+	it('cleans up the legacy preview session sentinel before attempting resume', async () => {
+		const legacyPreviewPhoto = new File(['legacy'], 'legacy.jpg', {
+			type: 'image/jpeg',
+		})
+		useAuthStore.setState({ user: { userId: 'owner-1' } as User })
+		useStepPhotoStore.getState().setSession('preview', 'owner-1')
+		useStepPhotoStore
+			.getState()
+			.addPhoto('preview', 'owner-1', 1, legacyPreviewPhoto)
+		useCookingStore.setState({
+			session: { sessionId: 'preview' } as NonNullable<
+				ReturnType<typeof useCookingStore.getState>['session']
+			>,
+			isPreviewMode: false,
+		})
+
+		await expect(
+			useCookingStore.getState().resumeExistingSession(),
+		).resolves.toBe(false)
+
+		expect(useStepPhotoStore.getState()).toMatchObject({
+			sessionId: null,
+			ownerId: null,
+			photos: [],
+		})
+		expect(revokeObjectURL).toHaveBeenCalledWith('blob:legacy.jpg')
 	})
 
 	it('routes every close owner through one policy and preserves desktop mini mode', () => {

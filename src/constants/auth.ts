@@ -57,10 +57,25 @@ function getPathnameFromReturnTo(returnTo: string): string | null {
 	}
 
 	try {
-		return new URL(returnTo, 'https://chefkix.local').pathname
+		const baseUrl = new URL('https://chefkix.local')
+		const targetUrl = new URL(returnTo, baseUrl)
+		return targetUrl.origin === baseUrl.origin ? targetUrl.pathname : null
 	} catch {
 		return null
 	}
+}
+
+export function getPostAuthRedirectPath(
+	returnTo: string | null | undefined,
+	fallback: string = PATHS.DASHBOARD,
+): string {
+	if (!returnTo) return fallback
+
+	const normalizedReturnTo = returnTo.trim()
+	const pathname = getPathnameFromReturnTo(normalizedReturnTo)
+	if (!pathname || AUTH_ROUTES.includes(pathname)) return fallback
+
+	return normalizedReturnTo
 }
 
 /**

@@ -75,6 +75,8 @@ export function usePresence() {
 			document.removeEventListener('visibilitychange', handleVisibility)
 			window.removeEventListener('beforeunload', handleBeforeUnload)
 			if (isUnloadingRef.current) return
+			const currentAuth = useAuthStore.getState()
+			if (!currentAuth.isAuthenticated || currentAuth.isLoggingOut) return
 			goOffline().catch(err =>
 				logDevError('Failed to go offline on cleanup:', err),
 			)

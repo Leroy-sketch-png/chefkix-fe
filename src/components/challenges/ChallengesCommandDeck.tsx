@@ -11,11 +11,12 @@ import {
 } from '@/components/layout/command-stat-tone'
 
 interface ChallengesCommandDeckProps {
+	activeChallengeCount: number | null
 	counts: {
-		community: number
-		seasonal: number
-		hasDaily: boolean
-		hasWeekly: boolean
+		community: number | null
+		seasonal: number | null
+		daily: number | null
+		weekly: number | null
 	}
 	className?: string
 }
@@ -23,11 +24,13 @@ interface ChallengesCommandDeckProps {
 function DeckStat({
 	label,
 	value,
+	unavailableLabel,
 	icon: Icon,
 	tone,
 }: {
 	label: string
-	value: string
+	value: number | null
+	unavailableLabel: string
 	icon: React.ComponentType<{ className?: string }>
 	tone: Extract<CommandStatTone, 'brand' | 'xp' | 'success' | 'muted'>
 }) {
@@ -41,7 +44,11 @@ function DeckStat({
 						{label}
 					</p>
 					<p className='mt-1 text-xl font-black tabular-nums text-text-primary'>
-						<NumberTicker value={parseInt(value) || 0} />
+						{value === null ? (
+							<span aria-label={unavailableLabel}>—</span>
+						) : (
+							<NumberTicker value={value} />
+						)}
 					</p>
 				</div>
 				<div className={cn('rounded-md border p-1.5', toneClass)}>
@@ -53,15 +60,11 @@ function DeckStat({
 }
 
 export function ChallengesCommandDeck({
+	activeChallengeCount,
 	counts,
 	className,
 }: ChallengesCommandDeckProps) {
 	const t = useTranslations('challenges')
-	const activeStreams =
-		(counts.hasDaily ? 1 : 0) +
-		(counts.hasWeekly ? 1 : 0) +
-		counts.community +
-		counts.seasonal
 
 	return (
 		<motion.section
@@ -92,32 +95,41 @@ export function ChallengesCommandDeck({
 
 					<div className='grid grid-cols-2 gap-2 lg:grid-cols-5'>
 						<DeckStat
-							label={t('statActiveStreams')}
-							value={activeStreams.toString()}
+							label={t('statActiveChallenges')}
+							value={activeChallengeCount}
+							unavailableLabel={t('countUnavailable')}
 							icon={Trophy}
 							tone='xp'
 						/>
 						<DeckStat
 							label={t('daily')}
-							value={counts.hasDaily ? '1' : '0'}
+							value={counts.daily}
+							unavailableLabel={t('countUnavailable')}
 							icon={Clock}
-							tone={counts.hasDaily ? 'brand' : 'muted'}
+							tone={counts.daily === 1 ? 'brand' : 'muted'}
 						/>
 						<DeckStat
 							label={t('weekly')}
-							value={counts.hasWeekly ? '1' : '0'}
+							value={counts.weekly}
+							unavailableLabel={t('countUnavailable')}
 							icon={Sparkles}
-							tone={counts.hasWeekly ? 'brand' : 'muted'}
+							tone={counts.weekly === 1 ? 'brand' : 'muted'}
 						/>
 						<DeckStat
 							label={t('community')}
-							value={counts.community.toString()}
+							value={counts.community}
+							unavailableLabel={t('countUnavailable')}
 							icon={Users}
-							tone={counts.community > 0 ? 'success' : 'muted'}
+							tone={
+								counts.community !== null && counts.community > 0
+									? 'success'
+									: 'muted'
+							}
 						/>
 						<DeckStat
 							label={t('seasonal')}
-							value={counts.seasonal.toString()}
+							value={counts.seasonal}
+							unavailableLabel={t('countUnavailable')}
 							icon={Leaf}
 							tone='muted'
 						/>

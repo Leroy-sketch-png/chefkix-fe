@@ -24,6 +24,7 @@ import messages from '../../messages/en.json'
 import { diag } from '@/lib/diagnostics'
 import type { RoomParticipant, CookingRoom, RoomEvent } from '@/lib/types/room'
 import { useAuthStore } from '@/store/authStore'
+import { useStepPhotoStore } from '@/lib/step-photo-store'
 import {
 	createRoom as apiCreateRoom,
 	joinRoom as apiJoinRoom,
@@ -60,6 +61,20 @@ export type KitchenInteractionMode =
 	| 'MONITORING'
 	| 'COMPLETION'
 
+type CookingPreviewSnapshot = {
+	session: CookingSession | null
+	recipe: Recipe | null
+	checkedIngredients: Record<string, boolean>
+	localTimers: Map<
+		number,
+		{ initialDuration: number; startedAt: number; remaining: number }
+	>
+	interactionMode: KitchenInteractionMode | null
+}
+
+const isPreviewSessionId = (sessionId?: string | null) =>
+	sessionId === 'preview' || sessionId?.startsWith('preview-') === true
+
 interface CookingState {
 	// Current session
 	session: CookingSession | null
@@ -74,6 +89,7 @@ interface CookingState {
 	// Preview mode — allows creators to test-play recipes without backend session
 	// NOT persisted to localStorage (defaults to false on rehydrate)
 	isPreviewMode: boolean
+	previewPreviousState: CookingPreviewSnapshot | null
 
 	// Ingredient checklist state — persisted to localStorage across step changes and minimize
 	// Key format: "${stepNumber}-${ingredientIndex}" (index, NOT name — avoids collision)
@@ -213,6 +229,7 @@ export const useCookingStore = create<CookingState>()(
 				error: null,
 				interactionMode: null,
 				isPreviewMode: false,
+				previewPreviousState: null,
 				localTimers: new Map(),
 				checkedIngredients: {},
 				stepRenderMode: 'full' as StepRenderMode,
@@ -364,10 +381,14 @@ export const useCookingStore = create<CookingState>()(
 				},
 
 				resumeExistingSession: async () => {
-					// Skip resume if current session is a preview (sessionId: 'preview')
-					const currentSession = get().session
-					if (currentSession?.sessionId === 'preview') {
-						set({ isPreviewMode: false, session: null, recipe: null })
+					// Preview sessions are local-only and must never hit the resume API.
+					const currentState = get()
+					const currentSession = currentState.session
+					if (
+						currentState.isPreviewMode ||
+						isPreviewSessionId(currentSession?.sessionId)
+					) {
+						currentState.exitPreview()
 						return false
 					}
 
@@ -743,15 +764,8 @@ export const useCookingStore = create<CookingState>()(
 					const { session, isPreviewMode } = get()
 
 					if (isPreviewMode) {
-						// Preview mode — no API, just exit
-						set({
-							session: null,
-							recipe: null,
-							isPreviewMode: false,
-							localTimers: new Map(),
-							checkedIngredients: {},
-							error: null,
-						})
+						// Preview mode — no API; every exit shares the media cleanup boundary.
+						get().exitPreview()
 						return null
 					}
 
@@ -822,13 +836,7 @@ export const useCookingStore = create<CookingState>()(
 					if (!session) return
 
 					if (isPreviewMode) {
-						set({
-							session: null,
-							recipe: null,
-							isPreviewMode: false,
-							localTimers: new Map(),
-							checkedIngredients: {},
-						})
+						get().exitPreview()
 						return
 					}
 
@@ -854,11 +862,21 @@ export const useCookingStore = create<CookingState>()(
 				},
 
 				clearSession: () => {
+					const currentState = get()
+					if (
+						currentState.isPreviewMode ||
+						isPreviewSessionId(currentState.session?.sessionId)
+					) {
+						currentState.exitPreview()
+						return
+					}
+
 					set({
 						session: null,
 						recipe: null,
 						error: null,
 						isPreviewMode: false,
+						previewPreviousState: null,
 						localTimers: new Map(),
 						checkedIngredients: {},
 						interactionMode: null,
@@ -892,6 +910,18 @@ export const useCookingStore = create<CookingState>()(
 				 * Used by recipe creators to test-play their recipe before publishing.
 				 */
 				startPreviewCooking: (recipe: Recipe) => {
+					const currentState = get()
+					const previewPreviousState = currentState.isPreviewMode
+						? currentState.previewPreviousState
+						: isPreviewSessionId(currentState.session?.sessionId)
+							? null
+							: {
+									session: currentState.session,
+									recipe: currentState.recipe,
+									checkedIngredients: currentState.checkedIngredients,
+									localTimers: new Map(currentState.localTimers),
+									interactionMode: currentState.interactionMode,
+								}
 					const mockSession: CookingSession = {
 						sessionId: `preview-${Date.now()}`,
 						recipeId: recipe.id || 'preview-unsaved',
@@ -906,6 +936,7 @@ export const useCookingStore = create<CookingState>()(
 						session: mockSession,
 						recipe,
 						isPreviewMode: true,
+						previewPreviousState,
 						isLoading: false,
 						error: null,
 						localTimers: new Map(),
@@ -918,15 +949,28 @@ export const useCookingStore = create<CookingState>()(
 				 * Exit preview mode and clean up all state.
 				 */
 				exitPreview: () => {
+					const { session, isPreviewMode, previewPreviousState } = get()
+					const photoState = useStepPhotoStore.getState()
+					const ownerId = useAuthStore.getState().user?.userId ?? null
+					if (
+						(isPreviewMode || isPreviewSessionId(session?.sessionId)) &&
+						session?.sessionId &&
+						photoState.sessionId === session.sessionId &&
+						photoState.ownerId === ownerId
+					) {
+						photoState.clearAllPhotos()
+					}
+
 					set({
-						session: null,
-						recipe: null,
+						session: previewPreviousState?.session ?? null,
+						recipe: previewPreviousState?.recipe ?? null,
 						isPreviewMode: false,
+						previewPreviousState: null,
 						isLoading: false,
 						error: null,
-						localTimers: new Map(),
-						checkedIngredients: {},
-						interactionMode: null,
+						localTimers: previewPreviousState?.localTimers ?? new Map(),
+						checkedIngredients: previewPreviousState?.checkedIngredients ?? {},
+						interactionMode: previewPreviousState?.interactionMode ?? null,
 					})
 				},
 
@@ -1203,22 +1247,38 @@ export const useCookingStore = create<CookingState>()(
 		{
 			name: 'chefkix-cooking-session',
 			// Persist session IDs, checklist state, active timers, and render mode preference
-			partialize: state => ({
-				session: state.session
-					? {
-							sessionId: state.session.sessionId,
-							recipeId: state.session.recipeId,
-						}
-					: null,
-				recipe: state.recipe,
-				checkedIngredients: state.checkedIngredients,
-				localTimers: Array.from(state.localTimers.entries()),
-				stepRenderMode: state.stepRenderMode,
-				roomCode: state.roomCode,
-				participants: state.participants,
-				isInRoom: state.isInRoom,
-				isHost: state.isHost,
-			}),
+			partialize: state => {
+				const isPreview =
+					state.isPreviewMode || isPreviewSessionId(state.session?.sessionId)
+				const preservedState = isPreview ? state.previewPreviousState : null
+				const session = isPreview
+					? (preservedState?.session ?? null)
+					: state.session
+
+				return {
+					session: session
+						? {
+								sessionId: session.sessionId,
+								recipeId: session.recipeId,
+							}
+						: null,
+					recipe: isPreview ? (preservedState?.recipe ?? null) : state.recipe,
+					checkedIngredients: isPreview
+						? (preservedState?.checkedIngredients ?? {})
+						: state.checkedIngredients,
+					localTimers: Array.from(
+						(isPreview
+							? (preservedState?.localTimers ?? new Map())
+							: state.localTimers
+						).entries(),
+					),
+					stepRenderMode: state.stepRenderMode,
+					roomCode: state.roomCode,
+					participants: state.participants,
+					isInRoom: state.isInRoom,
+					isHost: state.isHost,
+				}
+			},
 			merge: (persisted: unknown, currentState: CookingState) => {
 				const p = persisted as Partial<
 					CookingState & {
@@ -1241,10 +1301,27 @@ export const useCookingStore = create<CookingState>()(
 						rehydratedTimers.set(step, { ...timer, remaining })
 					}
 				}
+				const isLegacyPreview =
+					p?.isPreviewMode === true || isPreviewSessionId(p?.session?.sessionId)
 				return {
 					...currentState,
 					...p,
-					localTimers: rehydratedTimers,
+					session: isLegacyPreview
+						? null
+						: Object.prototype.hasOwnProperty.call(p, 'session')
+							? (p?.session ?? null)
+							: currentState.session,
+					recipe: isLegacyPreview
+						? null
+						: Object.prototype.hasOwnProperty.call(p, 'recipe')
+							? (p?.recipe ?? null)
+							: currentState.recipe,
+					isPreviewMode: false,
+					previewPreviousState: null,
+					checkedIngredients: isLegacyPreview
+						? {}
+						: (p?.checkedIngredients ?? currentState.checkedIngredients),
+					localTimers: isLegacyPreview ? new Map() : rehydratedTimers,
 					stepRenderMode: (p?.stepRenderMode as StepRenderMode) || 'full',
 				}
 			},

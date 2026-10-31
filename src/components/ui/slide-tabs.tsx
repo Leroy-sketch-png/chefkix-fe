@@ -36,15 +36,19 @@ export function SlideTabs({
 	className,
 }: SlideTabsProps) {
 	const layoutId = `slide-tab-${useId()}`
+	const fullWidthColumnsClass =
+		tabs.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
 
 	return (
 		<div
 			className={cn(
-				'relative inline-flex items-center',
+				'relative items-center',
+				fullWidth
+					? `grid w-full ${fullWidthColumnsClass} sm:inline-flex sm:w-auto`
+					: 'inline-flex',
 				variant === 'pill' &&
 					'rounded-full border border-border-subtle bg-bg-elevated p-1',
 				variant === 'underline' && 'border-b border-border-subtle',
-				fullWidth && 'w-full',
 				className,
 			)}
 			role='tablist'
@@ -61,7 +65,7 @@ export function SlideTabs({
 						className={cn(
 							'relative z-10 flex items-center gap-1.5 rounded-full font-semibold transition-colors',
 							sizeClass[size],
-							fullWidth && 'flex-1 justify-center',
+							fullWidth && 'w-full min-w-0 justify-center sm:w-auto sm:flex-1',
 							isActive
 								? 'text-text-primary'
 								: 'text-text-secondary hover:text-text-primary',

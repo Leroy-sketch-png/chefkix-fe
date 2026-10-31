@@ -434,6 +434,7 @@ export default function CookingRoomPage() {
 						eyebrow={tc('eyebrows.cookControls')}
 						chipText={isSpectator ? 'Watching' : 'Cooking'}
 						className='p-0 lg:col-span-2'
+						eyebrowClassName='px-3 pt-3'
 					>
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
@@ -633,6 +634,7 @@ export default function CookingRoomPage() {
 						eyebrow={tc('eyebrows.activityFeed')}
 						chipText={isConnected ? 'Live' : 'Reconnecting'}
 						className='p-0 lg:col-span-1 lg:sticky lg:top-24 lg:self-start'
+						eyebrowClassName='px-3 pt-3'
 						tone='blue'
 					>
 						<motion.div

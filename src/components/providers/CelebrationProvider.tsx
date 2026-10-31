@@ -37,7 +37,9 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import type { Badge } from '@/lib/types/gamification'
 import type { CompletedChallengeReward } from '@/services/cookingSession'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStore } from '@/store/authStore'
 import { postDraftRepository } from '@/lib/post-draft-storage'
+import { mergePostDraftPhotos } from '@/lib/post-draft-photos'
 import { shareContent } from '@/lib/clipboard'
 
 // ============================================
@@ -115,15 +117,22 @@ interface PostSuccessData {
 }
 
 interface FirstCookData {
+	ownerId: string
 	recipeName: string
 	recipeImageUrl: string
 	xpEarned: number
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED'
+	pendingXp: number
+	postDeadlineDays: number | null
 	sessionId?: string
+	stepPhotos?: File[]
 	badgeEarned?: Badge
 }
 
 interface ImmediateRewardsData {
+	ownerId: string
 	sessionId: string
+	stepPhotos?: File[]
 	recipeName: string
 	recipeImageUrl?: string
 	immediateXp: number
@@ -149,7 +158,7 @@ interface ImmediateRewardsData {
 	streakDays?: number
 	creatorTipXp?: number
 	creatorHandle?: string
-	postDeadlineHours: number
+	postDeadlineHours: number | null
 	unlockedAchievement?: Badge | null
 }
 
@@ -232,6 +241,7 @@ interface CelebrationProviderProps {
 export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const router = useRouter()
 	const t = useTranslations('social')
+	const tp = useTranslations('post')
 	const { user } = useAuth()
 
 	// Level Up state
@@ -291,6 +301,17 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		setStreakMilestoneOpen(false)
 		setStreakMilestoneData(null)
 	})
+
+	useEffect(() => {
+		if (firstCookData && firstCookData.ownerId !== user?.userId) {
+			setFirstCookOpen(false)
+			setFirstCookData(null)
+		}
+		if (immediateRewardsData && immediateRewardsData.ownerId !== user?.userId) {
+			setImmediateRewardsOpen(false)
+			setImmediateRewardsData(null)
+		}
+	}, [firstCookData, immediateRewardsData, user?.userId])
 
 	// ============================================
 	// ACTIONS
@@ -426,23 +447,39 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 		setImmediateRewardsData(null)
 	}
 
-	const persistImmediateRewardsDraft = async (capturedPhotos?: File[]) => {
-		const sessionId = immediateRewardsData?.sessionId
-		if (!user?.userId || !sessionId) {
-			toast.error(t('failedToSaveDraft'))
+	const isCurrentCompletionOwner = (ownerId: string) =>
+		Boolean(ownerId) && useAuthStore.getState().user?.userId === ownerId
+
+	const persistCompletionDraft = async (
+		ownerId: string,
+		sessionId?: string,
+		capturedPhotos: File[] = [],
+	) => {
+		if (!sessionId || !isCurrentCompletionOwner(ownerId)) {
+			toast.error(tp('failedToSaveDraft'))
 			return null
 		}
 
 		try {
+			const existing = await postDraftRepository.load(ownerId, sessionId)
+			if (!isCurrentCompletionOwner(ownerId)) {
+				toast.error(tp('failedToSaveDraft'))
+				return null
+			}
 			await postDraftRepository.save({
-				ownerId: user.userId,
+				ownerId,
 				sessionId,
-				photos: capturedPhotos,
+				content: existing?.content ?? '',
+				photos: mergePostDraftPhotos(existing?.photos ?? [], capturedPhotos),
 			})
+			if (!isCurrentCompletionOwner(ownerId)) {
+				toast.error(tp('failedToSaveDraft'))
+				return null
+			}
 			return sessionId
 		} catch (error) {
 			logDevError('Failed to save completion post draft:', error)
-			toast.error(t('failedToSaveDraft'))
+			toast.error(tp('failedToSaveDraft'))
 			return null
 		}
 	}
@@ -450,8 +487,14 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const handleImmediateRewardsPostNow = async (
 		capturedPhotos?: File[],
 	): Promise<boolean> => {
-		const sessionId = await persistImmediateRewardsDraft(capturedPhotos)
-		if (!sessionId) return false
+		const data = immediateRewardsData
+		if (!data) return false
+		const sessionId = await persistCompletionDraft(
+			data.ownerId,
+			data.sessionId,
+			capturedPhotos,
+		)
+		if (!sessionId || !isCurrentCompletionOwner(data.ownerId)) return false
 
 		handleImmediateRewardsClose()
 		router.push(`/post/new?session=${sessionId}`)
@@ -461,15 +504,43 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 	const handleImmediateRewardsPostLater = async (
 		capturedPhotos?: File[],
 	): Promise<boolean> => {
-		const sessionId = await persistImmediateRewardsDraft(capturedPhotos)
-		if (!sessionId) return false
+		const data = immediateRewardsData
+		if (!data) return false
+		const sessionId = await persistCompletionDraft(
+			data.ownerId,
+			data.sessionId,
+			capturedPhotos,
+		)
+		if (!sessionId || !isCurrentCompletionOwner(data.ownerId)) return false
 
 		handleImmediateRewardsClose()
-		toast.success(t('draftSaved'), {
-			description: t('xpDecay'),
+		toast.success(tp('draftSaved'), {
+			description: tp('xpDecay'),
 		})
 		router.push('/dashboard')
 		return true
+	}
+
+	const handleFirstCookPostNow = async () => {
+		const data = firstCookData
+		if (!data) return
+		if (!isCurrentCompletionOwner(data.ownerId)) {
+			toast.error(tp('failedToSaveDraft'))
+			return
+		}
+		if (data.stepPhotos?.length) {
+			const saved = await persistCompletionDraft(
+				data.ownerId,
+				data.sessionId,
+				data.stepPhotos,
+			)
+			if (!saved || !isCurrentCompletionOwner(data.ownerId)) return
+		}
+
+		handleFirstCookClose()
+		router.push(
+			data.sessionId ? `/post/new?session=${data.sessionId}` : '/post/new',
+		)
 	}
 
 	const handleStreakSavedClose = () => {
@@ -639,22 +710,17 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 			)}
 
 			{/* First Cook Modal */}
-			{firstCookData && (
+			{firstCookData && firstCookData.ownerId === user?.userId && (
 				<FirstCookCelebration
 					isOpen={firstCookOpen}
 					onClose={handleFirstCookClose}
 					recipeName={firstCookData.recipeName}
 					recipeImageUrl={firstCookData.recipeImageUrl}
 					immediateXp={firstCookData.xpEarned}
-					pendingXp={20} // Default pending XP for first cook
-					postDeadlineDays={2}
-					onPostNow={() => {
-						const sessionId = firstCookData.sessionId
-						handleFirstCookClose()
-						router.push(
-							sessionId ? `/post/new?session=${sessionId}` : '/post/new',
-						)
-					}}
+					xpDeliveryStatus={firstCookData.xpDeliveryStatus}
+					pendingXp={firstCookData.pendingXp}
+					postDeadlineDays={firstCookData.postDeadlineDays}
+					onPostNow={handleFirstCookPostNow}
 					onShareAchievement={() => {
 						shareWithFallback(
 							{
@@ -675,34 +741,36 @@ export const CelebrationProvider = ({ children }: CelebrationProviderProps) => {
 			)}
 
 			{/* Immediate Rewards Modal (after cooking, before posting) */}
-			{immediateRewardsData && (
-				<ImmediateRewards
-					isOpen={immediateRewardsOpen}
-					onClose={handleImmediateRewardsPostLater}
-					sessionId={immediateRewardsData.sessionId}
-					recipeName={immediateRewardsData.recipeName}
-					recipeImageUrl={immediateRewardsData.recipeImageUrl}
-					immediateXp={immediateRewardsData.immediateXp}
-					recipeXpAwarded={immediateRewardsData.recipeXpAwarded}
-					coOpBonusXp={immediateRewardsData.coOpBonusXp}
-					pendingXp={immediateRewardsData.pendingXp}
-					completedChallengeRewards={
-						immediateRewardsData.completedChallengeRewards
-					}
-					xpDeliveryStatus={immediateRewardsData.xpDeliveryStatus}
-					xpMultiplier={immediateRewardsData.xpMultiplier}
-					xpMultiplierReason={immediateRewardsData.xpMultiplierReason}
-					xpBreakdown={immediateRewardsData.xpBreakdown}
-					streakBonus={immediateRewardsData.streakBonus}
-					streakDays={immediateRewardsData.streakDays}
-					creatorTipXp={immediateRewardsData.creatorTipXp}
-					creatorHandle={immediateRewardsData.creatorHandle}
-					postDeadlineHours={immediateRewardsData.postDeadlineHours}
-					unlockedAchievement={immediateRewardsData.unlockedAchievement}
-					onPostNow={handleImmediateRewardsPostNow}
-					onPostLater={handleImmediateRewardsPostLater}
-				/>
-			)}
+			{immediateRewardsData &&
+				immediateRewardsData.ownerId === user?.userId && (
+					<ImmediateRewards
+						isOpen={immediateRewardsOpen}
+						onClose={handleImmediateRewardsPostLater}
+						sessionId={immediateRewardsData.sessionId}
+						stepPhotos={immediateRewardsData.stepPhotos}
+						recipeName={immediateRewardsData.recipeName}
+						recipeImageUrl={immediateRewardsData.recipeImageUrl}
+						immediateXp={immediateRewardsData.immediateXp}
+						recipeXpAwarded={immediateRewardsData.recipeXpAwarded}
+						coOpBonusXp={immediateRewardsData.coOpBonusXp}
+						pendingXp={immediateRewardsData.pendingXp}
+						completedChallengeRewards={
+							immediateRewardsData.completedChallengeRewards
+						}
+						xpDeliveryStatus={immediateRewardsData.xpDeliveryStatus}
+						xpMultiplier={immediateRewardsData.xpMultiplier}
+						xpMultiplierReason={immediateRewardsData.xpMultiplierReason}
+						xpBreakdown={immediateRewardsData.xpBreakdown}
+						streakBonus={immediateRewardsData.streakBonus}
+						streakDays={immediateRewardsData.streakDays}
+						creatorTipXp={immediateRewardsData.creatorTipXp}
+						creatorHandle={immediateRewardsData.creatorHandle}
+						postDeadlineHours={immediateRewardsData.postDeadlineHours}
+						unlockedAchievement={immediateRewardsData.unlockedAchievement}
+						onPostNow={handleImmediateRewardsPostNow}
+						onPostLater={handleImmediateRewardsPostLater}
+					/>
+				)}
 
 			{/* Streak Saved Toast */}
 			{streakSavedData && (

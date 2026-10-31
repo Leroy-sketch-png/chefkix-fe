@@ -53,7 +53,7 @@ export const Topbar = () => {
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 	const router = useRouter()
-	const { user, logout } = useAuth()
+	const { user, logout, isLoggingOut } = useAuth()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 
@@ -169,17 +169,17 @@ export const Topbar = () => {
 	)
 
 	useEffect(() => {
-		if (user) {
+		if (user && !isLoggingOut) {
 			startPolling()
 		} else {
 			stopPolling()
 		}
 
 		return () => stopPolling()
-	}, [startPolling, stopPolling, user])
+	}, [startPolling, stopPolling, user, isLoggingOut])
 
 	useEffect(() => {
-		if (!user) return
+		if (!user || isLoggingOut) return
 		let cancelled = false
 
 		const fetchUnreadMessages = async () => {
@@ -204,7 +204,7 @@ export const Topbar = () => {
 			cancelled = true
 			clearInterval(interval)
 		}
-	}, [user])
+	}, [user, isLoggingOut])
 
 	const handleLogout = useCallback(async () => {
 		try {

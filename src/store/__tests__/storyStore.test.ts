@@ -35,7 +35,6 @@ describe('storyStore', () => {
 				displayName: 'Mai',
 				avatarUrl: '/mai.webp',
 				hasUnseenStory: false,
-				hasStories: true,
 			},
 		])
 	})

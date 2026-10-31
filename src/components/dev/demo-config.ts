@@ -5,8 +5,13 @@ import { useCookingStore } from '@/store/cookingStore'
 import { roomInvitePath } from '@/lib/room-code'
 import {
 	getIoCertificationGateResult,
+	getIoCertificationBlockers,
+	getStoredIoCertificationResults,
 	getStoredIoCertificationSummary,
+	type IoCertificationCheckId,
+	type IoCertificationResults,
 } from '@/components/dev/io-certification'
+import { probeHttpService, type HealthService } from '@/lib/service-health'
 
 export interface DemoAccount {
 	label: string
@@ -51,6 +56,7 @@ export interface DemoPitchShortcut {
 	sceneId?: DemoSceneId
 	actionId?: DemoRuntimeActionId
 	requiresAuth?: boolean
+	requiredIoChecks?: IoCertificationCheckId[]
 }
 
 export interface DemoPitchBeat {
@@ -380,6 +386,7 @@ export const DEMO_PITCH_SHORTCUTS: DemoPitchShortcut[] = [
 		kind: 'scene',
 		sceneId: 'cooking-audio',
 		requiresAuth: true,
+		requiredIoChecks: ['speaker', 'timer'],
 	},
 	{
 		id: 'co-cook',
@@ -390,6 +397,7 @@ export const DEMO_PITCH_SHORTCUTS: DemoPitchShortcut[] = [
 		kind: 'runtime',
 		actionId: 'co-cook',
 		requiresAuth: true,
+		requiredIoChecks: ['turn'],
 	},
 	{
 		id: 'pantry',
@@ -623,6 +631,16 @@ export function getDemoPitchShortcut(
 	id: string,
 ): DemoPitchShortcut | undefined {
 	return DEMO_PITCH_SHORTCUTS.find(shortcut => shortcut.id === id)
+}
+
+export function getDemoShortcutIoBlockers(
+	shortcut: DemoPitchShortcut | undefined,
+	results: Partial<IoCertificationResults> | null = getStoredIoCertificationResults(),
+	nowMs = Date.now(),
+): string[] {
+	return shortcut?.requiredIoChecks?.length
+		? getIoCertificationBlockers(shortcut.requiredIoChecks, results, nowMs)
+		: []
 }
 
 interface RecipeCandidate {
@@ -1017,19 +1035,14 @@ async function createCookTogetherShortcut(
 		throw new Error('Could not create a demo cooking room')
 	}
 
-	await clearBackendDemoCookingState(accessToken)
-
-	let createdRoom = await tryCreateRoom()
-
-	if (!createdRoom) {
-		await clearBackendDemoCookingState(accessToken)
-		createdRoom = await tryCreateRoom()
-	}
+	const createdRoom = await tryCreateRoom()
 
 	const effectiveRoomCode = createdRoom?.roomCode || null
 
 	if (!effectiveRoomCode) {
-		throw new Error('Could not create or resolve a demo cooking room')
+		throw new Error(
+			'Room creation was rejected with a conflict. Existing cooking state was preserved; inspect the active session or room before retrying.',
+		)
 	}
 
 	const origin = getDemoOrigin()
@@ -1053,25 +1066,9 @@ async function createCookTogetherShortcut(
 		useCookingStore.setState({ recipe: recipeResponse.data })
 	}
 
-	// Auto-navigate the pre-opened companion window (sakura_kitchen) to the spectator URL
-	// The companion window was opened during warm-up — no popup blocker friction.
-	const sakuraEntry = _vault.tokens['sakura_kitchen']
-	if (sakuraEntry) {
-		const spectatorUrl = `${origin}${watchPath}&demoToken=${encodeURIComponent(sakuraEntry.accessToken)}`
-		const navigated = navigateCompanionWindow(spectatorUrl)
-		if (!navigated) {
-			// Fallback: open fresh window if companion wasn't pre-opened
-			window.open(
-				`${origin}${watchPath}&demoToken=${encodeURIComponent(sakuraEntry.accessToken)}`,
-				COMPANION_WINDOW_NAME,
-				'width=390,height=844,left=80,top=40,toolbar=no,menubar=no,scrollbars=no,resizable=no',
-			)
-		}
-	}
-
 	return {
 		path: '/cook-together/room',
-		notice: `Room ${effectiveRoomCode} ready — Sakura Kitchen joining as spectator.`,
+		notice: `Room ${effectiveRoomCode} is ready. Open the spectator link on a second signed-in account or device.`,
 		copiedText: watchUrl,
 		watchUrl,
 		joinUrl,
@@ -1561,6 +1558,31 @@ async function runPreShowCheck(
 	}
 }
 
+export function summarizeServiceHealth(
+	services: Array<{ name: string; healthy: boolean; detail?: string }>,
+): { status: 'pass' | 'warn' | 'fail'; detail: string } {
+	const failed = services.filter(service => !service.healthy)
+	if (services.length === 0) {
+		return {
+			status: 'fail',
+			detail: 'No service health probes were configured',
+		}
+	}
+	if (failed.length === 0) {
+		return { status: 'pass', detail: 'Monolith, AI, Keycloak all healthy' }
+	}
+	if (failed.length === 1) {
+		return {
+			status: 'warn',
+			detail: `${failed[0]!.name}${failed[0]!.detail ? ` (${failed[0]!.detail})` : ''} is not ready. Check affected beat readiness and use its documented fallback.`,
+		}
+	}
+	return {
+		status: 'fail',
+		detail: `${failed.map(service => `${service.name}${service.detail ? ` (${service.detail})` : ''}`).join(', ')} are not ready — demo may break`,
+	}
+}
+
 export async function preloadCriticalData(accessToken: string | null = null) {
 	const baseUrl = getDemoBaseUrl()
 	const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
@@ -1626,22 +1648,41 @@ export async function runPreShowChecklist(
 		'services-health',
 		'Service Health',
 		async () => {
-			const endpoints = [
-				{ name: 'Monolith', url: `${base}/api/v1/actuator/health` },
-				{ name: 'AI Service', url: 'http://localhost:8000/health' },
-				{ name: 'Keycloak', url: 'http://localhost:8180/realms/nottisn' },
+			const endpoints: Array<{
+				name: string
+				url: string
+				service: HealthService
+			}> = [
+				{
+					name: 'Monolith',
+					url: `${base}/api/v1/actuator/health`,
+					service: 'monolith',
+				},
+				{
+					name: 'AI Service',
+					url: 'http://localhost:8000/health',
+					service: 'ai-service',
+				},
+				{
+					name: 'Keycloak',
+					url: 'http://localhost:8180/realms/nottisn',
+					service: 'keycloak',
+				},
 			]
-			const results = await Promise.allSettled(
+			const services = await Promise.all(
 				endpoints.map(async ep => {
-					const res = await fetch(ep.url, { signal: AbortSignal.timeout(4000) })
-					return { name: ep.name, ok: res.ok || res.status === 401 }
+					const result = await probeHttpService(ep.service, ep.url, 4000)
+					return {
+						name: ep.name,
+						healthy: result.healthy,
+						detail: result.detail,
+					}
 				}),
 			)
-			const failed = results
-				.map((r, i) =>
-					r.status === 'rejected' || !r.value.ok ? endpoints[i]!.name : null,
-				)
-				.filter(Boolean)
+			const health = summarizeServiceHealth(services)
+			const failed = services
+				.filter(service => !service.healthy)
+				.map(service => service.name)
 			if (airGapMode && failed.includes('AI Service')) {
 				return {
 					status: 'fail',
@@ -1649,17 +1690,7 @@ export async function runPreShowChecklist(
 						'AIR-GAP NO-GO: AI Service offline. Beats 2 (Semantic Search) and 3 (Co-Cook AI) will break.',
 				}
 			}
-			if (failed.length === 0)
-				return { status: 'pass', detail: 'Monolith, AI, Keycloak all healthy' }
-			if (failed.length <= 1)
-				return {
-					status: 'pass',
-					detail: `${failed.join(', ')} unreachable — check if it matters for your beats`,
-				}
-			return {
-				status: 'fail',
-				detail: `${failed.join(', ')} are down — demo will break`,
-			}
+			return health
 		},
 	)
 	push(serviceCheck)
@@ -1949,81 +1980,39 @@ export async function runPreShowChecklist(
 	)
 	push(creatorCheck)
 
-	// 10. Room creation probe (create + immediately abandon)
+	// 10. Read the explicit infrastructure probe; this checklist must not mutate cook state.
 	const roomCheck = await runPreShowCheck(
 		'room-probe',
-		'Room Creation',
+		'Room API Lifecycle (REST)',
 		async () => {
-			if (!accessToken)
+			const report = await loadDemoReadinessReport()
+			const probe = report?.checks.find(check => check.id === 'co-cook-probe')
+			if (!report || !probe) {
 				return {
 					status: 'warn',
-					detail: 'No auth token — cannot probe room creation',
-				}
-			const heroPath = await getPreparedHeroRecipePath(accessToken)
-			const recipeId = extractRecipeIdFromPath(heroPath)
-			if (!recipeId)
-				return {
-					status: 'warn',
-					detail: 'No hero recipe to probe room creation with',
-				}
-
-			const headers = {
-				Authorization: `Bearer ${accessToken}`,
-				'Content-Type': 'application/json',
-			}
-
-			await clearBackendDemoCookingState(accessToken)
-
-			const createRoom = async () => {
-				const createRes = await fetch(`${base}/api/v1/cooking-rooms`, {
-					method: 'POST',
-					headers,
-					body: JSON.stringify({ recipeId }),
-					signal: AbortSignal.timeout(10000),
-				})
-				const createData = (await createRes.json()) as {
-					success?: boolean
-					data?: { roomCode?: string }
-					statusCode?: number
-				}
-				return { createRes, createData }
-			}
-
-			let { createRes, createData } = await createRoom()
-			if (createRes.status === 409 || createData.statusCode === 409) {
-				await clearBackendDemoCookingState(accessToken)
-				;({ createRes, createData } = await createRoom())
-			}
-
-			// 409 after one cleanup retry means the co-cook beat is not safe.
-			if (createRes.status === 409 || createData.statusCode === 409) {
-				return {
-					status: 'fail',
 					detail:
-						'Room creation still conflicts after cleanup - co-cook beat will not work',
+						'No explicit room lifecycle probe is available. Run the documented infrastructure probe; this checklist does not create or abandon sessions.',
 				}
 			}
-			if (!createRes.ok || !createData.success || !createData.data?.roomCode) {
+
+			const ageMs = Date.now() - Date.parse(report.generatedAt)
+			if (!Number.isFinite(ageMs) || ageMs < 0 || ageMs > 12 * 60 * 60 * 1000) {
 				return {
-					status: 'fail',
-					detail: 'Room creation failed — co-cook beat will not work',
+					status: 'warn',
+					detail:
+						'Room readiness report is stale; refresh the infrastructure report.',
 				}
 			}
 
-			const roomCode = createData.data.roomCode
-
-			// Abandon immediately
-			await fetch(`${base}/api/v1/cooking-rooms/${roomCode}/leave`, {
-				method: 'POST',
-				headers,
-				signal: AbortSignal.timeout(5000),
-			}).catch(() => {
-				/* best-effort */
-			})
-
+			const status =
+				probe.status === 'ready'
+					? 'pass'
+					: probe.status === 'blocked'
+						? 'fail'
+						: 'warn'
 			return {
-				status: 'pass',
-				detail: `Room ${roomCode} created and released — WebSocket path confirmed`,
+				status,
+				detail: `${probe.detail} This is REST-only evidence; WebSocket events, ICE/TURN, and multi-device co-cooking are not certified.`,
 			}
 		},
 	)
@@ -2106,53 +2095,5 @@ export async function runPreShowChecklist(
 		verdict,
 		generatedAt: new Date().toISOString(),
 		airGapMode,
-	}
-}
-
-// ============================================================================
-// ENHANCED CO-COOK: Auto-launch sakura_kitchen in a pre-opened companion window
-// ============================================================================
-
-// The companion window is opened once during warm-up and reused on the beat.
-// This avoids the popup-blocker problem on first-click.
-export const COMPANION_WINDOW_NAME = 'chefkix-demo-spectator'
-
-export function openCompanionWindow(): Window | null {
-	if (typeof window === 'undefined') return null
-	return window.open(
-		'/cook-together',
-		COMPANION_WINDOW_NAME,
-		'width=390,height=844,left=80,top=40,toolbar=no,menubar=no,scrollbars=no,resizable=no',
-	)
-}
-
-export function isCompanionWindowOpen(): boolean {
-	if (typeof window === 'undefined') return false
-	try {
-		const w = window.open('', COMPANION_WINDOW_NAME, '')
-		if (!w) return false
-		// If we got a new window (no name match), close it and return false
-		if (
-			w.location.href === 'about:blank' &&
-			w.document.body?.childElementCount === 0
-		) {
-			w.close()
-			return false
-		}
-		return true
-	} catch {
-		return false
-	}
-}
-
-export function navigateCompanionWindow(url: string): boolean {
-	if (typeof window === 'undefined') return false
-	try {
-		const w = window.open('', COMPANION_WINDOW_NAME, '')
-		if (!w || w.closed) return false
-		w.location.href = url
-		return true
-	} catch {
-		return false
 	}
 }

@@ -16,6 +16,7 @@ import { AxiosError } from 'axios'
 import { API_ENDPOINTS } from '@/constants'
 import { logDevError } from '@/lib/dev-log'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
+import { useAuthStore } from '@/store/authStore'
 
 // Sign-in function
 export const signIn = async (
@@ -93,6 +94,7 @@ export const checkUsernameAvailability = async (
 
 // Logout function - calls backend to invalidate session
 export const logout = async (): Promise<ApiResponse<string>> => {
+	useAuthStore.getState().beginLogout()
 	try {
 		const response = await api.post<ApiResponse<string>>(
 			API_ENDPOINTS.AUTH.LOGOUT,

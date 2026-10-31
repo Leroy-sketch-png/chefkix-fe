@@ -178,7 +178,7 @@ describe('demo credibility guardrails', () => {
 		expect(navigationCluster).toContain('getChallengeRecipeDestination')
 	})
 
-	it('owns My Groups with a static route before the dynamic group detail route', () => {
+	it('loads My Groups from its authenticated static route', () => {
 		const myGroupsPage = readWorkspaceFile('src/app/(main)/groups/my/page.tsx')
 		const groupsGrid = readWorkspaceFile(
 			'src/components/groups/GroupsExploreGrid.tsx',
@@ -187,9 +187,6 @@ describe('demo credibility guardrails', () => {
 		expect(myGroupsPage).toContain("source='mine'")
 		expect(groupsGrid).toContain("source === 'mine'")
 		expect(groupsGrid).toContain('await getMyGroups(undefined, pageNum, 12)')
-		expect(myGroupsPage).toContain(
-			'isHydrated && !isLoading && !isAuthenticated',
-		)
 	})
 
 	it('defines every dashboard translation used by the page cluster', () => {

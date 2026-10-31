@@ -1,9 +1,7 @@
-import {
-	Plus_Jakarta_Sans,
-	Space_Grotesk,
-	Playfair_Display,
-} from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
+import '@fontsource-variable/plus-jakarta-sans/wght.css'
+import '@fontsource-variable/space-grotesk/wght.css'
+import '@fontsource-variable/playfair-display/wght.css'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { TokenRefreshProvider } from '@/components/providers/TokenRefreshProvider'
@@ -19,32 +17,11 @@ import { Toaster } from 'sonner'
 import { GlobalUIEnhancements } from '@/components/shared/GlobalUIEnhancements'
 import { DemoCockpitRuntime } from '@/components/dev/DemoCockpitRuntime'
 
-// Primary font: Plus Jakarta Sans - Modern, friendly, slightly rounded
-// Perfect for a social cooking app - warm but professional
-const plusJakarta = Plus_Jakarta_Sans({
-	variable: '--font-sans',
-	subsets: ['latin'],
-	display: 'swap',
-	weight: ['400', '500', '600', '700', '800'],
-})
-
-// Display font: Space Grotesk - Bold, geometric, gaming vibes
-// For headings, stats, XP numbers - gives that Duolingo energy
-const spaceGrotesk = Space_Grotesk({
-	variable: '--font-display',
-	subsets: ['latin'],
-	display: 'swap',
-	weight: ['400', '500', '600', '700'],
-})
-
-// Accent font: Playfair Display - Elegant serif for recipe titles
-// Adds sophistication, like a cookbook or food magazine
-const playfair = Playfair_Display({
-	variable: '--font-serif',
-	subsets: ['latin'],
-	display: 'swap',
-	weight: ['400', '500', '600', '700'],
-})
+const fontVariables = {
+	'--font-family': '"Plus Jakarta Sans Variable", system-ui, sans-serif',
+	'--font-display': '"Space Grotesk Variable", system-ui, sans-serif',
+	'--font-serif': '"Playfair Display Variable", Georgia, serif',
+} as React.CSSProperties
 
 export const metadata: Metadata = {
 	metadataBase: new URL(
@@ -114,7 +91,7 @@ export default async function RootLayout({
 			lang='en'
 			data-scroll-behavior='smooth'
 			suppressHydrationWarning
-			style={{ position: 'relative' }}
+			style={{ ...fontVariables, position: 'relative' }}
 		>
 			<head>
 				<script
@@ -130,9 +107,7 @@ export default async function RootLayout({
 					/>
 				) : null}
 			</head>
-			<body
-				className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${playfair.variable} relative font-sans antialiased`}
-			>
+			<body className='relative font-sans antialiased'>
 				{/* Skip to main content link - WCAG 2.4.1 */}
 				<a
 					href='#main-content'

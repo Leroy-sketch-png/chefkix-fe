@@ -150,7 +150,7 @@ function ConnectionStatus({
 	return (
 		<div className='flex items-center gap-1.5 text-xs text-text-muted'>
 			<WifiOff className='size-3.5' />
-			<span>{error || t('connecting')}</span>
+			<span>{error ? t('connectionUnavailable') : t('connecting')}</span>
 		</div>
 	)
 }
@@ -522,7 +522,7 @@ function MessagesContent() {
 						<div className='mb-3 flex items-start justify-between gap-3'>
 							<div>
 								<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
-									Inbox
+									{t('inboxLabel')}
 								</p>
 								<h1 className='mt-1 text-xl font-black text-text-primary'>
 									{t('title')}
@@ -550,7 +550,7 @@ function MessagesContent() {
 				<nav className='flex-1 overflow-y-auto px-2 py-2 pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:pb-2'>
 					<div className='mb-2 px-2'>
 						<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
-							Active conversations
+							{t('activeConversations')}
 						</p>
 					</div>
 					{isLoadingConversations ? (
@@ -577,7 +577,7 @@ function MessagesContent() {
 									setRetryCount(c => c + 1)
 								}}
 							>
-								Retry
+								{t('retry')}
 							</Button>
 						</div>
 					) : filteredConversations.length === 0 ? (
@@ -794,18 +794,19 @@ function MessagesContent() {
 								<div className='mb-2 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand/5 px-3 py-2'>
 									<div className='min-w-0 flex-1'>
 										<p className='truncate text-xs font-medium text-brand'>
-											Replying to{' '}
-											{replyingTo.isOwn
-												? 'yourself'
-												: (() => {
-														const orig = messages.find(
-															m => m.id === replyingTo.id,
-														)
-														return orig?.sender
-															? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() ||
-																	orig.sender.username
-															: 'message'
-													})()}
+											{t('replyingTo', {
+												name: replyingTo.isOwn
+													? t('yourself')
+													: (() => {
+															const orig = messages.find(
+																m => m.id === replyingTo.id,
+															)
+															return orig?.sender
+																? `${orig.sender.firstName || ''} ${orig.sender.lastName || ''}`.trim() ||
+																		orig.sender.username
+																: t('message')
+														})(),
+											})}
 										</p>
 										<p className='truncate text-xs text-text-secondary'>
 											{replyingTo.content}
@@ -854,7 +855,7 @@ function MessagesContent() {
 							</div>
 							{!isConnected && wsError && (
 								<p className='mt-2 text-xs text-text-muted'>
-									WebSocket unavailable — messages sent via REST
+									{t('liveUpdatesUnavailable')}
 								</p>
 							)}
 						</footer>

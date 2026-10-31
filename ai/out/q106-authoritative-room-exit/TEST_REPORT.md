@@ -45,6 +45,15 @@ The full Jest process reported an aggregate worker-shutdown warning after all te
 
 ## Open Evidence
 
-- Two authenticated users across a live room were not available under a safe credential and cleanup contract.
-- Host transfer, peer-visible departure timing, and representative perception therefore remain E3 UNKNOWN.
-- No demo or user data was created, reset, or mutated to conceal this gap.
+- External-network/TURN behavior, physical devices, browser-termination cleanup, peer perception on separate networks, and representative preference remain unverified.
+- The local two-account session/room data created for this test was intentionally mutated by the normal product flow, then cleaned up: the room dissolved and both exact test-created cooking sessions were confirmed abandoned. No pre-existing active session was present, and no user recipe, post, follow, or social content was changed.
+
+## Local Two-Account Runtime Closure (2026-10-22)
+
+- Separate authenticated `testuser` desktop and `sakura_kitchen` mobile browser contexts signed in through the visible UI on the production frontend at `localhost:3000`.
+- As with ordinary successful sign-ins, account last-login metadata was updated. No credentials/tokens were written to files or printed.
+- The host created a room through the real Tonight's Pick recipe page; the second account joined through `/cook-together?code=...`. Backend state confirmed two distinct participants before exit.
+- Each explicit Leave action sent exactly one real leave request. The test delayed forwarding each request by 900 ms; during the delay both visible controls reported `Leaving...`, and neither page navigated before the real server response settled.
+- After host exit, the room remained with one participant and `hostUserId` matched the remaining joiner. After the final participant exited, the room lookup returned 404, confirming dissolution.
+- Both exact sessions created by this run were abandoned through the normal session endpoint; subsequent status reads confirmed `abandoned`, and both current-session reads were empty. No pre-existing session was present at preflight.
+- Result: local same-host two-account E3 passes for pending state, one-command behavior, settled navigation, host transfer, and dissolution. This is not external TURN, independent-network, physical-device, or human-preference evidence.

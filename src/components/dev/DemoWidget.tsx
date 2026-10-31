@@ -24,6 +24,7 @@ import {
 } from './demo-config'
 import { usePaceTimer } from './PaceTimer'
 import { PATHS } from '@/constants'
+import { probeHttpService } from '@/lib/service-health'
 
 // Only render in development
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -120,14 +121,11 @@ function OriginalDemoWidget() {
 	// Check backend on mount and when widget opens
 	useEffect(() => {
 		const check = async () => {
-			try {
-				const res = await fetch(`${BASE}/api/v1/actuator/health`, {
-					signal: AbortSignal.timeout(5000),
-				})
-				setBackendStatus(res.ok ? 'up' : 'down')
-			} catch {
-				setBackendStatus('down')
-			}
+			const health = await probeHttpService(
+				'monolith',
+				`${BASE}/api/v1/actuator/health`,
+			)
+			setBackendStatus(health.healthy ? 'up' : 'down')
 		}
 		// Always check on mount to show initial status
 		check()

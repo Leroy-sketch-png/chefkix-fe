@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Zap, MessageSquare } from 'lucide-react'
+import { Camera, Star, Zap, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
 	TRANSITION_BOUNCY,
@@ -21,6 +21,10 @@ interface SessionRatingFormProps {
 	onSubmit: (rating: number, notes?: string) => void
 	onSkip?: () => void
 	isSubmitting?: boolean
+	onCaptureFinalStepPhoto?: () => void
+	finalStepNumber?: number
+	finalStepPhotoCount?: number
+	maxStepPhotos?: number
 }
 
 interface StarRatingProps {
@@ -134,6 +138,10 @@ export function SessionRatingForm({
 	onSubmit,
 	onSkip,
 	isSubmitting = false,
+	onCaptureFinalStepPhoto,
+	finalStepNumber,
+	finalStepPhotoCount = 0,
+	maxStepPhotos = 0,
 }: SessionRatingFormProps) {
 	const t = useTranslations('cooking')
 	const [rating, setRating] = useState(0)
@@ -177,6 +185,26 @@ export function SessionRatingForm({
 			>
 				<Zap className='size-6' /> {t('cpXp', { xp: xpEarned })}
 			</motion.div>
+
+			{onCaptureFinalStepPhoto && finalStepPhotoCount < maxStepPhotos && (
+				<div className='mb-5 flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-1'>
+					<button
+						type='button'
+						onClick={onCaptureFinalStepPhoto}
+						disabled={isSubmitting}
+						className='inline-flex min-h-10 min-w-0 flex-1 items-center gap-2 text-left text-sm font-medium text-text-primary hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:opacity-50'
+					>
+						<Camera className='size-4 shrink-0' aria-hidden='true' />
+						{t('captureFinalStepPhoto', { step: finalStepNumber ?? '' })}
+					</button>
+					<span className='shrink-0 text-xs tabular-nums text-text-muted'>
+						{t('stepPhotoCount', {
+							count: finalStepPhotoCount,
+							max: maxStepPhotos,
+						})}
+					</span>
+				</div>
+			)}
 
 			{/* Rating Section */}
 			<motion.div
