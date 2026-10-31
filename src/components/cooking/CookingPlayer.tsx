@@ -1908,7 +1908,6 @@ export const CookingPlayer = () => {
 												onStepClick={handleStepClick}
 											/>
 										</div>
-										</div>
 
 										{/* Animated Progress Bar */}
 										<div className='h-2.5 w-full overflow-hidden rounded-full bg-border/60 shadow-inner'>
@@ -2354,6 +2353,13 @@ export const CookingPlayer = () => {
 				onOpenChange={setShowIngredientList}
 				ingredients={fullIngredients}
 				recipeTitle={recipe.title}
+				onSubstitutionChoice={(originalIngredient, choice, substituteIngredient) =>
+					handleSubstitutionChoice({
+						originalIngredient,
+						choice,
+						substituteIngredient,
+					})
+				}
 			/>
 
 			{/* Abandon Confirmation Modal - Separate Portal (outside main modal container) */}
