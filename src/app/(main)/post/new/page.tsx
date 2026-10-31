@@ -220,10 +220,24 @@ function CreatePostContent() {
 		}
 	}, [sessionId, t])
 
+	// ── Guest authentication redirect ────────────────────────────────
+	useEffect(() => {
+		if (isHydrated && !isAuthLoading && !isAuthenticated) {
+			const redirectUrl = requestedSessionId
+				? `${PATHS.AUTH.SIGN_IN}?redirect=${encodeURIComponent(`/post/new?session=${requestedSessionId}`)}`
+				: `${PATHS.AUTH.SIGN_IN}?redirect=${encodeURIComponent('/post/new')}`
+			router.replace(redirectUrl)
+		}
+	}, [isHydrated, isAuthLoading, isAuthenticated, requestedSessionId, router])
+
 	// ── Durable draft recovery ────────────────────────────────────────
 	useEffect(() => {
 		const ownerId = user?.userId
-		if (!isHydrated || !ownerId) return
+		if (!isHydrated) return
+		if (!ownerId) {
+			setIsDraftHydrated(true)
+			return
+		}
 		const key = `${ownerId}:${requestedSessionId ?? 'latest'}`
 		let cancelled = false
 		setIsDraftHydrated(false)
