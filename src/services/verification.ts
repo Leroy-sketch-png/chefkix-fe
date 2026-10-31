@@ -29,8 +29,10 @@ export const applyForVerification = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
+		if (axiosError.response?.status !== 404) {
+			logDevError('response failed:', error)
+		}
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,
@@ -49,8 +51,11 @@ export const getVerificationStatus = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<VerificationStatus>>
+		// A missing request is the expected initial state for new creators.
+		if (axiosError.response?.status !== 404) {
+			logDevError('response failed:', error)
+		}
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,

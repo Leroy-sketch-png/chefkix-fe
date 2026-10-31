@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Portal } from '@/components/ui/portal'
@@ -42,11 +43,14 @@ import {
 	ZoomOut,
 	BookOpen,
 	ListChecks,
+	ScanLine,
 	Camera,
 	Hand,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { PATHS } from '@/constants/paths'
 import { SessionRatingForm } from './SessionRatingForm'
+import { SubstitutionOutcomeCard } from './SubstitutionOutcomeCard'
 import { IngredientCheck } from './IngredientCheck'
 import { SubstitutionButton } from '@/components/recipe/SubstitutionButton'
 import { StepV2Renderer } from './StepV2Renderer'
@@ -71,6 +75,12 @@ import {
 	getPostDeadlineHours,
 } from '@/lib/cooking-reward-presentation'
 import { useClapDetection } from '@/hooks/useClapDetection'
+import {
+	submitSubstitutionFeedback,
+	type SubstitutionFeedbackChoice,
+	type SubstitutionFeedbackRequest,
+	type SubstitutionTasteFeedback,
+} from '@/services/cookingSession'
 import {
 	TRANSITION_SPRING,
 	BUTTON_HOVER,
@@ -119,6 +129,14 @@ const stepVariants = {
 		scale: 0.9,
 		transition: { duration: DURATION_S.normal },
 	}),
+}
+
+interface SessionSubstitutionFeedbackDraft {
+	stepNumber: number
+	originalIngredient: string
+	substituteIngredient?: string
+	choice: SubstitutionFeedbackChoice
+	technique?: string
 }
 
 // Step Progress Dots (Interactive)
@@ -550,6 +568,17 @@ export const CookingPlayer = () => {
 	const [showCompletion, setShowCompletion] = useState(false)
 	const [showAbandonConfirm, setShowAbandonConfirm] = useState(false)
 	const [showAiAssist, setShowAiAssist] = useState(false)
+	const [substitutionFeedbacks, setSubstitutionFeedbacks] = useState<
+		SessionSubstitutionFeedbackDraft[]
+	>([])
+	const [substitutionTasteFeedback, setSubstitutionTasteFeedback] = useState<
+		SubstitutionTasteFeedback | undefined
+	>()
+
+	useEffect(() => {
+		setSubstitutionFeedbacks([])
+		setSubstitutionTasteFeedback(undefined)
+	}, [session?.sessionId])
 	const [showIngredientList, setShowIngredientList] = useState(false)
 	const ingredientDialogEscapeEvents = useRef(new WeakSet<KeyboardEvent>())
 	const [isNavigating, setIsNavigating] = useState(false)
@@ -1238,6 +1267,75 @@ export const CookingPlayer = () => {
 		if (isInRoom) sendTimerCompleted(currentStepNumber)
 	}, [currentStepNumber, isInRoom, sendTimerCompleted])
 
+	const handleSubstitutionChoice = useCallback(
+		async (
+			feedback: Omit<SessionSubstitutionFeedbackDraft, 'stepNumber'>,
+		): Promise<boolean> => {
+			const sessionId = session?.sessionId
+			if (!sessionId) return false
+
+			const request: SubstitutionFeedbackRequest = {
+				originalIngredient: feedback.originalIngredient,
+				...(feedback.substituteIngredient && {
+					substituteIngredient: feedback.substituteIngredient,
+				}),
+				choice: feedback.choice,
+				technique: feedback.technique,
+				sessionCompleted: false,
+			}
+
+			try {
+				const response = await submitSubstitutionFeedback(sessionId, request)
+				if (!response.success) {
+					toast.error(response.message || t('substitutionFeedbackFailed'))
+					return false
+				}
+
+				setSubstitutionFeedbacks(previous => [
+					...previous.filter(
+						item => item.originalIngredient !== feedback.originalIngredient,
+					),
+					{ ...feedback, stepNumber: currentStepNumber },
+				])
+				toast.success(t('substitutionRecorded'))
+				return true
+			} catch {
+				toast.error(t('substitutionFeedbackFailed'))
+				return false
+			}
+		},
+		[session?.sessionId, currentStepNumber, t],
+	)
+
+	const submitSessionSubstitutionOutcomes = useCallback(
+		async (rating?: number) => {
+			if (!session?.sessionId || substitutionFeedbacks.length === 0) return
+
+			const results = await Promise.allSettled(
+				substitutionFeedbacks.map(feedback =>
+					submitSubstitutionFeedback(session.sessionId, {
+						originalIngredient: feedback.originalIngredient,
+						substituteIngredient: feedback.substituteIngredient,
+						choice: feedback.choice,
+						technique: feedback.technique,
+						sessionCompleted: true,
+						userRating: rating,
+						tasteFeedback: substitutionTasteFeedback,
+					}),
+				),
+			)
+
+			if (
+				results.some(
+					result => result.status === 'rejected' || !result.value.success,
+				)
+			) {
+				toast.warning(t('substitutionFeedbackFailed'))
+			}
+		},
+		[session, substitutionFeedbacks, substitutionTasteFeedback, t],
+	)
+
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
 
 	const handleComplete = useCallback(
@@ -1284,6 +1382,8 @@ export const CookingPlayer = () => {
 					toast.error(errorMsg || t('failedComplete'))
 					return
 				}
+
+				await submitSessionSubstitutionOutcomes(rating)
 
 				// Broadcast session completion to co-cooking room
 				if (isInRoom) sendSessionCompleted(rating)
@@ -1404,6 +1504,7 @@ export const CookingPlayer = () => {
 			isPreviewMode,
 			exitPreview,
 			totalSteps,
+			submitSessionSubstitutionOutcomes,
 			t,
 		],
 	)
@@ -1757,7 +1858,7 @@ export const CookingPlayer = () => {
 								{interactionMode !== 'PREP' && (
 									<div className='border-b border-border-subtle/60 bg-gradient-to-r from-bg-elevated via-bg-card to-bg-elevated px-6 py-4'>
 										<div className='mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-											<div className='flex items-center justify-between gap-3'>
+											<div className='flex flex-wrap items-center justify-between gap-3'>
 												<span
 													className={cn(
 														'shrink-0 whitespace-nowrap font-medium tabular-nums text-text-secondary',
@@ -1769,21 +1870,36 @@ export const CookingPlayer = () => {
 														total: totalSteps,
 													})}
 												</span>
-												{hasFullIngredients && (
-													<button
-														type='button'
-														onClick={() => setShowIngredientList(true)}
+												<div className='flex flex-wrap items-center gap-2'>
+													{hasFullIngredients && (
+														<button
+															type='button'
+															onClick={() => setShowIngredientList(true)}
+															className={cn(
+																'inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
+																kitchenMode
+																	? 'min-h-14 px-4 text-base'
+																	: 'min-h-11 px-3 text-sm',
+															)}
+														>
+															<ListChecks className='size-4' />
+															{t('allIngredients')}
+														</button>
+													)}
+													<Link
+														href={PATHS.SCAN}
 														className={cn(
-															'inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
+															'inline-flex items-center gap-2 rounded-lg border border-brand/20 bg-brand/10 font-semibold text-brand transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50',
 															kitchenMode
 																? 'min-h-14 px-4 text-base'
 																: 'min-h-11 px-3 text-sm',
 														)}
+														aria-label={t('scanIngredients')}
 													>
-														<ListChecks className='size-4' />
-														{t('allIngredients')}
-													</button>
-												)}
+														<ScanLine className='size-4' />
+														{t('scanIngredients')}
+													</Link>
+												</div>
 											</div>
 											<StepDots
 												totalSteps={totalSteps}
@@ -1791,6 +1907,7 @@ export const CookingPlayer = () => {
 												completedSteps={completedSteps}
 												onStepClick={handleStepClick}
 											/>
+										</div>
 										</div>
 
 										{/* Animated Progress Bar */}
@@ -2188,23 +2305,36 @@ export const CookingPlayer = () => {
 								initial='hidden'
 								animate='visible'
 								exit='exit'
-								className='mx-4 max-h-[85vh] max-w-sm overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-modal ring-1 ring-white/10'
+								className='mx-4 max-h-[85vh] max-w-lg overflow-y-auto rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/70 p-8 shadow-modal ring-1 ring-white/10'
 							>
-								<SessionRatingForm
-									xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
-									recipeTitle={recipe.title}
-									onSubmit={handleComplete}
-									onSkip={() => handleComplete()}
-									isSubmitting={isCompletingSession}
-									onCaptureFinalStepPhoto={
-										completionPhotoCaptureEnabled
-											? () => stepPhotos.captureForStep(totalSteps)
-											: undefined
-									}
-									finalStepNumber={totalSteps}
-									finalStepPhotoCount={stepPhotos.totalCount}
-									maxStepPhotos={stepPhotos.maxPhotos}
-								/>
+								<div className='space-y-4'>
+									{substitutionFeedbacks.length > 0 && (
+										<SubstitutionOutcomeCard
+											value={substitutionTasteFeedback}
+											onChange={setSubstitutionTasteFeedback}
+										/>
+									)}
+									<SessionRatingForm
+										xpEarned={session?.baseXpAwarded ?? recipe.xpReward ?? 0}
+										recipeTitle={recipe.title}
+										onSubmit={handleComplete}
+										onSkip={() => handleComplete()}
+										isSubmitting={isCompletingSession}
+										canSubmit={
+											substitutionFeedbacks.length === 0 ||
+											!!substitutionTasteFeedback
+										}
+										submitDisabledMessage={t('substitutionOutcomeRequired')}
+										onCaptureFinalStepPhoto={
+											completionPhotoCaptureEnabled
+												? () => stepPhotos.captureForStep(totalSteps)
+												: undefined
+										}
+										finalStepNumber={totalSteps}
+										finalStepPhotoCount={stepPhotos.totalCount}
+										maxStepPhotos={stepPhotos.maxPhotos}
+									/>
+								</div>
 							</motion.div>
 						</motion.div>
 					</Portal>

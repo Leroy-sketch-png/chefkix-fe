@@ -19,8 +19,8 @@ import { useRouter } from 'next/navigation'
 import EmojiPicker, { Theme } from 'emoji-picker-react'
 import { Rnd } from 'react-rnd'
 import { useStoryStore } from '@/store/storyStore'
-import { createStory } from '@/services/story'
 import { api } from '@/lib/axios'
+import { moderateContent } from '@/services/ai'
 import { useTranslations } from '@/i18n/hooks'
 import { STORY_IMAGE_ACCEPT, validateStoryImage } from '@/lib/story-media'
 import { logDevError } from '@/lib/dev-log'
@@ -216,6 +216,28 @@ export function StoryCreator() {
 
 		setIsLoading(true)
 		try {
+			const overlayText = items
+				.filter(item => item.type === 'TEXT')
+				.map(item =>
+					typeof item.data?.text === 'string' ? item.data.text.trim() : '',
+				)
+				.filter(Boolean)
+				.join('\n')
+
+			if (overlayText) {
+				const moderationResult = await moderateContent(
+					overlayText,
+					'post_caption',
+				)
+				if (
+					!moderationResult.success ||
+					moderationResult.data?.action !== 'approve'
+				) {
+					toast.error(t('errorMessage'))
+					return
+				}
+			}
+
 			// Wait for all sticker images to upload to Cloudinary
 			const processedItems = await Promise.all(
 				items.map(async item => {

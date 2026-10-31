@@ -21,9 +21,10 @@ import {
 	type KitchenAudioInterruption,
 } from './KitchenAudioCoordinator'
 import { useKitchenAudio } from './useKitchenAudio'
+import { DEFAULT_WAKE_WORD, extractWakeWordCommand } from './wakeWord'
 
 export interface VoiceEvent {
-	type: 'command' | 'unrecognized' | 'error' | 'low-confidence'
+	type: 'command' | 'unrecognized' | 'error' | 'low-confidence' | 'wake-word'
 	message: string
 	icon?: string
 	transcript?: string
@@ -42,6 +43,8 @@ export interface UseVoiceModeReturn {
 	stopContinuous: () => void
 	/** Whether in continuous listening mode */
 	isContinuous: boolean
+	/** Whether continuous mode heard the wake word and awaits a command */
+	wakeWordArmed: boolean
 	/** Latest voice event for toast display */
 	lastEvent: VoiceEvent | null
 	/** Whether TTS is available */
@@ -71,15 +74,17 @@ let voiceAutoStartEnabled = false
 export function useVoiceMode(): UseVoiceModeReturn {
 	const [isListening, setIsListening] = useState(false)
 	const [isContinuous, setIsContinuous] = useState(false)
+	const [wakeWordArmed, setWakeWordArmed] = useState(false)
 	const [lastEvent, setLastEvent] = useState<VoiceEvent | null>(null)
 	const [showHelp, setShowHelp] = useState(false)
 	const recognitionRef = useRef<VoiceRecognition | null>(null)
 	const audio = useKitchenAudio()
 
 	// Refs for stable callbacks in continuous mode (avoids stale closures)
-	const handleResultRef = useRef<
+	const continuousResultRef = useRef<
 		(transcript: string, confidence: number) => void
 	>(() => {})
+	const wakeWordTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const handleErrorRef = useRef<(error: string) => void>(() => {})
 
 	const {
@@ -349,6 +354,46 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		[executeCommand, audio.isSpeaking],
 	)
 
+	const clearWakeWordArm = useCallback(() => {
+		if (wakeWordTimeoutRef.current) {
+			clearTimeout(wakeWordTimeoutRef.current)
+			wakeWordTimeoutRef.current = null
+		}
+		setWakeWordArmed(false)
+	}, [])
+
+	const handleContinuousResult = useCallback(
+		(transcript: string, confidence: number) => {
+			const match = extractWakeWordCommand(transcript, DEFAULT_WAKE_WORD)
+
+			if (match.heardWakeWord) {
+				if (!match.command) {
+					setWakeWordArmed(true)
+					if (wakeWordTimeoutRef.current) {
+						clearTimeout(wakeWordTimeoutRef.current)
+					}
+					wakeWordTimeoutRef.current = setTimeout(clearWakeWordArm, 8000)
+					setLastEvent({
+						type: 'wake-word',
+						message: `I'm listening — say a command after ${DEFAULT_WAKE_WORD}`,
+						transcript,
+					})
+					return
+				}
+
+				clearWakeWordArm()
+				handleResult(match.command, confidence)
+				return
+			}
+
+			if (wakeWordArmed) {
+				clearWakeWordArm()
+				handleResult(transcript, confidence)
+			}
+		},
+		[clearWakeWordArm, handleResult, wakeWordArmed],
+	)
+
 	const networkErrorCountRef = useRef(0)
 
 	const handleError = useCallback((error: string) => {
@@ -372,8 +417,8 @@ export function useVoiceMode(): UseVoiceModeReturn {
 	}, [])
 
 	// Keep refs updated so long-lived continuous recognition uses latest callbacks
-	handleResultRef.current = handleResult
 	handleErrorRef.current = handleError
+	continuousResultRef.current = handleContinuousResult
 
 	const toggleListening = useCallback(() => {
 		if (!supported) return
@@ -383,6 +428,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 			getKitchenAudioCoordinator().releaseMicrophone('voice')
 			setIsListening(false)
 			setIsContinuous(false)
+			clearWakeWordArm()
 			return
 		}
 		if (!getKitchenAudioCoordinator().acquireMicrophone('voice')) {
@@ -414,7 +460,14 @@ export function useVoiceMode(): UseVoiceModeReturn {
 				message: 'Voice recognition could not start',
 			})
 		}
-	}, [supported, isListening, handleResult, handleError, handleListeningChange])
+	}, [
+		supported,
+		isListening,
+		handleResult,
+		handleError,
+		handleListeningChange,
+		clearWakeWordArm,
+	])
 
 	// Continuous listening: always-on voice recognition that auto-restarts
 	const startContinuous = useCallback(
@@ -446,13 +499,14 @@ export function useVoiceMode(): UseVoiceModeReturn {
 				language: 'en-US',
 				continuous: true,
 				// Use refs to avoid stale closures — continuous recognition is long-lived
-				onResult: (t, c) => handleResultRef.current(t, c),
+				onResult: (t, c) => continuousResultRef.current(t, c),
 				onError: e => handleErrorRef.current(e),
 				onEnd: () => {
 					// Only fires when intentionally stopped (continuous auto-restarts otherwise)
 					getKitchenAudioCoordinator().releaseMicrophone('voice')
 					setIsListening(false)
 					setIsContinuous(false)
+					clearWakeWordArm()
 				},
 				onListeningChange: handleListeningChange,
 			})
@@ -468,20 +522,24 @@ export function useVoiceMode(): UseVoiceModeReturn {
 				})
 			}
 		},
-		[supported, isContinuous, handleListeningChange],
+		[supported, isContinuous, handleListeningChange, clearWakeWordArm],
 	)
 
 	const stopContinuous = useCallback(() => {
 		recognitionRef.current?.stop()
 		getKitchenAudioCoordinator().releaseMicrophone('voice')
 		setIsContinuous(false)
-	}, [])
+		clearWakeWordArm()
+	}, [clearWakeWordArm])
 
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
 			recognitionRef.current?.stop()
 			getKitchenAudioCoordinator().releaseMicrophone('voice')
+			if (wakeWordTimeoutRef.current) {
+				clearTimeout(wakeWordTimeoutRef.current)
+			}
 		}
 	}, [])
 
@@ -492,6 +550,7 @@ export function useVoiceMode(): UseVoiceModeReturn {
 		startContinuous,
 		stopContinuous,
 		isContinuous,
+		wakeWordArmed,
 		lastEvent,
 		hasTTS,
 		speak,

@@ -1,0 +1,48 @@
+{
+	"version": "lead-v101-member-alignment-v1",
+	"updatedAt": "2026-10-04",
+	"metricDefinitions": {
+		"hitAt1": "Correct substitute appears first",
+		"hitAt5": "Correct substitute appears in top five",
+		"hitAt10": "Correct substitute appears in top ten",
+		"mrr": "Mean reciprocal rank",
+		"ndcg": "Normalized discounted cumulative gain"
+	},
+	"models": [
+		{
+			"id": "iron-chef",
+			"name": "IRON CHEF HGAT v2",
+			"shortName": "IRON CHEF",
+			"status": "pending",
+			"metrics": {},
+			"note": "No accepted production IRON CHEF benchmark is available."
+		},
+		{
+			"id": "gismo",
+			"name": "GISMo",
+			"shortName": "GISMo",
+			"status": "verified",
+			"metrics": {
+				"hitAt1": 20.6941,
+				"mrr": 31.6365
+			},
+			"note": "Matched GISMo reproduction: 20.694% Hit@1 and 0.31636 MRR overall; unseen Hit@1 1.206% and MRR 0.04308."
+		},
+		{
+			"id": "mistral",
+			"name": "ChefKix-Mistral-7B (M2)",
+			"shortName": "Mistral",
+			"status": "pending",
+			"metrics": {},
+			"note": "Lead v99: DPO complete; post-DPO SFT verified through step 70/561. Frozen predictions and matched scoring remain unavailable. Training loss is not model-quality evidence."
+		},
+		{
+			"id": "gemini",
+			"name": "Gemini zero-shot",
+			"shortName": "Gemini",
+			"status": "pending",
+			"metrics": {},
+			"note": "Awaiting reproducible evaluation run"
+		}
+	]
+}

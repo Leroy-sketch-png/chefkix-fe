@@ -238,7 +238,7 @@ export default function PantryPage() {
 				return
 			}
 			const newItem = await addPantryItem(req)
-			setItems(prev => reconcilePantryItems(prev, newItem))
+			setItems(prev => reconcilePantryItems(prev, newItem, filterCategory))
 			setQuickAddName('')
 			setQuickAddQty('')
 			setQuickAddUnit('')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION_S } from '@/lib/motion'
@@ -9,18 +9,34 @@ import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useAuthActionGuard } from '@/hooks/useAuthActionGuard'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
+import { AllergenSafetyIndicator } from './AllergenSafetyIndicator'
+import { resolveAllergenSafety } from '@/lib/allergen-safety'
+import { CompoundComparison, CompoundExplanation } from './CompoundExplanation'
 import {
 	suggestSubstitutions,
+	fetchResearchSubstitutionEvidence,
 	type Substitution,
 	type SubstitutionReason,
+	type ResearchSubstitutionResponse,
 } from '@/services/ai'
 import { submitSubstitutionFeedback } from '@/services/cookingSession'
+import { SubstitutionEvidencePanel } from './SubstitutionEvidencePanel'
+import { parseResearchSubstitutionResponse } from './research-substitution-contract'
+import { calculateSubstitutionDialogPosition } from './substitution-dialog-position'
 
 interface SubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle?: string
 	className?: string
 	sessionId?: string
+	/**
+	 * Explicitly injected, trusted research caller. Omitted by default; it
+	 * receives only the source ingredient and must keep credentials server-side.
+	 */
+	researchMode?: {
+		fetcher: (sourceIngredient: string) => Promise<ResearchSubstitutionResponse>
+	}
 }
 
 export function SubstitutionButton({
@@ -28,7 +44,14 @@ export function SubstitutionButton({
 	recipeTitle,
 	className,
 	sessionId,
+	researchMode,
 }: SubstitutionButtonProps) {
+	const activeResearchMode =
+		researchMode ??
+		(process.env.NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED === 'true'
+			? { fetcher: fetchResearchSubstitutionEvidence }
+			: undefined)
+	const { user } = useAuth()
 	const t = useTranslations('recipe')
 	const { requireAuth } = useAuthActionGuard()
 	const [open, setOpen] = useState(false)
@@ -36,13 +59,30 @@ export function SubstitutionButton({
 	const [substitutions, setSubstitutions] = useState<Substitution[] | null>(
 		null,
 	)
+	const [researchEvidence, setResearchEvidence] =
+		useState<ResearchSubstitutionResponse | null>(null)
 	const [reason, setReason] = useState<SubstitutionReason>('unavailable')
 	const [error, setError] = useState<string | null>(null)
 	const [feedbackState, setFeedbackState] = useState<
 		Record<string, 'submitting' | 'accepted' | 'rejected' | 'error'>
 	>({})
 	const buttonRef = useRef<HTMLButtonElement>(null)
+	const dialogRef = useRef<HTMLDivElement>(null)
+	const closeButtonRef = useRef<HTMLButtonElement>(null)
+	const wasOpenRef = useRef(false)
+	const [dialogMounted, setDialogMounted] = useState(false)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
+	const attachDialog = useCallback((node: HTMLDivElement | null) => {
+		dialogRef.current = node
+		setDialogMounted(Boolean(node))
+	}, [])
+	const attachCloseButton = useCallback(
+		(node: HTMLButtonElement | null) => {
+			closeButtonRef.current = node
+			if (node && open) node.focus()
+		},
+		[open],
+	)
 
 	const REASON_LABEL_KEYS: Record<SubstitutionReason, string> = {
 		unavailable: 'reasonUnavailable',
@@ -53,13 +93,92 @@ export function SubstitutionButton({
 
 	useEscapeKey(open, () => setOpen(false))
 
-	useEffect(() => {
-		if (open && buttonRef.current) {
-			const rect = buttonRef.current.getBoundingClientRect()
-			setPos({
-				top: rect.bottom + 8,
-				left: Math.min(rect.left, window.innerWidth - 320),
+	useLayoutEffect(() => {
+		if (open) {
+			wasOpenRef.current = true
+			return
+		}
+		if (wasOpenRef.current) {
+			buttonRef.current?.focus()
+			wasOpenRef.current = false
+		}
+	}, [open])
+
+	useLayoutEffect(() => {
+		if (!open || !dialogMounted) return
+
+		const placeDialog = () => {
+			const trigger = buttonRef.current?.getBoundingClientRect()
+			const panel = dialogRef.current?.getBoundingClientRect()
+			if (!trigger || !panel) return
+
+			const position = calculateSubstitutionDialogPosition(trigger, panel, {
+				width: window.innerWidth,
+				height: window.innerHeight,
 			})
+			setPos(current =>
+				current.top === position.top && current.left === position.left
+					? current
+					: position,
+			)
+		}
+
+		placeDialog()
+		window.addEventListener('resize', placeDialog)
+		window.addEventListener('scroll', placeDialog, true)
+		return () => {
+			window.removeEventListener('resize', placeDialog)
+			window.removeEventListener('scroll', placeDialog, true)
+		}
+	}, [
+		open,
+		dialogMounted,
+		loading,
+		researchEvidence,
+		substitutions,
+		error,
+		feedbackState,
+	])
+
+	useLayoutEffect(() => {
+		if (!open) return
+
+		const focusableSelector =
+			'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		const getFocusable = () => {
+			const dialog = dialogRef.current
+			return Array.from(
+				dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+			).filter(element => element.getAttribute('aria-hidden') !== 'true')
+		}
+
+		const containFocus = (event: KeyboardEvent) => {
+			const dialog = dialogRef.current
+			if (event.key !== 'Tab' || !dialog) return
+			const focusable = getFocusable()
+			if (focusable.length === 0) {
+				event.preventDefault()
+				dialog.focus()
+				return
+			}
+
+			const first = focusable[0]
+			const last = focusable[focusable.length - 1]
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault()
+				last.focus()
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault()
+				first.focus()
+			} else if (!dialog.contains(document.activeElement)) {
+				event.preventDefault()
+				;(event.shiftKey ? last : first).focus()
+			}
+		}
+
+		document.addEventListener('keydown', containFocus)
+		return () => {
+			document.removeEventListener('keydown', containFocus)
 		}
 	}, [open])
 
@@ -67,21 +186,52 @@ export function SubstitutionButton({
 		setReason(r)
 		setLoading(true)
 		setError(null)
+		setResearchEvidence(null)
 		try {
-			const res = await suggestSubstitutions(
-				ingredientName,
-				r,
-				recipeTitle ? `Recipe: ${recipeTitle}` : undefined,
-				undefined,
-				sessionId,
-			)
+			if (activeResearchMode) {
+				// Never send profile, allergy, dietary, recipe-context, or session
+				// fields through this research-only caller. Abstention is terminal;
+				// this branch must not fall through to the legacy Gemini request.
+				const response = await activeResearchMode.fetcher(ingredientName)
+				const evidence = parseResearchSubstitutionResponse(response)
+				if (!evidence) {
+					setError(t('researchGenericAbstention'))
+					return
+				}
+				setResearchEvidence(evidence)
+				return
+			}
+			const context = recipeTitle ? `Recipe: ${recipeTitle}` : undefined
+			const res = user?.allergenFlags?.length
+				? await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						user.allergenFlags,
+						sessionId,
+					)
+				: await suggestSubstitutions(
+						ingredientName,
+						r,
+						context,
+						undefined,
+						undefined,
+						sessionId,
+					)
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
 				setError(res.message || t('failedToGetSuggestions'))
 			}
 		} catch {
-			setError(t('failedToGetSuggestions'))
+			setError(
+				t(
+					activeResearchMode
+						? 'researchRequestFailed'
+						: 'failedToGetSuggestions',
+				),
+			)
 		} finally {
 			setLoading(false)
 		}
@@ -93,6 +243,7 @@ export function SubstitutionButton({
 		}
 		setOpen(true)
 		setSubstitutions(null)
+		setResearchEvidence(null)
 		setError(null)
 		setFeedbackState({})
 		handleFetch('unavailable')
@@ -100,6 +251,11 @@ export function SubstitutionButton({
 
 	const handleFeedback = async (sub: Substitution, accepted: boolean) => {
 		if (!sessionId || !sub.suggestionId || !sub.candidateReceipt) return
+		if (
+			accepted &&
+			resolveAllergenSafety(sub, user?.allergenFlags).status === 'blocked'
+		)
+			return
 		const actionKey = `${sub.suggestionId}:${accepted ? 'accepted' : 'rejected'}`
 		setFeedbackState(current => ({
 			...current,
@@ -134,6 +290,8 @@ export function SubstitutionButton({
 				)}
 				title={t('findSubstituteFor', { ingredient: ingredientName })}
 				aria-label={t('findSubstituteFor', { ingredient: ingredientName })}
+				aria-haspopup='dialog'
+				aria-expanded={open}
 			>
 				<ArrowLeftRight className='size-3.5' />
 			</button>
@@ -146,13 +304,16 @@ export function SubstitutionButton({
 							onMouseDown={() => setOpen(false)}
 						>
 							<motion.div
+								ref={attachDialog}
 								initial={{ opacity: 0, y: -4, scale: 0.96 }}
 								animate={{ opacity: 1, y: 0, scale: 1 }}
 								exit={{ opacity: 0, y: -4, scale: 0.96 }}
 								transition={{ duration: DURATION_S.fast }}
-								className='fixed w-72 rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
+								className='fixed max-h-[min(42rem,calc(100dvh-1rem))] w-[min(32rem,calc(100vw-1rem))] overflow-y-auto rounded-xl border border-border-subtle bg-bg-card p-4 shadow-warm'
 								style={{ top: pos.top, left: pos.left }}
 								role='dialog'
+								aria-modal='true'
+								tabIndex={-1}
 								aria-label={t('findSubstituteFor', {
 									ingredient: ingredientName,
 								})}
@@ -164,6 +325,7 @@ export function SubstitutionButton({
 										{t('swapIngredient', { ingredient: ingredientName })}
 									</h4>
 									<button
+										ref={attachCloseButton}
 										type='button'
 										onClick={() => setOpen(false)}
 										aria-label={t('subClose')}
@@ -173,26 +335,28 @@ export function SubstitutionButton({
 									</button>
 								</div>
 
-								{/* Reason Tabs */}
-								<div className='mb-3 flex gap-1'>
-									{(['unavailable', 'allergy', 'preference'] as const).map(
-										r => (
-											<button
-												type='button'
-												key={r}
-												onClick={() => handleFetch(r)}
-												disabled={loading}
-												className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
-													reason === r
-														? 'bg-brand/15 text-brand'
-														: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
-												}`}
-											>
-												{t(REASON_LABEL_KEYS[r])}
-											</button>
-										),
-									)}
-								</div>
+								{/* The v1 research caller has no frozen reason-specific method. */}
+								{!activeResearchMode && (
+									<div className='mb-3 flex gap-1'>
+										{(['unavailable', 'allergy', 'preference'] as const).map(
+											r => (
+												<button
+													type='button'
+													key={r}
+													onClick={() => handleFetch(r)}
+													disabled={loading}
+													className={`rounded-md px-2 py-1 text-xs font-medium capitalize transition-colors disabled:opacity-50 ${
+														reason === r
+															? 'bg-brand/15 text-brand'
+															: 'bg-bg-elevated text-text-muted hover:text-text-secondary'
+													}`}
+												>
+													{t(REASON_LABEL_KEYS[r])}
+												</button>
+											),
+										)}
+									</div>
+								)}
 
 								{/* Content */}
 								{loading ? (
@@ -203,83 +367,128 @@ export function SubstitutionButton({
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{error}
 									</p>
+								) : activeResearchMode ? (
+									researchEvidence ? (
+										<SubstitutionEvidencePanel evidence={researchEvidence} />
+									) : (
+										<p className='py-4 text-center text-xs text-text-muted'>
+											{t('researchNoEvidenceYet')}
+										</p>
+									)
 								) : substitutions && substitutions.length > 0 ? (
-									<ul className='max-h-64 space-y-2 overflow-y-auto'>
-										{substitutions.map(sub => (
-											<li
-												key={sub.suggestionId ?? sub.name}
-												className='rounded-xl bg-bg-elevated p-2.5'
-											>
-												<div className='flex items-center justify-between'>
-													<span className='text-sm font-medium text-text-primary'>
-														{sub.name}
-													</span>
-													<span
-														className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
-															sub.confidenceScore >= 0.8
-																? 'bg-success/15 text-success'
-																: sub.confidenceScore >= 0.5
-																	? 'bg-warning/15 text-warning'
-																	: 'bg-destructive/15 text-destructive'
-														}`}
-													>
-														{Math.round(sub.confidenceScore * 100)}%
-													</span>
-												</div>
-												<p className='mt-0.5 text-xs text-brand/80'>
-													{sub.ratio}
-												</p>
-												{sub.notes && (
-													<p className='mt-0.5 text-xs text-text-muted'>
-														{sub.notes}
-													</p>
-												)}
-												{sessionId &&
-													sub.candidateReceipt &&
-													sub.suggestionId && (
-														<div className='mt-2 flex items-center gap-2'>
-															<button
-																type='button'
-																disabled={
-																	feedbackState[sub.suggestionId] ===
-																		'submitting' ||
-																	feedbackState[sub.suggestionId] ===
-																		'accepted' ||
-																	feedbackState[sub.suggestionId] === 'rejected'
-																}
-																onClick={() => handleFeedback(sub, true)}
-																className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
-															>
-																{feedbackState[sub.suggestionId] === 'accepted'
-																	? t('feedbackRecorded')
-																	: t('substitutionWorks')}
-															</button>
-															<button
-																type='button'
-																disabled={
-																	feedbackState[sub.suggestionId] ===
-																		'submitting' ||
-																	feedbackState[sub.suggestionId] ===
-																		'accepted' ||
-																	feedbackState[sub.suggestionId] === 'rejected'
-																}
-																onClick={() => handleFeedback(sub, false)}
-																className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
-															>
-																{feedbackState[sub.suggestionId] === 'rejected'
-																	? t('feedbackRecorded')
-																	: t('substitutionDoesNotWork')}
-															</button>
-														</div>
+									<div className='space-y-3'>
+										<CompoundComparison
+											originalIngredient={ingredientName}
+											substitutions={substitutions}
+											allergenFlags={user?.allergenFlags}
+										/>
+										<ul className='max-h-64 space-y-2 overflow-y-auto'>
+											{substitutions.map(sub => (
+												<li
+													key={sub.suggestionId ?? sub.name}
+													className={cn(
+														'rounded-xl bg-bg-elevated p-2.5',
+														resolveAllergenSafety(sub, user?.allergenFlags)
+															.status === 'blocked' && 'opacity-75',
 													)}
-												{feedbackState[sub.suggestionId ?? ''] === 'error' && (
-													<p role='status' className='mt-1 text-xs text-error'>
-														{t('feedbackFailed')}
-													</p>
-												)}
-											</li>
-										))}
-									</ul>
+												>
+													<div className='flex items-center justify-between'>
+														<span className='text-sm font-medium text-text-primary'>
+															{sub.name}
+														</span>
+														{sub.confidenceScore != null && (
+															<span
+																className={`rounded-full px-1.5 py-0.5 text-2xs font-semibold ${
+																	sub.confidenceScore >= 0.8
+																		? 'bg-success/15 text-success'
+																		: sub.confidenceScore >= 0.5
+																			? 'bg-warning/15 text-warning'
+																			: 'bg-destructive/15 text-destructive'
+																}`}
+															>
+																{Math.round(sub.confidenceScore * 100)}%
+															</span>
+														)}
+													</div>
+													{sub.ratio && (
+														<p className='mt-0.5 text-xs text-brand/80'>
+															{sub.ratio}
+														</p>
+													)}
+													{sub.notes && (
+														<p className='mt-0.5 text-xs text-text-muted'>
+															{sub.notes}
+														</p>
+													)}
+													<AllergenSafetyIndicator
+														safety={resolveAllergenSafety(
+															sub,
+															user?.allergenFlags,
+														)}
+													/>
+													<CompoundExplanation
+														originalIngredient={ingredientName}
+														substitution={sub}
+													/>
+													{sessionId &&
+														sub.candidateReceipt &&
+														sub.suggestionId && (
+															<div className='mt-2 flex items-center gap-2'>
+																<button
+																	type='button'
+																	disabled={
+																		resolveAllergenSafety(
+																			sub,
+																			user?.allergenFlags,
+																		).status === 'blocked' ||
+																		[
+																			'submitting',
+																			'accepted',
+																			'rejected',
+																		].includes(
+																			feedbackState[sub.suggestionId] ?? '',
+																		)
+																	}
+																	onClick={() => handleFeedback(sub, true)}
+																	className='rounded-md bg-success/15 px-2 py-1 text-xs font-semibold text-success transition-colors hover:bg-success/25 disabled:opacity-60'
+																>
+																	{feedbackState[sub.suggestionId] ===
+																	'accepted'
+																		? t('feedbackRecorded')
+																		: t('substitutionWorks')}
+																</button>
+																<button
+																	type='button'
+																	disabled={[
+																		'submitting',
+																		'accepted',
+																		'rejected',
+																	].includes(
+																		feedbackState[sub.suggestionId] ?? '',
+																	)}
+																	onClick={() => handleFeedback(sub, false)}
+																	className='rounded-md bg-bg-hover px-2 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary disabled:opacity-60'
+																>
+																	{feedbackState[sub.suggestionId] ===
+																	'rejected'
+																		? t('feedbackRecorded')
+																		: t('substitutionDoesNotWork')}
+																</button>
+															</div>
+														)}
+													{feedbackState[sub.suggestionId ?? ''] ===
+														'error' && (
+														<p
+															role='status'
+															className='mt-1 text-xs text-error'
+														>
+															{t('feedbackFailed')}
+														</p>
+													)}
+												</li>
+											))}
+										</ul>
+									</div>
 								) : (
 									<p className='py-4 text-center text-xs text-text-muted'>
 										{t('noSubstitutionsFound')}

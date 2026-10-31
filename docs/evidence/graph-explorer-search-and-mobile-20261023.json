@@ -1,0 +1,79 @@
+{
+	"id": "member-graph-explorer-search-and-mobile-20261023",
+	"recorded_at": "2026-10-23T23:14:31+07:00",
+	"repository": "chefkix-fe",
+	"base_commit": "d32d3a1f0e48cb45283315e7f3e23d21243e5361",
+	"scope": "Graph Explorer search-error recovery and responsive relationship-map rendering",
+	"root_causes": [
+		{
+			"behavior": "A failed ingredient search left its warning visible after a later successful search or after clearing the query.",
+			"cause": "Search failures reused the page-wide error state, while the search success and empty-query paths did not clear it."
+		},
+		{
+			"behavior": "The relationship map rendered wider than the phone viewport and could show only dots until the user horizontally panned.",
+			"cause": "The SVG kept fixed 760 by 540 graph coordinates and a 620 px minimum width, independent of its narrow container."
+		}
+	],
+	"changes": [
+		"Scoped search failures to searchError; a successful query and a cleared query remove that message without clearing unrelated graph errors.",
+		"Measure the map container with ResizeObserver, use its width and responsive height for force layout and view transforms, and remove the fixed 620 px SVG minimum width.",
+		"Added unit and headed-browser regressions for search recovery and map viewport fit."
+	],
+	"failure_first": [
+		{
+			"regression": "relationship map fits its viewport without horizontal clipping",
+			"before_fix": "Failed on mobile Chromium: expected SVG width <= 357.67 px, received 620 px."
+		},
+		{
+			"regression": "failed search followed by successful search and query clearing",
+			"before_fix": "The previous headed browser/component regression reproduced the stale search warning after successful search."
+		}
+	],
+	"verification": {
+		"build": {
+			"command": "NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED=true NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED=true NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED=false npm run build",
+			"result": "Passed; Next.js built 62 pages and completed type validation. Existing caniuse-lite age and edge-runtime static-generation warnings were reported."
+		},
+		"jest": {
+			"command": "npm test -- --runInBand",
+			"result": "214 suites passed, 1 suite skipped; 868 tests passed, 1 skipped."
+		},
+		"headed_graph_explorer_browser": {
+			"command": "npx playwright test --config=playwright.e2e.config.ts tests/e2e/graph-explorer.spec.ts tests/e2e/graph-explorer-live.spec.ts --headed --workers=1",
+			"result": "18 passed, 2 expected feature-off skips across desktop Chromium and iPhone-sized Chromium. Includes live FE-to-Monolith cases with API route interception disabled.",
+			"feature_flags": {
+				"NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED": true,
+				"NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED": true,
+				"NEXT_PUBLIC_GRAPH_RESEARCH_ENABLED": false,
+				"CHEFKIX_LIVE_MONOLITH": true
+			}
+		},
+		"targeted_component_tests": {
+			"command": "npx jest --runInBand src/features/graph-explorer/__tests__/GraphCanvas.test.tsx src/features/graph-explorer/__tests__/GraphExplorer.test.tsx",
+			"result": "2 suites passed, 9 tests passed."
+		},
+		"lint_format_whitespace": {
+			"commands": [
+				"npx eslint src/features/graph-explorer/components/GraphCanvas.tsx src/features/graph-explorer/components/GraphExplorer.tsx src/features/graph-explorer/__tests__/GraphExplorer.test.tsx tests/e2e/graph-explorer.spec.ts",
+				"npx prettier --check src/features/graph-explorer/components/GraphCanvas.tsx src/features/graph-explorer/components/GraphExplorer.tsx src/features/graph-explorer/__tests__/GraphExplorer.test.tsx tests/e2e/graph-explorer.spec.ts",
+				"git diff --check"
+			],
+			"result": "Passed."
+		},
+		"failure_first_map_regression": "The mobile viewport test failed before the responsive canvas change and passed on desktop and iPhone-sized Chromium afterward.",
+		"live_api": {
+			"request": "GET http://localhost:8080/api/v1/knowledge/graph?depth=1&limit=100",
+			"result": "HTTP 200, 25 nodes, 5 edges from the isolated local legacy seed database."
+		},
+		"headed_manual_browser": {
+			"browser": "Codex in-app Chromium tab at http://localhost:3200/explore/graph, iPhone-sized viewport",
+			"result": "Live ingredient search loaded from Monolith; rendered SVG was 286 px wide inside a 286 px map container, with scrollWidth 286 px, five SVG circle layers, and two ingredient labels. The graph map was visibly rendered after the search.",
+			"data_boundary": "Local legacy API and isolated Mongo seed; not the accepted hash-pinned Leader graph artifact."
+		}
+	},
+	"limitations": [
+		"The live integration uses isolated local legacy seed data; most browser error/evidence scenarios use fixtures.",
+		"No accepted hash-pinned graph-product artifact or route is present, and this run does not establish source rights, calibrated substitution decisions, production persistence, or deployed behavior.",
+		"Backend Graph Evidence provider behavior was not enabled against a live credential; fixture cases verify client refusal and unavailable states."
+	]
+}

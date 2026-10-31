@@ -304,23 +304,25 @@ function CreatePostContent() {
 
 		setIsSubmitting(true)
 
-		// Content safety check — non-blocking if AI is down, but blocks harmful content
+		// Require an explicit approval before publishing a cook post.
 		if (content.trim()) {
-			const guardResult = await guardContent(content.trim(), 'post')
-			if (guardResult.success && guardResult.data) {
-				if (guardResult.data.action === 'block') {
+			const guardResult = await guardContent(content.trim(), 'post').catch(
+				() => null,
+			)
+			if (!guardResult?.success || guardResult.data?.action !== 'approve') {
+				if (guardResult?.data?.action === 'block') {
 					toast.error(t('contentGuardBlocked'), {
 						description:
 							guardResult.data.reasons?.[0] || t('contentGuardRevise'),
 					})
-					setIsSubmitting(false)
-					return
-				}
-				if (guardResult.data.action === 'flag') {
+				} else if (guardResult?.data?.action === 'flag') {
 					toast.warning(t('contentGuardFlagged'))
+				} else {
+					toast.error(t('moderationVerifyFailedPost'))
 				}
+				setIsSubmitting(false)
+				return
 			}
-			// If guardContent fails (AI down), proceed — don't block posting
 		}
 
 		try {

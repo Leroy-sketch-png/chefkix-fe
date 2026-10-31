@@ -1,0 +1,10 @@
+{
+	"version": "lead-feedback-overlay-e3-negative-v1",
+	"updatedAt": "2026-09-15",
+	"status": "verified-negative",
+	"metric": "mrr",
+	"staticMrr": 31.6365,
+	"feedbackMrr": 31.9457,
+	"mrrDelta": 0.3092,
+	"note": "Verified acceptance-proxy simulation: aggregate MRR rises, but unseen-pair MRR falls beyond the predeclared non-inferiority limit. Rejected for production ranking; not user satisfaction evidence."
+}

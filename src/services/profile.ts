@@ -274,6 +274,7 @@ export interface UpdateProfileDto {
 	avatarUrl?: string
 	coverImageUrl?: string
 	preferences?: string[]
+	allergenFlags?: string[]
 }
 
 export const updateProfile = async (

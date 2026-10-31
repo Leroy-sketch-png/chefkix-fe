@@ -18,6 +18,8 @@ export const PATHS = {
 	CREATE: '/create',
 	CREATOR: '/creator',
 	COOK: '/cook',
+	SCAN: '/scan',
+	COPILOT: '/copilot',
 	CREATE_POST: '/post/new',
 	COLLECTIONS: '/collections',
 	SHOPPING_LISTS: '/shopping-lists',

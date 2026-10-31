@@ -1,0 +1,513 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import {
+	AlertTriangle,
+	BarChart3,
+	CheckCircle2,
+	ChevronRight,
+	Database,
+	FlaskConical,
+	RefreshCw,
+	ShieldCheck,
+	Trophy,
+} from 'lucide-react'
+import { getEvaluationDashboardData } from '../services/evaluationDashboardService'
+import type { BenchmarkMetric, EvaluationDashboardData } from '../types'
+import { BehavioralLearningCard } from './BehavioralLearningCard'
+import { MetricBarChart, provenanceCaption } from './MetricBarChart'
+import { StatusPill } from './StatusPill'
+
+const metricLabels: Record<BenchmarkMetric, string> = {
+	hitAt1: 'Hit@1',
+	hitAt5: 'Hit@5',
+	hitAt10: 'Hit@10',
+	mrr: 'MRR',
+	ndcg: 'NDCG',
+}
+
+const metricOrder: BenchmarkMetric[] = [
+	'hitAt1',
+	'hitAt5',
+	'hitAt10',
+	'mrr',
+	'ndcg',
+]
+
+function formatMetric(value: number | undefined) {
+	return value === undefined ? 'Pending' : `${value.toFixed(2)}%`
+}
+
+function statusClass(status: string) {
+	if (status === 'published' || status === 'complete') return 'text-emerald-600'
+	if (status === 'verified') return 'text-sky-600'
+	if (status === 'verified-negative') return 'text-violet-600'
+	if (status === 'placeholder') return 'text-amber-600'
+	return 'text-text-muted'
+}
+
+function Surface({
+	children,
+	className = '',
+}: {
+	children: React.ReactNode
+	className?: string
+}) {
+	return (
+		<section
+			className={`rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card ${className}`}
+		>
+			{children}
+		</section>
+	)
+}
+
+function SectionHeading({
+	icon: Icon,
+	eyebrow,
+	title,
+	description,
+}: {
+	icon: typeof BarChart3
+	eyebrow: string
+	title: string
+	description: string
+}) {
+	return (
+		<div className='mb-5 flex items-start gap-3'>
+			<div className='grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary'>
+				<Icon className='size-5' />
+			</div>
+			<div>
+				<p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-primary'>
+					{eyebrow}
+				</p>
+				<h2 className='mt-1 text-lg font-bold text-text-primary'>{title}</h2>
+				<p className='mt-1 text-sm text-text-muted'>{description}</p>
+			</div>
+		</div>
+	)
+}
+
+export function EvaluationDashboard() {
+	const [data, setData] = useState<EvaluationDashboardData | null>(null)
+	const [error, setError] = useState<string | null>(null)
+
+	const load = () => {
+		setError(null)
+		getEvaluationDashboardData()
+			.then(setData)
+			.catch(() => setError('Evaluation data could not be loaded.'))
+	}
+
+	useEffect(load, [])
+
+	const reproducedHitAt1 = data?.benchmarks.models.find(
+		model => model.id === 'gismo' && model.status === 'verified',
+	)?.metrics.hitAt1
+	const readiness = useMemo(() => {
+		if (!data) return { ready: 0, total: 4 }
+		const benchmarkReady = data.benchmarks.models.some(
+			model =>
+				model.id === 'iron-chef' &&
+				model.status === 'verified' &&
+				Object.keys(model.metrics).length > 0,
+		)
+		const ablationReady = data.ablation.results.some(
+			result => result.status === 'complete',
+		)
+		const allergenReady = data.allergen.models.some(
+			model => model.status === 'complete',
+		)
+		const behavioralReady = data.behavioral.status === 'complete'
+		return {
+			ready: [
+				benchmarkReady,
+				ablationReady,
+				allergenReady,
+				behavioralReady,
+			].filter(Boolean).length,
+			total: 4,
+		}
+	}, [data])
+	const safetyBenchmark = data?.allergen.models.find(
+		model => model.id === 'iron-chef',
+	)
+
+	if (error)
+		return (
+			<div
+				className='rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive'
+				role='alert'
+			>
+				{error}{' '}
+				<button type='button' onClick={load} className='ml-2 underline'>
+					Retry
+				</button>
+			</div>
+		)
+	if (!data)
+		return (
+			<div
+				className='rounded-2xl border border-border-subtle bg-bg-card p-8 text-sm text-text-muted'
+				role='status'
+			>
+				Loading evaluation dashboard…
+			</div>
+		)
+
+	return (
+		<div className='space-y-5'>
+			<div className='flex flex-col justify-between gap-4 rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-primary/5 p-6 md:flex-row md:items-end'>
+				<div>
+					<div className='flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary'>
+						<Trophy className='size-4' /> IRON CHEF v3 · Thesis evidence
+					</div>
+					<h1 className='mt-2 text-3xl font-bold tracking-tight text-text-primary'>
+						Evaluation command center
+					</h1>
+					<p className='mt-2 max-w-2xl text-sm leading-6 text-text-muted'>
+						A single, honest view of model quality, signal contribution, and
+						allergen safety. Verified evidence, rejected research results, and
+						open production gates stay visibly separated.
+					</p>
+				</div>
+				<div className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-xs text-text-muted'>
+					<Database className='size-4' /> Dataset status:{' '}
+					<span className='font-semibold text-amber-600'>
+						Verified evidence + pending gates
+					</span>
+				</div>
+			</div>
+
+			<nav
+				aria-label='Evaluation sections'
+				className='sticky top-2 z-10 flex gap-1 overflow-x-auto rounded-xl border border-border-subtle bg-bg-card/95 p-1 shadow-sm backdrop-blur'
+			>
+				{[
+					['overview', 'Overview'],
+					['benchmarks', 'Benchmarks'],
+					['ablation', 'Ablation'],
+					['safety', 'Safety'],
+					['behavioral', 'Behavioral'],
+				].map(([id, label]) => (
+					<a
+						key={id}
+						href={`#${id}`}
+						className='inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary'
+					>
+						{label}
+						<ChevronRight className='size-3' />
+					</a>
+				))}
+			</nav>
+
+			<div
+				id='overview'
+				className='scroll-mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4'
+			>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<p className='text-xs text-text-muted'>Models tracked</p>
+					<p className='mt-2 text-2xl font-bold text-text-primary'>
+						{data.benchmarks.models.length}
+					</p>
+					<p className='mt-1 text-xs text-text-muted'>
+						Research models and comparator status
+					</p>
+				</div>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<p className='text-xs text-text-muted'>GISMo reproduced Hit@1</p>
+					<p className='mt-2 text-2xl font-bold text-text-primary'>
+						{reproducedHitAt1 !== undefined
+							? `${reproducedHitAt1.toFixed(2)}%`
+							: 'Pending'}
+					</p>
+					<p className='mt-1 text-xs text-text-muted'>
+						Matched reproduction; no winner claim
+					</p>
+				</div>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<p className='text-xs text-text-muted'>Safety benchmark</p>
+					<p
+						className={`mt-2 text-2xl font-bold ${safetyBenchmark?.violationRate === undefined ? 'text-amber-600' : safetyBenchmark.violationRate === 0 ? 'text-emerald-600' : 'text-destructive'}`}
+					>
+						{safetyBenchmark?.violationRate === undefined
+							? 'Pending'
+							: `${safetyBenchmark.violationRate.toFixed(2)}%`}
+					</p>
+					<p className='mt-1 text-xs text-text-muted'>
+						Controlled violation study
+					</p>
+				</div>
+				<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+					<p className='text-xs text-text-muted'>Feedback MRR delta</p>
+					<p className='mt-2 text-2xl font-bold text-text-primary'>
+						{data.behavioral.mrrDelta === undefined
+							? 'Pending'
+							: `${data.behavioral.mrrDelta.toFixed(2)}%`}
+					</p>
+					<p className='mt-1 text-xs text-text-muted'>
+						Static HGAT → feedback HGAT
+					</p>
+				</div>
+			</div>
+
+			<div className='rounded-2xl border border-border-subtle bg-bg-card p-4'>
+				<div className='flex flex-wrap items-center justify-between gap-3'>
+					<div>
+						<p className='text-xs font-semibold uppercase tracking-[0.16em] text-primary'>
+							Leader handoff
+						</p>
+						<h2 className='mt-1 font-semibold text-text-primary'>
+							Evidence readiness: {readiness.ready}/{readiness.total} datasets
+							accepted
+						</h2>
+					</div>
+					<p className='text-xs text-text-muted'>
+						Verified results are visible; accepted production evidence remains
+						gated.
+					</p>
+				</div>
+				<div
+					className='mt-3 h-2 overflow-hidden rounded-full bg-bg-elevated'
+					role='progressbar'
+					aria-valuemin={0}
+					aria-valuemax={readiness.total}
+					aria-valuenow={readiness.ready}
+					aria-label='Evidence readiness'
+				>
+					<div
+						className='h-full rounded-full bg-primary transition-all'
+						style={{ width: `${(readiness.ready / readiness.total) * 100}%` }}
+					/>
+				</div>
+				<div className='mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4'>
+					{[
+						[
+							'Benchmark results',
+							data.benchmarks.models.some(
+								model =>
+									model.id === 'iron-chef' &&
+									model.status === 'verified' &&
+									Object.keys(model.metrics).length > 0,
+							),
+						],
+						[
+							'Ablation results',
+							data.ablation.results.some(
+								result => result.status === 'complete',
+							),
+						],
+						[
+							'Allergen results',
+							data.allergen.models.some(model => model.status === 'complete'),
+						],
+						['Behavioral results', data.behavioral.status === 'complete'],
+					].map(([label, complete]) => (
+						<div
+							key={label as string}
+							className='flex items-center justify-between rounded-lg bg-bg-elevated/60 px-3 py-2'
+						>
+							<span className='text-text-muted'>{label as string}</span>
+							{complete ? (
+								<CheckCircle2 className='size-4 text-emerald-600' />
+							) : (
+								<StatusPill status='pending' />
+							)}
+						</div>
+					))}
+				</div>
+			</div>
+
+			<div id='benchmarks' className='scroll-mt-20'>
+				<Surface>
+					<SectionHeading
+						icon={BarChart3}
+						eyebrow='Benchmark scoreboard'
+						title='Model comparison'
+						description='The matched GISMo reproduction is verified; no accepted IRON CHEF production benchmark is being claimed.'
+					/>
+					<div className='overflow-x-auto'>
+						<table className='w-full min-w-[720px] border-separate border-spacing-0 text-left text-sm'>
+							<thead>
+								<tr className='text-xs uppercase tracking-wide text-text-muted'>
+									<th className='border-b border-border-subtle px-3 py-3 font-semibold'>
+										Metric
+									</th>
+									{data.benchmarks.models.map(model => (
+										<th
+											key={model.id}
+											className='border-b border-border-subtle px-3 py-3 font-semibold'
+										>
+											{model.shortName}
+											<span className='mt-1 block'>
+												<StatusPill status={model.status} />
+											</span>
+										</th>
+									))}
+								</tr>
+							</thead>
+							<tbody>
+								{metricOrder.map(metric => (
+									<tr key={metric} className='hover:bg-bg-elevated/60'>
+										<th
+											className='border-b border-border-subtle px-3 py-3 font-medium text-text-primary'
+											title={data.benchmarks.metricDefinitions[metric]}
+										>
+											{metricLabels[metric]}
+										</th>
+										{data.benchmarks.models.map(model => {
+											const value = model.metrics[metric]
+											return (
+												<td
+													key={model.id}
+													className={`border-b border-border-subtle px-3 py-3 font-semibold ${value === undefined ? 'font-normal text-text-muted' : 'text-text-primary'}`}
+												>
+													{formatMetric(value)}
+												</td>
+											)
+										})}
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+					{data.benchmarks.models.map(model => (
+						<p
+							key={model.id}
+							className='mt-3 break-words text-xs text-text-muted'
+						>
+							{model.name}: {provenanceCaption(model.provenance)} {model.note}
+						</p>
+					))}
+					<p className='mt-4 text-xs text-text-muted'>
+						Verified GISMo reproduction: Hit@1 20.694% and MRR 0.31636 overall;
+						unseen Hit@1 1.206% and MRR 0.04308. Mistral remains a published
+						comparator only. Missing metrics remain explicitly pending.
+					</p>
+				</Surface>
+			</div>
+
+			<div className='grid gap-5 lg:grid-cols-2'>
+				<div id='ablation' className='scroll-mt-20'>
+					<Surface>
+						<SectionHeading
+							icon={FlaskConical}
+							eyebrow='Ablation study'
+							title='Which signal matters most?'
+							description='Verified v11 evidence includes a negative/confounded slice; unavailable standalone values remain pending.'
+						/>
+						<MetricBarChart
+							data={data.ablation.results.map(result => ({
+								id: result.id,
+								label: result.label,
+								value: result.hitAt1,
+								status: result.status,
+								note: result.note,
+								provenance: result.provenance,
+							}))}
+							ariaLabel='Ablation Hit@1 comparison by signal'
+							fileName='chefkix-ablation-hit-at-1'
+							valueLabel='Hit@1'
+						/>
+						<div className='mt-4 space-y-2'>
+							{data.ablation.results.map(result => (
+								<p
+									key={result.id}
+									className='text-[11px] leading-5 text-text-muted'
+								>
+									<span className='font-semibold text-text-primary'>
+										{result.label}:
+									</span>{' '}
+									{result.note ?? 'Detailed evidence pending'}
+								</p>
+							))}
+						</div>
+					</Surface>
+				</div>
+				<div id='safety' className='scroll-mt-20'>
+					<Surface>
+						<SectionHeading
+							icon={ShieldCheck}
+							eyebrow='Safety evidence'
+							title='Allergen violation comparison'
+							description={data.allergen.benchmarkDescription}
+						/>
+						<MetricBarChart
+							data={data.allergen.models.map(model => ({
+								id: model.id,
+								label: model.name,
+								value: model.violationRate,
+								status: model.status,
+								note: model.note,
+								provenance: model.provenance,
+							}))}
+							ariaLabel='Allergen violation rates by model'
+							fileName='chefkix-allergen-violation-rates'
+							valueLabel='Violation rate'
+						/>
+						<div className='space-y-3'>
+							{data.allergen.models.map(model => (
+								<div
+									key={model.id}
+									className='flex items-center justify-between rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'
+								>
+									<div>
+										<p className='font-medium text-text-primary'>
+											{model.name}
+										</p>
+										<p className='mt-1 text-xs text-text-muted'>
+											{model.note ??
+												`${model.caughtViolations ?? 0} caught of ${model.totalCases ?? 0} cases`}
+										</p>
+									</div>
+									<div className='text-right'>
+										<p
+											className={`font-bold ${model.violationRate === undefined ? 'text-text-muted' : model.violationRate === 0 ? 'text-emerald-600' : 'text-destructive'}`}
+										>
+											{model.violationRate === undefined
+												? 'Pending'
+												: `${model.violationRate.toFixed(2)}%`}
+										</p>
+										<p
+											className={`text-[10px] uppercase ${statusClass(model.status)}`}
+										>
+											{model.status}
+										</p>
+									</div>
+								</div>
+							))}
+						</div>
+						<div className='mt-4 flex gap-2 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-text-muted'>
+							<AlertTriangle className='mt-0.5 size-4 shrink-0 text-amber-600' />
+							Safety rates require matched model arms, two independent reviews,
+							adjudication, and hash-bound scoring evidence.
+						</div>
+					</Surface>
+				</div>
+			</div>
+
+			<div id='behavioral' className='scroll-mt-20'>
+				<BehavioralLearningCard data={data.behavioral} />
+			</div>
+
+			<div className='flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border-subtle bg-bg-elevated/50 px-4 py-3 text-xs text-text-muted'>
+				<span className='inline-flex items-center gap-2'>
+					<CheckCircle2 className='size-4 text-emerald-600' /> Data contract
+					ready for Leader exports
+				</span>
+				<span>
+					Schema versions: {data.benchmarks.version} · updated{' '}
+					{data.benchmarks.updatedAt}
+				</span>
+				<button
+					type='button'
+					onClick={load}
+					className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-card px-3 py-2 font-medium text-text-primary hover:border-primary'
+				>
+					<RefreshCw className='size-3.5' /> Refresh data
+				</button>
+			</div>
+		</div>
+	)
+}

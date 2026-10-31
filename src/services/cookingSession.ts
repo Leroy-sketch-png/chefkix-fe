@@ -96,6 +96,26 @@ export interface StartSessionResponse {
 	recipe: CookingSessionRecipe
 }
 
+export type SubstitutionFeedbackChoice = 'accept' | 'reject' | 'skip'
+export type SubstitutionTasteFeedback = 'up' | 'neutral' | 'down'
+
+export interface SubstitutionFeedbackRequest {
+	originalIngredient: string
+	substituteIngredient?: string
+	choice: SubstitutionFeedbackChoice
+	technique?: string
+	cuisine?: string
+	sessionCompleted?: boolean
+	userRating?: number
+	tasteFeedback?: SubstitutionTasteFeedback
+	shared?: boolean
+}
+
+export interface SubstitutionFeedbackResponse {
+	recorded: boolean
+	eventId?: string
+}
+
 export interface CompleteSessionResponse {
 	sessionId: string
 	status: 'completed'
@@ -164,17 +184,18 @@ export interface SubstitutionFeedbackCommand {
 
 export const submitSubstitutionFeedback = async (
 	sessionId: string,
-	command: SubstitutionFeedbackCommand,
-): Promise<ApiResponse<string>> => {
+	command: SubstitutionFeedbackCommand | SubstitutionFeedbackRequest,
+): Promise<ApiResponse<string | SubstitutionFeedbackResponse>> => {
 	try {
-		const response = await api.post<ApiResponse<string>>(
-			API_ENDPOINTS.COOKING_SESSIONS.SUBSTITUTION_FEEDBACK(sessionId),
-			command,
-		)
+		const response = await api.post<
+			ApiResponse<string | SubstitutionFeedbackResponse>
+		>(API_ENDPOINTS.COOKING_SESSIONS.SUBSTITUTION_FEEDBACK(sessionId), command)
 		return response.data
 	} catch (error) {
 		logDevError('substitution feedback failed:', error)
-		const axiosError = error as AxiosError<ApiResponse<string>>
+		const axiosError = error as AxiosError<
+			ApiResponse<string | SubstitutionFeedbackResponse>
+		>
 		if (axiosError.response) return axiosError.response.data
 		return {
 			success: false,

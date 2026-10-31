@@ -1,0 +1,31 @@
+{
+	"version": "lead-v101-awaiting-adjudication-v2",
+	"updatedAt": "2026-10-04",
+	"benchmarkDescription": "No comparative allergen rate is authorized yet. The matched Mistral raw arm is complete, but GPT-4o, Gemini, independent review, and adjudication remain open.",
+	"models": [
+		{
+			"id": "iron-chef",
+			"name": "IRON CHEF allergen guard",
+			"status": "pending",
+			"note": "No accepted IRON CHEF safety rate. Do not show the withdrawn zero-violation claim."
+		},
+		{
+			"id": "gpt-4o",
+			"name": "GPT-4o",
+			"status": "pending",
+			"note": "GPT-4o matched arm and independent adjudication are not available."
+		},
+		{
+			"id": "gemini",
+			"name": "Gemini",
+			"status": "pending",
+			"note": "Gemini matched arm and independent adjudication are not available."
+		},
+		{
+			"id": "mistral",
+			"name": "Mistral small 2603",
+			"status": "pending",
+			"note": "208/208 schema-valid raw responses captured. Independent scoring and adjudication are absent; no safety rate is authorized."
+		}
+	]
+}

@@ -208,14 +208,20 @@ export interface SubstitutionRequest {
 	ingredient: string
 	reason: SubstitutionReason
 	dietaryTags?: string[]
+	allergenFlags?: string[]
 	recipeContext?: string
 }
 
 export interface Substitution {
 	name: string
-	ratio: string
+	ratio: string | null
 	notes: string
-	confidenceScore: number
+	confidenceScore: number | null
+	/** Optional Lead compound-engine payload; kept additive for old responses. */
+	compoundExplanation?: unknown
+	allergenSafety?: unknown
+	source?: 'chemistry' | 'llm' | 'hybrid'
+	allergenSafe?: boolean | null
 	suggestionId?: string
 	candidateReceipt?: string
 }
@@ -225,6 +231,104 @@ export interface SubstitutionResponse {
 	reason: string
 	substitutions: Substitution[]
 }
+
+/**
+ * Versioned research-route response. This is a type-only consumer contract:
+ * callers must inject a trusted, server-owned fetcher; this module never sends
+ * the purpose-specific research credential from a browser.
+ */
+export interface ResearchGraphCandidate {
+	candidateId: string
+	rank: number
+	name: string
+	fooDbId: string | null
+	knownNode: boolean
+	trainPairCount: number
+	seen: boolean
+	ratio: string | null
+	confidenceScore: number | null
+}
+
+export interface ResearchArtifactProvenance {
+	artifactId: string
+	manifestSha256: string
+	sourceSplit: 'train'
+	transformationId: string
+}
+
+export interface ResearchRankerProvenance {
+	rankerId: string
+	scorerSha256: string
+}
+
+export interface ResearchHardFilterProvenance {
+	policyId: string
+	policySha256: string
+}
+
+export type ResearchAbstentionReason =
+	| 'graph_unavailable'
+	| 'calibration_not_ok'
+	| 'empty_filtered_pool'
+	| 'source_identity_unresolved'
+	| 'hard_filter_unavailable'
+
+interface ResearchGraphEvidenceResponseBase {
+	graphStatus: 'not_configured' | 'invalid' | 'ready'
+	graphProvenance: ResearchArtifactProvenance | null
+	calibration: {
+		status: 'ok' | 'uninformative' | 'vacuous' | 'no_guarantee' | 'abstain'
+		bindingStatus: 'missing' | 'mismatched' | 'compatible'
+		manifestSha256: string | null
+		calibrationCaseCount: number
+		noGuaranteeReason:
+			| 'insufficient_support'
+			| 'missing_artifact'
+			| 'mismatched_artifact'
+			| 'inference_assumptions_unresolved'
+			| 'unsupported_domain'
+			| null
+	}
+	rankerProvenance: ResearchRankerProvenance | null
+	hardFilterProvenance: ResearchHardFilterProvenance | null
+	abstentionReasons: ResearchAbstentionReason[]
+	candidates: ResearchGraphCandidate[]
+}
+
+/** Legacy graph evidence may carry abstention evidence, never a supported set. */
+export interface ResearchGraphEvidenceResponseV1
+	extends ResearchGraphEvidenceResponseBase {
+	contractVersion: 'graph-evidence-v1'
+	disposition: 'abstain'
+}
+
+/** Final recommendation evidence binds the protocol cutoff explicitly. */
+export interface ResearchGraphEvidenceResponseV2
+	extends Omit<ResearchGraphEvidenceResponseBase, 'calibration'> {
+	contractVersion: 'graph-evidence-v2'
+	calibration: ResearchGraphEvidenceResponseBase['calibration'] & {
+		/** JSON null represents an unavailable or infinite/vacuous cutoff. */
+		cutoff: number | null
+	}
+	disposition: 'recommendations' | 'abstain'
+}
+
+export type ResearchGraphEvidenceResponse =
+	| ResearchGraphEvidenceResponseV1
+	| ResearchGraphEvidenceResponseV2
+
+export interface ResearchIdentityAbstentionResponse {
+	contractVersion: 'graph-preflight-v2'
+	sourceIdentityStatus: 'unresolved' | 'ambiguous'
+	sourceIngredientId: null
+	graphStatus: 'not_evaluated'
+	disposition: 'abstain'
+	abstentionReason: 'source_identity_unresolved' | 'source_identity_ambiguous'
+}
+
+export type ResearchSubstitutionResponse =
+	| ResearchGraphEvidenceResponse
+	| ResearchIdentityAbstentionResponse
 
 export type RemixType =
 	| 'vegetarian'
@@ -404,8 +508,16 @@ export const suggestSubstitutions = async (
 	reason: SubstitutionReason,
 	recipeContext?: string,
 	dietaryTags?: string[],
+	allergenFlagsOrSessionId?: string[] | string,
 	sessionId?: string,
 ): Promise<ApiResponse<SubstitutionResponse>> => {
+	const allergenFlags = Array.isArray(allergenFlagsOrSessionId)
+		? allergenFlagsOrSessionId
+		: undefined
+	const resolvedSessionId =
+		typeof allergenFlagsOrSessionId === 'string'
+			? allergenFlagsOrSessionId
+			: sessionId
 	const preflightFailure = getDirectAiPreflightFailure<SubstitutionResponse>()
 	if (preflightFailure) return preflightFailure
 
@@ -417,7 +529,13 @@ export const suggestSubstitutions = async (
 				reason,
 				...(recipeContext && { recipe_context: recipeContext }),
 				...(dietaryTags?.length && { dietary_tags: dietaryTags }),
-				...(sessionId && { session_id: sessionId }),
+				...(allergenFlags?.length && { allergen_flags: allergenFlags }),
+				...(resolvedSessionId && { session_id: resolvedSessionId }),
+			},
+			{
+				headers: allergenFlags?.length
+					? { 'X-ChefKix-Allergen-Flags': JSON.stringify(allergenFlags) }
+					: undefined,
 			},
 		)
 		return response.data
@@ -427,6 +545,24 @@ export const suggestSubstitutions = async (
 			'Failed to suggest substitutions',
 		)
 	}
+}
+
+/**
+ * Fetch the source-only, purpose-authenticated research contract. The FE
+ * proxy supplies the research credential and fixes the request reason.
+ */
+export const fetchResearchSubstitutionEvidence = async (
+	sourceIngredient: string,
+): Promise<ResearchSubstitutionResponse> => {
+	const response = await aiApi.post<ApiResponse<ResearchSubstitutionResponse>>(
+		API_ENDPOINTS.AI.RESEARCH_SUGGEST_SUBSTITUTIONS,
+		{ ingredient: sourceIngredient },
+	)
+	const envelope = response.data
+	if (envelope?.success !== true || !envelope.data) {
+		throw new Error('Research substitution response envelope is invalid')
+	}
+	return envelope.data
 }
 
 /**

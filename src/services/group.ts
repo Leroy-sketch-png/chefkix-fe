@@ -284,10 +284,11 @@ export const transferOwnership = async (
 export const changeGroupPrivacy = async (
 	groupId: string,
 	privacyType: 'PUBLIC' | 'PRIVATE',
+	confirmationPassword: string,
 ): Promise<Group> => {
 	const response = await api.patch<ApiResponse<Group>>(
 		API_ENDPOINTS.GROUPS.CHANGE_PRIVACY(groupId),
-		{ privacyType },
+		{ privacyType, confirmationPassword },
 	)
 	if (!response.data.data) throw new Error('Failed to change group privacy')
 	return response.data.data

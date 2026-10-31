@@ -57,9 +57,9 @@ describe('challenge history truth', () => {
 
 		expect(service).toContain('{ params: { page, size } }')
 		expect(service).not.toContain('{ params: { limit } }')
-		expect(route).toContain('page: 0,\n\t\t\t\t\tsize: HISTORY_PAGE_SIZE')
+		expect(route.replace(/\s+/g, '')).toContain('page:0,size:HISTORY_PAGE_SIZE')
 		expect(route).toContain('response.data.pagination.hasNext')
-		expect(route).toContain('else {\n\t\t\t\t\tsetFetchError(true)')
+		expect(route.replace(/\s+/g, '')).toContain('else{setFetchError(true)')
 		expect(route).toContain('setRetryKey(key => key + 1)')
 		expect(route).toContain("router.push('/challenges')")
 		expect(route).not.toContain('window.location.reload()')

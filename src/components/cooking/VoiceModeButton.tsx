@@ -50,6 +50,7 @@ export function VoiceModeButton({
 				break
 			case 'low-confidence':
 			case 'unrecognized':
+			case 'wake-word':
 				toast.info(message)
 				break
 		}

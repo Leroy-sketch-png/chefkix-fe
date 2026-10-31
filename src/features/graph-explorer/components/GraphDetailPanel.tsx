@@ -1,0 +1,325 @@
+import type { GraphEdge, GraphEvidenceLoadState, GraphNode } from '../types'
+import { useTranslations } from 'next-intl'
+
+const SHA256 = /^[a-f0-9]{64}$/i
+const CALIBRATION_COPY: Record<string, string> = {
+	ok: 'researchCalibrationStateOk',
+	uninformative: 'researchCalibrationStateUninformative',
+	vacuous: 'researchCalibrationStateVacuous',
+	no_guarantee: 'researchCalibrationStateNoGuarantee',
+	abstain: 'researchCalibrationStateAbstain',
+}
+
+function formatDelta(value: number | undefined) {
+	if (value === undefined) return 'Pending'
+	return `${value > 0 ? '+' : ''}${value.toFixed(1)} g`
+}
+
+function compoundLabel(
+	compound: NonNullable<GraphNode['compoundData']>['primaryCompounds'][number],
+) {
+	if (typeof compound === 'string') return compound
+	return compound.concentration === undefined
+		? compound.name
+		: `${compound.name} · ${compound.concentration}${compound.unit ?? ''}`
+}
+
+export function GraphNodeDetailPanel({
+	node,
+	connectionCount,
+}: {
+	node: GraphNode
+	connectionCount: number
+}) {
+	const compounds = node.compoundData?.primaryCompounds.slice(0, 5) ?? []
+	return (
+		<section
+			className='border-t border-border-subtle p-4 text-sm'
+			aria-label='Ingredient details'
+		>
+			<div className='flex flex-wrap items-start justify-between gap-2'>
+				<div>
+					<div className='font-semibold text-text-primary'>{node.name}</div>
+					<div className='mt-1 text-xs text-text-muted'>
+						Category: {node.category} · Connections: {connectionCount}
+					</div>
+				</div>
+				<span className='rounded-full border border-border-subtle bg-bg-elevated px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted'>
+					{node.detailStatus === 'complete'
+						? 'Loaded detail'
+						: 'Detail pending'}
+				</span>
+			</div>
+
+			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
+				<div className='font-medium text-text-primary'>
+					Recorded allergen flags
+				</div>
+				<div className='mt-1 text-text-muted'>
+					{node.allergenFlags.length
+						? node.allergenFlags.join(', ')
+						: 'No flag recorded; safety is not established'}
+				</div>
+			</div>
+
+			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
+				<div className='font-medium text-text-primary'>
+					Documented compounds
+				</div>
+				{compounds.length ? (
+					<ul className='mt-2 space-y-1 text-text-muted'>
+						{compounds.map((compound, index) => (
+							<li key={`${compoundLabel(compound)}-${index}`}>
+								{index + 1}. {compoundLabel(compound)}
+							</li>
+						))}
+					</ul>
+				) : (
+					<p className='mt-1 text-text-muted'>
+						Official FooDB profile unavailable
+					</p>
+				)}
+				{node.compoundData?.flavorProfile && (
+					<p className='mt-2 text-text-muted'>
+						Flavor profile: {node.compoundData.flavorProfile}
+					</p>
+				)}
+				{node.compoundData?.source && (
+					<p className='mt-2 text-[11px] text-text-muted'>
+						Source: {node.compoundData.source}. Presence only; no concentration
+						or safety inference.
+					</p>
+				)}
+			</div>
+
+			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
+				<div className='font-medium text-text-primary'>
+					USDA nutrition snapshot
+				</div>
+				{node.nutrition ? (
+					<div className='mt-2 grid grid-cols-2 gap-2 text-xs text-text-muted'>
+						<div>Calories: {node.nutrition.calories ?? 'Pending'}</div>
+						<div>Protein: {node.nutrition.proteinGrams ?? 'Pending'} g</div>
+						<div>Carbs: {node.nutrition.carbohydratesGrams ?? 'Pending'} g</div>
+						<div>Fat: {node.nutrition.fatGrams ?? 'Pending'} g</div>
+					</div>
+				) : (
+					<p className='mt-1 text-text-muted'>
+						Pending USDA nutrition snapshot
+					</p>
+				)}
+			</div>
+		</section>
+	)
+}
+
+export function GraphEdgeDetailPanel({
+	edge,
+	sourceName,
+	targetName,
+}: {
+	edge: GraphEdge
+	sourceName?: string
+	targetName?: string
+}) {
+	const technique = edge.techniqueContext
+	const comparison = edge.nutritionalComparison
+	return (
+		<section
+			className='border-t border-border-subtle p-4 text-sm'
+			aria-label='Relationship details'
+		>
+			<div className='font-semibold text-text-primary'>
+				{edge.type.replace('_', ' ')} relationship
+			</div>
+			<div className='mt-1 text-text-muted'>
+				{sourceName ?? edge.source} → {targetName ?? edge.target}
+			</div>
+			{edge.confidence !== undefined && (
+				<div className='mt-1 text-text-muted'>
+					Reported confidence: {(edge.confidence * 100).toFixed(0)}%
+				</div>
+			)}
+			{edge.substitutionRatio !== undefined && (
+				<div className='mt-1 text-text-muted'>
+					Recorded substitution ratio: {edge.substitutionRatio}×
+				</div>
+			)}
+			{edge.context && (
+				<div className='mt-1 text-text-muted'>
+					Recorded context: {edge.context}
+				</div>
+			)}
+
+			<div className='mt-3 grid gap-3 sm:grid-cols-2'>
+				<div className='rounded-xl bg-bg-elevated p-3'>
+					<div className='font-medium text-text-primary'>Compound overlap</div>
+					<div className='mt-1 text-text-muted'>
+						{edge.compoundOverlap === undefined
+							? 'FooDB comparison unavailable'
+							: `${(edge.compoundOverlap * 100).toFixed(0)}% Jaccard overlap of documented compound presence`}
+					</div>
+					{edge.compoundOverlapSemantics && (
+						<p className='mt-1 text-xs text-text-muted'>
+							{edge.compoundOverlapSemantics}
+						</p>
+					)}
+				</div>
+				<div className='rounded-xl bg-bg-elevated p-3'>
+					<div className='font-medium text-text-primary'>Cook validation</div>
+					<div className='mt-1 text-text-muted'>
+						{edge.cookValidationCount === undefined
+							? 'Pending validation events'
+							: `${edge.cookValidationCount} validated cooks`}
+					</div>
+				</div>
+			</div>
+
+			<div className='mt-3 rounded-xl bg-bg-elevated p-3'>
+				<div className='font-medium text-text-primary'>
+					Nutritional comparison
+				</div>
+				{comparison ? (
+					<div className='mt-2 space-y-1 text-xs text-text-muted'>
+						{comparison.summary && <p>{comparison.summary}</p>}
+						<p>Calories: {comparison.caloriesDelta ?? 'Pending'}</p>
+						<p>Protein: {formatDelta(comparison.proteinGramsDelta)}</p>
+						<p>Carbs: {formatDelta(comparison.carbohydratesGramsDelta)}</p>
+						<p>Fat: {formatDelta(comparison.fatGramsDelta)}</p>
+					</div>
+				) : (
+					<p className='mt-1 text-text-muted'>Pending USDA comparison</p>
+				)}
+			</div>
+
+			<div className='mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3'>
+				<div className='font-medium text-text-primary'>Technique context</div>
+				{technique ? (
+					<div className='mt-2 space-y-1 text-xs text-text-muted'>
+						<p>Works for: {technique.worksFor?.join(', ') || 'Pending'}</p>
+						<p>
+							Not recommended for:{' '}
+							{technique.notRecommendedFor?.join(', ') || 'Pending'}
+						</p>
+						{technique.note && <p>{technique.note}</p>}
+					</div>
+				) : (
+					<p className='mt-1 text-text-muted'>
+						Pending technique validation, for example baking versus frying.
+					</p>
+				)}
+			</div>
+		</section>
+	)
+}
+
+export function GraphEvidencePanel({
+	state,
+}: {
+	state: GraphEvidenceLoadState
+}) {
+	const t = useTranslations('recipe')
+	const integrity =
+		state.state === 'loaded' ? state.response.artifactIntegrity : undefined
+	const declaredSha256 =
+		state.state === 'loaded' &&
+		state.response.status === 'REFUSED' &&
+		integrity?.expectedSha256 &&
+		SHA256.test(integrity.expectedSha256)
+			? integrity.expectedSha256
+			: undefined
+	const observedSha256 =
+		state.state === 'loaded' &&
+		state.response.status === 'REFUSED' &&
+		integrity?.observedSha256 &&
+		SHA256.test(integrity.observedSha256)
+			? integrity.observedSha256
+			: undefined
+	const calibrationStatus =
+		state.state === 'loaded' && state.response.status === 'AVAILABLE'
+			? state.response.evidence?.calibration?.status
+			: undefined
+	const calibrationCopyKey = calibrationStatus
+		? (CALIBRATION_COPY[calibrationStatus] ?? 'researchCalibrationStateUnknown')
+		: 'researchCalibrationStateUnknown'
+	return (
+		<section
+			className='border-t border-border-subtle p-4 text-sm'
+			aria-label='Graph evidence shadow details'
+			data-testid='graph-evidence-panel'
+		>
+			<div className='font-semibold text-text-primary'>
+				Train-only graph evidence (shadow)
+			</div>
+			<p className='mt-1 text-xs text-text-muted'>
+				Evidence inspection only. This panel never recommends a substitute.
+			</p>
+			{state.state === 'loading' && (
+				<p className='mt-2 text-text-muted' role='status'>
+					Loading graph evidence…
+				</p>
+			)}
+			{state.state === 'error' && (
+				<p className='mt-2 text-text-muted' role='status'>
+					Graph evidence is unavailable. No substitution decision was made.
+				</p>
+			)}
+			{state.state === 'loaded' &&
+				(state.response.status === 'UNAVAILABLE' ? (
+					<p className='mt-2 text-text-muted' role='status'>
+						Graph evidence unavailable:{' '}
+						{state.response.unavailableReason
+							?.replaceAll('_', ' ')
+							.toLowerCase() ?? 'reason not supplied'}
+						. No substitution decision was made.
+					</p>
+				) : state.response.status === 'REFUSED' ? (
+					<div className='mt-2 text-text-muted' role='status'>
+						<p>
+							Artifact integrity was refused. Graph evidence was not rendered.
+						</p>
+						{(declaredSha256 || observedSha256) && (
+							<dl className='mt-2 space-y-1 break-all text-xs'>
+								{declaredSha256 && (
+									<div>
+										<dt className='inline font-medium'>
+											{t('artifactManifestDeclaredSha256')}:{' '}
+										</dt>
+										<dd className='inline'>{declaredSha256}</dd>
+									</div>
+								)}
+								{observedSha256 && (
+									<div>
+										<dt className='inline font-medium'>
+											{t('artifactObservedSha256')}:{' '}
+										</dt>
+										<dd className='inline'>{observedSha256}</dd>
+									</div>
+								)}
+							</dl>
+						)}
+					</div>
+				) : (
+					<div className='mt-2 space-y-1 text-xs text-text-muted'>
+						<p>
+							Artifact manifest SHA-256:{' '}
+							{state.response.artifactIntegrity?.observedSha256}
+						</p>
+						<p>
+							Train pair support:{' '}
+							{state.response.evidence?.trainPairEvidence?.trainCount ??
+								'Unavailable'}
+						</p>
+						<p>
+							Calibration status:{' '}
+							{state.response.evidence?.calibration?.status ??
+								t('researchCalibrationStatusUnknown')}
+						</p>
+						<p>{t(calibrationCopyKey)}</p>
+						<p>{t('researchOfflineCoverageIsSeparate')}</p>
+						<p>Decision: Abstain</p>
+					</div>
+				))}
+		</section>
+	)
+}

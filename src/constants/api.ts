@@ -241,7 +241,10 @@ export const API_ENDPOINTS = {
 		COOKING_ASSISTANT: `${API_PREFIX}/cooking_assistant`,
 		MODERATE: `${API_PREFIX}/moderate`,
 		SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/suggest_substitutions`,
+		RESEARCH_SUGGEST_SUBSTITUTIONS: `${API_PREFIX}/research/suggest_substitutions`,
 		REMIX_RECIPE: `${API_PREFIX}/remix_recipe`,
+		// Epic 12 contract; the Leader endpoint can override this path.
+		VOICE_COPILOT: `${API_PREFIX}/voice-copilot`,
 	},
 	// Leaderboard (identity module)
 	LEADERBOARD: {
@@ -349,6 +352,8 @@ export const API_ENDPOINTS = {
 		TRENDING: `${API_PREFIX}/search/trending`,
 	},
 	KNOWLEDGE: {
+		GRAPH: `${API_PREFIX}/knowledge/graph`,
+		GRAPH_EVIDENCE: `${API_PREFIX}/graph/evidence`,
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,
 		INGREDIENT: (name: string) => `${API_PREFIX}/knowledge/ingredients/${name}`,
 		SUBSTITUTIONS: (name: string) =>
