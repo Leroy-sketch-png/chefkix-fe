@@ -21,6 +21,7 @@ import { getUserFriendlyMessage } from '@/lib/error-utils'
 import type { CookPlanDish } from '@/lib/types/cookplan'
 import type { RecipeSearchDoc } from '@/lib/types/search'
 import { autocompleteSearch } from '@/services/search'
+import { trackRecipeSkipped } from '@/lib/eventTracker'
 
 interface CookPlanDishSwapDialogProps {
 	dish: CookPlanDish
@@ -92,6 +93,10 @@ export function CookPlanDishSwapDialog({
 
 		try {
 			await onSwap(selected.value)
+			trackRecipeSkipped(dish.recipeId, {
+				replacementRecipeId: selected.value,
+				source: 'cook_plan_swap',
+			})
 			setOpen(false)
 			reset()
 		} catch (swapError) {

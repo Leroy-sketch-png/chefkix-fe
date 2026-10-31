@@ -135,6 +135,8 @@ export function destroyEventTracker() {
 		searchDebounceTimer = null
 	}
 
+	lastSearchQuery = ''
+	lastSearchTimestamp = 0
 	lastScrollDepth = 0
 	initialized = false
 }
@@ -193,18 +195,43 @@ export function stopDwellTracking(entityId: string) {
 // ─── Search Tracking (debounced) ─────────────────────────────────────
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let lastSearchQuery = ''
+let lastSearchTimestamp = 0
 
 export function trackSearch(query: string, resultCount?: number) {
 	if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
 
 	searchDebounceTimer = setTimeout(() => {
-		if (query.trim().length >= 2) {
-			trackEvent('RECIPE_SEARCH', undefined, 'search', {
-				query: query.trim(),
-				resultCount,
-			})
+		const trimmed = query.trim()
+		if (trimmed.length >= 2) {
+			const now = Date.now()
+			if (
+				lastSearchQuery &&
+				lastSearchQuery.toLowerCase() !== trimmed.toLowerCase() &&
+				now - lastSearchTimestamp < 60_000
+			) {
+				trackEvent('SEARCH_REFINED', undefined, 'search', {
+					previousQuery: lastSearchQuery,
+					refinedQuery: trimmed,
+					resultCount,
+				})
+			} else {
+				trackEvent('RECIPE_SEARCH', undefined, 'search', {
+					query: trimmed,
+					resultCount,
+				})
+			}
+			lastSearchQuery = trimmed
+			lastSearchTimestamp = now
 		}
 	}, SEARCH_DEBOUNCE_MS)
+}
+
+export function trackRecipeSkipped(
+	recipeId: string,
+	metadata?: Record<string, unknown>,
+) {
+	trackEvent('RECIPE_SKIPPED', recipeId, 'recipe', metadata)
 }
 
 // ─── Feed Scroll Tracking (batched) ──────────────────────────────────
