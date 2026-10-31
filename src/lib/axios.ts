@@ -271,6 +271,27 @@ api.interceptors.response.use(
 		if (error.response) {
 			const backendError = error.response.data as Record<string, unknown>
 
+			// Intercept 403 Forbidden with PREMIUM_FEATURE_REQUIRED
+			if (error.response.status === 403 && backendError) {
+				const isPremiumGateError =
+					backendError.errorCode === 'PREMIUM_FEATURE_REQUIRED' ||
+					(typeof backendError.message === 'string' &&
+						backendError.message.toLowerCase().includes('premium subscription'))
+
+				if (isPremiumGateError) {
+					try {
+						const { useUiStore } = require('@/store/uiStore') as typeof import('@/store/uiStore')
+						const feature =
+							typeof backendError.feature === 'string'
+								? backendError.feature
+								: null
+						useUiStore.getState().openPremiumGate(feature)
+					} catch {
+						// Safe fallback if uiStore not yet ready
+					}
+				}
+			}
+
 			// Check if response has meaningful body
 			const hasBody =
 				backendError &&

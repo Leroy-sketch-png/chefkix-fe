@@ -6,6 +6,7 @@ import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { TopLoadingBar } from '@/components/ui/top-loading-bar'
 import { OfflineBanner } from '@/components/ui/offline-banner'
 import { AuthRequiredModal } from '@/components/auth/AuthRequiredModal'
+import { PremiumUpgradeModal } from '@/components/premium/PremiumUpgradeModal'
 import { CookieConsent } from '@/components/ui/cookie-consent'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useUiStore } from '@/store/uiStore'
@@ -23,6 +24,9 @@ export function GlobalUIEnhancements() {
 	const authGateOpen = useUiStore(s => s.authGateOpen)
 	const authGateAction = useUiStore(s => s.authGateAction)
 	const closeAuthGate = useUiStore(s => s.closeAuthGate)
+	const premiumGateOpen = useUiStore(s => s.premiumGateOpen)
+	const premiumGateFeature = useUiStore(s => s.premiumGateFeature)
+	const closePremiumGate = useUiStore(s => s.closePremiumGate)
 	useGlobalShortcuts()
 
 	// Detect route changes for loading bar
@@ -53,6 +57,11 @@ export function GlobalUIEnhancements() {
 				isOpen={authGateOpen}
 				onClose={closeAuthGate}
 				action={authGateAction}
+			/>
+			<PremiumUpgradeModal
+				isOpen={premiumGateOpen}
+				onClose={closePremiumGate}
+				featureName={premiumGateFeature}
 			/>
 			<CookieConsent />
 		</>
