@@ -78,6 +78,7 @@ import { useClapDetection } from '@/hooks/useClapDetection'
 import {
 	submitSubstitutionFeedback,
 	type SubstitutionFeedbackChoice,
+	type SubstitutionFeedbackCommand,
 	type SubstitutionFeedbackRequest,
 	type SubstitutionTasteFeedback,
 } from '@/services/cookingSession'
@@ -137,6 +138,8 @@ interface SessionSubstitutionFeedbackDraft {
 	substituteIngredient?: string
 	choice: SubstitutionFeedbackChoice
 	technique?: string
+	candidateReceipt?: string
+	suggestionId?: string
 }
 
 // Step Progress Dots (Interactive)
@@ -1274,55 +1277,75 @@ export const CookingPlayer = () => {
 			const sessionId = session?.sessionId
 			if (!sessionId) return false
 
-			const request: SubstitutionFeedbackRequest = {
-				originalIngredient: feedback.originalIngredient,
-				...(feedback.substituteIngredient && {
-					substituteIngredient: feedback.substituteIngredient,
-				}),
-				choice: feedback.choice,
-				technique: feedback.technique,
-				sessionCompleted: false,
-			}
+			if (feedback.candidateReceipt && feedback.substituteIngredient) {
+				const isAccepted =
+					feedback.choice === 'accept'
+				const clientFeedbackId = feedback.suggestionId
+					? `sub:${feedback.suggestionId}:${feedback.choice}`
+					: `cooking:${sessionId}:${feedback.originalIngredient}:${Date.now()}`
 
-			try {
-				const response = await submitSubstitutionFeedback(sessionId, request)
-				if (!response.success) {
-					toast.error(response.message || t('substitutionFeedbackFailed'))
-					return false
+				const command: SubstitutionFeedbackCommand = {
+					clientFeedbackId,
+					originalIngredient: feedback.originalIngredient,
+					substituteIngredient: feedback.substituteIngredient,
+					candidateReceipt: feedback.candidateReceipt,
+					accepted: isAccepted,
+					technique: feedback.technique,
+					cuisine: recipe.cuisineType || undefined,
 				}
 
-				setSubstitutionFeedbacks(previous => [
-					...previous.filter(
-						item => item.originalIngredient !== feedback.originalIngredient,
-					),
-					{ ...feedback, stepNumber: currentStepNumber },
-				])
-				toast.success(t('substitutionRecorded'))
-				return true
-			} catch {
-				toast.error(t('substitutionFeedbackFailed'))
-				return false
+				try {
+					const response = await submitSubstitutionFeedback(sessionId, command)
+					if (!response.success) {
+						toast.error(response.message || t('substitutionFeedbackFailed'))
+						return false
+					}
+				} catch {
+					toast.error(t('substitutionFeedbackFailed'))
+					return false
+				}
 			}
+
+			setSubstitutionFeedbacks(previous => [
+				...previous.filter(
+					item => item.originalIngredient !== feedback.originalIngredient,
+				),
+				{ ...feedback, stepNumber: currentStepNumber },
+			])
+			toast.success(t('substitutionRecorded'))
+			return true
 		},
-		[session?.sessionId, currentStepNumber, t],
+		[session?.sessionId, currentStepNumber, recipe.cuisineType, t],
 	)
 
 	const submitSessionSubstitutionOutcomes = useCallback(
 		async (rating?: number) => {
 			if (!session?.sessionId || substitutionFeedbacks.length === 0) return
 
+			const receiptedFeedbacks = substitutionFeedbacks.filter(
+				fb => fb.candidateReceipt && fb.substituteIngredient,
+			)
+			if (receiptedFeedbacks.length === 0) return
+
 			const results = await Promise.allSettled(
-				substitutionFeedbacks.map(feedback =>
-					submitSubstitutionFeedback(session.sessionId, {
+				receiptedFeedbacks.map(feedback => {
+					const isAccepted =
+						feedback.choice === 'accept'
+					const clientFeedbackId = feedback.suggestionId
+						? `outcome:${feedback.suggestionId}:${session.sessionId}`
+						: `outcome:${session.sessionId}:${feedback.originalIngredient}:${Date.now()}`
+
+					return submitSubstitutionFeedback(session.sessionId, {
+						clientFeedbackId,
 						originalIngredient: feedback.originalIngredient,
-						substituteIngredient: feedback.substituteIngredient,
-						choice: feedback.choice,
+						substituteIngredient: feedback.substituteIngredient!,
+						candidateReceipt: feedback.candidateReceipt!,
+						accepted: isAccepted,
 						technique: feedback.technique,
-						sessionCompleted: true,
+						cuisine: recipe.cuisineType || undefined,
 						userRating: rating,
-						tasteFeedback: substitutionTasteFeedback,
-					}),
-				),
+					})
+				}),
 			)
 
 			if (
@@ -1333,7 +1356,7 @@ export const CookingPlayer = () => {
 				toast.warning(t('substitutionFeedbackFailed'))
 			}
 		},
-		[session, substitutionFeedbacks, substitutionTasteFeedback, t],
+		[session, substitutionFeedbacks, recipe.cuisineType, t],
 	)
 
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
@@ -2353,11 +2376,20 @@ export const CookingPlayer = () => {
 				onOpenChange={setShowIngredientList}
 				ingredients={fullIngredients}
 				recipeTitle={recipe.title}
-				onSubstitutionChoice={(originalIngredient, choice, substituteIngredient) =>
+				sessionId={session?.sessionId}
+				onSubstitutionChoice={(
+					originalIngredient,
+					choice,
+					substituteIngredient,
+					candidateReceipt,
+					suggestionId,
+				) =>
 					handleSubstitutionChoice({
 						originalIngredient,
 						choice,
 						substituteIngredient,
+						candidateReceipt,
+						suggestionId,
 					})
 				}
 			/>

@@ -18,10 +18,13 @@ interface FullIngredientListDialogProps {
 	onOpenChange: (open: boolean) => void
 	ingredients: Ingredient[]
 	recipeTitle: string
+	sessionId?: string
 	onSubstitutionChoice?: (
 		ingredientName: string,
 		choice: SubstitutionFeedbackChoice,
 		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
 	) => Promise<boolean>
 }
 
@@ -30,6 +33,7 @@ export function FullIngredientListDialog({
 	onOpenChange,
 	ingredients,
 	recipeTitle,
+	sessionId,
 	onSubstitutionChoice,
 }: FullIngredientListDialogProps) {
 	const t = useTranslations('cooking')
@@ -77,11 +81,14 @@ export function FullIngredientListDialog({
 											<CookingSubstitutionButton
 												ingredientName={ingredient.name}
 												recipeTitle={recipeTitle}
-												onChoice={(choice, substitute) =>
+												sessionId={sessionId}
+												onChoice={(choice, substitute, candidateReceipt, suggestionId) =>
 													onSubstitutionChoice(
 														ingredient.name,
 														choice,
 														substitute,
+														candidateReceipt,
+														suggestionId,
 													)
 												}
 											/>

@@ -24,9 +24,12 @@ interface CookingSubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle: string
 	stepContext?: string
+	sessionId?: string
 	onChoice: (
 		choice: SubstitutionFeedbackChoice,
 		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
 	) => Promise<boolean>
 }
 
@@ -41,6 +44,7 @@ export function CookingSubstitutionButton({
 	ingredientName,
 	recipeTitle,
 	stepContext,
+	sessionId,
 	onChoice,
 }: CookingSubstitutionButtonProps) {
 	const t = useTranslations('cooking')
@@ -69,6 +73,7 @@ export function CookingSubstitutionButton({
 					.join('\n'),
 				undefined,
 				user?.allergenFlags,
+				sessionId,
 			)
 			if (response.success && response.data) {
 				setSubstitutions(response.data.substitutions)
@@ -91,9 +96,16 @@ export function CookingSubstitutionButton({
 	const recordChoice = async (
 		choice: SubstitutionFeedbackChoice,
 		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
 	) => {
 		setSubmitting(true)
-		const recorded = await onChoice(choice, substituteIngredient)
+		const recorded = await onChoice(
+			choice,
+			substituteIngredient,
+			candidateReceipt,
+			suggestionId,
+		)
 		setSubmitting(false)
 		if (recorded) setOpen(false)
 	}
@@ -225,7 +237,12 @@ export function CookingSubstitutionButton({
 															type='button'
 															disabled={blocked || submitting}
 															onClick={() =>
-																void recordChoice('accept', substitution.name)
+																void recordChoice(
+																	'accept',
+																	substitution.name,
+																	substitution.candidateReceipt,
+																	substitution.suggestionId,
+																)
 															}
 															className='mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>
