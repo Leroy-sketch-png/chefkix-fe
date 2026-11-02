@@ -24,6 +24,8 @@ import {
 	MoreHorizontal,
 	FolderHeart,
 	BarChart3,
+	Sparkles,
+	Network,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
@@ -76,6 +78,16 @@ const guestPrimaryNavItems: NavItem[] = [
 
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
+	{
+		href: PATHS.COPILOT,
+		icon: Sparkles,
+		labelKey: 'copilot',
+	},
+	{
+		href: PATHS.EXPLORE_GRAPH,
+		icon: Network,
+		labelKey: 'graphExplorer',
+	},
 	{
 		href: '/challenges',
 		icon: Target,

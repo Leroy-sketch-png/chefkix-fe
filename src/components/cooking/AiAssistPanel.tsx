@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 import { Portal } from '@/components/ui/portal'
-import { Sparkles, Send, X, Lightbulb } from 'lucide-react'
+import { PATHS } from '@/constants/paths'
+import { Sparkles, Send, X, Lightbulb, Camera } from 'lucide-react'
 import { askCookingAssistant } from '@/services/ai'
 import type { CookingAssistantResponse } from '@/services/ai'
 import { cn } from '@/lib/utils'
@@ -121,14 +123,25 @@ export function AiAssistPanel({
 									{t('aiChefAssistant')}
 								</h3>
 							</div>
-							<button
-								type='button'
-								onClick={onClose}
-								aria-label={t('ariaCloseAiAssistant')}
-								className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
-							>
-								<X className='size-4' />
-							</button>
+							<div className='flex items-center gap-1'>
+								<Link
+									href={PATHS.COPILOT}
+									target='_blank'
+									rel='noopener noreferrer'
+									title='Launch Hands-Free Voice & Camera Copilot'
+									className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-brand'
+								>
+									<Camera className='size-4' />
+								</Link>
+								<button
+									type='button'
+									onClick={onClose}
+									aria-label={t('ariaCloseAiAssistant')}
+									className='grid size-8 place-items-center rounded-full text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary'
+								>
+									<X className='size-4' />
+								</button>
+							</div>
 						</div>
 
 						{/* Body */}

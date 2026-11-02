@@ -284,7 +284,9 @@
 			"enforcementEvents": "Enforcement Events",
 			"appealQueue": "Appeal Queue",
 			"reviewActions": "Review Actions"
-		}
+		},
+		"copilot": "Kitchen Copilot",
+		"graphExplorer": "Knowledge Graph"
 	},
 	"auth": {
 		"productPositioning": "Social media for food",
@@ -573,7 +575,9 @@
 		"railHotQueries": "Hot Queries",
 		"railQuickMovesHeading": "Move from browsing to action",
 		"railCreateRecipe": "Create recipe",
-		"railBackToDashboard": "Back to dashboard"
+		"railBackToDashboard": "Back to dashboard",
+		"railGraphExplorer": "Knowledge Graph",
+		"railVoiceCopilot": "Voice-Vision Copilot"
 	},
 	"dashboard": {
 		"title": "Dashboard",
@@ -763,7 +767,7 @@
 		"createRecipe": "Create Recipe",
 		"editRecipe": "Edit Recipe",
 		"publishRecipe": "Publish Recipe",
-		"draftSaved": "Draft saved",
+		"draftSaved": "Saved on this device",
 		"nutritionInfo": "Nutrition Info",
 		"reviews": "Reviews",
 		"similarRecipes": "Similar Recipes",
@@ -814,7 +818,7 @@
 		"reviewsHeading": "Reviews",
 		"reviewCount": "{rating} ({count, plural, one {# review} other {# reviews}})",
 		"reviewUserFallback": "User",
-		"commentsCount": "{count} comments",
+		"commentsCount": "{count} {count, plural, one {comment} other {comments}}",
 		"loadingMore": "Loading...",
 		"showMoreReviews": "Show more reviews",
 		"youMightAlsoLike": "You Might Also Like",
@@ -946,7 +950,6 @@
 		"reviewSingular": "review",
 		"reviewPlural": "reviews",
 		"commentsLabel": "comments",
-		"commentsCount": "{count} {count, plural, one {comment} other {comments}}",
 		"imageUploadFailed": "Image upload didn't work",
 		"imageUploadFailedDesc": "Using local preview. Image won't persist after page refresh.",
 		"addTimer": "Add Timer",
@@ -1048,7 +1051,6 @@
 		"formSaveToCloud": "Save to Cloud",
 		"formSaving": "Saving...",
 		"draftSaving": "Saving on this device...",
-		"draftSaved": "Saved on this device",
 		"draftSaveFailed": "Not saved on this device",
 		"draftRetry": "Retry",
 		"aiFlowBackToDrafts": "Back to drafts",
