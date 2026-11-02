@@ -7,6 +7,7 @@ import type {
 	GraphEdge,
 	GraphEvidenceResponse,
 	GraphNode,
+	GraphSnapshotResponse,
 	NutritionSnapshot,
 	TechniqueContext,
 } from '../types'
@@ -277,6 +278,37 @@ export async function getGraphEvidence(
 		)
 	}
 	return normalized
+}
+
+export async function getGraphEvidenceSnapshot(): Promise<
+	GraphSnapshotResponse | undefined
+> {
+	if (!isGraphEvidenceEnabled()) return undefined
+
+	let payload: unknown
+	try {
+		const response = await api.get(
+			API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE_SNAPSHOT,
+		)
+		payload = response.data ?? response
+	} catch (error) {
+		payload = errorResponseData(error)
+		if (payload === undefined) {
+			throw error instanceof Error
+				? error
+				: new Error('The graph evidence snapshot could not be loaded.')
+		}
+	}
+	const response = unwrapData(payload)
+	if (
+		!isRecord(response) ||
+		response.contractVersion !== 'graph-evidence.v1' ||
+		typeof response.status !== 'string' ||
+		!GRAPH_EVIDENCE_STATUSES.has(response.status)
+	) {
+		return undefined
+	}
+	return response as unknown as GraphSnapshotResponse
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {

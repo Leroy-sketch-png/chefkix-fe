@@ -2,6 +2,7 @@ import {
 	getGraphCompoundOverlap,
 	getGraphData,
 	getGraphEvidence,
+	getGraphEvidenceSnapshot,
 	getGraphNodeDetail,
 	normalizeGraphEvidence,
 	mergeGraphData,
@@ -429,6 +430,29 @@ describe('live graph API', () => {
 		delete process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED
 		expect(await getGraphEvidence('0', '1')).toBeUndefined()
 		expect(api.get).not.toHaveBeenCalled()
+	})
+
+	it('fetches graph evidence snapshot when enabled', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		const snapshot = {
+			contractVersion: 'graph-evidence.v1',
+			status: 'AVAILABLE',
+			artifactIntegrity: {
+				status: 'VERIFIED',
+				expectedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+				observedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+			},
+			snapshot: {
+				totalNodes: 6633,
+				totalEdges: 23185,
+				acceptanceState: 'PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED',
+			},
+		}
+		;(api.get as jest.Mock).mockResolvedValueOnce({ data: snapshot })
+
+		const result = await getGraphEvidenceSnapshot()
+		expect(result).toEqual(snapshot)
+		expect(api.get).toHaveBeenCalledWith('/api/v1/graph/evidence/snapshot')
 	})
 
 	it('reads typed unavailable evidence from the backend refusal response', async () => {
