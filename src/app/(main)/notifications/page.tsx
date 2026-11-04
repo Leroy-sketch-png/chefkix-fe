@@ -162,7 +162,7 @@ const SocialNotificationItem = ({
 	}
 	const avatarNode = user ? (
 		<div className='relative flex-shrink-0'>
-			<Avatar size='lg' className='shadow-card'>
+			<Avatar size='sm' className='shadow-card'>
 				<AvatarImage src={avatar} alt={actorLabel} />
 				<AvatarFallback>
 					{actorLabel
@@ -197,7 +197,7 @@ const SocialNotificationItem = ({
 		<motion.div
 			variants={staggerItem}
 			className={cn(
-				'group relative flex items-start gap-4 rounded-xl border p-4',
+				'group relative grid grid-cols-[2.625rem_minmax(0,1fr)] items-start gap-x-3 gap-y-2 rounded-xl border p-3 md:grid-cols-[2.625rem_minmax(0,1fr)_auto] md:items-center md:gap-x-4 md:p-4',
 				read ? 'border-transparent bg-bg-card' : 'border-brand/20 bg-brand/5',
 				isNavigating && 'opacity-50 pointer-events-none',
 			)}
@@ -242,7 +242,7 @@ const SocialNotificationItem = ({
 				<button
 					type='button'
 					onClick={handleClick}
-					className='inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='col-start-2 row-start-2 inline-flex min-h-11 shrink-0 items-center gap-1.5 justify-self-start rounded-full border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50 md:col-auto md:row-auto md:min-h-10'
 				>
 					<ArrowRight className='size-4' />
 					{t('openNotification')}
@@ -251,7 +251,7 @@ const SocialNotificationItem = ({
 				<button
 					type='button'
 					onClick={() => void onMarkRead(id)}
-					className='inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50'
+					className='col-start-2 row-start-2 inline-flex min-h-11 shrink-0 items-center gap-1.5 justify-self-start rounded-full border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50 md:col-auto md:row-auto md:min-h-10'
 				>
 					<Check className='size-4' />
 					{t('markRead')}
@@ -359,9 +359,7 @@ export default function NotificationsPage() {
 			const { gamified, social } = partitionNotifications(
 				response.data.notifications,
 			)
-			setGamifiedNotifications(current =>
-				appendUniqueById(current, gamified),
-			)
+			setGamifiedNotifications(current => appendUniqueById(current, gamified))
 			setSocialNotifications(current => appendUniqueById(current, social))
 			setNextPage(response.data.page + 1)
 			setHasNextPage(response.data.hasNext)
@@ -630,7 +628,9 @@ export default function NotificationsPage() {
 										disabled={isLoadingMore}
 										className='inline-flex min-h-11 items-center justify-center gap-2 rounded-radius border border-border bg-bg-card px-5 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-60'
 									>
-										{isLoadingMore && <Loader2 className='size-4 animate-spin' />}
+										{isLoadingMore && (
+											<Loader2 className='size-4 animate-spin' />
+										)}
 										{isLoadingMore
 											? t('loadingMore')
 											: loadMoreError

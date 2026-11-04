@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logDevError } from '@/lib/dev-log'
 
 const THRESHOLD = 68
 const MAX_PULL = 110
@@ -25,7 +26,11 @@ interface PullToRefreshProps {
  * Uses native listeners with `{ passive: false }` for touchmove so
  * preventDefault() actually stops the browser's native overscroll.
  */
-export function PullToRefresh({ onRefresh, className, children }: PullToRefreshProps) {
+export function PullToRefresh({
+	onRefresh,
+	className,
+	children,
+}: PullToRefreshProps) {
 	const [pullDistance, setPullDistance] = useState(0)
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -59,9 +64,15 @@ export function PullToRefresh({ onRefresh, className, children }: PullToRefreshP
 		setPullDistance(0)
 		if (wasPulling && distance >= THRESHOLD) {
 			setIsRefreshing(true)
-			void Promise.resolve(onRefreshRef.current()).finally(() =>
-				setIsRefreshing(false),
-			)
+			void Promise.resolve()
+				.then(() => onRefreshRef.current())
+				.then(
+					() => setIsRefreshing(false),
+					error => {
+						logDevError('Pull-to-refresh failed:', error)
+						setIsRefreshing(false)
+					},
+				)
 		}
 	}, [pullDistance])
 

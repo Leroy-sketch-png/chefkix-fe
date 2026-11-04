@@ -18,7 +18,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { ApiResponse, LoginSuccessResponse } from '@/lib/types'
@@ -111,15 +111,9 @@ export function SignInForm() {
 			password: '',
 		},
 	})
-	const router = useRouter()
 	const searchParams = useSearchParams()
 	const returnTo = searchParams.get('returnTo')
 	const oauthError = searchParams.get('error')
-
-	// Determine the redirect target after login
-	// Only allow relative paths to prevent open redirect attacks
-	const postLoginPath =
-		returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
 
 	useEffect(() => {
 		if (verifiedEmail) {
@@ -165,10 +159,8 @@ export function SignInForm() {
 		if (profileResponse.success && profileResponse.data) {
 			if (isNewSignup) {
 				toast.success(t('toastWelcomeNew'))
-				router.push(postLoginPath)
 			} else {
 				toast.success(t('toastWelcomeBack'))
-				router.push(postLoginPath)
 			}
 			return true
 		} else {

@@ -33,6 +33,7 @@ import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
 import { useAuth } from '@/hooks/useAuth'
 import { shoppingListPath } from '@/lib/shopping-list-route'
+import { formatShoppingListQuantity } from '@/lib/shopping-list-format'
 import { toast } from 'sonner'
 
 // ── Skeleton ─────────────────────────────────────────────────────
@@ -350,7 +351,7 @@ export default function SharedShoppingListPage() {
 											{/* Quantity + unit */}
 											{(item.quantity || item.unit) && (
 												<span className='flex-shrink-0 text-xs font-medium text-text-secondary'>
-													{[item.quantity, item.unit].filter(Boolean).join(' ')}
+									{formatShoppingListQuantity(item.quantity, item.unit)}
 												</span>
 											)}
 										</motion.div>

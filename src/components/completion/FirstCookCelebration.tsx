@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -53,52 +53,64 @@ interface FirstCookCelebrationProps {
 	recipeName: string
 	recipeImageUrl?: string
 	immediateXp: number
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED'
 	pendingXp: number
-	postDeadlineDays: number
-	onPostNow: () => void
+	postDeadlineDays: number | null
+	onPostNow: () => void | Promise<void>
 	onShareAchievement: () => void
 	onContinueCooking: () => void
 }
 
 const buildUnlocks = (
 	immediateXp: number,
+	xpDeliveryStatus: 'APPLIED' | 'QUEUED',
 	pendingXp: number,
-	postDeadlineDays: number,
+	postDeadlineDays: number | null,
 	t: (key: string, values?: Record<string, unknown>) => string,
-): UnlockItem[] => [
-	{
-		id: 'badge',
-		icon: Award,
-		iconClassName: 'text-warning',
-		name: t('firstDishBadge'),
-		description: t('yourFirstOfMany'),
-		glowColor: 'rgba(255, 215, 0, 0.3)',
-	},
-	{
-		id: 'xp',
-		icon: Zap,
-		iconClassName: 'text-xp',
-		name: t('plusXp', { amount: Math.round(immediateXp) }),
-		description: t('earnedImmediately'),
-		glowColor: 'rgba(0, 212, 255, 0.3)',
-	},
-	{
-		id: 'share-bonus',
-		icon: Camera,
-		iconClassName: 'text-success',
-		name: t('xpWaiting', { amount: Math.round(pendingXp) }),
-		description: t('postToClaimDays', { days: postDeadlineDays }),
-		glowColor: 'rgba(52, 211, 153, 0.3)',
-	},
-	{
-		id: 'challenges',
-		icon: Target,
-		iconClassName: 'text-accent-purple',
-		name: t('dailyChallenges'),
-		description: t('bonusXpRotates'),
-		glowColor: 'rgba(168, 85, 247, 0.3)',
-	},
-]
+): UnlockItem[] =>
+	[
+		{
+			id: 'badge',
+			icon: Award,
+			iconClassName: 'text-warning',
+			name: t('firstDishBadge'),
+			description: t('yourFirstOfMany'),
+			glowColor: 'rgba(255, 215, 0, 0.3)',
+		},
+		{
+			id: 'xp',
+			icon: Zap,
+			iconClassName: 'text-xp',
+			name: t('plusXp', { amount: Math.round(immediateXp) }),
+			description: t(
+				xpDeliveryStatus === 'APPLIED' ? 'earnedImmediately' : 'xpProcessing',
+			),
+			glowColor: 'rgba(0, 212, 255, 0.3)',
+		},
+		{
+			id: 'share-bonus',
+			icon: Camera,
+			iconClassName: 'text-success',
+			name: t('xpWaiting', { amount: Math.round(pendingXp) }),
+			description:
+				postDeadlineDays != null && postDeadlineDays > 0
+					? t('postToClaimDays', { days: postDeadlineDays })
+					: t('postPhotoToUnlock'),
+			glowColor: 'rgba(52, 211, 153, 0.3)',
+		},
+		{
+			id: 'challenges',
+			icon: Target,
+			iconClassName: 'text-accent-purple',
+			name: t('dailyChallenges'),
+			description: t('bonusXpRotates'),
+			glowColor: 'rgba(168, 85, 247, 0.3)',
+		},
+	].filter(
+		item =>
+			!(item.id === 'xp' && immediateXp <= 0) &&
+			!(item.id === 'share-bonus' && pendingXp <= 0),
+	)
 
 const buildJourney = (
 	pendingXp: number,
@@ -114,7 +126,10 @@ const buildJourney = (
 		id: '2',
 		label: t('shareYourDishNode'),
 		status: 'upcoming',
-		statusText: t('plusXp', { amount: Math.round(pendingXp) }),
+		statusText:
+			pendingXp > 0
+				? t('plusXp', { amount: Math.round(pendingXp) })
+				: t('shareYourCreation'),
 	},
 	{
 		id: '3',
@@ -277,6 +292,7 @@ export const FirstCookCelebration = ({
 	recipeName,
 	recipeImageUrl,
 	immediateXp,
+	xpDeliveryStatus,
 	pendingXp,
 	postDeadlineDays,
 	onPostNow,
@@ -284,10 +300,26 @@ export const FirstCookCelebration = ({
 	onContinueCooking,
 }: FirstCookCelebrationProps) => {
 	const t = useTranslations('completion')
-	useEscapeKey(isOpen, onClose)
+	const [isPostPending, setIsPostPending] = useState(false)
+	useEscapeKey(isOpen && !isPostPending, onClose)
 	const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen)
-	const unlocks = buildUnlocks(immediateXp, pendingXp, postDeadlineDays, t)
+	const unlocks = buildUnlocks(
+		immediateXp,
+		xpDeliveryStatus,
+		pendingXp,
+		postDeadlineDays,
+		t,
+	)
 	const journey = buildJourney(pendingXp, t)
+	const handlePostNow = async () => {
+		if (isPostPending) return
+		setIsPostPending(true)
+		try {
+			await onPostNow()
+		} finally {
+			setIsPostPending(false)
+		}
+	}
 
 	return (
 		<AnimatePresence>
@@ -383,22 +415,26 @@ export const FirstCookCelebration = ({
 							</div>
 
 							{/* Pending XP teaser */}
-							<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-xp/30 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
-								<div className='flex size-10 items-center justify-center rounded-xl bg-bg-card text-xp'>
-									<Lock className='size-5' />
+							{pendingXp > 0 && (
+								<div className='mb-6 flex items-center gap-3.5 rounded-2xl border border-xp/30 bg-gradient-to-r from-xp/10 to-bonus/10 p-4'>
+									<div className='flex size-10 items-center justify-center rounded-xl bg-bg-card text-xp'>
+										<Lock className='size-5' />
+									</div>
+									<div className='flex-1'>
+										<span className='block text-sm font-bold text-xp'>
+											{t('xpWaiting', { amount: Math.round(pendingXp) })}
+										</span>
+										<span className='block text-xs text-text-muted'>
+											{t('postPhotoToUnlock')}
+										</span>
+									</div>
+									{postDeadlineDays != null && postDeadlineDays > 0 && (
+										<span className='whitespace-nowrap text-xs text-text-muted'>
+											{t('daysToPost', { days: postDeadlineDays })}
+										</span>
+									)}
 								</div>
-								<div className='flex-1'>
-									<span className='block text-sm font-bold text-xp'>
-										{t('xpWaiting', { amount: Math.round(pendingXp) })}
-									</span>
-									<span className='block text-xs text-text-muted'>
-										{t('postPhotoToUnlock')}
-									</span>
-								</div>
-								<span className='whitespace-nowrap text-xs text-text-muted'>
-									{t('daysToPost', { days: postDeadlineDays })}
-								</span>
-							</div>
+							)}
 
 							{/* Journey preview */}
 							<div className='mb-7'>
@@ -421,7 +457,9 @@ export const FirstCookCelebration = ({
 							<div className='mb-5'>
 								<motion.button
 									type='button'
-									onClick={onPostNow}
+									onClick={() => void handlePostNow()}
+									disabled={isPostPending}
+									aria-busy={isPostPending}
 									whileHover={STAT_ITEM_HOVER}
 									whileTap={LIST_ITEM_TAP}
 									className='mb-3.5 flex w-full items-center justify-center gap-3.5 rounded-2xl bg-gradient-to-r from-brand to-brand/85 px-7 py-5 text-white shadow-warm shadow-brand/30 transition-shadow hover:shadow-warm hover:shadow-brand/40 focus-visible:ring-2 focus-visible:ring-brand/50'
@@ -429,18 +467,23 @@ export const FirstCookCelebration = ({
 									<Camera className='size-7' />
 									<div className='flex flex-col items-start gap-0.5'>
 										<span className='text-lg font-bold'>
-											{t('shareYourCreation')}
+											{isPostPending
+												? t('savingDraft')
+												: t('shareYourCreation')}
 										</span>
-										<span className='text-xs opacity-85'>
-											{t('upToXp', { amount: Math.round(pendingXp) })}
-										</span>
+										{pendingXp > 0 && (
+											<span className='text-xs opacity-85'>
+												{t('upToXp', { amount: Math.round(pendingXp) })}
+											</span>
+										)}
 									</div>
 								</motion.button>{' '}
 								<div className='flex gap-2.5'>
 									<button
 										type='button'
 										onClick={onShareAchievement}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover'
+										disabled={isPostPending}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover disabled:pointer-events-none disabled:opacity-50'
 									>
 										<Share2 className='size-4' />
 										{t('shareAchievement')}
@@ -448,7 +491,8 @@ export const FirstCookCelebration = ({
 									<button
 										type='button'
 										onClick={onContinueCooking}
-										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover'
+										disabled={isPostPending}
+										className='flex flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-bg-elevated px-4 py-3.5 text-sm font-semibold transition-colors hover:bg-bg-hover disabled:pointer-events-none disabled:opacity-50'
 									>
 										{t('continueCooking')}
 									</button>

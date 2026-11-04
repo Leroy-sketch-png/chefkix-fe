@@ -24,6 +24,8 @@ import {
 	MoreHorizontal,
 	FolderHeart,
 	BarChart3,
+	Sparkles,
+	Network,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
@@ -76,6 +78,16 @@ const guestPrimaryNavItems: NavItem[] = [
 
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
+	{
+		href: PATHS.COPILOT,
+		icon: Sparkles,
+		labelKey: 'copilot',
+	},
+	{
+		href: PATHS.EXPLORE_GRAPH,
+		icon: Network,
+		labelKey: 'graphExplorer',
+	},
 	{
 		href: '/challenges',
 		icon: Target,
@@ -131,7 +143,7 @@ const adminNavItem: NavItem = {
 
 export const LeftSidebar = () => {
 	const pathname = usePathname()
-	const { user, isAuthenticated } = useAuth()
+	const { user, isAuthenticated, isLoggingOut } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 	const t = useTranslations('nav')
 
@@ -177,14 +189,14 @@ export const LeftSidebar = () => {
 
 	// Start/stop polling based on auth state
 	useEffect(() => {
-		if (isAuthenticated) {
+		if (isAuthenticated && !isLoggingOut) {
 			startPolling()
 		} else {
 			stopPolling()
 		}
 
 		return () => stopPolling()
-	}, [isAuthenticated, startPolling, stopPolling])
+	}, [isAuthenticated, isLoggingOut, startPolling, stopPolling])
 
 	const getHref = (item: NavItem): string => {
 		if (typeof item.href === 'function') {

@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, Circle, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { ErrorBoundary } from '@/components/providers/ErrorBoundary'
 import { LIST_ITEM_TAP } from '@/lib/motion'
+import { formatShoppingListQuantity } from '@/lib/shopping-list-format'
 import type { ShoppingListItem } from '@/lib/types/shoppingList'
 
 interface ShoppingListItemRowProps {
@@ -65,6 +66,7 @@ function ShoppingListItemRowContent({
 	togglePending,
 }: ShoppingListItemRowProps) {
 	const t = useTranslations('shoppingLists')
+	const quantityLabel = formatShoppingListQuantity(item.quantity, item.unit)
 	return (
 		<motion.li layout className='group flex items-center gap-3 px-4 py-3'>
 			<button
@@ -91,9 +93,9 @@ function ShoppingListItemRowContent({
 				>
 					{item.ingredient}
 				</span>
-				{item.quantity && (
+				{quantityLabel && (
 					<span className='ml-2 text-xs text-text-muted'>
-						({item.quantity})
+						({quantityLabel})
 					</span>
 				)}
 				{item.recipes.length > 0 && (

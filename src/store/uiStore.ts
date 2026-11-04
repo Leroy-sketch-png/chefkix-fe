@@ -40,6 +40,12 @@ interface UiState {
 	openAuthGate: (action: AuthAction) => void
 	closeAuthGate: () => void
 
+	// Premium gate modal (global singleton)
+	premiumGateOpen: boolean
+	premiumGateFeature: string | null
+	openPremiumGate: (feature?: string | null) => void
+	closePremiumGate: () => void
+
 	isMessagesDrawerOpen: boolean
 	toggleMessagesDrawer: () => void
 	isNotificationsPopupOpen: boolean
@@ -65,6 +71,14 @@ export const useUiStore = create<UiState>(set => ({
 	openAuthGate: (action: AuthAction) =>
 		set({ authGateOpen: true, authGateAction: action }),
 	closeAuthGate: () => set({ authGateOpen: false }),
+
+	// Premium gate modal
+	premiumGateOpen: false,
+	premiumGateFeature: null,
+	openPremiumGate: (feature?: string | null) =>
+		set({ premiumGateOpen: true, premiumGateFeature: feature ?? null }),
+	closePremiumGate: () =>
+		set({ premiumGateOpen: false, premiumGateFeature: null }),
 
 	isMessagesDrawerOpen: false,
 	toggleMessagesDrawer: () =>

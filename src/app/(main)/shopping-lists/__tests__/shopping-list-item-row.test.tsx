@@ -15,6 +15,32 @@ jest.mock('next-intl', () => ({
 }))
 
 describe('ShoppingListItemRow', () => {
+	it('keeps the unit beside the quantity on the saved shopping list', () => {
+		render(
+			<ul>
+				<ShoppingListItemRow
+					item={{
+						itemId: 'item-1',
+						ingredient: 'Panko breadcrumbs',
+						quantity: '200',
+						unit: 'g',
+						category: 'Grains',
+						recipes: ['Katsu Curry'],
+						checked: false,
+						addedManually: false,
+					}}
+					onToggle={jest.fn()}
+					onRemove={jest.fn()}
+					removeAriaLabel='Remove item'
+					mutationDisabled={false}
+					togglePending={false}
+				/>
+			</ul>,
+		)
+
+		expect(screen.getByText('(200 g)')).toBeTruthy()
+	})
+
 	it('shows a localized fallback when a recipe tag payload crashes the row', () => {
 		const consoleErrorSpy = jest
 			.spyOn(console, 'error')

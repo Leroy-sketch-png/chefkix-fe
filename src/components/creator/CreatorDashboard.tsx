@@ -10,7 +10,6 @@ import {
 	Lock,
 	Clock,
 	Signal,
-	ArrowUpDown,
 	Edit3,
 	BarChart3,
 } from 'lucide-react'
@@ -432,13 +431,9 @@ function RecipePerformanceSection({
 				<h3 className='text-lg font-bold text-text-primary'>
 					{t('recipePerformance')}
 				</h3>
-				<button
-					type='button'
-					className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-xl text-sm text-text-primary'
-				>
-					<ArrowUpDown className='w-3.5 h-3.5 text-text-secondary' />
+				<span className='flex items-center gap-1.5 py-2 px-3 bg-bg border border-border-subtle rounded-xl text-sm text-text-secondary'>
 					{t('mostCooked')}
-				</button>
+				</span>
 			</div>
 
 			{recipes.length === 0 ? (
@@ -625,7 +620,9 @@ function RecentCooksSection({
 									{t.rich('cookedYour', {
 										userName: cook.userName,
 										recipeTitle: cook.recipeTitle,
-										strong: chunks => <strong className='font-bold'>{chunks}</strong>,
+										strong: chunks => (
+											<strong className='font-bold'>{chunks}</strong>
+										),
 									})}
 								</span>
 								<span className='text-xs text-text-secondary'>

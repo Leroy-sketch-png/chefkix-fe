@@ -9,8 +9,8 @@ import {
 	cancelScheduledRefresh,
 	refreshAccessToken,
 	shouldRefreshToken,
-	getTokenStatus,
 	isRefreshInProgress,
+	decodeToken,
 } from '@/lib/tokenManager'
 
 /**
@@ -49,7 +49,7 @@ interface TokenRefreshProviderProps {
 export const TokenRefreshProvider = ({
 	children,
 }: TokenRefreshProviderProps) => {
-	const { isAuthenticated, accessToken, logout } = useAuthStore()
+	const { isAuthenticated, accessToken, isLoggingOut, logout } = useAuthStore()
 	const t = useTranslations('shared')
 	const hasScheduledRef = useRef(false)
 
@@ -57,10 +57,28 @@ export const TokenRefreshProvider = ({
 	 * Callbacks for TokenManager
 	 */
 	const onTokenRefreshed = useCallback((newToken: string) => {
+		const currentAuth = useAuthStore.getState()
+		const currentSubject = currentAuth.accessToken
+			? decodeToken(currentAuth.accessToken)?.sub
+			: null
+		const refreshedSubject = decodeToken(newToken)?.sub
+
+		if (
+			!currentAuth.isAuthenticated ||
+			currentAuth.isLoggingOut ||
+			!currentSubject ||
+			refreshedSubject !== currentSubject
+		) {
+			return
+		}
+
 		useAuthStore.setState({ accessToken: newToken, isAuthenticated: true })
 	}, [])
 
 	const onSessionExpired = useCallback(() => {
+		const currentAuth = useAuthStore.getState()
+		if (currentAuth.isLoggingOut || !currentAuth.isAuthenticated) return
+
 		logout()
 		if (typeof window !== 'undefined') {
 			if (shouldRedirectExpiredSession(window.location.pathname)) {
@@ -73,6 +91,15 @@ export const TokenRefreshProvider = ({
 	 * Refresh the token (used for visibility change)
 	 */
 	const doRefresh = useCallback(async (): Promise<boolean> => {
+		const currentAuth = useAuthStore.getState()
+		if (
+			!currentAuth.isAuthenticated ||
+			currentAuth.isLoggingOut ||
+			!currentAuth.accessToken
+		) {
+			return false
+		}
+
 		// Skip if already refreshing
 		if (isRefreshInProgress()) {
 			return false
@@ -87,7 +114,7 @@ export const TokenRefreshProvider = ({
 	 * Uses the ACTUAL token expiry, not manual timers.
 	 */
 	useEffect(() => {
-		if (!isAuthenticated || !accessToken) {
+		if (!isAuthenticated || !accessToken || isLoggingOut) {
 			// Cancel any scheduled refresh when logged out
 			cancelScheduledRefresh()
 			hasScheduledRef.current = false
@@ -105,21 +132,35 @@ export const TokenRefreshProvider = ({
 			cancelScheduledRefresh()
 			hasScheduledRef.current = false
 		}
-	}, [isAuthenticated, accessToken, onTokenRefreshed, onSessionExpired])
+	}, [
+		isAuthenticated,
+		accessToken,
+		isLoggingOut,
+		onTokenRefreshed,
+		onSessionExpired,
+	])
 
 	/**
 	 * Handle tab visibility and focus changes.
 	 * Refresh if the token is stale when user returns.
 	 */
 	useEffect(() => {
-		if (!isAuthenticated || !accessToken) return
+		if (!isAuthenticated || !accessToken || isLoggingOut) return
 
 		const handleVisibilityOrFocus = async () => {
 			// Only act when tab becomes visible
 			if (document.visibilityState !== 'visible') return
+			const currentAuth = useAuthStore.getState()
+			if (
+				!currentAuth.isAuthenticated ||
+				currentAuth.isLoggingOut ||
+				!currentAuth.accessToken
+			) {
+				return
+			}
 
 			// Check if token needs refresh using actual expiry
-			if (shouldRefreshToken(accessToken)) {
+			if (shouldRefreshToken(currentAuth.accessToken)) {
 				try {
 					visibilityRefreshPromise = doRefresh()
 					await visibilityRefreshPromise
@@ -128,9 +169,17 @@ export const TokenRefreshProvider = ({
 				}
 
 				// Re-schedule proactive refresh with the new token
-				const newToken = useAuthStore.getState().accessToken
-				if (newToken) {
-					scheduleProactiveRefresh(newToken, onTokenRefreshed, onSessionExpired)
+				const refreshedAuth = useAuthStore.getState()
+				if (
+					refreshedAuth.isAuthenticated &&
+					!refreshedAuth.isLoggingOut &&
+					refreshedAuth.accessToken
+				) {
+					scheduleProactiveRefresh(
+						refreshedAuth.accessToken,
+						onTokenRefreshed,
+						onSessionExpired,
+					)
 				}
 			}
 		}
@@ -145,6 +194,7 @@ export const TokenRefreshProvider = ({
 	}, [
 		isAuthenticated,
 		accessToken,
+		isLoggingOut,
 		doRefresh,
 		onTokenRefreshed,
 		onSessionExpired,

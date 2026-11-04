@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RecipeCreateAiFlow, type RecipeFormData } from '@/components/recipe'
@@ -30,6 +30,8 @@ import {
 	AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { logDevError } from '@/lib/dev-log'
+import { useAuthStore } from '@/store/authStore'
+import { recipeDraftRepository } from '@/lib/recipe-draft-repository'
 import { useFormatter, useTranslations } from 'next-intl'
 import {
 	clearLocalRecipeDraft,
@@ -54,6 +56,7 @@ function CreateRecipeContent() {
 	const searchParams = useSearchParams()
 	const t = useTranslations('create')
 	const format = useFormatter()
+	const ownerId = useAuthStore(state => state.user?.userId)
 	const urlDraftId = searchParams.get('draftId')
 	const [mode, setMode] = useState<'list' | 'create'>(
 		urlDraftId ? 'create' : 'list',
@@ -61,6 +64,11 @@ function CreateRecipeContent() {
 	const [selectedDraft, setSelectedDraft] = useState<Recipe | null>(null)
 	const [localDraft, setLocalDraft] =
 		useState<LocalRecipeDraft<RecipeFormData> | null>(null)
+	const [localDraftOwnerId, setLocalDraftOwnerId] = useState<string | null>(
+		null,
+	)
+	const legacyDraftRef = useRef<LocalRecipeDraft<RecipeFormData> | null>(null)
+	const [legacyDraftAvailable, setLegacyDraftAvailable] = useState(false)
 	const [editorSource, setEditorSource] = useState<RecipeEditorSource>(
 		urlDraftId ? 'server' : 'new',
 	)
@@ -69,26 +77,76 @@ function CreateRecipeContent() {
 		'discard',
 	)
 	const [isLoadingDraft, setIsLoadingDraft] = useState(!!urlDraftId)
-	const localDraftIsOlder = localDraft
-		? isLocalRecipeDraftStale(localDraft.savedAt)
+	const ownedLocalDraft = localDraftOwnerId === ownerId ? localDraft : null
+	const localDraftIsOlder = ownedLocalDraft
+		? isLocalRecipeDraftStale(ownedLocalDraft.savedAt)
 		: false
 
-	const loadLocalDraft = useCallback(() => {
-		const result = readLocalRecipeDraft<RecipeFormData>()
-		if (result.status === 'valid') {
-			setLocalDraft(result.draft)
+	const loadLocalDraft = useCallback(async () => {
+		if (!ownerId) {
+			setLocalDraft(null)
+			setLocalDraftOwnerId(null)
+			setLegacyDraftAvailable(false)
+			legacyDraftRef.current = null
 			return
 		}
 
+		try {
+			const saved = await recipeDraftRepository.load(ownerId)
+			if (useAuthStore.getState().user?.userId !== ownerId) return
+			if (saved) {
+				setLocalDraft({
+					type: 'manual',
+					data: saved.data,
+					savedAt: new Date(saved.updatedAt).toISOString(),
+				})
+				setLocalDraftOwnerId(ownerId)
+				setLegacyDraftAvailable(false)
+				return
+			}
+		} catch (error) {
+			logDevError('Failed to load local recipe draft:', error)
+			toast.error(t('localDraftStorageUnavailable'))
+			return
+		}
+
+		const result = readLocalRecipeDraft<RecipeFormData>()
 		if (result.status === 'corrupt') {
 			clearLocalRecipeDraft()
 			setLocalDraft(null)
 			toast.error(t('draftCorrupted'))
 			return
 		}
+		if (result.status !== 'valid') {
+			setLocalDraft(null)
+			setLegacyDraftAvailable(false)
+			legacyDraftRef.current = null
+			return
+		}
 
+		const legacyOwner = (
+			result.draft as LocalRecipeDraft<RecipeFormData> & { ownerId?: string }
+		).ownerId
+		if (legacyOwner === ownerId) {
+			try {
+				await recipeDraftRepository.save(ownerId, result.draft.data)
+				if (useAuthStore.getState().user?.userId !== ownerId) return
+				clearLocalRecipeDraft()
+				setLocalDraft(result.draft)
+				setLocalDraftOwnerId(ownerId)
+				setLegacyDraftAvailable(false)
+				return
+			} catch (error) {
+				logDevError('Failed to migrate owned local recipe draft:', error)
+				toast.error(t('localDraftStorageUnavailable'))
+				return
+			}
+		}
+		legacyDraftRef.current = result.draft
 		setLocalDraft(null)
-	}, [t])
+		setLocalDraftOwnerId(null)
+		setLegacyDraftAvailable(true)
+	}, [ownerId, t])
 
 	// Load draft from URL ?draftId= param (deep links, redirects from edit page)
 	useEffect(() => {
@@ -130,11 +188,17 @@ function CreateRecipeContent() {
 		loadLocalDraft()
 	}, [loadLocalDraft, urlDraftId])
 
-	const handlePublishSuccess = (recipeId: string) => {
+	const handlePublishSuccess = async (recipeId: string) => {
 		// A server draft has its own identity; never erase unrelated local recovery.
 		if (editorSource !== 'server') {
-			clearLocalRecipeDraft()
-			setLocalDraft(null)
+			try {
+				if (ownerId) await recipeDraftRepository.clear(ownerId)
+				setLocalDraft(null)
+				setLocalDraftOwnerId(null)
+			} catch (error) {
+				logDevError('Published recipe, but local draft cleanup failed:', error)
+				toast.error(t('localDraftCleanupFailed'))
+			}
 		}
 		// Navigate to the new recipe page
 		router.push(`/recipes/${recipeId}`)
@@ -175,19 +239,45 @@ function CreateRecipeContent() {
 		setMode('create')
 	}
 
-	const confirmDiscardLocalDraft = () => {
-		clearLocalRecipeDraft()
-		setLocalDraft(null)
-		setShowDiscardDialog(false)
-		if (discardAction === 'start') {
-			setSelectedDraft(null)
-			setEditorSource('new')
-			setMode('create')
+	const confirmDiscardLocalDraft = async (event: React.MouseEvent) => {
+		event.preventDefault()
+		try {
+			if (!ownerId) throw new Error('Missing authenticated draft owner')
+			await recipeDraftRepository.clear(ownerId)
+			setLocalDraft(null)
+			setLocalDraftOwnerId(null)
+			setShowDiscardDialog(false)
+			if (discardAction === 'start') {
+				setSelectedDraft(null)
+				setEditorSource('new')
+				setMode('create')
+			}
+		} catch (error) {
+			logDevError('Failed to discard local recipe draft:', error)
+			toast.error(t('localDraftCleanupFailed'))
+		}
+	}
+
+	const claimLegacyDraft = async () => {
+		const legacy = legacyDraftRef.current
+		if (!legacy || !ownerId) return
+		try {
+			await recipeDraftRepository.save(ownerId, legacy.data)
+			if (useAuthStore.getState().user?.userId !== ownerId) return
+			if (!clearLocalRecipeDraft())
+				throw new Error('Legacy draft could not be cleared')
+			legacyDraftRef.current = null
+			setLegacyDraftAvailable(false)
+			setLocalDraft(legacy)
+			setLocalDraftOwnerId(ownerId)
+		} catch (error) {
+			logDevError('Failed to claim legacy recipe draft:', error)
+			toast.error(t('localDraftStorageUnavailable'))
 		}
 	}
 
 	const handleNewRecipe = () => {
-		if (localDraft) {
+		if (ownedLocalDraft) {
 			setDiscardAction('start')
 			setShowDiscardDialog(true)
 			return
@@ -231,8 +321,26 @@ function CreateRecipeContent() {
 								<div>
 									<CreateCommandDeck className='mb-6' />
 
+									{legacyDraftAvailable && (
+										<div className='mb-6 rounded-xl border border-warning/40 bg-warning/5 p-4'>
+											<p className='text-sm font-semibold text-text-primary'>
+												{t('legacyDraftNeedsReview')}
+											</p>
+											<p className='mt-1 text-sm text-text-secondary'>
+												{t('legacyDraftClaimDescription')}
+											</p>
+											<button
+												type='button'
+												onClick={() => void claimLegacyDraft()}
+												className='mt-3 rounded-md font-semibold text-brand underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-brand/50'
+											>
+												{t('claimLegacyDraft')}
+											</button>
+										</div>
+									)}
+
 									{/* Local Draft Recovery Card */}
-									{localDraft && (
+									{ownedLocalDraft && (
 										<motion.div
 											initial={{ opacity: 0, y: -10 }}
 											animate={{ opacity: 1, y: 0 }}
@@ -246,7 +354,8 @@ function CreateRecipeContent() {
 												<div className='flex-1'>
 													<div className='flex items-center gap-2'>
 														<h2 className='font-semibold text-text-primary'>
-															{localDraft.data.title || t('untitledRecipe')}
+															{ownedLocalDraft.data.title ||
+																t('untitledRecipe')}
 														</h2>
 														<span className='rounded-full bg-streak/20 px-2 py-0.5 text-xs font-medium text-streak'>
 															{t(
@@ -261,7 +370,8 @@ function CreateRecipeContent() {
 														<span>
 															{t('savedAgo', {
 																time: format.relativeTime(
-																	new Date(localDraft.savedAt),
+																	new Date(ownedLocalDraft.savedAt),
+																	{ now: new Date() },
 																),
 															})}
 														</span>
@@ -269,8 +379,8 @@ function CreateRecipeContent() {
 													<p className='mt-2 text-sm text-text-secondary'>
 														{t('ingredientsSteps', {
 															ingredients:
-																localDraft.data.ingredients?.length || 0,
-															steps: localDraft.data.steps?.length || 0,
+																ownedLocalDraft.data.ingredients?.length || 0,
+															steps: ownedLocalDraft.data.steps?.length || 0,
 														})}
 													</p>
 													{localDraftIsOlder ? (
@@ -325,7 +435,7 @@ function CreateRecipeContent() {
 								onPublishSuccess={handlePublishSuccess}
 								onBack={handleBackToList}
 								initialDraft={selectedDraft || undefined}
-								initialManualDraft={localDraft?.data}
+								initialManualDraft={ownedLocalDraft?.data}
 							/>
 						</motion.div>
 					)}
@@ -354,7 +464,7 @@ function CreateRecipeContent() {
 										? 'startFreshDraftDescription'
 										: 'discardDraftDescription',
 									{
-										title: localDraft?.data.title || t('untitledRecipe'),
+										title: ownedLocalDraft?.data.title || t('untitledRecipe'),
 									},
 								)}
 							</AlertDialogDescription>

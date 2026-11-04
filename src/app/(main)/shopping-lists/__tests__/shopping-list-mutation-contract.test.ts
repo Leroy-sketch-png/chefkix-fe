@@ -33,19 +33,30 @@ describe('shopping-list item mutation authority', () => {
 		).toHaveLength(2)
 	})
 
-	it('distinguishes an absent meal plan from a failed list creation request', () => {
+	it('derives detail totals and progress from the displayed item rows', () => {
+		expect(source).toContain(
+			'const selectedListTotalItems = selectedList?.items.length ?? 0',
+		)
+		expect(source).toContain(
+			'selectedList?.items.filter(item => item.checked).length ?? 0',
+		)
+		expect(source).toContain('checkedItems: selectedListCheckedItems')
+		expect(source).not.toContain('checkedItems: selectedList.checkedItems')
+	})
+
+	it('uses the current CookPlan instead of the hidden legacy weekly-plan path', () => {
 		const createHandler = source.slice(
-			source.indexOf('const handleCreateFromMealPlan'),
+			source.indexOf('const handleCreateFromTodayPlan'),
 			source.indexOf('const handleCreateCustom'),
 		)
 
-		const normalizedHandler = createHandler.replace(/\s+/g, '')
-		expect(normalizedHandler).toContain(
-			"if(!plan){toast.error(t('noMealPlan'))",
+		expect(createHandler).toContain(
+			'createShoppingListFromCurrentCookPlan(planDate)',
 		)
-		expect(normalizedHandler).toContain(
-			"catch{toast.error(t('failedCreateFromMealPlan'))",
-		)
-		expect(createHandler.match(/t\('noMealPlan'\)/g)).toHaveLength(1)
+		expect(createHandler).toContain("t('noCookPlan')")
+		expect(createHandler).toContain("router.push('/meal-planner')")
+		expect(createHandler).toContain("t('failedCreateFromTodayPlan')")
+		expect(source).not.toContain('getCurrentMealPlan')
+		expect(source).not.toContain('createFromMealPlan')
 	})
 })

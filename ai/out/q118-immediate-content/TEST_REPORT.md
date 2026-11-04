@@ -54,3 +54,20 @@ cannot retrieve recipe data under the configured API origin policy.
   bypasses or alternate origins as the product fix.
 - AI service local startup remains independently blocked by its known missing
   dependency.
+
+## Superseding E3 Follow-up (2026-10-22)
+
+The earlier E3 blocker above is historical and is superseded for the current
+local runtime: authenticated Chrome against the freshly rebuilt production
+frontend walked Taste DNA and Pho Bo Recipe Detail at 390x844 and 1440x900.
+Loaded insight/recipe content rendered, Start Cooking was present, document
+width matched viewport width, and no page errors or HTTP >=400 responses
+occurred. The desktop action is below the initial 900px fold (y≈1002), so this
+does not claim immediate desktop visibility. The Taste pass also exposed a
+shared mobile status-chip overflow, fixed and verified as Q229 at 320/390/768/
+1440px. See `q229-premium-surface-chip-layout-TEST_REPORT.md` for measurements,
+screenshots, and verification details.
+
+This closes only the prior environment/access E3 blocker for these local routes.
+Physical-device, assistive-technology, low-end performance, broader locale, and
+representative-preference evidence remain open.

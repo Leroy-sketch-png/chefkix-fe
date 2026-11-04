@@ -29,4 +29,11 @@ describe('shopping-list card accessibility contract', () => {
 			/<motion\.(?:div|article)[\s\S]{0,180}onClick=\{\(\) => handleOpenList/,
 		)
 	})
+
+	it('uses the matching overview title in the detail view when available', () => {
+		expect(source).toContain(
+			'lists.find(list => list.id === selectedList.id)?.name ?? selectedList.name',
+		)
+		expect(source).toContain('heading={selectedListName}')
+	})
 })

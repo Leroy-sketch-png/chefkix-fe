@@ -9,6 +9,7 @@ import {
 	getAppScrollTop,
 	scrollAppTo,
 } from '@/lib/app-scroll'
+import { useUiStore } from '@/store/uiStore'
 
 interface ScrollToTopProps {
 	/** Show button after scrolling this many pixels */
@@ -19,6 +20,7 @@ interface ScrollToTopProps {
 export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 	const [visible, setVisible] = React.useState(false)
 	const pathname = usePathname()
+	const cookingMode = useUiStore(state => state.cookingMode)
 
 	React.useEffect(() => {
 		const scrollTarget = getAppScrollTarget()
@@ -29,12 +31,14 @@ export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 		return () => scrollTarget.removeEventListener('scroll', handleScroll)
 	}, [pathname, threshold])
 
+	if (cookingMode !== 'hidden') return null
+
 	return (
 		<button
 			type='button'
 			onClick={() => scrollAppTo(0, 'smooth')}
 			className={cn(
-				'fixed bottom-6 right-6 z-notification flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card shadow-warm transition-all duration-300',
+				'fixed bottom-6 right-6 z-sticky flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card shadow-warm transition-all duration-300',
 				'hover:bg-bg-elevated hover:shadow-glow',
 				visible
 					? 'translate-y-0 opacity-100'

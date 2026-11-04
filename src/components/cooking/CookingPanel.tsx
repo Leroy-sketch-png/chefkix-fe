@@ -207,7 +207,8 @@ export const CookingPanel = () => {
 	const voice = useVoiceMode()
 
 	// Step photo capture (Wave 2: Kitchen Protocol)
-	const stepPhotos = useStepPhotos()
+	const stepPhotos = useStepPhotos(session?.sessionId)
+	const clearStepPhotos = stepPhotos.clearPhotos
 	const [showPhotoPrompt, setShowPhotoPrompt] = useState(false)
 	const [photoStepNumber, setPhotoStepNumber] = useState(0)
 
@@ -355,9 +356,6 @@ export const CookingPanel = () => {
 						startTimer(nextStepNumber)
 					}, 100)
 				}
-			} else {
-				// Session complete in docked mode -- persist photos then expand for rating
-				await stepPhotos.persistForPostCreation()
 			}
 		} finally {
 			setIsNavigating(false)
@@ -370,7 +368,6 @@ export const CookingPanel = () => {
 		recipe,
 		startTimer,
 		isNavigating,
-		stepPhotos,
 	])
 
 	const handlePrevStep = useCallback(async () => {
@@ -412,9 +409,10 @@ export const CookingPanel = () => {
 
 	const handleExitConfirm = useCallback(async () => {
 		setShowExitConfirm(false)
+		clearStepPhotos()
 		await abandonCooking()
 		closeCookingPanel()
-	}, [abandonCooking, closeCookingPanel])
+	}, [abandonCooking, closeCookingPanel, clearStepPhotos])
 
 	const allStepsComplete = completedSteps.size >= totalSteps
 
@@ -689,7 +687,7 @@ export const CookingPanel = () => {
 					aria-hidden='true'
 				/>
 				<AnimatePresence>
-					{showPhotoPrompt && (
+					{showPhotoPrompt && stepPhotos.totalCount < stepPhotos.maxPhotos && (
 						<motion.button
 							type='button'
 							initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -706,7 +704,7 @@ export const CookingPanel = () => {
 							<span>{t('cpSnap')}</span>
 							{stepPhotos.totalCount > 0 && (
 								<span className='rounded-full bg-brand px-1.5 py-0.5 text-xs font-bold text-white'>
-									{stepPhotos.totalCount}
+									{stepPhotos.totalCount}/{stepPhotos.maxPhotos}
 								</span>
 							)}
 						</motion.button>

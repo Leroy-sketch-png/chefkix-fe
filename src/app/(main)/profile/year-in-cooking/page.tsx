@@ -40,6 +40,7 @@ import {
 	PremiumSurface,
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
+import { useLiveAnnouncer } from '@/components/a11y/LiveAnnouncer'
 
 // ── Card slide data ──
 interface RecapCard {
@@ -238,6 +239,7 @@ export default function YearInCookingPage() {
 	const router = useRouter()
 	const t = useTranslations('profile')
 	const tc = useTranslations('common')
+	const { announce } = useLiveAnnouncer()
 	const { user: profile } = useAuth()
 	const [[page, direction], setPage] = useState([0, 0])
 	const [generatingAction, setGeneratingAction] = useState<
@@ -292,6 +294,7 @@ export default function YearInCookingPage() {
 		generationLockRef.current = true
 		setGeneratingAction('share')
 		try {
+			announce(t('yicPreparingShare'))
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
@@ -337,13 +340,14 @@ export default function YearInCookingPage() {
 			generationLockRef.current = false
 			setGeneratingAction(null)
 		}
-	}, [cards, displayName, t, resolveShareCards])
+	}, [announce, cards, displayName, t, resolveShareCards])
 
 	const handleDownload = useCallback(async () => {
 		if (cards.length === 0 || generationLockRef.current) return
 		generationLockRef.current = true
 		setGeneratingAction('download')
 		try {
+			announce(t('yicPreparingDownload'))
 			const shareCards = resolveShareCards()
 			const headerTitle = t('yicShareHeader', { name: displayName })
 			const footerTitle = t('yicShareFooter')
@@ -370,7 +374,7 @@ export default function YearInCookingPage() {
 			generationLockRef.current = false
 			setGeneratingAction(null)
 		}
-	}, [cards, displayName, t, resolveShareCards])
+	}, [announce, cards, displayName, t, resolveShareCards])
 	useEffect(() => {
 		const handleKey = (e: KeyboardEvent) => {
 			if (e.key === 'ArrowRight') paginate(1)
@@ -600,7 +604,6 @@ export default function YearInCookingPage() {
 							{copied ? t('yicCopied') : t('yicShare')}
 						</motion.button>
 					</div>
-
 					{/* Hint */}
 					<p className='mt-4 text-center text-xs text-text-muted'>
 						{t('yicKeyboardHint')}

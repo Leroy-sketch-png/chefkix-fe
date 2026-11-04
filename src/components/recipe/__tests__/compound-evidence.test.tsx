@@ -29,3 +29,13 @@ it('shows unavailable metrics and no independent safety or grounded claim', () =
 		),
 	).toBeNull()
 })
+
+it('does not display absent confidence as a numeric score', () => {
+	const unscored = { ...candidate, ratio: null, confidenceScore: null }
+	render(
+		<CompoundExplanation originalIngredient='butter' substitution={unscored} />,
+	)
+
+	expect(screen.queryByText(/\d+%/)).toBeNull()
+	expect(screen.queryByText('1:1')).toBeNull()
+})

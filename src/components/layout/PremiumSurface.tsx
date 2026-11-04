@@ -22,6 +22,7 @@ interface PremiumSurfaceProps {
 	className?: string
 	contentClassName?: string
 	eyebrow?: string
+	eyebrowClassName?: string
 	chipText?: string
 	chipClassName?: string
 	tone?: SurfaceTone
@@ -65,14 +66,19 @@ export function SurfaceSectionHeader({
 	chipClassName,
 }: SurfaceSectionHeaderProps) {
 	return (
-		<div className={cn('flex items-center justify-between gap-3', className)}>
-			<p className='text-2xs font-bold uppercase tracking-widest text-text-muted'>
+		<div
+			className={cn(
+				'flex flex-wrap items-start justify-between gap-x-3 gap-y-2 sm:items-center',
+				className,
+			)}
+		>
+			<p className='min-w-0 text-2xs font-bold uppercase tracking-widest text-text-muted'>
 				{eyebrow}
 			</p>
 			{chipText ? (
 				<span
 					className={cn(
-						'inline-flex h-6 items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 text-2xs font-semibold text-text-secondary tabular-nums shadow-card',
+						'inline-flex min-h-6 max-w-full items-center rounded-full border border-border-subtle/80 bg-gradient-to-r from-bg-card to-bg-elevated px-3 py-1 text-center text-2xs font-semibold leading-tight whitespace-normal break-words text-text-secondary tabular-nums shadow-card',
 						chipClassName,
 					)}
 				>
@@ -88,6 +94,7 @@ export function PremiumSurface({
 	className,
 	contentClassName,
 	eyebrow,
+	eyebrowClassName,
 	chipText,
 	chipClassName,
 	tone = 'brand',
@@ -111,7 +118,7 @@ export function PremiumSurface({
 					<SurfaceSectionHeader
 						eyebrow={eyebrow}
 						chipText={chipText}
-						className='mb-2'
+						className={cn('mb-2', eyebrowClassName)}
 						chipClassName={chipClassName}
 					/>
 				) : null}

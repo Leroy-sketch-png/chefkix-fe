@@ -76,7 +76,7 @@ export function FollowUserCard({
 			whileHover={CARD_HOVER}
 			transition={TRANSITION_SPRING}
 			onClick={() => router.push(`/${profile.userId}`)}
-			className='flex cursor-pointer items-center gap-3 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all hover:shadow-warm hover:border-border-medium'
+			className='flex flex-wrap cursor-pointer items-center gap-3 rounded-2xl border border-border-subtle/80 bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated/60 p-4 shadow-card transition-all hover:shadow-warm hover:border-border-medium sm:flex-nowrap'
 		>
 			<Avatar size='md'>
 				{profile.avatarUrl && (
@@ -88,9 +88,12 @@ export function FollowUserCard({
 			</Avatar>
 
 			<div className='min-w-0 flex-1'>
-				<div className='flex items-center gap-2'>
-					<p className='truncate text-sm font-semibold text-text-primary'>
-						{displayName}
+				<p className='truncate text-sm font-semibold text-text-primary'>
+					{displayName}
+				</p>
+				<div className='flex min-w-0 items-center gap-2'>
+					<p className='truncate text-xs text-text-muted'>
+						@{profile.username}
 					</p>
 					{isMutual && (
 						<span className='shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-2xs font-bold text-brand'>
@@ -98,7 +101,6 @@ export function FollowUserCard({
 						</span>
 					)}
 				</div>
-				<p className='truncate text-xs text-text-muted'>@{profile.username}</p>
 				{profile.bio && (
 					<p className='mt-0.5 line-clamp-1 text-xs text-text-secondary'>
 						{profile.bio}
@@ -112,6 +114,7 @@ export function FollowUserCard({
 					whileTap={BUTTON_TAP}
 					animate={isFollowing ? FOLLOW_PULSE.followed : undefined}
 					initial={false}
+					className='flex w-full justify-end sm:w-auto'
 				>
 					<Button
 						size='sm'
@@ -119,7 +122,7 @@ export function FollowUserCard({
 						onClick={handleToggleFollow}
 						disabled={isLoading}
 						className={cn(
-							'shrink-0 gap-1.5 text-xs',
+							'min-h-11 shrink-0 gap-1.5 text-xs sm:min-h-9',
 							isFollowing &&
 								'border-border-subtle text-text-secondary hover:border-destructive hover:text-destructive',
 						)}

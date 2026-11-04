@@ -21,7 +21,6 @@ const formatStoryUser = (story: RawStoryFeedUser): UserStoryFeedResponse => ({
 	displayName: story.displayName || story.username || 'User',
 	avatarUrl: story.avatarUrl || '/placeholder-avatar.svg',
 	hasUnseenStory: story.hasUnseenStory ?? story.hasUnseen ?? false,
-	hasStories: story.hasStories ?? true,
 })
 
 export const useStoryStore = create<StoryStore>(set => ({

@@ -203,7 +203,17 @@ export async function removeShoppingItem(
 // ── Delete ──────────────────────────────────────────────────────
 
 export async function deleteShoppingList(listId: string): Promise<void> {
-	await api.delete(API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId))
+	try {
+		const res = await api.delete<ApiResponse<void>>(
+			API_ENDPOINTS.SHOPPING_LISTS.DELETE(listId),
+		)
+		if (!res.data.success) {
+			throw new Error(res.data.message || 'delete shopping list failed')
+		}
+	} catch (err) {
+		logDevError('[ShoppingList] deleteShoppingList failed:', err)
+		throw err
+	}
 }
 
 // ── Share ───────────────────────────────────────────────────────
@@ -223,7 +233,7 @@ export async function regenerateShareToken(
 	}
 }
 
-// ── Commerce (W5.5+W5.8: Grocery Affiliate) ────────────────────
+// ── External Grocery Search Links (Redirect Bridge) ────────────────────
 
 // ── Per-Ingredient Buy Links ─────────────────────────────────────
 
@@ -236,8 +246,10 @@ export interface IngredientLinkRequest {
 }
 
 /**
- * Get per-ingredient affiliate buy links for recipe detail page.
- * Returns map of ingredientName → affiliate URL.
+ * Get per-ingredient external search/buy links for recipe detail page.
+ * Returns map of ingredientName → outbound search URL.
+ * Note: Window of Concern Item 14 — outbound search redirect bridge,
+ * disabled by default in backend unless explicitly enabled.
  */
 export async function getIngredientBuyLinks(
 	ingredients: IngredientLinkRequest[],

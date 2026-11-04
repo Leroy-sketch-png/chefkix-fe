@@ -28,7 +28,6 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Link from 'next/link'
-import { PATHS } from '@/constants'
 import { PageTransition } from '@/components/layout/PageTransition'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { EmptyState } from '@/components/shared/EmptyStateGamified'
@@ -71,13 +70,6 @@ export default function GroupDetailPage() {
 	const handleGroupPostDelete = useCallback((deletedPostId: string) => {
 		setPosts(prev => prev.filter(p => p.id !== deletedPostId))
 	}, [])
-
-	// Check authentication
-	useEffect(() => {
-		if (!isAuthenticated) {
-			router.push(PATHS.AUTH.SIGN_IN)
-		}
-	}, [isAuthenticated, router])
 
 	// Load group details when page mounts
 	useEffect(() => {

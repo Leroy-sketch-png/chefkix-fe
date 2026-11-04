@@ -147,6 +147,16 @@ describe('profile network request settlement', () => {
 		getFriends.mockReturnValue(friends.promise)
 
 		render(<FollowersPage />)
+		expect(
+			screen
+				.getByRole('button', { name: /Followers/ })
+				.getAttribute('aria-pressed'),
+		).toBe('true')
+		expect(
+			screen
+				.getByRole('button', { name: /Following/ })
+				.getAttribute('aria-pressed'),
+		).toBe('false')
 
 		expect(getFollowers).toHaveBeenCalledTimes(1)
 		expect(getFollowing).toHaveBeenCalledTimes(1)

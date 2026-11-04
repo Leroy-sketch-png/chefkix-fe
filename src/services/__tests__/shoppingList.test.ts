@@ -3,6 +3,7 @@ import { logDevError } from '@/lib/dev-log'
 import {
 	copySharedShoppingList,
 	createFromCookPlan,
+	deleteShoppingList,
 	getUserShoppingLists,
 } from '@/services/shoppingList'
 
@@ -10,6 +11,7 @@ jest.mock('@/lib/axios', () => ({
 	api: {
 		get: jest.fn(),
 		post: jest.fn(),
+		delete: jest.fn(),
 	},
 }))
 
@@ -17,7 +19,11 @@ jest.mock('@/lib/dev-log', () => ({
 	logDevError: jest.fn(),
 }))
 
-const mockedApi = api as unknown as { get: jest.Mock; post: jest.Mock }
+const mockedApi = api as unknown as {
+	get: jest.Mock
+	post: jest.Mock
+	delete: jest.Mock
+}
 const mockedLogDevError = logDevError as jest.Mock
 
 const summary = {
@@ -128,5 +134,59 @@ describe('copySharedShoppingList', () => {
 		await expect(copySharedShoppingList('shared-token')).rejects.toThrow(
 			'No data returned',
 		)
+	})
+})
+
+describe('deleteShoppingList', () => {
+	beforeEach(() => {
+		jest.clearAllMocks()
+	})
+
+	it('accepts the successful empty-data envelope', async () => {
+		mockedApi.delete.mockResolvedValueOnce({
+			data: { success: true, statusCode: 200 },
+		})
+
+		await expect(deleteShoppingList('list-1')).resolves.toBeUndefined()
+		expect(mockedApi.delete).toHaveBeenCalledWith(
+			'/api/v1/shopping-lists/list-1',
+		)
+	})
+
+	it('rejects application-level failures even when the HTTP request resolves', async () => {
+		mockedApi.delete.mockResolvedValueOnce({
+			data: {
+				success: false,
+				statusCode: 200,
+				message: 'List could not be deleted',
+			},
+		})
+
+		await expect(deleteShoppingList('list-1')).rejects.toThrow(
+			'List could not be deleted',
+		)
+		expect(mockedLogDevError).toHaveBeenCalledWith(
+			'[ShoppingList] deleteShoppingList failed:',
+			expect.any(Error),
+		)
+	})
+
+	it('uses a stable error when the failure envelope has no message', async () => {
+		mockedApi.delete.mockResolvedValueOnce({
+			data: { success: false, statusCode: 200 },
+		})
+
+		await expect(deleteShoppingList('list-1')).rejects.toThrow(
+			'delete shopping list failed',
+		)
+	})
+
+	it('preserves transport failures for the page error state', async () => {
+		mockedApi.delete.mockRejectedValueOnce(new Error('Network offline'))
+
+		await expect(deleteShoppingList('list-1')).rejects.toThrow(
+			'Network offline',
+		)
+		expect(mockedLogDevError).toHaveBeenCalledTimes(1)
 	})
 })

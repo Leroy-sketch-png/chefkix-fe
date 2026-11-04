@@ -214,9 +214,9 @@ export interface SubstitutionRequest {
 
 export interface Substitution {
 	name: string
-	ratio: string
+	ratio: string | null
 	notes: string
-	confidenceScore: number
+	confidenceScore: number | null
 	/** Optional Lead compound-engine payload; kept additive for old responses. */
 	compoundExplanation?: unknown
 	allergenSafety?: unknown
@@ -297,14 +297,14 @@ interface ResearchGraphEvidenceResponseBase {
 
 /** Legacy graph evidence may carry abstention evidence, never a supported set. */
 export interface ResearchGraphEvidenceResponseV1
-	 extends ResearchGraphEvidenceResponseBase {
+	extends ResearchGraphEvidenceResponseBase {
 	contractVersion: 'graph-evidence-v1'
 	disposition: 'abstain'
 }
 
 /** Final recommendation evidence binds the protocol cutoff explicitly. */
 export interface ResearchGraphEvidenceResponseV2
-	 extends Omit<ResearchGraphEvidenceResponseBase, 'calibration'> {
+	extends Omit<ResearchGraphEvidenceResponseBase, 'calibration'> {
 	contractVersion: 'graph-evidence-v2'
 	calibration: ResearchGraphEvidenceResponseBase['calibration'] & {
 		/** JSON null represents an unavailable or infinite/vacuous cutoff. */
@@ -379,6 +379,7 @@ export interface ModerateResponse {
  */
 export const processRecipe = async (
 	rawText: string,
+	signal?: AbortSignal,
 ): Promise<ApiResponse<ProcessedRecipe>> => {
 	const preflightFailure = getDirectAiPreflightFailure<ProcessedRecipe>()
 	if (preflightFailure) return preflightFailure
@@ -387,9 +388,11 @@ export const processRecipe = async (
 		const response = await aiApi.post<ApiResponse<ProcessedRecipe>>(
 			API_ENDPOINTS.AI.PROCESS_RECIPE,
 			{ raw_text: rawText },
+			{ signal },
 		)
 		return response.data
 	} catch (error) {
+		if (signal?.aborted) throw error
 		return handleDirectAiError<ProcessedRecipe>(
 			error,
 			'Failed to process recipe',

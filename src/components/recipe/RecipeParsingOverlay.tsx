@@ -1,33 +1,16 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle, Circle, Wand2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Loader2, Wand2 } from 'lucide-react'
 import { Portal } from '@/components/ui/portal'
 import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { useTranslations } from 'next-intl'
 
-// ── Props ───────────────────────────────────────────────────────────
 interface RecipeParsingOverlayProps {
-	/** Index of the currently-active parsing step (0-based). */
-	currentStep: number
-	/** Called when user presses Escape to cancel parsing. */
 	onCancel?: () => void
 }
 
-const PARSING_STEP_KEYS = [
-	'parsingStepReading',
-	'parsingStepExtracting',
-	'parsingStepParsing',
-	'parsingStepCalculating',
-] as const
-
-/**
- * Full-screen overlay shown while the AI is parsing raw recipe text.
- * Displays a 4-step progress animation with sparkles.
- */
 export const RecipeParsingOverlay = ({
-	currentStep,
 	onCancel,
 }: RecipeParsingOverlayProps) => {
 	useEscapeKey(!!onCancel, () => onCancel?.())
@@ -38,7 +21,7 @@ export const RecipeParsingOverlay = ({
 			<motion.div
 				role='dialog'
 				aria-modal='true'
-				aria-label='Processing recipe'
+				aria-label={t('parsingYourRecipe')}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
 				exit={{ opacity: 0 }}
@@ -78,28 +61,23 @@ export const RecipeParsingOverlay = ({
 						{t('parsingYourRecipe')}
 					</h3>
 
-					<div className='space-y-4 text-left'>
-						{PARSING_STEP_KEYS.map((stepKey, i) => (
-							<div
-								key={stepKey}
-								className={cn(
-									'flex items-center gap-3 text-sm',
-									i < currentStep && 'text-success',
-									i === currentStep && 'font-semibold text-text-primary',
-									i > currentStep && 'text-text-secondary',
-								)}
-							>
-								{i < currentStep ? (
-									<CheckCircle className='size-5' />
-								) : i === currentStep ? (
-									<div className='size-5 animate-spin rounded-full border-2 border-border border-t-primary' />
-								) : (
-									<Circle className='size-5' />
-								)}
-								<span>{t(stepKey)}</span>
-							</div>
-						))}
+					<div
+						role='status'
+						aria-live='polite'
+						className='flex items-center justify-center gap-2 text-sm text-text-secondary'
+					>
+						<Loader2 className='size-4 animate-spin' />
+						{t('aiFlowProcessing')}
 					</div>
+					{onCancel && (
+						<button
+							type='button'
+							onClick={onCancel}
+							className='mt-8 rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+						>
+							{t('cancelButton')}
+						</button>
+					)}
 				</motion.div>
 			</motion.div>
 		</Portal>

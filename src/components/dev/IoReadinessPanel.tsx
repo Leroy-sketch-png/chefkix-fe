@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Camera,
 	Check,
@@ -22,6 +22,7 @@ import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 import {
 	EMPTY_IO_CERTIFICATION_RESULTS,
 	IO_CERTIFICATION_STORAGE_KEY,
+	parseIoCertificationResults,
 	summarizeIoCertification,
 	type IoCertificationCheckId,
 	type IoCertificationResults,
@@ -55,15 +56,14 @@ export function IoReadinessPanel() {
 	const animationRef = useRef<number | null>(null)
 	const currentLevelRef = useRef(0)
 	const [micLevel, setMicLevel] = useState(0)
+	const [previewActive, setPreviewActive] = useState(false)
 	const [results, setResults] = useState<IoCertificationResults>(() => {
 		if (typeof window === 'undefined') return EMPTY_IO_CERTIFICATION_RESULTS
 		try {
 			const stored = window.localStorage.getItem(IO_CERTIFICATION_STORAGE_KEY)
-			return stored
-				? {
-						...EMPTY_IO_CERTIFICATION_RESULTS,
-						...(JSON.parse(stored) as Partial<IoCertificationResults>),
-					}
+			const parsed = parseIoCertificationResults(stored)
+			return parsed
+				? { ...EMPTY_IO_CERTIFICATION_RESULTS, ...parsed }
 				: EMPTY_IO_CERTIFICATION_RESULTS
 		} catch {
 			return EMPTY_IO_CERTIFICATION_RESULTS
@@ -79,13 +79,24 @@ export function IoReadinessPanel() {
 		)
 	}, [results])
 
-	useEffect(() => {
-		return () => {
-			if (animationRef.current) cancelAnimationFrame(animationRef.current)
-			streamRef.current?.getTracks().forEach(track => track.stop())
-			void audioContextRef.current?.close()
+	const releaseMediaPreview = useCallback(() => {
+		if (animationRef.current !== null) {
+			cancelAnimationFrame(animationRef.current)
+			animationRef.current = null
 		}
+		streamRef.current?.getTracks().forEach(track => track.stop())
+		streamRef.current = null
+		if (videoRef.current) videoRef.current.srcObject = null
+		const context = audioContextRef.current
+		audioContextRef.current = null
+		analyserRef.current = null
+		if (context && context.state !== 'closed') {
+			void context.close().catch(() => undefined)
+		}
+		currentLevelRef.current = 0
 	}, [])
+
+	useEffect(() => releaseMediaPreview, [releaseMediaPreview])
 
 	const setResult = (
 		id: IoCertificationCheckId,
@@ -146,18 +157,28 @@ export function IoReadinessPanel() {
 			streamRef.current = stream
 			if (videoRef.current) videoRef.current.srcObject = stream
 			await startMeter(stream)
+			setPreviewActive(true)
 			setResult(
 				'media',
 				'pass',
 				`${stream.getVideoTracks().length} camera and ${stream.getAudioTracks().length} microphone track ready`,
 			)
 		} catch (error) {
+			releaseMediaPreview()
+			setMicLevel(0)
+			setPreviewActive(false)
 			const detail =
 				error instanceof DOMException
 					? `${error.name}: ${error.message}`
 					: 'Media preflight failed'
 			setResult('media', 'fail', detail)
 		}
+	}
+
+	const stopMediaPreview = () => {
+		releaseMediaPreview()
+		setMicLevel(0)
+		setPreviewActive(false)
 	}
 
 	const playSpeakerTest = () => {
@@ -178,7 +199,6 @@ export function IoReadinessPanel() {
 
 	const runClapCalibration = async () => {
 		if (!analyserRef.current) {
-			setResult('clap', 'fail', 'Run camera and microphone preview first')
 			return
 		}
 		setResult('clap', 'running', 'Sampling room noise, then clap once')
@@ -357,13 +377,15 @@ export function IoReadinessPanel() {
 		icon: React.ReactNode
 		action: () => void
 		actionLabel: string
+		disabled?: boolean
 	}> = [
 		{
 			id: 'media',
 			title: 'Camera and microphone',
 			icon: <Camera className='size-4' />,
-			action: () => void runMediaPreflight(),
-			actionLabel: 'Preview',
+			action: () =>
+				previewActive ? stopMediaPreview() : void runMediaPreflight(),
+			actionLabel: previewActive ? 'Stop preview' : 'Preview',
 		},
 		{
 			id: 'speaker',
@@ -378,6 +400,7 @@ export function IoReadinessPanel() {
 			icon: <Hand className='size-4' />,
 			action: () => void runClapCalibration(),
 			actionLabel: 'Calibrate',
+			disabled: !previewActive,
 		},
 		{
 			id: 'voice',
@@ -496,6 +519,12 @@ export function IoReadinessPanel() {
 									<p className='mt-2 text-xs leading-5 text-text-muted'>
 										{result.detail}
 									</p>
+									{check.disabled && check.id === 'clap' ? (
+										<p className='mt-1 text-xs text-text-secondary'>
+											Start the camera and microphone preview to enable
+											calibration.
+										</p>
+									) : null}
 									{result.verifiedAt ? (
 										<p className='mt-1 text-2xs text-text-muted'>
 											{new Date(result.verifiedAt).toLocaleString()}
@@ -507,7 +536,7 @@ export function IoReadinessPanel() {
 										variant='outline'
 										size='sm'
 										onClick={check.action}
-										disabled={result.status === 'running'}
+										disabled={result.status === 'running' || check.disabled}
 									>
 										{result.status === 'running' ? (
 											<RefreshCw className='animate-spin' />

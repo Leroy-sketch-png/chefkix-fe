@@ -176,12 +176,13 @@ export const StoryFeed = ({
 					{stories.map((storyUser, index) => {
 						const isMe =
 							!!currentUser && storyUser.userId === currentUser.userId
-
-						// Prefer explicit hasStories flag when present, fallback to list length
-						const userHasStories =
-							typeof storyUser.hasStories === 'boolean'
-								? storyUser.hasStories
-								: true
+						const storyName = storyUser.displayName || t('user')
+						const accessibleName = isMe
+							? t('viewYourStory')
+							: t(
+									storyUser.hasUnseenStory ? 'newStoryFrom' : 'viewStoriesFrom',
+									{ name: storyName },
+								)
 
 						return (
 							<button
@@ -189,7 +190,7 @@ export const StoryFeed = ({
 								key={`${storyUser.userId}-${index}`}
 								className='snap-start shrink-0 text-left'
 								onClick={() => onStoryClick(storyUser)}
-								aria-pressed={userHasStories}
+								aria-label={accessibleName}
 							>
 								<StoryAvatar user={storyUser} isCurrentUser={isMe} />
 							</button>

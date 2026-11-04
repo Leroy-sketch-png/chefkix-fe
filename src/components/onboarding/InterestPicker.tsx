@@ -299,7 +299,7 @@ export function InterestPicker({
 					initial={{ opacity: 0, scale: 0.9, y: 30 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					transition={TRANSITION_SPRING}
-					className='relative w-full max-w-2xl overflow-hidden rounded-3xl bg-bg-card shadow-warm'
+					className='relative flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-bg-card shadow-warm'
 					role='dialog'
 					aria-modal='true'
 					aria-label={t('ipTitle')}
@@ -317,25 +317,25 @@ export function InterestPicker({
 					)}
 
 					{/* Header */}
-					<div className='bg-gradient-to-br from-brand/10 to-streak/10 px-6 py-8 text-center'>
+					<div className='shrink-0 bg-gradient-to-br from-brand/10 to-streak/10 px-4 py-4 text-center sm:px-6 sm:py-8'>
 						<motion.div
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
 							transition={{ delay: 0.2, ...TRANSITION_SPRING }}
-							className='mx-auto mb-3 flex size-16 items-center justify-center rounded-2xl bg-brand/15'
+							className='mx-auto mb-2 flex size-12 items-center justify-center rounded-2xl bg-brand/15 sm:mb-3 sm:size-16'
 						>
-							<Sparkles className='size-8 text-brand' />
+							<Sparkles className='size-6 text-brand sm:size-8' />
 						</motion.div>
-						<h2 className='text-2xl font-bold text-text-primary'>
+						<h2 className='text-xl font-bold text-text-primary sm:text-2xl'>
 							{editMode ? t('ipTitleEdit') : t('ipTitleNew')}
 						</h2>
-						<p className='mt-2 text-sm text-text-secondary'>
+						<p className='mt-1 text-xs text-text-secondary sm:mt-2 sm:text-sm'>
 							{editMode ? t('ipSubtitleEdit') : t('ipSubtitleNew')}
 						</p>
 					</div>
 
 					{/* Cuisine Tiles Grid */}
-					<div className='max-h-[50vh] overflow-y-auto px-4 py-4'>
+					<div className='min-h-0 flex-1 overflow-y-auto px-4 py-4'>
 						<div className='grid grid-cols-3 gap-3 sm:grid-cols-4'>
 							{INTEREST_TILES.map((tile, i) => {
 								const isSelected = selected.has(tile.id)
@@ -350,7 +350,7 @@ export function InterestPicker({
 										onClick={() => toggleInterest(tile.id)}
 										aria-pressed={isSelected}
 										className={cn(
-											'group relative aspect-[4/3] overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
+											'group relative aspect-square overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-brand/50',
 											isSelected
 												? 'border-brand shadow-card shadow-brand/20'
 												: 'border-transparent hover:border-border-medium',
@@ -367,11 +367,11 @@ export function InterestPicker({
 										/>
 
 										{/* Large emoji */}
-										<div className='absolute inset-0 flex items-center justify-center'>
+										<div className='absolute bottom-8 left-0 right-8 top-0 flex items-center justify-center'>
 											<span
 												className={cn(
-													'text-4xl transition-transform duration-200 sm:text-5xl',
-													isSelected ? 'scale-110' : 'group-hover:scale-105',
+													'text-3xl transition-transform duration-200 sm:text-4xl',
+													isSelected ? 'scale-105' : 'group-hover:scale-105',
 												)}
 												role='img'
 												aria-hidden='true'
@@ -395,8 +395,8 @@ export function InterestPicker({
 										)}
 
 										{/* Label */}
-										<div className='absolute inset-x-0 bottom-0 p-2'>
-											<span className='text-xs font-semibold text-white drop-shadow-md sm:text-sm'>
+										<div className='absolute inset-x-0 bottom-0 z-10 flex min-h-8 items-center justify-center bg-black/65 px-1 py-1'>
+											<span className='text-center text-xs font-semibold leading-tight text-white sm:text-sm'>
 												{t(tile.labelKey)}
 											</span>
 										</div>
@@ -407,7 +407,7 @@ export function InterestPicker({
 					</div>
 
 					{/* Footer */}
-					<div className='flex items-center justify-between border-t border-border-subtle px-6 py-4'>
+					<div className='flex shrink-0 items-center justify-between border-t border-border-subtle px-6 py-4'>
 						<button
 							type='button'
 							onClick={handleDismiss}

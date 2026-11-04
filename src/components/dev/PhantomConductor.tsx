@@ -15,6 +15,7 @@ import {
 	preloadCriticalData,
 	loadDemoReadinessReport,
 	getBeatReadinessStatus,
+	getDemoShortcutIoBlockers,
 } from './demo-config'
 import { useAuthStore } from '@/store/authStore'
 import { usePaceTimer } from './PaceTimer'
@@ -377,6 +378,19 @@ export function PhantomConductor() {
 			}
 
 			if (command.type === 'GHOST_DRIVER_BEAT') {
+				if (command.beatIndex === 2) {
+					const blockers = getDemoShortcutIoBlockers(
+						getDemoPitchShortcut('co-cook'),
+					)
+					if (blockers.length > 0) {
+						postCommandStatus(
+							command,
+							'FAILED',
+							`Autopilot blocked; verify ${blockers.join(', ')}`,
+						)
+						return
+					}
+				}
 				try {
 					const driver = getGhostDriver('main')
 					driver.start()
@@ -502,6 +516,15 @@ export function PhantomConductor() {
 					)
 					return
 				}
+				const ioBlockers = getDemoShortcutIoBlockers(shortcut)
+				if (ioBlockers.length > 0) {
+					postCommandStatus(
+						command,
+						'FAILED',
+						`Action blocked; verify ${ioBlockers.join(', ')}`,
+					)
+					return
+				}
 
 				// Hot-swap persona
 				if (beat.personaUsername) {
@@ -574,6 +597,15 @@ export function PhantomConductor() {
 						command,
 						'FAILED',
 						`Action readiness is ${readinessStatus || 'unresolved'}`,
+					)
+					return
+				}
+				const ioBlockers = getDemoShortcutIoBlockers(shortcut)
+				if (ioBlockers.length > 0) {
+					postCommandStatus(
+						command,
+						'FAILED',
+						`Action blocked; verify ${ioBlockers.join(', ')}`,
 					)
 					return
 				}

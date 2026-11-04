@@ -7,6 +7,7 @@ import type {
 	GraphEdge,
 	GraphEvidenceResponse,
 	GraphNode,
+	GraphSnapshotResponse,
 	NutritionSnapshot,
 	TechniqueContext,
 } from '../types'
@@ -77,6 +78,10 @@ const ARTIFACT_INTEGRITY_STATUSES = new Set([
 
 export function isGraphEvidenceEnabled() {
 	return process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED === 'true'
+}
+
+export function isMockEnabled() {
+	return process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK === 'true'
 }
 
 export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
@@ -249,6 +254,35 @@ export async function getGraphEvidence(
 	candidateIngredientId: string,
 ): Promise<GraphEvidenceResponse | undefined> {
 	if (!isGraphEvidenceEnabled()) return undefined
+	if (isMockEnabled()) {
+		return {
+			contractVersion: 'graph-evidence.v1',
+			status: 'AVAILABLE',
+			artifactIntegrity: {
+				status: 'VERIFIED',
+				expectedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+				observedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+			},
+			evidence: {
+				identityResolution: {
+					status: 'RESOLVED',
+					sourceIngredientId,
+					candidateIngredientId,
+				},
+				trainPairEvidence: {
+					seenInTrain: true,
+					trainCount: 57,
+					unit: 'TRAIN_PAIRS',
+				},
+				calibration: {
+					status: 'no_guarantee',
+				},
+				decision: {
+					decision: 'ABSTAIN',
+				},
+			},
+		}
+	}
 
 	let payload: unknown
 	try {
@@ -277,6 +311,53 @@ export async function getGraphEvidence(
 		)
 	}
 	return normalized
+}
+
+export async function getGraphEvidenceSnapshot(): Promise<
+	GraphSnapshotResponse | undefined
+> {
+	if (!isGraphEvidenceEnabled()) return undefined
+	if (isMockEnabled()) {
+		return {
+			contractVersion: 'graph-evidence.v1',
+			status: 'AVAILABLE',
+			artifactIntegrity: {
+				status: 'VERIFIED',
+				expectedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+				observedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+			},
+			snapshot: {
+				totalNodes: 6633,
+				totalEdges: 23185,
+				acceptanceState: 'PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED',
+			},
+		}
+	}
+
+	let payload: unknown
+	try {
+		const response = await api.get(
+			API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE_SNAPSHOT,
+		)
+		payload = response.data ?? response
+	} catch (error) {
+		payload = errorResponseData(error)
+		if (payload === undefined) {
+			throw error instanceof Error
+				? error
+				: new Error('The graph evidence snapshot could not be loaded.')
+		}
+	}
+	const response = unwrapData(payload)
+	if (
+		!isRecord(response) ||
+		response.contractVersion !== 'graph-evidence.v1' ||
+		typeof response.status !== 'string' ||
+		!GRAPH_EVIDENCE_STATUSES.has(response.status)
+	) {
+		return undefined
+	}
+	return response as unknown as GraphSnapshotResponse
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {
@@ -516,7 +597,7 @@ export function mergeGraphData(
 	}
 }
 
-const useMock = process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK === 'true'
+// useMock replaced by isMockEnabled()
 
 function scopeGraphData(graph: GraphData, query?: GraphQuery): GraphData {
 	const bounded = normalizeGraphData(
@@ -547,7 +628,7 @@ function getMockData(query?: GraphQuery): GraphData {
 }
 
 export async function getGraphData(query?: GraphQuery): Promise<GraphData> {
-	if (useMock) return getMockData(query)
+	if (isMockEnabled()) return getMockData(query)
 	try {
 		const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH, {
 			params: {
@@ -570,7 +651,7 @@ export function getGraphNeighborhood(nodeId: string) {
 }
 
 export async function getGraphNodeDetail(nodeId: string) {
-	if (useMock) {
+	if (isMockEnabled()) {
 		const node = mockGraph.nodes.find(item => item.id === nodeId)
 		return node ? normalizeGraphNode(node) : undefined
 	}
@@ -623,6 +704,12 @@ export async function getGraphCompoundOverlap(
 	original: string,
 	substitute: string,
 ) {
+	if (isMockEnabled()) {
+		return {
+			compoundOverlap: 0.76,
+			compoundOverlapSemantics: 'Jaccard of official presence profiles',
+		}
+	}
 	const response = await aiApi.post('/api/v1/compound/analyze-pair', {
 		original,
 		substitute,
