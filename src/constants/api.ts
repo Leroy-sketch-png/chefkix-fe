@@ -353,6 +353,7 @@ export const API_ENDPOINTS = {
 	},
 	KNOWLEDGE: {
 		GRAPH: `${API_PREFIX}/knowledge/graph`,
+		GRAPH_CANDIDATE_PREVIEW: `${API_PREFIX}/knowledge/graph/candidate-preview`,
 		GRAPH_EVIDENCE: `${API_PREFIX}/graph/evidence`,
 		GRAPH_EVIDENCE_SNAPSHOT: `${API_PREFIX}/graph/evidence/snapshot`,
 		INGREDIENTS: `${API_PREFIX}/knowledge/ingredients`,

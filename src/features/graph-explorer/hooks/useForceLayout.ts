@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-	forceCenter,
 	forceCollide,
 	forceLink,
 	forceManyBody,
@@ -27,12 +26,21 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 	const simulationRef = useRef<ReturnType<
 		typeof forceSimulation<ForceNode>
 	> | null>(null)
+	const positionCacheRef = useRef(new Map<string, ForcePosition>())
+	const layoutSizeRef = useRef({ width: 0, height: 0 })
 
 	useEffect(() => {
+		const previousPositions =
+			layoutSizeRef.current.width === width &&
+			layoutSizeRef.current.height === height
+				? positionCacheRef.current
+				: new Map<string, ForcePosition>()
+		layoutSizeRef.current = { width, height }
 		const nodes: ForceNode[] = data.nodes.map((node, index) => ({
 			id: node.id,
-			x: width / 2 + Math.cos(index) * 80,
-			y: height / 2 + Math.sin(index) * 80,
+			x: previousPositions.get(node.id)?.x ?? width / 2 + Math.cos(index) * 140,
+			y:
+				previousPositions.get(node.id)?.y ?? height / 2 + Math.sin(index) * 140,
 		}))
 		const links = data.edges.map(edge => ({
 			source: edge.source,
@@ -43,31 +51,32 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 				'link',
 				forceLink<ForceNode, { source: string; target: string }>(links)
 					.id(node => node.id)
-					.distance(160)
-					.strength(0.8),
+					.distance(195),
 			)
-			.force('charge', forceManyBody<ForceNode>().strength(-650))
-			.force('x', forceX<ForceNode>(width / 2).strength(0.055))
-			.force('y', forceY<ForceNode>(height / 2).strength(0.055))
-			.force('center', forceCenter(width / 2, height / 2))
-			.force('collision', forceCollide<ForceNode>().radius(48))
+			.force('charge', forceManyBody<ForceNode>().strength(-950))
+			.force('x', forceX<ForceNode>(width / 2).strength(0.012))
+			.force('y', forceY<ForceNode>(height / 2).strength(0.012))
+			.force('collision', forceCollide<ForceNode>().radius(66))
+			.alphaDecay(0.045)
 
 		simulationRef.current = simulation
+		let ticks = 0
 		const publish = () => {
-			for (const node of nodes) {
-				node.x = Math.max(80, Math.min(width - 80, node.x ?? width / 2))
-				node.y = Math.max(55, Math.min(height - 75, node.y ?? height / 2))
-			}
-			setPositions(
-				new Map(
-					nodes.map(node => [
-						node.id,
-						{ x: node.x ?? width / 2, y: node.y ?? height / 2 },
-					]),
-				),
+			const nextPositions = new Map(
+				nodes.map(node => [
+					node.id,
+					{ x: node.x ?? width / 2, y: node.y ?? height / 2 },
+				]),
 			)
+			positionCacheRef.current = nextPositions
+			setPositions(nextPositions)
 		}
-		simulation.on('tick', publish)
+		simulation
+			.on('tick', () => {
+				// Updating every third tick keeps the SVG responsive on dense previews.
+				if (++ticks % 3 === 0) publish()
+			})
+			.on('end', publish)
 		publish()
 
 		return () => {
@@ -83,8 +92,11 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 		node.fy = position.y
 		node.x = position.x
 		node.y = position.y
+		positionCacheRef.current = new Map(positionCacheRef.current).set(
+			id,
+			position,
+		)
 		simulationRef.current?.alphaTarget(0.2).restart()
-		setPositions(previous => new Map(previous).set(id, position))
 	}
 
 	function pinNode(id: string) {
@@ -92,6 +104,10 @@ export function useForceLayout(data: GraphData, width: number, height: number) {
 		if (!node) return
 		node.fx = node.x
 		node.fy = node.y
+		positionCacheRef.current = new Map(positionCacheRef.current).set(id, {
+			x: node.x ?? 0,
+			y: node.y ?? 0,
+		})
 		simulationRef.current?.alphaTarget(0)
 	}
 
