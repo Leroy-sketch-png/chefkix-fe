@@ -225,6 +225,7 @@ export function GraphExplorer() {
 			.flatMap(edge => [edge.source, edge.target]),
 	).size
 	const visibleError = searchError ?? error
+	const candidatePreview = visibleData?.source === 'ai-service-candidate'
 
 	if (error && !data)
 		return (
@@ -250,8 +251,12 @@ export function GraphExplorer() {
 				{[
 					{
 						value: visibleData?.totalNodeCount ?? data.nodes.length,
-						label: 'Ingredients in the index',
-						note: 'Browse every ingredient below',
+						label: candidatePreview
+							? 'Candidate ingredient nodes'
+							: 'Ingredients in the index',
+						note: candidatePreview
+							? 'Full private graph; previewed in bounded slices'
+							: 'Browse every ingredient below',
 					},
 					{
 						value: mappedIngredientCount,
@@ -259,9 +264,15 @@ export function GraphExplorer() {
 						note: 'Shown on the map',
 					},
 					{
-						value: visibleData?.edges.length ?? 0,
-						label: 'Documented relationships',
-						note: 'Across the full index',
+						value: candidatePreview
+							? (visibleData?.totalEdgeCount ?? visibleData?.edges.length ?? 0)
+							: (visibleData?.edges.length ?? 0),
+						label: candidatePreview
+							? 'Candidate graph relationships'
+							: 'Documented relationships',
+						note: candidatePreview
+							? 'Total in the private graph'
+							: 'Across the full index',
 					},
 				].map(item => (
 					<div
@@ -390,7 +401,9 @@ export function GraphExplorer() {
 						? 'Knowledge API'
 						: visibleData?.source === 'leader-sample'
 							? 'Verified Lead sample'
-							: 'Local demo sample'}
+							: visibleData?.source === 'ai-service-candidate'
+								? 'AI service candidate via Monolith'
+								: 'Local demo sample'}
 				</span>
 				{visibleData?.hasMore && (
 					<>
@@ -411,7 +424,8 @@ export function GraphExplorer() {
 							data-testid='graph-artifact-footer-hash'
 							title={`Manifest SHA-256: ${snapshot.artifactIntegrity.observedSha256}`}
 						>
-							Artifact: {snapshot.artifactIntegrity.observedSha256.slice(0, 12)}…
+							Artifact: {snapshot.artifactIntegrity.observedSha256.slice(0, 12)}
+							…
 							{snapshot.snapshot &&
 								` (${snapshot.snapshot.totalNodes} nodes, ${snapshot.snapshot.totalEdges} edges)`}
 						</span>

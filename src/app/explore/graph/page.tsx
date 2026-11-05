@@ -3,6 +3,8 @@ import { GraphExplorer } from '@/features/graph-explorer/components/GraphExplore
 export default function PublicGraphExplorerPage() {
 	const graphExplorerEnabled =
 		process.env.NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED === 'true'
+	const graphCandidatePreviewEnabled =
+		process.env.NEXT_PUBLIC_GRAPH_CANDIDATE_PREVIEW_ENABLED === 'true'
 
 	return (
 		<main className='mx-auto w-full max-w-[1440px] space-y-6 px-4 py-8 md:px-8'>
@@ -17,7 +19,9 @@ export default function PublicGraphExplorerPage() {
 					</h1>
 					<p className='mt-3 max-w-2xl text-sm leading-6 text-text-muted md:text-base'>
 						{graphExplorerEnabled
-							? 'Preview ingredient relationships from the bounded Knowledge API. This preview is not an accepted study graph or a safety decision.'
+							? graphCandidatePreviewEnabled
+								? 'Explore the newest private graph candidate fetched from the AI service through the Monolith. This candidate is not accepted for study claims or safety decisions.'
+								: 'Preview ingredient relationships from the bounded Knowledge API. This preview is not an accepted study graph or a safety decision.'
 							: 'Verified graph data is not available yet. This view stays off until a hash-pinned graph artifact is accepted.'}
 					</p>
 				</div>
@@ -29,11 +33,9 @@ export default function PublicGraphExplorerPage() {
 					data-testid='graph-explorer-preview-boundary'
 					role='note'
 				>
-					This preview uses the bounded legacy Knowledge API. It is not the
-					accepted hash-pinned study graph. Only relationships whose targets
-					resolve to known ingredients are shown; unresolved alternatives are
-					omitted. This preview does not provide calibrated substitution or
-					allergy-safety decisions.
+					{graphCandidatePreviewEnabled
+						? 'Preview only: this provisional private graph candidate is fetched from the AI service through the Monolith. It shows Recipe1MSubs train relationships and has not been accepted as the research graph. It does not make calibrated substitution or allergy-safety decisions.'
+						: 'This preview uses the bounded legacy Knowledge API. It is not the accepted hash-pinned study graph. Only relationships whose targets resolve to known ingredients are shown; unresolved alternatives are omitted. This preview does not provide calibrated substitution or allergy-safety decisions.'}
 				</aside>
 			)}
 			{graphExplorerEnabled ? (
