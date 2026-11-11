@@ -44,7 +44,7 @@ Scores can be sent as either `0..1` or percentages. Snake_case and camelCase fie
 
 ## Dish image analysis
 
-The scan page posts an image to the authenticated AI proxy at `POST /api/v1/food-vision/analyze` using multipart field `image`. The AI service calls its configured Gemini model and requires `GOOGLE_API_KEY`; no VLM training or CLIP index is needed for this MVP. Supported formats are JPEG, PNG, and WebP.
+The scan page posts an image through the public same-origin AI proxy at `POST /api/v1/food-vision/analyze` using multipart field `image`. The AI service calls its configured Gemini model and requires `GOOGLE_API_KEY`; no VLM training or CLIP index is needed for this MVP. Supported formats are JPEG, PNG, and WebP.
 
 The response identifies a likely dish and lists ingredients with `basis: visible` or `basis: inferred`. Inferred items come from likely dish composition and may not be present in the pictured serving. The UI displays this caveat and does not treat the result as a verified recipe or allergen check.
 
