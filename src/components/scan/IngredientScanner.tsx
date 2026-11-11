@@ -179,8 +179,14 @@ export function IngredientScanner({
 				toast.success(
 					t('scanFoundResults', { count: result.detections.length }),
 				)
-			} catch {
-				if (!controller.signal.aborted) setError(t('scanDetectionUnavailable'))
+			} catch (scanError) {
+				if (!controller.signal.aborted) {
+					setError(
+						scanError instanceof Error && scanError.message
+							? scanError.message
+							: t('scanDetectionUnavailable'),
+					)
+				}
 			} finally {
 				if (detectionAbortRef.current === controller) {
 					detectionAbortRef.current = null
