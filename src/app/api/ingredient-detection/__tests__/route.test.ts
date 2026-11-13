@@ -227,6 +227,48 @@ describe('ingredient detection endpoint', () => {
 		})
 	})
 
+	it('forwards only the four validated timing fields', async () => {
+		process.env.INGREDIENT_DETECTION_BACKEND_URL =
+			'http://detector.test/v1/scan'
+		jest.spyOn(global, 'fetch').mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				detections: [],
+				meta: {
+					speed: {
+						preprocess_ms: 1,
+						inference_ms: 2,
+						postprocess_ms: 3,
+						total_ms: 6,
+						unrelated: 'private-provider-detail',
+					},
+				},
+			}),
+		} as Response)
+		const body = new FormData()
+		body.append(
+			'image',
+			new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' }),
+		)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
+		expect((await response.json()).meta).toEqual({
+			source: 'real',
+			speed: {
+				preprocess_ms: 1,
+				inference_ms: 2,
+				postprocess_ms: 3,
+				total_ms: 6,
+			},
+		})
+	})
+
 	it('rejects an oversized upload before parsing its body', async () => {
 		const formData = jest.fn()
 		const response = await POST({

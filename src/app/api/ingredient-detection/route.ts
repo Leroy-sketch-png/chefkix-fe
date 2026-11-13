@@ -160,7 +160,18 @@ async function proxyToRealDetector(request: Request, image: File) {
 					...(typeof upstreamMeta.device === 'string'
 						? { device: upstreamMeta.device }
 						: {}),
-					...(validSpeed ? { speed } : {}),
+					...(validSpeed
+						? {
+								speed: Object.fromEntries(
+									[
+										'preprocess_ms',
+										'inference_ms',
+										'postprocess_ms',
+										'total_ms',
+									].map(key => [key, (speed as Record<string, unknown>)[key]]),
+								),
+							}
+						: {}),
 				},
 			},
 			{ headers: { 'Cache-Control': 'no-store' } },
