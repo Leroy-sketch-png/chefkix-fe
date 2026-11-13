@@ -4,14 +4,18 @@ import type {
 	FoodImageAnalysis,
 	ParsedSubstitutionIntent,
 } from '@/lib/types/photo-intelligence'
+import type { Recipe } from '@/lib/types/recipe'
+import { isAxiosError } from 'axios'
 import { aiApi } from '@/lib/axios'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
+import { getAllRecipes } from '@/services/recipe'
 
 const INGREDIENT_MATCH_ENDPOINT = '/api/photo-intelligence/ingredient-recipes'
 const DISH_RETRIEVAL_ENDPOINT = '/api/photo-intelligence/dish-retrieval'
 const FOOD_IMAGE_ANALYSIS_ENDPOINT = '/api/v1/food-vision/analyze'
 const SUBSTITUTION_INTENT_ENDPOINT =
 	'/api/v1/food-vision/parse-substitution-intent'
+const STORED_RECIPE_MATCH_LIMIT = 100
 
 interface ApiPayload<T> {
 	success: boolean
@@ -24,9 +28,16 @@ export async function findRecipesFromIngredients(
 	ingredients: string[],
 	signal?: AbortSignal,
 ): Promise<IngredientRecipeMatchResponse> {
-	const normalizedIngredients = Array.from(
-		new Set(ingredients.map(ingredient => ingredient.trim()).filter(Boolean)),
-	)
+	const uniqueByNormalizedName = new Map<string, string>()
+	for (const ingredient of ingredients) {
+		if (typeof ingredient !== 'string') continue
+		const trimmed = ingredient.trim()
+		if (!trimmed) continue
+		const key = normalizeIngredientName(trimmed)
+		if (!uniqueByNormalizedName.has(key))
+			uniqueByNormalizedName.set(key, trimmed)
+	}
+	const normalizedIngredients = [...uniqueByNormalizedName.values()]
 	if (normalizedIngredients.length === 0) {
 		return { matches: [], queryIngredients: [], source: 'backend' }
 	}
@@ -42,6 +53,14 @@ export async function findRecipesFromIngredients(
 		)
 		payload = response.data
 	} catch (error) {
+		if (
+			isAxiosError(error) &&
+			error.response?.status === 503 &&
+			(error.response.data as { code?: unknown } | undefined)?.code ===
+				'INTEGRATION_PENDING'
+		) {
+			return matchVisibleStoredRecipes(normalizedIngredients)
+		}
 		throw new Error(getUserFriendlyMessage(error))
 	}
 	if (!payload.success || !payload.data) {
@@ -50,6 +69,106 @@ export async function findRecipesFromIngredients(
 		)
 	}
 	return payload.data
+}
+
+/**
+ * Use the existing authenticated recipe API when HGAT has no configured endpoint.
+ * This is a bounded exact-name overlap baseline, not graph/model matching.
+ */
+async function matchVisibleStoredRecipes(ingredients: string[]) {
+	const response = await getAllRecipes({
+		page: 0,
+		size: STORED_RECIPE_MATCH_LIMIT,
+	})
+	if (!response.success || !Array.isArray(response.data)) {
+		throw new Error(
+			'Stored recipes could not be loaded for ingredient matching.',
+		)
+	}
+
+	const suppliedNames = new Set(ingredients.map(normalizeIngredientName))
+	let withheldRecipeCount = 0
+	const matches = (response.data as unknown[]).flatMap(rawRecipe => {
+		if (!rawRecipe || typeof rawRecipe !== 'object') {
+			withheldRecipeCount += 1
+			return []
+		}
+		const recipe = rawRecipe as Partial<Recipe>
+		if (!Array.isArray(recipe.fullIngredientList)) {
+			withheldRecipeCount += 1
+			return []
+		}
+		const ingredientNames = recipe.fullIngredientList.map(item =>
+			typeof item?.name === 'string' ? item.name.trim() : '',
+		)
+		if (ingredientNames.length === 0 || ingredientNames.some(name => !name)) {
+			withheldRecipeCount += 1
+			return []
+		}
+		const recipeIngredients = [
+			...new Map(
+				ingredientNames.map(
+					name => [normalizeIngredientName(name), name] as const,
+				),
+			).values(),
+		]
+		if (
+			typeof recipe.id !== 'string' ||
+			!recipe.id.trim() ||
+			typeof recipe.title !== 'string' ||
+			!recipe.title.trim() ||
+			recipeIngredients.length === 0
+		) {
+			withheldRecipeCount += 1
+			return []
+		}
+
+		const matchedIngredients = recipeIngredients.filter(name =>
+			suppliedNames.has(normalizeIngredientName(name)),
+		)
+		if (matchedIngredients.length === 0) return []
+
+		return [
+			{
+				recipeId: recipe.id.trim(),
+				recipeTitle: recipe.title.trim(),
+				coverImageUrl: Array.isArray(recipe.coverImageUrl)
+					? (recipe.coverImageUrl.find(image => typeof image === 'string') ??
+						null)
+					: null,
+				totalTimeMinutes:
+					typeof recipe.totalTimeMinutes === 'number' &&
+					Number.isFinite(recipe.totalTimeMinutes)
+						? recipe.totalTimeMinutes
+						: undefined,
+				difficulty:
+					typeof recipe.difficulty === 'string' ? recipe.difficulty : undefined,
+				matchMethod: 'exact-ingredient-overlap' as const,
+				inputIngredientCount: ingredients.length,
+				matchedIngredients,
+				missingIngredients: recipeIngredients.filter(
+					name => !suppliedNames.has(normalizeIngredientName(name)),
+				),
+			},
+		]
+	})
+	matches.sort(
+		(a, b) =>
+			b.matchedIngredients.length - a.matchedIngredients.length ||
+			a.recipeTitle.localeCompare(b.recipeTitle) ||
+			a.recipeId.localeCompare(b.recipeId),
+	)
+
+	return {
+		matches,
+		queryIngredients: ingredients,
+		source: 'stored-overlap' as const,
+		withheldRecipeCount,
+	}
+}
+
+function normalizeIngredientName(name: string) {
+	return name.trim().toLocaleLowerCase('en-US')
 }
 
 /** Send a dish photo through the Lead-owned CLIP/cross-modal retrieval adapter. */

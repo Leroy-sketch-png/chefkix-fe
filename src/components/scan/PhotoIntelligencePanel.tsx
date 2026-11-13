@@ -18,12 +18,18 @@ export function PhotoIntelligencePanel({
 }: PhotoIntelligencePanelProps) {
 	const t = useTranslations('cooking')
 	const [matches, setMatches] = useState<PhotoRecipeMatch[]>([])
+	const [matchSource, setMatchSource] = useState<
+		'backend' | 'stored-overlap' | null
+	>(null)
+	const [withheldRecipeCount, setWithheldRecipeCount] = useState(0)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
 		if (ingredients.length === 0) {
 			setMatches([])
+			setMatchSource(null)
+			setWithheldRecipeCount(0)
 			setError(null)
 			setLoading(false)
 			return
@@ -32,14 +38,20 @@ export function PhotoIntelligencePanel({
 		let active = true
 		const controller = new AbortController()
 		setLoading(true)
+		setMatchSource(null)
+		setWithheldRecipeCount(0)
 		setError(null)
 		void findRecipesFromIngredients(ingredients, controller.signal)
 			.then(response => {
 				if (active) setMatches(response.matches)
+				if (active) setMatchSource(response.source)
+				if (active) setWithheldRecipeCount(response.withheldRecipeCount ?? 0)
 			})
 			.catch(matchError => {
 				if (active) {
 					setMatches([])
+					setMatchSource(null)
+					setWithheldRecipeCount(0)
 					setError(
 						matchError instanceof Error
 							? matchError.message
@@ -82,7 +94,13 @@ export function PhotoIntelligencePanel({
 					</ul>
 					{!loading && !error && (
 						<p className='mt-1 text-sm font-medium text-brand'>
-							{t('scanYouHaveIngredientsFor', { count: matches.length })}
+							{matchSource === 'stored-overlap'
+								? t('scanStoredOverlapResultsCount', {
+										count: matches.length,
+									})
+								: t('scanYouHaveIngredientsFor', {
+										count: matches.length,
+									})}
 						</p>
 					)}
 				</div>
@@ -90,11 +108,19 @@ export function PhotoIntelligencePanel({
 					{t(`scanRecipeInputSource${inputSource}`)}
 				</span>
 			</div>
+			{matchSource === 'stored-overlap' && (
+				<p className='mb-3 rounded-xl border border-border-subtle bg-bg-elevated p-3 text-xs text-text-secondary'>
+					{t('scanStoredOverlapDisclosure', {
+						withheld: withheldRecipeCount,
+					})}
+				</p>
+			)}
 			<PhotoRecipeMatches
 				matches={matches}
 				loading={loading}
 				error={error}
 				mode='ingredients'
+				source={matchSource ?? 'backend'}
 			/>
 		</div>
 	)

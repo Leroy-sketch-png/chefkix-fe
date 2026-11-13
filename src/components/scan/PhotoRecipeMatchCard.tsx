@@ -37,9 +37,20 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 						<h3 className='font-semibold text-text-primary'>
 							{match.recipeTitle}
 						</h3>
-						<span className='shrink-0 rounded-full bg-success/12 px-2 py-1 text-xs font-bold text-success'>
-							{Math.round(match.matchScore * 100)}%
-						</span>
+						{match.matchMethod === 'exact-ingredient-overlap' ? (
+							<span className='shrink-0 rounded-full bg-bg-elevated px-2 py-1 text-xs font-semibold text-text-secondary'>
+								{t('scanStoredOverlapCount', {
+									matched: match.matchedIngredients.length,
+									provided: match.inputIngredientCount ?? 0,
+								})}
+							</span>
+						) : (
+							match.matchScore !== undefined && (
+								<span className='shrink-0 rounded-full bg-success/12 px-2 py-1 text-xs font-bold text-success'>
+									{Math.round(match.matchScore * 100)}%
+								</span>
+							)
+						)}
 					</div>
 					<div className='mt-2 flex flex-wrap gap-3 text-xs text-text-muted'>
 						{match.totalTimeMinutes !== undefined && (

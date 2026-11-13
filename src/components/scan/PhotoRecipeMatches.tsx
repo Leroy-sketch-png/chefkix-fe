@@ -10,6 +10,7 @@ interface PhotoRecipeMatchesProps {
 	loading?: boolean
 	error?: string | null
 	mode: 'ingredients' | 'dish'
+	source?: 'backend' | 'stored-overlap'
 }
 
 /** Shared result list for HGAT ingredient matches and CLIP dish retrieval. */
@@ -18,11 +19,16 @@ export function PhotoRecipeMatches({
 	loading = false,
 	error,
 	mode,
+	source = 'backend',
 }: PhotoRecipeMatchesProps) {
 	const t = useTranslations('cooking')
 	const title =
 		mode === 'ingredients'
-			? t('scanRecipeMatchesTitle')
+			? t(
+					source === 'stored-overlap'
+						? 'scanStoredOverlapTitle'
+						: 'scanRecipeMatchesTitle',
+				)
 			: t('scanDishMatchesTitle')
 
 	return (

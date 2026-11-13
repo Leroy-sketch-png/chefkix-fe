@@ -61,4 +61,24 @@ describe('PhotoIntelligencePanel', () => {
 		)
 		expect(await screen.findByText('Tofu and greens')).toBeInTheDocument()
 	})
+
+	it('discloses the bounded method and withheld metadata count', async () => {
+		jest.mocked(findRecipesFromIngredients).mockResolvedValue({
+			matches: [],
+			queryIngredients: ['Tofu'],
+			source: 'stored-overlap',
+			withheldRecipeCount: 4,
+		})
+
+		render(
+			<PhotoIntelligencePanel ingredients={['Tofu']} inputSource='manual' />,
+		)
+
+		expect(
+			await screen.findByText('scanStoredOverlapDisclosure'),
+		).toBeInTheDocument()
+		expect(
+			screen.getByText('scanStoredOverlapResultsCount'),
+		).toBeInTheDocument()
+	})
 })
