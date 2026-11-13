@@ -25,7 +25,6 @@ import { detectIngredients } from '@/services/ingredient-detection'
 import type {
 	DetectionSpeed,
 	IngredientDetection,
-	IngredientDetectionResult,
 } from '@/lib/types/ingredient-detection'
 import { IngredientDetectionOverlay } from './IngredientDetectionOverlay'
 type CameraStatus = 'idle' | 'requesting' | 'ready' | 'denied' | 'unsupported'
@@ -33,7 +32,7 @@ type CameraFacingMode = 'environment' | 'user'
 
 interface IngredientScannerProps {
 	className?: string
-	onScanComplete?: (result: IngredientDetectionResult, image: Blob) => void
+	onConfirmedIngredientsChange?: (ingredients: string[]) => void
 }
 
 const getCameraError = (error: unknown) => {
@@ -54,7 +53,7 @@ const getCameraError = (error: unknown) => {
 
 export function IngredientScanner({
 	className,
-	onScanComplete,
+	onConfirmedIngredientsChange,
 }: IngredientScannerProps) {
 	const t = useTranslations('cooking')
 	const videoRef = useRef<HTMLVideoElement>(null)
@@ -89,13 +88,20 @@ export function IngredientScanner({
 				: detections,
 		[detections, applyScoreThreshold, confidenceThreshold],
 	)
-	const confirmedNames = [
-		...new Set(
-			displayedDetections
-				.filter(detection => confirmedDetectionIds.includes(detection.id))
-				.map(detection => detection.name),
-		),
-	]
+	const confirmedNames = useMemo(
+		() => [
+			...new Set(
+				displayedDetections
+					.filter(detection => confirmedDetectionIds.includes(detection.id))
+					.map(detection => detection.name),
+			),
+		],
+		[displayedDetections, confirmedDetectionIds],
+	)
+
+	useEffect(() => {
+		onConfirmedIngredientsChange?.(confirmedNames)
+	}, [confirmedNames, onConfirmedIngredientsChange])
 
 	const clearCameraTimeout = useCallback(() => {
 		if (cameraTimeoutRef.current) {
@@ -221,7 +227,6 @@ export function IngredientScanner({
 				if (result.device) {
 					setDevice(result.device)
 				}
-				onScanComplete?.(result, image)
 				toast.success(
 					t('scanFoundResults', { count: result.detections.length }),
 				)
@@ -240,7 +245,7 @@ export function IngredientScanner({
 				}
 			}
 		},
-		[confidenceThreshold, onScanComplete, stopCamera, t],
+		[confidenceThreshold, stopCamera, t],
 	)
 
 	const handleThresholdChange = (newThreshold: number) => {

@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import type { IngredientDetectionResult } from '@/lib/types/ingredient-detection'
 import type { PhotoRecipeMatch } from '@/lib/types/photo-intelligence'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
 import { PhotoRecipeMatches } from './PhotoRecipeMatches'
 
 interface PhotoIntelligencePanelProps {
-	result: IngredientDetectionResult | null
+	ingredients: string[]
+	inputSource: 'scan' | 'manual' | 'mixed'
 }
 
-/** Orchestrates detection output into the Lead-owned HGAT recipe matching seam. */
+/** Sends only the ingredient list the user confirmed or entered to HGAT matching. */
 export function PhotoIntelligencePanel({
-	result,
+	ingredients,
+	inputSource,
 }: PhotoIntelligencePanelProps) {
 	const t = useTranslations('cooking')
 	const [matches, setMatches] = useState<PhotoRecipeMatch[]>([])
@@ -21,7 +22,7 @@ export function PhotoIntelligencePanel({
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		if (!result || result.detections.length === 0) {
+		if (ingredients.length === 0) {
 			setMatches([])
 			setError(null)
 			setLoading(false)
@@ -32,10 +33,7 @@ export function PhotoIntelligencePanel({
 		const controller = new AbortController()
 		setLoading(true)
 		setError(null)
-		void findRecipesFromIngredients(
-			result.detections.map(detection => detection.name),
-			controller.signal,
-		)
+		void findRecipesFromIngredients(ingredients, controller.signal)
 			.then(response => {
 				if (active) setMatches(response.matches)
 			})
@@ -56,9 +54,9 @@ export function PhotoIntelligencePanel({
 			active = false
 			controller.abort()
 		}
-	}, [result, t])
+	}, [ingredients, t])
 
-	if (!result) return null
+	if (ingredients.length === 0) return null
 	return (
 		<div className='mt-6 border-t border-border-subtle pt-6'>
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
@@ -69,6 +67,19 @@ export function PhotoIntelligencePanel({
 					<p className='mt-1 text-sm text-text-secondary'>
 						{t('scanIngredientIntelligenceDescription')}
 					</p>
+					<ul
+						className='mt-2 flex flex-wrap gap-1.5'
+						aria-label={t('scanIngredientsSentToMatching')}
+					>
+						{ingredients.map(ingredient => (
+							<li
+								key={ingredient.toLowerCase()}
+								className='rounded-full border border-border-subtle bg-bg-card px-2.5 py-1 text-xs text-text-primary'
+							>
+								{ingredient}
+							</li>
+						))}
+					</ul>
 					{!loading && !error && (
 						<p className='mt-1 text-sm font-medium text-brand'>
 							{t('scanYouHaveIngredientsFor', { count: matches.length })}
@@ -76,9 +87,7 @@ export function PhotoIntelligencePanel({
 					)}
 				</div>
 				<span className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-muted'>
-					{result.source === 'backend'
-						? t('scanModelLive')
-						: t('scanModelDemo')}
+					{t(`scanRecipeInputSource${inputSource}`)}
 				</span>
 			</div>
 			<PhotoRecipeMatches

@@ -72,6 +72,7 @@ describe('IngredientScanner camera controls', () => {
 	})
 
 	it('retains returned tofu and searches only confirmed detections without inventing a recipe', async () => {
+		const onConfirmedIngredientsChange = jest.fn()
 		const create = URL.createObjectURL
 		const revoke = URL.revokeObjectURL
 		URL.createObjectURL = jest.fn(() => 'blob:test-scan')
@@ -94,7 +95,11 @@ describe('IngredientScanner camera controls', () => {
 			],
 		})
 		try {
-			render(<IngredientScanner />)
+			render(
+				<IngredientScanner
+					onConfirmedIngredientsChange={onConfirmedIngredientsChange}
+				/>,
+			)
 			fireEvent.change(screen.getByTestId('ingredient-scanner-file-input'), {
 				target: {
 					files: [new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' })],
@@ -109,6 +114,11 @@ describe('IngredientScanner camera controls', () => {
 			).not.toBeInTheDocument()
 			fireEvent.click(
 				screen.getByRole('checkbox', { name: 'Use Carrot in recipe search' }),
+			)
+			await waitFor(() =>
+				expect(onConfirmedIngredientsChange).toHaveBeenLastCalledWith([
+					'Carrot',
+				]),
 			)
 			expect(
 				screen.getByRole('link', { name: 'Search recipes' }),

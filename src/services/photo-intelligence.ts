@@ -19,7 +19,7 @@ interface ApiPayload<T> {
 	data?: T
 }
 
-/** Query the Lead-owned HGAT adapter with normalized detected ingredient names. */
+/** Query the Lead-owned HGAT adapter with normalized confirmed/manual ingredients. */
 export async function findRecipesFromIngredients(
 	ingredients: string[],
 	signal?: AbortSignal,
