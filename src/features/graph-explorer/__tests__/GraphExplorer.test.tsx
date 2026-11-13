@@ -19,6 +19,14 @@ jest.mock('../components/GraphCanvas', () => ({
 		graphEvidence?: GraphEvidenceLoadState
 	}) => (
 		<div data-testid='graph-content'>
+			<span data-testid='source-bound-graph'>
+				{data.nodes.some(node => 'oracleStrata' in node) ||
+				data.edges.some(
+					edge => 'conformalStatus' in edge || 'molecularVenn' in edge,
+				)
+					? 'invented annotations'
+					: 'source fields only'}
+			</span>
 			{data.nodes.map(node => node.id).join(',')}|
 			{data.edges[0]?.compoundOverlap ?? 'pending'}|
 			{graphEvidence?.state === 'loaded'
@@ -54,6 +62,20 @@ const base: GraphData = {
 beforeEach(() => {
 	jest.clearAllMocks()
 	jest.mocked(getGraphEvidenceSnapshot).mockResolvedValue(undefined)
+})
+
+it('keeps live API data separate from unvalidated academic fixtures', async () => {
+	jest.mocked(getGraphData).mockResolvedValue(base)
+	render(<GraphExplorer />)
+	await waitFor(() =>
+		expect(screen.getByTestId('source-bound-graph')).toHaveTextContent(
+			'source fields only',
+		),
+	)
+	expect(screen.queryByText('Academic Research Mode')).not.toBeInTheDocument()
+	expect(
+		screen.queryByTestId('jurisdiction-filter-toolbar'),
+	).not.toBeInTheDocument()
 })
 
 it('finds an ingredient by remote alias outside the initial page', async () => {
@@ -305,8 +327,10 @@ it('displays the verified artifact manifest hash in the footer when evidence is 
 		status: 'AVAILABLE',
 		artifactIntegrity: {
 			status: 'VERIFIED',
-			expectedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-			observedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+			expectedSha256:
+				'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+			observedSha256:
+				'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
 		},
 		snapshot: {
 			totalNodes: 6633,
@@ -319,7 +343,9 @@ it('displays the verified artifact manifest hash in the footer when evidence is 
 	await waitFor(() => {
 		const el = screen.getByTestId('graph-artifact-footer-hash')
 		expect(el).toBeInTheDocument()
-		expect(el.textContent).toContain('Artifact: ade85c3312b8… (6633 nodes, 23185 edges)')
+		expect(el.textContent).toContain(
+			'Artifact: ade85c3312b8… (6633 nodes, 23185 edges)',
+		)
 		expect(el).toHaveAttribute(
 			'title',
 			'Manifest SHA-256: ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',

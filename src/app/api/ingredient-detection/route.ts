@@ -64,15 +64,41 @@ async function proxyToRealDetector(request: Request, image: File) {
 	const endpoint = getRealDetectionEndpoint()
 	if (!endpoint) return null
 
+	const requestUrl = new URL(request.url)
+	const confidenceThreshold = requestUrl.searchParams.get(
+		'confidence_threshold',
+	)
+	if (
+		confidenceThreshold !== null &&
+		(confidenceThreshold.trim() === '' ||
+			!Number.isFinite(Number(confidenceThreshold)) ||
+			Number(confidenceThreshold) < 0 ||
+			Number(confidenceThreshold) > 1)
+	) {
+		return photoProxyError(
+			'Detection threshold must be between 0 and 1.',
+			400,
+			'INVALID_REQUEST',
+		)
+	}
+	const targetUrl = new URL(endpoint)
+	if (confidenceThreshold) {
+		targetUrl.searchParams.set('confidence_threshold', confidenceThreshold)
+	}
+
 	const body = new FormData()
 	body.append('image', image, image.name || 'ingredient-scan.jpg')
 	const { signal, timeoutSignal } = createPhotoUpstreamSignal(request)
 
 	try {
-		const upstreamResponse = await fetch(endpoint, {
+		const apiKey = process.env.AI_SERVICE_API_KEY?.trim()
+		const upstreamResponse = await fetch(targetUrl.toString(), {
 			method: 'POST',
 			body,
-			headers: { Accept: 'application/json' },
+			headers: {
+				Accept: 'application/json',
+				...(apiKey ? { 'X-AI-Service-Key': apiKey } : {}),
+			},
 			cache: 'no-store',
 			signal,
 		})
@@ -104,11 +130,38 @@ async function proxyToRealDetector(request: Request, image: File) {
 			)
 		}
 
+		const rawMeta = (upstreamPayload as Record<string, unknown>).meta
+		const upstreamMeta =
+			rawMeta && typeof rawMeta === 'object'
+				? (rawMeta as Record<string, unknown>)
+				: {}
+		const speed = upstreamMeta.speed
+		const validSpeed =
+			speed &&
+			typeof speed === 'object' &&
+			['preprocess_ms', 'inference_ms', 'postprocess_ms', 'total_ms'].every(
+				key => {
+					const value = (speed as Record<string, unknown>)[key]
+					return (
+						typeof value === 'number' && Number.isFinite(value) && value >= 0
+					)
+				},
+			)
+
 		return NextResponse.json(
 			{
 				success: true,
 				data: { detections },
-				meta: { source: 'real' },
+				meta: {
+					source: 'real',
+					...(typeof upstreamMeta.model === 'string'
+						? { model: upstreamMeta.model }
+						: {}),
+					...(typeof upstreamMeta.device === 'string'
+						? { device: upstreamMeta.device }
+						: {}),
+					...(validSpeed ? { speed } : {}),
+				},
 			},
 			{ headers: { 'Cache-Control': 'no-store' } },
 		)

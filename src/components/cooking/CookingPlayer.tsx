@@ -697,6 +697,19 @@ export const CookingPlayer = () => {
 	)
 	const progress = totalSteps > 0 ? (completedSteps.size / totalSteps) * 100 : 0
 
+	const activeStepSubstitutions = useMemo(() => {
+		if (!step) return []
+		return substitutionFeedbacks.filter(
+			fb =>
+				fb.choice === 'accept' &&
+				(fb.stepNumber === currentStepNumber ||
+					(step.description &&
+						step.description
+							.toLowerCase()
+							.includes(fb.originalIngredient.toLowerCase()))),
+		)
+	}, [substitutionFeedbacks, currentStepNumber, step])
+
 	// Double-clap detection: re-reads current step via TTS (Wave 2: Kitchen Protocol)
 	// Hands-free wake — clap twice to hear the current step again
 	// Respects instructionDetail: detailed includes tips, condensed reads title only
@@ -1278,8 +1291,7 @@ export const CookingPlayer = () => {
 			if (!sessionId) return false
 
 			if (feedback.candidateReceipt && feedback.substituteIngredient) {
-				const isAccepted =
-					feedback.choice === 'accept'
+				const isAccepted = feedback.choice === 'accept'
 				const clientFeedbackId = feedback.suggestionId
 					? `sub:${feedback.suggestionId}:${feedback.choice}`
 					: `cooking:${sessionId}:${feedback.originalIngredient}:${Date.now()}`
@@ -1291,7 +1303,7 @@ export const CookingPlayer = () => {
 					candidateReceipt: feedback.candidateReceipt,
 					accepted: isAccepted,
 					technique: feedback.technique,
-					cuisine: recipe.cuisineType || undefined,
+					cuisine: recipe?.cuisineType || undefined,
 				}
 
 				try {
@@ -1315,7 +1327,7 @@ export const CookingPlayer = () => {
 			toast.success(t('substitutionRecorded'))
 			return true
 		},
-		[session?.sessionId, currentStepNumber, recipe.cuisineType, t],
+		[session?.sessionId, currentStepNumber, recipe?.cuisineType, t],
 	)
 
 	const submitSessionSubstitutionOutcomes = useCallback(
@@ -1329,8 +1341,7 @@ export const CookingPlayer = () => {
 
 			const results = await Promise.allSettled(
 				receiptedFeedbacks.map(feedback => {
-					const isAccepted =
-						feedback.choice === 'accept'
+					const isAccepted = feedback.choice === 'accept'
 					const clientFeedbackId = feedback.suggestionId
 						? `outcome:${feedback.suggestionId}:${session.sessionId}`
 						: `outcome:${session.sessionId}:${feedback.originalIngredient}:${Date.now()}`
@@ -1342,7 +1353,7 @@ export const CookingPlayer = () => {
 						candidateReceipt: feedback.candidateReceipt!,
 						accepted: isAccepted,
 						technique: feedback.technique,
-						cuisine: recipe.cuisineType || undefined,
+						cuisine: recipe?.cuisineType || undefined,
 						userRating: rating,
 					})
 				}),
@@ -1356,7 +1367,7 @@ export const CookingPlayer = () => {
 				toast.warning(t('substitutionFeedbackFailed'))
 			}
 		},
-		[session, substitutionFeedbacks, recipe.cuisineType, t],
+		[session, substitutionFeedbacks, recipe?.cuisineType, t],
 	)
 
 	const [isCompletingSession, setIsCompletingSession] = useState(false)
@@ -2060,6 +2071,30 @@ export const CookingPlayer = () => {
 												exit='exit'
 												className='absolute inset-0 z-0 flex flex-col overflow-y-auto p-6'
 											>
+												{activeStepSubstitutions.length > 0 && (
+													<div
+														data-testid='active-step-substitution-banner'
+														className='mx-auto mb-4 flex w-full max-w-lg items-center gap-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-xs text-text-primary shadow-xs'
+													>
+														<Sparkles className='size-4 text-emerald-600 dark:text-emerald-400 shrink-0' />
+														<div>
+															<span className='font-bold text-emerald-700 dark:text-emerald-300'>
+																Active Adaptive Substitution:{' '}
+															</span>
+															<span>
+																{activeStepSubstitutions
+																	.map(
+																		s =>
+																			`${s.substituteIngredient} (replacing ${s.originalIngredient})`,
+																	)
+																	.join(', ')}
+															</span>
+															<span className='ml-2 font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold'>
+																Allergen safety not established
+															</span>
+														</div>
+													</div>
+												)}
 												<StepV2Renderer
 													step={step}
 													mode={effectiveRenderMode}

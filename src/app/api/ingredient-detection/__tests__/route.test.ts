@@ -165,6 +165,68 @@ describe('ingredient detection endpoint', () => {
 		expect(fetchMock).not.toHaveBeenCalled()
 	})
 
+	it.each(['-1', '1.1', 'NaN', ''])(
+		'rejects invalid threshold %s before inference',
+		async threshold => {
+			process.env.INGREDIENT_DETECTION_BACKEND_URL =
+				'http://detector.test/v1/scan'
+			const fetchMock = jest.spyOn(global, 'fetch')
+			const body = new FormData()
+			body.append(
+				'image',
+				new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' }),
+			)
+			const response = await POST(
+				new Request(
+					`http://localhost/api/ingredient-detection?confidence_threshold=${threshold}`,
+					{
+						method: 'POST',
+						body,
+						headers: { Authorization: 'Bearer user-token' },
+					},
+				),
+			)
+			expect(response.status).toBe(400)
+			expect(fetchMock).not.toHaveBeenCalled()
+		},
+	)
+
+	it('keeps proxy provenance and excludes unrelated or invalid upstream metadata', async () => {
+		process.env.INGREDIENT_DETECTION_BACKEND_URL =
+			'http://detector.test/v1/scan'
+		jest.spyOn(global, 'fetch').mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				detections: [],
+				meta: {
+					source: 'mock',
+					device: 'cpu',
+					model: 'fixture-model',
+					speed: { total_ms: -1 },
+					unrelated: 'private-provider-detail',
+				},
+			}),
+		} as Response)
+		const body = new FormData()
+		body.append(
+			'image',
+			new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' }),
+		)
+		const response = await POST(
+			new Request('http://localhost/api/ingredient-detection', {
+				method: 'POST',
+				body,
+				headers: { Authorization: 'Bearer user-token' },
+			}),
+		)
+		expect((await response.json()).meta).toEqual({
+			source: 'real',
+			device: 'cpu',
+			model: 'fixture-model',
+		})
+	})
+
 	it('rejects an oversized upload before parsing its body', async () => {
 		const formData = jest.fn()
 		const response = await POST({
