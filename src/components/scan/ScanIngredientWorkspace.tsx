@@ -4,7 +4,6 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
-import { PATHS } from '@/constants'
 import { IngredientScanner } from './IngredientScanner'
 import { PhotoIntelligencePanel } from './PhotoIntelligencePanel'
 
@@ -100,7 +99,7 @@ export function ScanIngredientWorkspace() {
 			</section>
 			{ingredients.length > 0 && (
 				<Link
-					href={`${PATHS.SEARCH}?q=${encodeURIComponent(ingredients.join(' '))}`}
+					href='#ingredient-match-results'
 					className='mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
 				>
 					<Search className='size-4' />

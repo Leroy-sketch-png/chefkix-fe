@@ -52,11 +52,13 @@ describe('ScanIngredientWorkspace', () => {
 			),
 		)
 		await screen.findByText('scanYouHaveIngredientsFor')
-		expect(
-			screen.getByRole('link', {
-				name: 'scanSearchRecipesWithIngredients',
-			}),
-		).toHaveAttribute('href', '/search?q=tofu')
+		const showMatchesLink = screen.getByRole('link', {
+			name: 'scanSearchRecipesWithIngredients',
+		})
+		expect(showMatchesLink).toHaveAttribute('href', '#ingredient-match-results')
+		expect(document.getElementById('ingredient-match-results')).toBeInTheDocument()
+		fireEvent.click(showMatchesLink)
+		expect(screen.getByRole('heading', { name: 'scanIngredientIntelligenceTitle' })).toBeInTheDocument()
 
 		fireEvent.click(
 			screen.getByRole('button', { name: 'Use confirmed scan ingredients' }),

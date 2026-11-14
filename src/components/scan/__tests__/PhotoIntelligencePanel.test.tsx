@@ -59,6 +59,7 @@ describe('PhotoIntelligencePanel', () => {
 				expect.any(AbortSignal),
 			),
 		)
+		expect(document.getElementById('ingredient-match-results')).toBeInTheDocument()
 		expect(await screen.findByText('Tofu and greens')).toBeInTheDocument()
 	})
 

@@ -107,8 +107,8 @@ describe('IngredientScanner camera controls', () => {
 			})
 			await screen.findByRole('checkbox', { name: 'Use Tofu in recipe search' })
 			expect(
-				screen.getByRole('button', { name: 'Search recipes' }),
-			).toBeDisabled()
+				screen.queryByRole('link', { name: 'Search recipes' }),
+			).not.toBeInTheDocument()
 			expect(
 				screen.queryByText(/96%|ZERO-ALLERGEN|Instant Recipe/),
 			).not.toBeInTheDocument()
@@ -121,8 +121,8 @@ describe('IngredientScanner camera controls', () => {
 				]),
 			)
 			expect(
-				screen.getByRole('link', { name: 'Search recipes' }),
-			).toHaveAttribute('href', '/search?q=Carrot')
+				screen.queryByRole('link', { name: 'Search recipes' }),
+			).not.toBeInTheDocument()
 		} finally {
 			cleanup()
 			URL.createObjectURL = create

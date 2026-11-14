@@ -15,11 +15,9 @@ import {
 	Loader2,
 	RotateCcw,
 	SwitchCamera,
-	Search,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { PATHS } from '@/constants'
 import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
 import { detectIngredients } from '@/services/ingredient-detection'
 import type {
@@ -576,24 +574,6 @@ export function IngredientScanner({
 						</p>
 					</div>
 
-					<div className='flex flex-wrap items-center gap-3'>
-						{confirmedNames.length > 0 ? (
-							<Link
-								href={`${PATHS.SEARCH}?q=${encodeURIComponent(confirmedNames.join(' '))}`}
-								className='inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white'
-							>
-								<Search className='size-4' /> Search recipes
-							</Link>
-						) : (
-							<button
-								type='button'
-								disabled
-								className='inline-flex min-h-11 items-center gap-2 rounded-lg bg-bg-elevated px-4 py-2 text-sm text-text-muted'
-							>
-								<Search className='size-4' /> Search recipes
-							</button>
-						)}
-					</div>
 				</div>
 			)}
 		</section>

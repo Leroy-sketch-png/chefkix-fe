@@ -70,7 +70,11 @@ export function PhotoIntelligencePanel({
 
 	if (ingredients.length === 0) return null
 	return (
-		<div className='mt-6 border-t border-border-subtle pt-6'>
+		<div
+			id='ingredient-match-results'
+			tabIndex={-1}
+			className='mt-6 scroll-mt-6 border-t border-border-subtle pt-6'
+		>
 			<div className='mb-4 flex flex-wrap items-center justify-between gap-2'>
 				<div>
 					<h2 className='font-semibold text-text-primary'>
