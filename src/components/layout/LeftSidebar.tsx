@@ -26,6 +26,7 @@ import {
 	BarChart3,
 	Sparkles,
 	Network,
+	ScanLine,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
@@ -76,8 +77,14 @@ const guestPrimaryNavItems: NavItem[] = [
 	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
 ]
 
+// The scanner is public and belongs with the other secondary kitchen tools.
+const guestSecondaryNavItems: NavItem[] = [
+	{ href: PATHS.SCAN, icon: ScanLine, labelKey: 'kitchenScanner' },
+]
+
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
+	...guestSecondaryNavItems,
 	{
 		href: PATHS.COPILOT,
 		icon: Sparkles,
@@ -149,11 +156,9 @@ export const LeftSidebar = () => {
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
-		if (!isAuthenticated) {
-			return false
-		}
-
-		const allSecondary = [...secondaryNavItems]
+		const allSecondary = isAuthenticated
+			? [...secondaryNavItems]
+			: [...guestSecondaryNavItems]
 		if (user?.accountType === 'admin') allSecondary.push(adminNavItem)
 		return allSecondary.some(item => {
 			const href =
@@ -176,10 +181,10 @@ export const LeftSidebar = () => {
 		if (isSecondaryActive) setShowMore(true)
 	}, [isSecondaryActive])
 
-	// Build the secondary items list (including admin if applicable), filtered for auth
+	// Guests get public tools only; authenticated users also get the full menu/admin link.
 	const secondaryItems = useMemo(() => {
 		if (!isAuthenticated) {
-			return []
+			return [...guestSecondaryNavItems]
 		}
 
 		let items = [...secondaryNavItems]
