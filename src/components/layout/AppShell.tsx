@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import {
 	clearPendingFeedScrollPosition,
 	getPendingFeedScrollPosition,
-	scrollAppTo,
+	restoreFeedScrollPositionIfReady,
 } from '@/lib/app-scroll'
 
 interface AppShellProps {
@@ -38,29 +38,24 @@ export function AppShell({
 			return
 		}
 
-		const savedTop = getPendingFeedScrollPosition()
-		if (savedTop == null) return
+		restoreFeedScrollPositionIfReady()
+		if (getPendingFeedScrollPosition() == null) return
 
-		let cancelled = false
-		let frames = 0
-		const restoreWhenFeedIsReady = () => {
-			if (cancelled) return
+		const cancelRestoreOnIntent = () => clearPendingFeedScrollPosition()
+		window.addEventListener('wheel', cancelRestoreOnIntent, { passive: true })
+		window.addEventListener('touchstart', cancelRestoreOnIntent, {
+			passive: true,
+		})
+		window.addEventListener('pointerdown', cancelRestoreOnIntent, {
+			passive: true,
+		})
+		window.addEventListener('keydown', cancelRestoreOnIntent)
 
-			const feed = document.querySelector('[data-testid="feed-page"]')
-			const feedReady = feed?.getAttribute('data-feed-ready') === 'true'
-			if (feedReady || frames >= 120) {
-				scrollAppTo(savedTop)
-				clearPendingFeedScrollPosition()
-				return
-			}
-
-			frames += 1
-			requestAnimationFrame(restoreWhenFeedIsReady)
-		}
-
-		requestAnimationFrame(restoreWhenFeedIsReady)
 		return () => {
-			cancelled = true
+			window.removeEventListener('wheel', cancelRestoreOnIntent)
+			window.removeEventListener('touchstart', cancelRestoreOnIntent)
+			window.removeEventListener('pointerdown', cancelRestoreOnIntent)
+			window.removeEventListener('keydown', cancelRestoreOnIntent)
 		}
 	}, [pathname])
 

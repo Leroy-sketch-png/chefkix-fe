@@ -25,7 +25,10 @@ import { useStoryStore } from '@/store/storyStore'
 import { StoryFeed } from '@/components/story/StoryFeed'
 import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
 import { PullToRefresh } from '@/components/ui/pull-to-refresh'
-import { rememberFeedScrollPosition } from '@/lib/app-scroll'
+import {
+	rememberFeedScrollPosition,
+	restoreFeedScrollPositionIfReady,
+} from '@/lib/app-scroll'
 
 const POSTS_PER_PAGE = 10
 
@@ -64,6 +67,10 @@ export default function FeedPage() {
 			setIsStoryLoading(false)
 		}
 	}, [user, fetchStoryFeed])
+
+	useEffect(() => {
+		if (!isLoading) restoreFeedScrollPositionIfReady()
+	}, [isLoading])
 
 	useEffect(() => {
 		if (user && !initializedAuthMode.current) {
