@@ -86,7 +86,7 @@ describe('full cooking ingredient reference', () => {
 		expect(playerSource).toContain('hasFullIngredients &&')
 		expect(playerSource).toContain('setShowIngredientList(true)')
 		expect(playerSource).toContain('<FullIngredientListDialog')
-		expect(playerSource).toContain('if (showIngredientList) return')
+		expect(playerSource).toContain('showIngredientList,')
 		expect(playerSource).toContain(
 			'ingredientDialogEscapeEvents.current.has(e)',
 		)

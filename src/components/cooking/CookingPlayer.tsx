@@ -63,6 +63,7 @@ import { KitchenAudioChoiceDialog } from './KitchenAudioChoiceDialog'
 import { OfflineBanner } from './OfflineBanner'
 import { AiAssistPanel } from './AiAssistPanel'
 import { FullIngredientListDialog } from './FullIngredientListDialog'
+import { handleCookingPlayerKeyboardEvent } from './cookingPlayerKeyboard'
 import { AnimatedNumber } from '@/components/ui/animated-number'
 import { useVoiceMode } from '@/lib/voice'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
@@ -1156,61 +1157,37 @@ export const CookingPlayer = () => {
 				return
 			}
 
-			// Guard: Don't handle keyboard when player is closed
-			if (!isOpen) return
-
-			// Error state (no recipe/session): only Escape to dismiss
-			if (!recipe) {
-				if (e.key === 'Escape') {
-					e.preventDefault()
-					closeCookingPanel()
-				}
-				return
-			}
-
-			// Guard: Don't capture keyboard events when completion modal is showing
-			// This allows users to type in the rating form (e.g., notes with spaces)
-			if (showCompletion) return
-
-			// Radix owns focus and Escape while the ingredient reference is open.
-			if (showIngredientList) return
-
-			// Guard: When AI assist or abandon confirmation is showing, don't capture
-			if (showAiAssist) return
-
-			// Guard: When abandon confirmation is showing, only handle Escape to close it
-			if (showAbandonConfirm) {
-				if (e.key === 'Escape') {
-					e.preventDefault()
-					setShowAbandonConfirm(false)
-				}
-				return
-			}
-
-			if (e.key === 'ArrowRight') {
-				e.preventDefault()
-				handleNextStep()
-			} else if (e.key === 'ArrowLeft') {
-				e.preventDefault()
-				handlePrevStep()
-			} else if (e.key === 'Escape') {
-				closeCookingPanel()
-			} else if (e.key === 'm' || e.key === 'M') {
-				// Cycle rendering mode: full → quick → kitchen → full
-				e.preventDefault()
-				if (kitchenMode) {
-					// kitchen → full
-					setKitchenMode(false)
-					setInstructionDetail('detailed')
-				} else if (instructionDetail === 'condensed') {
-					// quick → kitchen
-					setKitchenMode(true)
-				} else {
-					// full/standard → quick
-					setKitchenMode(false)
-					setInstructionDetail('condensed')
-				}
-			}
+			handleCookingPlayerKeyboardEvent(
+				e,
+				{
+					isOpen,
+					hasRecipe: !!recipe,
+					showCompletion,
+					showAbandonConfirm,
+					showAiAssist,
+					showIngredientList,
+					showVoiceHelp: voice.showHelp,
+					hasOpenModal: document.querySelector('[aria-modal="true"]') !== null,
+				},
+				{
+					closePlayer: closeCookingPanel,
+					closeAbandonConfirm: () => setShowAbandonConfirm(false),
+					nextStep: handleNextStep,
+					previousStep: handlePrevStep,
+					toggleMode: () => {
+						// Cycle rendering mode: full → quick → kitchen → full
+						if (kitchenMode) {
+							setKitchenMode(false)
+							setInstructionDetail('detailed')
+						} else if (instructionDetail === 'condensed') {
+							setKitchenMode(true)
+						} else {
+							setKitchenMode(false)
+							setInstructionDetail('condensed')
+						}
+					},
+				},
+			)
 		}
 
 		window.addEventListener('keydown', rememberIngredientDialogEscape, true)
@@ -1233,6 +1210,7 @@ export const CookingPlayer = () => {
 		showAiAssist,
 		showIngredientList,
 		showAbandonConfirm,
+		voice.showHelp,
 		kitchenMode,
 		instructionDetail,
 	])
