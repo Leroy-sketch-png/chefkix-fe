@@ -52,7 +52,10 @@ export function ScanIngredientWorkspace() {
 				>
 					{t('scanManualIngredientLabel')}
 				</label>
-				<form onSubmit={addManualIngredient} className='mt-2 flex gap-2'>
+				<form
+					onSubmit={addManualIngredient}
+					className='mt-2 flex min-w-0 gap-2'
+				>
 					<input
 						id='manual-ingredient'
 						value={manualDraft}
@@ -64,7 +67,7 @@ export function ScanIngredientWorkspace() {
 					<button
 						type='submit'
 						disabled={!manualDraft.trim()}
-						className='min-h-11 rounded-lg bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50'
+						className='min-h-11 shrink-0 rounded-lg bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{t('scanAddIngredient')}
 					</button>
@@ -77,9 +80,11 @@ export function ScanIngredientWorkspace() {
 						{manualIngredients.map(ingredient => (
 							<li
 								key={ingredient.toLowerCase()}
-								className='inline-flex items-center gap-2 rounded-full border border-border-subtle bg-bg-card px-3 py-1 text-sm text-text-primary'
+								className='inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border-subtle bg-bg-card px-3 py-1 text-sm text-text-primary'
 							>
-								{ingredient}
+								<span className='min-w-0 [overflow-wrap:anywhere]'>
+									{ingredient}
+								</span>
 								<button
 									type='button'
 									aria-label={t('scanRemoveIngredient', { ingredient })}
@@ -88,7 +93,7 @@ export function ScanIngredientWorkspace() {
 											current.filter(item => item !== ingredient),
 										)
 									}
-									className='font-bold text-text-muted hover:text-text-primary'
+									className='shrink-0 font-bold text-text-muted hover:text-text-primary'
 								>
 									×
 								</button>

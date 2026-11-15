@@ -396,11 +396,11 @@ export function IngredientScanner({
 
 			{error && (
 				<div
-					className='flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid'
+					className='flex min-w-0 items-start gap-3 rounded-2xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid'
 					role='alert'
 				>
 					<AlertTriangle className='mt-0.5 size-4 shrink-0' />
-					<span>{error}</span>
+					<span className='min-w-0 [overflow-wrap:anywhere]'>{error}</span>
 				</div>
 			)}
 
@@ -573,7 +573,6 @@ export function IngredientScanner({
 							before searching.
 						</p>
 					</div>
-
 				</div>
 			)}
 		</section>

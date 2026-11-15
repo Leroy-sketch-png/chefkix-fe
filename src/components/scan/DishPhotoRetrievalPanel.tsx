@@ -194,7 +194,7 @@ export function DishPhotoRetrievalPanel() {
 			)}
 			{error && !loading && (
 				<div
-					className='rounded-2xl border border-warning/20 bg-warning/8 p-4 text-sm text-warning-vivid'
+					className='min-w-0 rounded-2xl border border-warning/20 bg-warning/8 p-4 text-sm text-warning-vivid [overflow-wrap:anywhere]'
 					role='alert'
 				>
 					{error}
@@ -313,7 +313,7 @@ export function DishPhotoRetrievalPanel() {
 
 						{substitutionError && (
 							<p
-								className='mt-3 rounded-xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid'
+								className='mt-3 min-w-0 rounded-xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid [overflow-wrap:anywhere]'
 								role='alert'
 							>
 								{substitutionError}

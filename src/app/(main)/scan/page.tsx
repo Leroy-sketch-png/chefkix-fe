@@ -44,8 +44,8 @@ export default async function ScanIngredientsPage() {
 				<DishPhotoRetrievalPanel />
 			</div>
 
-			<div className='grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]'>
-				<div className='rounded-3xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'>
+			<div className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]'>
+				<div className='min-w-0 rounded-3xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'>
 					<div className='mb-5 flex items-center gap-3'>
 						<div className='flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand'>
 							<Camera className='size-5' />
@@ -62,7 +62,7 @@ export default async function ScanIngredientsPage() {
 					<ScanIngredientWorkspace />
 				</div>
 
-				<aside className='rounded-3xl border border-border-subtle bg-bg-elevated p-5 sm:p-6'>
+				<aside className='min-w-0 rounded-3xl border border-border-subtle bg-bg-elevated p-5 sm:p-6'>
 					<h2 className='font-semibold text-text-primary'>
 						{t('scanMakeItCount')}
 					</h2>

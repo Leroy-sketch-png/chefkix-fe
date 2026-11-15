@@ -57,8 +57,8 @@ export function PhotoRecipeMatches({
 					className='rounded-2xl border border-warning/20 bg-warning/8 p-4 text-sm text-warning-vivid'
 					role='alert'
 				>
-					<div className='flex flex-wrap items-center justify-between gap-3'>
-						<p>{error}</p>
+					<div className='flex min-w-0 flex-wrap items-center justify-between gap-3'>
+						<p className='min-w-0 [overflow-wrap:anywhere]'>{error}</p>
 						{onRetry && (
 							<Button
 								type='button'

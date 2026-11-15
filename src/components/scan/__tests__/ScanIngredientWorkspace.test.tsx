@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from '@testing-library/react'
 import { ScanIngredientWorkspace } from '@/components/scan/ScanIngredientWorkspace'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
 
@@ -56,9 +62,13 @@ describe('ScanIngredientWorkspace', () => {
 			name: 'scanSearchRecipesWithIngredients',
 		})
 		expect(showMatchesLink).toHaveAttribute('href', '#ingredient-match-results')
-		expect(document.getElementById('ingredient-match-results')).toBeInTheDocument()
+		expect(
+			document.getElementById('ingredient-match-results'),
+		).toBeInTheDocument()
 		fireEvent.click(showMatchesLink)
-		expect(screen.getByRole('heading', { name: 'scanIngredientIntelligenceTitle' })).toBeInTheDocument()
+		expect(
+			screen.getByRole('heading', { name: 'scanIngredientIntelligenceTitle' }),
+		).toBeInTheDocument()
 
 		fireEvent.click(
 			screen.getByRole('button', { name: 'Use confirmed scan ingredients' }),
@@ -84,5 +94,26 @@ describe('ScanIngredientWorkspace', () => {
 			expect.any(AbortSignal),
 		)
 		await screen.findByText('scanYouHaveIngredientsFor')
+	})
+
+	it('retains a maximum-length unbroken manual ingredient and its remove action', async () => {
+		const ingredient = 'x'.repeat(120)
+		render(<ScanIngredientWorkspace />)
+		const input = screen.getByLabelText('scanManualIngredientLabel')
+
+		expect(input).toHaveAttribute('maxLength', '120')
+		fireEvent.change(input, { target: { value: ingredient } })
+		fireEvent.click(screen.getByRole('button', { name: 'scanAddIngredient' }))
+
+		const list = screen.getByRole('list', { name: 'scanManualIngredientList' })
+		expect(within(list).getByText(ingredient)).toBeInTheDocument()
+		fireEvent.click(
+			screen.getByRole('button', {
+				name: `scanRemoveIngredient`.replace('{ingredient}', ingredient),
+			}),
+		)
+		await waitFor(() =>
+			expect(screen.queryByText(ingredient)).not.toBeInTheDocument(),
+		)
 	})
 })
