@@ -29,7 +29,7 @@ export default async function ScanIngredientsPage() {
 						{t('scanPageDescription')}
 					</p>
 				</div>
-				<div className='hidden rounded-2xl border border-success/20 bg-success/5 p-4 sm:block'>
+				<div className='w-full max-w-md rounded-2xl border border-success/20 bg-success/5 p-3 sm:w-auto sm:p-4'>
 					<ShieldCheck className='mb-2 size-5 text-success' />
 					<p className='text-sm font-semibold text-text-primary'>
 						{t('scanPrivatePreview')}
