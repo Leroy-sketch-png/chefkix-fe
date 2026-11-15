@@ -18,6 +18,13 @@ import { logDevError } from '@/lib/dev-log'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
 import { useAuthStore } from '@/store/authStore'
 
+const logAuthRequestFailure = (operation: string, error: unknown): void => {
+	const status = (error as AxiosError).response?.status
+	logDevError(
+		`${operation} request failed: ${status === undefined ? 'no HTTP response' : `HTTP ${status}`}`,
+	)
+}
+
 // Sign-in function
 export const signIn = async (
 	data: SignInDto,
@@ -29,15 +36,21 @@ export const signIn = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
+		logAuthRequestFailure('sign-in', error)
 		if (axiosError.response) {
-			return axiosError.response.data
+			const body = axiosError.response.data
+			return {
+				...(body && typeof body === 'object' ? body : {}),
+				success: body?.success ?? false,
+				statusCode: body?.statusCode ?? axiosError.response.status,
+				message: body?.message ?? getUserFriendlyMessage(error),
+			}
 		}
 		return {
 			success: false,
 			message: getUserFriendlyMessage(error),
-			statusCode: 500,
+			statusCode: 0,
 		}
 	}
 }
@@ -53,7 +66,7 @@ export const signUp = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('sign-up', error)
 		const axiosError = error as AxiosError<ApiResponse<OtpDeliveryTiming>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -79,7 +92,7 @@ export const checkUsernameAvailability = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('Username check failed:', error)
+		logAuthRequestFailure('username check', error)
 		const axiosError = error as AxiosError<ApiResponse<{ available: boolean }>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -101,7 +114,7 @@ export const logout = async (): Promise<ApiResponse<string>> => {
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('logout', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -127,7 +140,7 @@ export const resendOtp = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('resend OTP', error)
 		const axiosError = error as AxiosError<ApiResponse<OtpDeliveryTiming>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -156,7 +169,7 @@ export const verifyOtp = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('verify OTP', error)
 		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -178,7 +191,7 @@ export const forgotPassword = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('forgot password', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -201,7 +214,7 @@ export const verifyOtpPassword = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('verify password OTP', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -224,7 +237,7 @@ export const changePassword = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('change password', error)
 		const axiosError = error as AxiosError<ApiResponse<string>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -247,7 +260,7 @@ export const googleSignIn = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logAuthRequestFailure('Google sign-in', error)
 		const axiosError = error as AxiosError<ApiResponse<LoginSuccessResponse>>
 		if (axiosError.response) {
 			return axiosError.response.data

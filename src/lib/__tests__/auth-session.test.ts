@@ -78,6 +78,27 @@ describe('finalizeAuthSession', () => {
 		expect(result.success).toBe(false)
 	})
 
+	it('does not commit data from an unsuccessful profile response', async () => {
+		const login = jest.fn()
+		const setUser = jest.fn()
+		const fetchProfile = jest.fn().mockResolvedValue({
+			success: false,
+			statusCode: 200,
+			message: 'Profile validation failed',
+			data: profile,
+		})
+
+		const result = await finalizeAuthSession(
+			'token-123',
+			{ login, setUser },
+			fetchProfile,
+		)
+
+		expect(login).not.toHaveBeenCalled()
+		expect(setUser).not.toHaveBeenCalled()
+		expect(result.success).toBe(false)
+	})
+
 	it('rejects blank tokens before profile validation', async () => {
 		const login = jest.fn()
 		const setUser = jest.fn()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, ChevronUp, Zap } from 'lucide-react'
 import { signIn } from '@/services/auth'
@@ -9,6 +9,39 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { logDevError } from '@/lib/dev-log'
 import { finalizeAuthSession } from '@/lib/auth-session'
+
+function responseStatusLabel(statusCode: number): string {
+	return statusCode > 0 ? `HTTP ${statusCode}` : 'no HTTP response'
+}
+
+function signInFailureMessage(statusCode: number): string {
+	if (statusCode === 0) {
+		return 'The sign-in service returned no HTTP response. Check the configured API URL and local backend availability.'
+	}
+	if (statusCode === 401) {
+		return 'The sign-in service rejected this attempt (HTTP 401). Check the existing demo credential and active identity-provider configuration; this does not establish that the account is absent.'
+	}
+	if (statusCode === 429) {
+		return 'The sign-in service is rate-limiting attempts (HTTP 429). Wait before trying again.'
+	}
+	if (statusCode >= 500) {
+		return `The sign-in service returned ${responseStatusLabel(statusCode)}. Check the local auth service and identity-provider health.`
+	}
+	return `The sign-in service returned ${responseStatusLabel(statusCode)}. Check the local auth route and response contract.`
+}
+
+function profileFailureMessage(statusCode: number): string {
+	if (statusCode === 0) {
+		return 'Sign-in responded, but profile validation received no HTTP response. Check the API URL and /api/v1/auth/me route; no browser session was committed.'
+	}
+	if (statusCode === 401 || statusCode === 403) {
+		return `Sign-in responded, but profile validation returned HTTP ${statusCode}. Check token, realm, client, and API alignment; no browser session was committed.`
+	}
+	if (statusCode === 404) {
+		return 'Sign-in responded, but profile lookup returned HTTP 404. Check the /api/v1/auth/me route and profile service; no browser session was committed.'
+	}
+	return `Sign-in responded, but profile validation returned ${responseStatusLabel(statusCode)}. Check the profile service; no browser session was committed.`
+}
 
 const DEMO_ACCOUNTS = [
 	{
@@ -80,20 +113,29 @@ const DEMO_ACCOUNTS = [
 ] as const
 
 /**
- * Development-only quick login widget. Only renders when NODE_ENV === 'development'.
- * Provides 1-click login with any demo account for fast iteration.
+ * Development/test-only quick login widget. The sign-in page adds a separate
+ * build-time flag, so demo-account access is never enabled implicitly.
  */
 export function DevQuickLogin() {
 	const [expanded, setExpanded] = useState(false)
 	const [loadingUser, setLoadingUser] = useState<string | null>(null)
+	const loginInFlight = useRef(false)
 	const { login, setUser } = useAuth()
 	const router = useRouter()
 
-	if (process.env.NODE_ENV !== 'development') return null
+	if (
+		process.env.NODE_ENV !== 'development' &&
+		process.env.NODE_ENV !== 'test'
+	) {
+		return null
+	}
 
 	async function quickLogin(username: string) {
-		if (loadingUser) return
+		if (loginInFlight.current) return
+		loginInFlight.current = true
 		setLoadingUser(username)
+		let phase: 'sign-in' | 'profile-validation' | 'navigation' = 'sign-in'
+		let navigationStarted = false
 
 		try {
 			const response = await signIn({
@@ -101,29 +143,53 @@ export function DevQuickLogin() {
 				password: 'test123',
 			})
 
-			if (!response.success || !response.data?.accessToken) {
+			if (!response.success) {
+				toast.error(signInFailureMessage(response.statusCode ?? 0))
+				return
+			}
+			if (!response.data?.accessToken) {
 				toast.error(
-					`Login failed for ${username}. Run provision-keycloak-users.ps1 first.`,
+					'Sign-in returned no access token. Check the auth response contract; no profile request or browser session was started.',
 				)
-				setLoadingUser(null)
 				return
 			}
 
-			const profileResponse = await finalizeAuthSession(response.data.accessToken, {
-				login,
-				setUser,
-			})
+			phase = 'profile-validation'
+			const profileResponse = await finalizeAuthSession(
+				response.data.accessToken,
+				{
+					login,
+					setUser,
+				},
+			)
 			if (profileResponse.success && profileResponse.data) {
-				toast.success(`Logged in as ${username}`)
+				phase = 'navigation'
+				toast.success('Demo sign-in complete')
 				router.push('/dashboard')
+				navigationStarted = true
 			} else {
-				toast.error(`Profile fetch failed. Run: seed.bat`)
+				toast.error(profileFailureMessage(profileResponse.statusCode ?? 0))
+			}
+		} catch {
+			logDevError(`Dev quick login failed during ${phase}; details omitted`)
+			if (phase === 'profile-validation') {
+				toast.error(
+					'Profile validation did not complete. Check the API URL and /api/v1/auth/me route; browser auth state was not committed.',
+				)
+			} else if (phase === 'navigation') {
+				toast.error(
+					'Sign-in completed, but the dashboard did not open. The authenticated session may now be active; navigate to Dashboard or sign out.',
+				)
+			} else {
+				toast.error(
+					'The sign-in request did not complete. Check the local API connection and retry; no account or profile change is implied.',
+				)
+			}
+		} finally {
+			if (!navigationStarted) {
+				loginInFlight.current = false
 				setLoadingUser(null)
 			}
-		} catch (err) {
-			logDevError('Dev login error:', err)
-			toast.error(`Login error. Is backend running?`)
-			setLoadingUser(null)
 		}
 	}
 
