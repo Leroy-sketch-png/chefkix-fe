@@ -15,8 +15,8 @@ const messages = JSON.parse(readSource('messages/en.json')) as {
 describe('Kitchen Scanner navigation', () => {
 	it('keeps the public scanner in desktop More for members and guests', () => {
 		expect(PATHS.SCAN).toBe('/scan')
-		expect(desktopSource).toContain(
-			"{ href: PATHS.SCAN, icon: ScanLine, labelKey: 'kitchenScanner' }",
+		expect(desktopSource).toMatch(
+			/labelKey: 'kitchenScanner',\s*wrapLabel: true/,
 		)
 		expect(desktopSource).toContain('return [...guestSecondaryNavItems]')
 		expect(desktopSource).toContain(

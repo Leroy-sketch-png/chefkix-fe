@@ -46,6 +46,7 @@ interface NavItem {
 	labelKey: string
 	showBadge?: boolean // Whether this item can show a notification badge
 	requiresAuth?: boolean // True if this item needs authentication
+	wrapLabel?: boolean // Keep selected long tool names readable in the narrow sidebar
 }
 
 // Primary nav: the 7 items users need most (serves 80% scrollers + 15% cooks)
@@ -79,7 +80,12 @@ const guestPrimaryNavItems: NavItem[] = [
 
 // The scanner is public and belongs with the other secondary kitchen tools.
 const guestSecondaryNavItems: NavItem[] = [
-	{ href: PATHS.SCAN, icon: ScanLine, labelKey: 'kitchenScanner' },
+	{
+		href: PATHS.SCAN,
+		icon: ScanLine,
+		labelKey: 'kitchenScanner',
+		wrapLabel: true,
+	},
 ]
 
 // Secondary nav: kitchen tools, social features, settings (under "More")
@@ -273,7 +279,14 @@ export const LeftSidebar = () => {
 							</span>
 						)}
 					</motion.div>
-					<div className='min-w-0 truncate text-left text-caption leading-none z-10'>
+					<div
+						className={cn(
+							'min-w-0 text-left text-caption z-10',
+							item.wrapLabel
+								? 'whitespace-normal leading-tight'
+								: 'truncate leading-none',
+						)}
+					>
 						{label}
 					</div>
 				</div>
