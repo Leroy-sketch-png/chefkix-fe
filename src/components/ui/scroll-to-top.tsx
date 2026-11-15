@@ -38,7 +38,7 @@ export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 			type='button'
 			onClick={() => scrollAppTo(0, 'smooth')}
 			className={cn(
-				'fixed bottom-6 right-6 z-sticky flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card shadow-warm transition-all duration-300',
+				'fixed bottom-[calc(4rem+var(--space-2)+env(safe-area-inset-bottom))] right-6 z-sticky flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card shadow-warm transition-all duration-300 md:bottom-6',
 				'hover:bg-bg-elevated hover:shadow-glow',
 				visible
 					? 'translate-y-0 opacity-100'
