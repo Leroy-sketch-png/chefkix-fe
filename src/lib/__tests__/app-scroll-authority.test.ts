@@ -2,23 +2,31 @@ import fs from 'fs'
 import path from 'path'
 import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { AppShell } from '@/components/layout/AppShell'
 import {
+	clearPendingFeedScrollPosition,
 	getAppScrollContainer,
 	getAppScrollTarget,
 	getAppScrollTop,
+	getPendingFeedScrollPosition,
+	rememberFeedScrollPosition,
 	scrollAppTo,
 } from '@/lib/app-scroll'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
 
+let mockPathname = '/feed'
+
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/feed',
+	usePathname: () => mockPathname,
 }))
 
 const SRC = path.join(process.cwd(), 'src')
 
 describe('application scroll authority', () => {
 	afterEach(() => {
+		clearPendingFeedScrollPosition()
 		document.body.innerHTML = ''
+		mockPathname = '/feed'
 		jest.restoreAllMocks()
 	})
 
@@ -80,6 +88,65 @@ describe('application scroll authority', () => {
 
 		scrollAppTo(0, 'smooth')
 		expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+	})
+
+	it('restores Feed position after the destination data is ready', () => {
+		mockPathname = '/recipes/example'
+		const view = render(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		const container = document.getElementById('main-content') as HTMLElement
+		Object.defineProperty(container, 'scrollTop', {
+			configurable: true,
+			value: 704,
+			writable: true,
+		})
+		container.scrollTo = jest.fn()
+		rememberFeedScrollPosition()
+		const frames: FrameRequestCallback[] = []
+		const requestFrame = jest
+			.spyOn(window, 'requestAnimationFrame')
+			.mockImplementation(callback => {
+				frames.push(callback)
+				return 1
+			})
+
+		mockPathname = '/feed'
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', {
+					'data-testid': 'feed-page',
+					'data-feed-ready': 'false',
+				}),
+			),
+		)
+
+		expect(requestFrame).toHaveBeenCalledTimes(1)
+		expect(container.scrollTo).not.toHaveBeenCalled()
+
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', {
+					'data-testid': 'feed-page',
+					'data-feed-ready': 'true',
+				}),
+			),
+		)
+		frames.shift()?.(0)
+
+		expect(container.scrollTo).toHaveBeenCalledWith({
+			top: 704,
+			behavior: 'auto',
+		})
+		expect(getPendingFeedScrollPosition()).toBeNull()
 	})
 
 	it('removes duplicate and direct AppShell window-scroll authorities', () => {

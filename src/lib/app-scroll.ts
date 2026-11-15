@@ -1,4 +1,17 @@
 const APP_SCROLL_CONTAINER_ID = 'main-content'
+let pendingFeedScrollTop: number | null = null
+
+export function rememberFeedScrollPosition(): void {
+	pendingFeedScrollTop = getAppScrollTop()
+}
+
+export function getPendingFeedScrollPosition(): number | null {
+	return pendingFeedScrollTop
+}
+
+export function clearPendingFeedScrollPosition(): void {
+	pendingFeedScrollTop = null
+}
 
 export function getAppScrollContainer(): HTMLElement | null {
 	return document.getElementById(APP_SCROLL_CONTAINER_ID)
