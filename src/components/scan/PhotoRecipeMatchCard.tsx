@@ -33,12 +33,12 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 					/>
 				)}
 				<div className='min-w-0 flex-1'>
-					<div className='flex items-start justify-between gap-3'>
-						<h3 className='font-semibold text-text-primary'>
+					<div className='flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3'>
+						<h3 className='min-w-0 break-words font-semibold text-text-primary'>
 							{match.recipeTitle}
 						</h3>
 						{match.matchMethod === 'exact-ingredient-overlap' ? (
-							<span className='shrink-0 rounded-full bg-bg-elevated px-2 py-1 text-xs font-semibold text-text-secondary'>
+							<span className='max-w-full shrink-0 whitespace-normal break-words rounded-full bg-bg-elevated px-2 py-1 text-xs font-semibold text-text-secondary'>
 								{t('scanStoredOverlapCount', {
 									matched: match.matchedIngredients.length,
 									provided: match.inputIngredientCount ?? 0,
@@ -46,7 +46,7 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 							</span>
 						) : (
 							match.matchScore !== undefined && (
-								<span className='shrink-0 rounded-full bg-success/12 px-2 py-1 text-xs font-bold text-success'>
+								<span className='max-w-full shrink-0 whitespace-normal break-words rounded-full bg-success/12 px-2 py-1 text-xs font-bold text-success'>
 									{Math.round(match.matchScore * 100)}%
 								</span>
 							)

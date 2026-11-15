@@ -26,5 +26,17 @@ describe('PhotoRecipeMatchCard', () => {
 
 		expect(screen.getByText('scanStoredOverlapCount')).toBeInTheDocument()
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument()
+		expect(screen.getByText('Tofu and greens')).toHaveClass(
+			'min-w-0',
+			'break-words',
+		)
+		expect(screen.getByText('Tofu and greens').parentElement).toHaveClass(
+			'flex-col',
+			'sm:flex-row',
+		)
+		expect(screen.getByText('scanStoredOverlapCount')).toHaveClass(
+			'max-w-full',
+			'whitespace-normal',
+		)
 	})
 })
