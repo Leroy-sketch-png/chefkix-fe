@@ -62,7 +62,7 @@ export default async function ScanIngredientsPage() {
 					<ScanIngredientWorkspace />
 				</div>
 
-				<aside className='min-w-0 rounded-3xl border border-border-subtle bg-bg-elevated p-5 sm:p-6'>
+				<aside className='min-w-0 rounded-3xl border border-border-subtle bg-bg-elevated p-5 sm:p-6 lg:sticky lg:top-6 lg:self-start'>
 					<h2 className='font-semibold text-text-primary'>
 						{t('scanMakeItCount')}
 					</h2>
