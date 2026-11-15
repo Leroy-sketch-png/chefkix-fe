@@ -1,7 +1,8 @@
 'use client'
 
-import { Loader2, SearchX, Sparkles } from 'lucide-react'
+import { Loader2, RotateCw, SearchX, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
 import type { PhotoRecipeMatch } from '@/lib/types/photo-intelligence'
 import { PhotoRecipeMatchCard } from './PhotoRecipeMatchCard'
 
@@ -11,6 +12,7 @@ interface PhotoRecipeMatchesProps {
 	error?: string | null
 	mode: 'ingredients' | 'dish'
 	source?: 'backend' | 'stored-overlap'
+	onRetry?: () => void
 }
 
 /** Shared result list for HGAT ingredient matches and CLIP dish retrieval. */
@@ -20,6 +22,7 @@ export function PhotoRecipeMatches({
 	error,
 	mode,
 	source = 'backend',
+	onRetry,
 }: PhotoRecipeMatchesProps) {
 	const t = useTranslations('cooking')
 	const title =
@@ -52,9 +55,22 @@ export function PhotoRecipeMatches({
 			{error && !loading && (
 				<div
 					className='rounded-2xl border border-warning/20 bg-warning/8 p-4 text-sm text-warning-vivid'
-					role='status'
+					role='alert'
 				>
-					{error}
+					<div className='flex flex-wrap items-center justify-between gap-3'>
+						<p>{error}</p>
+						{onRetry && (
+							<Button
+								type='button'
+								variant='outline'
+								size='sm'
+								onClick={onRetry}
+							>
+								<RotateCw aria-hidden='true' />
+								{t('scanRetryIngredientMatching')}
+							</Button>
+						)}
+					</div>
 				</div>
 			)}
 			{!loading && !error && matches.length === 0 && (

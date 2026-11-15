@@ -17,6 +17,13 @@ const SUBSTITUTION_INTENT_ENDPOINT =
 	'/api/v1/food-vision/parse-substitution-intent'
 const STORED_RECIPE_MATCH_LIMIT = 100
 
+function throwIfAborted(signal?: AbortSignal): void {
+	if (!signal?.aborted) return
+	const error = new Error('Ingredient matching was aborted')
+	error.name = 'AbortError'
+	throw error
+}
+
 interface ApiPayload<T> {
 	success: boolean
 	message?: string
@@ -41,6 +48,7 @@ export async function findRecipesFromIngredients(
 	if (normalizedIngredients.length === 0) {
 		return { matches: [], queryIngredients: [], source: 'backend' }
 	}
+	throwIfAborted(signal)
 
 	let payload: ApiPayload<IngredientRecipeMatchResponse>
 	try {
@@ -51,15 +59,17 @@ export async function findRecipesFromIngredients(
 			{ ingredients: normalizedIngredients },
 			{ signal },
 		)
+		throwIfAborted(signal)
 		payload = response.data
 	} catch (error) {
+		throwIfAborted(signal)
 		if (
 			isAxiosError(error) &&
 			error.response?.status === 503 &&
 			(error.response.data as { code?: unknown } | undefined)?.code ===
 				'INTEGRATION_PENDING'
 		) {
-			return matchVisibleStoredRecipes(normalizedIngredients)
+			return matchVisibleStoredRecipes(normalizedIngredients, signal)
 		}
 		throw new Error(getUserFriendlyMessage(error))
 	}
@@ -75,11 +85,22 @@ export async function findRecipesFromIngredients(
  * Use the existing authenticated recipe API when HGAT has no configured endpoint.
  * This is a bounded exact-name overlap baseline, not graph/model matching.
  */
-async function matchVisibleStoredRecipes(ingredients: string[]) {
-	const response = await getAllRecipes({
-		page: 0,
-		size: STORED_RECIPE_MATCH_LIMIT,
-	})
+async function matchVisibleStoredRecipes(
+	ingredients: string[],
+	signal?: AbortSignal,
+) {
+	throwIfAborted(signal)
+	const params = { page: 0, size: STORED_RECIPE_MATCH_LIMIT }
+	let response: Awaited<ReturnType<typeof getAllRecipes>>
+	try {
+		response = signal
+			? await getAllRecipes(params, { signal })
+			: await getAllRecipes(params)
+	} catch (error) {
+		throwIfAborted(signal)
+		throw error
+	}
+	throwIfAborted(signal)
 	if (!response.success || !Array.isArray(response.data)) {
 		throw new Error(
 			'Stored recipes could not be loaded for ingredient matching.',

@@ -95,6 +95,25 @@ describe('findRecipesFromIngredients stored-recipe fallback', () => {
 		expect(getAllRecipes).not.toHaveBeenCalled()
 	})
 
+	it.each([403, 429])(
+		'does not activate fallback for HTTP %s',
+		async status => {
+			const error = Object.assign(new axios.AxiosError('request rejected'), {
+				response: {
+					status,
+					data: { code: 'REQUEST_REJECTED' },
+					statusText: 'Request rejected',
+					headers: {},
+					config: {},
+				},
+			})
+			jest.mocked(aiApi.post).mockRejectedValue(error)
+
+			await expect(findRecipesFromIngredients(['Tofu'])).rejects.toThrow()
+			expect(getAllRecipes).not.toHaveBeenCalled()
+		},
+	)
+
 	it('does not treat other 503 responses as a missing integration', async () => {
 		const upstreamUnavailable = Object.assign(
 			new axios.AxiosError('upstream unavailable'),
@@ -125,5 +144,42 @@ describe('findRecipesFromIngredients stored-recipe fallback', () => {
 		await expect(findRecipesFromIngredients(['Tofu'])).rejects.toThrow(
 			'Stored recipes could not be loaded for ingredient matching.',
 		)
+	})
+
+	it('does not start the stored-list fallback if cancellation arrives with the exact pending response', async () => {
+		let rejectMatch!: (reason: unknown) => void
+		jest.mocked(aiApi.post).mockReturnValueOnce(
+			new Promise((_, reject) => {
+				rejectMatch = reject
+			}) as ReturnType<typeof aiApi.post>,
+		)
+		const controller = new AbortController()
+		const request = findRecipesFromIngredients(['Tofu'], controller.signal)
+
+		controller.abort()
+		rejectMatch(integrationPending())
+		await expect(request).rejects.toMatchObject({ name: 'AbortError' })
+		expect(getAllRecipes).not.toHaveBeenCalled()
+	})
+
+	it('keeps cancellation during the stored-list fallback as cancellation', async () => {
+		jest.mocked(aiApi.post).mockRejectedValueOnce(integrationPending())
+		let rejectRecipes!: (reason: unknown) => void
+		jest.mocked(getAllRecipes).mockReturnValueOnce(
+			new Promise((_, reject) => {
+				rejectRecipes = reject
+			}),
+		)
+		const controller = new AbortController()
+		const request = findRecipesFromIngredients(['Tofu'], controller.signal)
+
+		await Promise.resolve()
+		expect(getAllRecipes).toHaveBeenCalledWith(
+			{ page: 0, size: 100 },
+			{ signal: controller.signal },
+		)
+		controller.abort()
+		rejectRecipes(new Error('request canceled'))
+		await expect(request).rejects.toMatchObject({ name: 'AbortError' })
 	})
 })

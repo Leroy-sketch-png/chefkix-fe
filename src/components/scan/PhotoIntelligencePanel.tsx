@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { PhotoRecipeMatch } from '@/lib/types/photo-intelligence'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
@@ -24,9 +24,12 @@ export function PhotoIntelligencePanel({
 	const [withheldRecipeCount, setWithheldRecipeCount] = useState(0)
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [retryKey, setRetryKey] = useState(0)
+	const loadingRef = useRef(false)
 
 	useEffect(() => {
 		if (ingredients.length === 0) {
+			loadingRef.current = false
 			setMatches([])
 			setMatchSource(null)
 			setWithheldRecipeCount(0)
@@ -37,6 +40,7 @@ export function PhotoIntelligencePanel({
 
 		let active = true
 		const controller = new AbortController()
+		loadingRef.current = true
 		setLoading(true)
 		setMatchSource(null)
 		setWithheldRecipeCount(0)
@@ -48,7 +52,7 @@ export function PhotoIntelligencePanel({
 				if (active) setWithheldRecipeCount(response.withheldRecipeCount ?? 0)
 			})
 			.catch(matchError => {
-				if (active) {
+				if (active && !controller.signal.aborted) {
 					setMatches([])
 					setMatchSource(null)
 					setWithheldRecipeCount(0)
@@ -60,13 +64,25 @@ export function PhotoIntelligencePanel({
 				}
 			})
 			.finally(() => {
-				if (active) setLoading(false)
+				if (active) {
+					loadingRef.current = false
+					setLoading(false)
+				}
 			})
 		return () => {
 			active = false
 			controller.abort()
+			loadingRef.current = false
 		}
-	}, [ingredients, t])
+	}, [ingredients, retryKey, t])
+
+	const retryMatching = () => {
+		if (loadingRef.current) return
+		loadingRef.current = true
+		setError(null)
+		setLoading(true)
+		setRetryKey(key => key + 1)
+	}
 
 	if (ingredients.length === 0) return null
 	return (
@@ -125,6 +141,7 @@ export function PhotoIntelligencePanel({
 				error={error}
 				mode='ingredients'
 				source={matchSource ?? 'backend'}
+				onRetry={retryMatching}
 			/>
 		</div>
 	)

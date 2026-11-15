@@ -1537,6 +1537,7 @@
 		"scanRecipesLabel": "matches",
 		"scanFindingRecipes": "Finding recipe matches…",
 		"scanRecipeMatchingUnavailable": "Recipe matching is waiting for the HGAT service.",
+		"scanRetryIngredientMatching": "Try matching these ingredients again",
 		"scanDishRetrievalUnavailable": "Food image analysis is unavailable right now.",
 		"scanModelLive": "Model connected",
 		"scanModelDemo": "Detection demo",
