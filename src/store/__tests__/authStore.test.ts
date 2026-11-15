@@ -4,6 +4,7 @@ import {
 	useAuthStore,
 } from '@/store/authStore'
 import { useStepPhotoStore } from '@/lib/step-photo-store'
+import { useScanIngredientDraftStore } from '@/store/scanIngredientDraftStore'
 import type { User } from '@/lib/types'
 
 const originalCreateObjectURL = Object.getOwnPropertyDescriptor(
@@ -29,6 +30,7 @@ beforeAll(() => {
 describe('authStore hydration resilience', () => {
 	afterEach(() => {
 		useStepPhotoStore.getState().clearAllPhotos()
+		useScanIngredientDraftStore.getState().clear()
 		useAuthStore.setState({
 			user: null,
 			accessToken: null,
@@ -94,6 +96,10 @@ describe('authStore hydration resilience', () => {
 	it('clears session photos synchronously when account identity changes or logs out', () => {
 		const photos = useStepPhotoStore.getState()
 		useAuthStore.setState({ user: { userId: 'owner-1' } as User })
+		useScanIngredientDraftStore.getState().setOwnerId('owner-1')
+		useScanIngredientDraftStore
+			.getState()
+			.setConfirmedScanIngredients('owner-1', ['tofu'])
 		photos.setSession('session-1', 'owner-1')
 		expect(
 			photos.addPhoto(
@@ -106,6 +112,9 @@ describe('authStore hydration resilience', () => {
 
 		useAuthStore.getState().setUser({ userId: 'owner-2' } as User)
 		expect(useStepPhotoStore.getState().photos).toEqual([])
+		expect(
+			useScanIngredientDraftStore.getState().confirmedScanIngredients,
+		).toEqual([])
 
 		const nextPhotos = useStepPhotoStore.getState()
 		nextPhotos.setSession('session-2', 'owner-2')
@@ -118,6 +127,9 @@ describe('authStore hydration resilience', () => {
 			),
 		).toBe(true)
 		useAuthStore.getState().logout()
+		expect(
+			useScanIngredientDraftStore.getState().confirmedScanIngredients,
+		).toEqual([])
 		expect(useStepPhotoStore.getState()).toMatchObject({
 			sessionId: null,
 			ownerId: null,

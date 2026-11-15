@@ -100,6 +100,7 @@ describe('IngredientScanner camera controls', () => {
 					onConfirmedIngredientsChange={onConfirmedIngredientsChange}
 				/>,
 			)
+			expect(onConfirmedIngredientsChange).not.toHaveBeenCalled()
 			fireEvent.change(screen.getByTestId('ingredient-scanner-file-input'), {
 				target: {
 					files: [new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' })],

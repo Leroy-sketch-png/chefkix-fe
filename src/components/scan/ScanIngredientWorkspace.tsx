@@ -1,18 +1,58 @@
 'use client'
 
-import { useMemo, useState, type FormEvent } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	type FormEvent,
+} from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import {
+	MAX_SCAN_INGREDIENTS,
+	useScanIngredientDraftStore,
+} from '@/store/scanIngredientDraftStore'
 import { IngredientScanner } from './IngredientScanner'
 import { PhotoIntelligencePanel } from './PhotoIntelligencePanel'
 
 /** Connects confirmed or manually entered ingredients to recipe search and matching. */
 export function ScanIngredientWorkspace() {
-	const [scannedIngredients, setScannedIngredients] = useState<string[]>([])
 	const [manualDraft, setManualDraft] = useState('')
-	const [manualIngredients, setManualIngredients] = useState<string[]>([])
+	const ownerId = useAuthStore(state => state.user?.userId ?? null)
+	const setOwnerId = useScanIngredientDraftStore(state => state.setOwnerId)
+	const setConfirmedScanIngredients = useScanIngredientDraftStore(
+		state => state.setConfirmedScanIngredients,
+	)
+	const addManual = useScanIngredientDraftStore(
+		state => state.addManualIngredient,
+	)
+	const removeConfirmedScanIngredient = useScanIngredientDraftStore(
+		state => state.removeConfirmedScanIngredient,
+	)
+	const removeManual = useScanIngredientDraftStore(
+		state => state.removeManualIngredient,
+	)
+	const clearSelection = useScanIngredientDraftStore(
+		state => state.clearSelection,
+	)
+	const scannedIngredients = useScanIngredientDraftStore(state =>
+		state.ownerId === ownerId
+			? state.confirmedScanIngredients
+			: EMPTY_INGREDIENTS,
+	)
+	const manualIngredients = useScanIngredientDraftStore(state =>
+		state.ownerId === ownerId ? state.manualIngredients : EMPTY_INGREDIENTS,
+	)
 	const t = useTranslations('cooking')
+	useEffect(() => setOwnerId(ownerId), [ownerId, setOwnerId])
+	const handleConfirmedIngredientsChange = useCallback(
+		(ingredients: string[]) =>
+			setConfirmedScanIngredients(ownerId, ingredients),
+		[ownerId, setConfirmedScanIngredients],
+	)
 	const ingredients = useMemo(() => {
 		const unique = new Map<string, string>()
 		for (const ingredient of [...scannedIngredients, ...manualIngredients]) {
@@ -34,17 +74,51 @@ export function ScanIngredientWorkspace() {
 		event.preventDefault()
 		const ingredient = manualDraft.trim().replace(/\s+/g, ' ')
 		if (!ingredient) return
-		setManualIngredients(current =>
-			current.some(item => item.toLowerCase() === ingredient.toLowerCase())
-				? current
-				: [...current, ingredient],
-		)
-		setManualDraft('')
+		if (addManual(ownerId, ingredient)) setManualDraft('')
 	}
 
 	return (
 		<>
-			<IngredientScanner onConfirmedIngredientsChange={setScannedIngredients} />
+			<IngredientScanner
+				key={ownerId ?? 'guest'}
+				confirmedIngredients={scannedIngredients}
+				disableAdditionalConfirmations={
+					ingredients.length >= MAX_SCAN_INGREDIENTS
+				}
+				onConfirmedIngredientsChange={handleConfirmedIngredientsChange}
+			/>
+			{scannedIngredients.length > 0 && (
+				<div className='mt-4'>
+					<p className='mb-2 text-sm font-semibold text-text-secondary'>
+						{t('scanConfirmedIngredientList')}
+					</p>
+					<ul
+						className='flex flex-wrap gap-2'
+						aria-label={t('scanConfirmedIngredientList')}
+					>
+						{scannedIngredients.map(ingredient => (
+							<li
+								key={ingredient.toLowerCase()}
+								className='inline-flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border-subtle bg-bg-card px-3 py-1 text-sm text-text-primary'
+							>
+								<span className='min-w-0 [overflow-wrap:anywhere]'>
+									{ingredient}
+								</span>
+								<button
+									type='button'
+									aria-label={t('scanRemoveIngredient', { ingredient })}
+									onClick={() =>
+										removeConfirmedScanIngredient(ownerId, ingredient)
+									}
+									className='shrink-0 font-bold text-text-muted hover:text-text-primary'
+								>
+									×
+								</button>
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
 			<section className='mt-4 rounded-2xl border border-border-subtle bg-bg-elevated p-4'>
 				<label
 					htmlFor='manual-ingredient'
@@ -66,7 +140,9 @@ export function ScanIngredientWorkspace() {
 					/>
 					<button
 						type='submit'
-						disabled={!manualDraft.trim()}
+						disabled={
+							!manualDraft.trim() || ingredients.length >= MAX_SCAN_INGREDIENTS
+						}
 						className='min-h-11 shrink-0 rounded-lg bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50'
 					>
 						{t('scanAddIngredient')}
@@ -88,11 +164,7 @@ export function ScanIngredientWorkspace() {
 								<button
 									type='button'
 									aria-label={t('scanRemoveIngredient', { ingredient })}
-									onClick={() =>
-										setManualIngredients(current =>
-											current.filter(item => item !== ingredient),
-										)
-									}
+									onClick={() => removeManual(ownerId, ingredient)}
 									className='shrink-0 font-bold text-text-muted hover:text-text-primary'
 								>
 									×
@@ -102,6 +174,23 @@ export function ScanIngredientWorkspace() {
 					</ul>
 				)}
 			</section>
+			{ingredients.length > 0 && (
+				<div className='mt-2 flex flex-wrap items-center justify-between gap-2'>
+					<p className='text-xs text-text-muted'>
+						{t('scanIngredientSelectionLimit', {
+							count: ingredients.length,
+							max: MAX_SCAN_INGREDIENTS,
+						})}
+					</p>
+					<button
+						type='button'
+						className='min-h-10 rounded-lg px-2 text-sm font-medium text-text-secondary underline underline-offset-2'
+						onClick={() => clearSelection(ownerId)}
+					>
+						{t('scanClearIngredients')}
+					</button>
+				</div>
+			)}
 			{ingredients.length > 0 && (
 				<Link
 					href='#ingredient-match-results'
@@ -118,3 +207,5 @@ export function ScanIngredientWorkspace() {
 		</>
 	)
 }
+
+const EMPTY_INGREDIENTS: string[] = []

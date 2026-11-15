@@ -7,6 +7,7 @@ import {
 } from 'zustand/middleware'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
 import { useStepPhotoStore } from '@/lib/step-photo-store'
+import { useScanIngredientDraftStore } from '@/store/scanIngredientDraftStore'
 
 /**
  * IMPORTANT: This store does NOT import axios to avoid circular dependency.
@@ -162,6 +163,7 @@ export const useAuthStore = create<AuthState>()(
 				}
 				if (get().user?.userId && get().user?.userId !== user.userId) {
 					useStepPhotoStore.getState().clearAllPhotos()
+					useScanIngredientDraftStore.getState().clear()
 				}
 				set({ user })
 			},
@@ -173,6 +175,7 @@ export const useAuthStore = create<AuthState>()(
 			 */
 			logout: () => {
 				useStepPhotoStore.getState().clearAllPhotos()
+				useScanIngredientDraftStore.getState().clear()
 				// Stop notification polling to prevent memory leaks
 				// Dynamically import to avoid circular dependency
 				import('./notificationStore').then(({ useNotificationStore }) => {

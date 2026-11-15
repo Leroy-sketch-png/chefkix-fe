@@ -30,6 +30,8 @@ type CameraFacingMode = 'environment' | 'user'
 
 interface IngredientScannerProps {
 	className?: string
+	confirmedIngredients?: string[]
+	disableAdditionalConfirmations?: boolean
 	onConfirmedIngredientsChange?: (ingredients: string[]) => void
 }
 
@@ -51,6 +53,8 @@ const getCameraError = (error: unknown) => {
 
 export function IngredientScanner({
 	className,
+	confirmedIngredients,
+	disableAdditionalConfirmations = false,
 	onConfirmedIngredientsChange,
 }: IngredientScannerProps) {
 	const t = useTranslations('cooking')
@@ -76,6 +80,7 @@ export function IngredientScanner({
 	const [confirmedDetectionIds, setConfirmedDetectionIds] = useState<string[]>(
 		[],
 	)
+	const previousConfirmedNamesRef = useRef<string[] | null>(null)
 
 	const displayedDetections = useMemo(
 		() =>
@@ -98,8 +103,34 @@ export function IngredientScanner({
 	)
 
 	useEffect(() => {
+		const previousNames = previousConfirmedNamesRef.current
+		previousConfirmedNamesRef.current = confirmedNames
+		if (
+			previousNames === null ||
+			(previousNames.length === confirmedNames.length &&
+				previousNames.every((name, index) => name === confirmedNames[index]))
+		) {
+			return
+		}
 		onConfirmedIngredientsChange?.(confirmedNames)
 	}, [confirmedNames, onConfirmedIngredientsChange])
+
+	useEffect(() => {
+		if (confirmedIngredients === undefined) return
+		const allowedNames = new Set(
+			confirmedIngredients.map(name => name.trim().toLowerCase()),
+		)
+		setConfirmedDetectionIds(current => {
+			const next = current.filter(id => {
+				const detection = displayedDetections.find(item => item.id === id)
+				return (
+					detection !== undefined &&
+					allowedNames.has(detection.name.trim().toLowerCase())
+				)
+			})
+			return next.length === current.length ? current : next
+		})
+	}, [confirmedIngredients, displayedDetections])
 
 	const clearCameraTimeout = useCallback(() => {
 		if (cameraTimeoutRef.current) {
@@ -197,6 +228,7 @@ export function IngredientScanner({
 
 	const scanImage = useCallback(
 		async (image: Blob, threshold = confidenceThreshold) => {
+			onConfirmedIngredientsChange?.([])
 			detectionAbortRef.current?.abort()
 			const controller = new AbortController()
 			detectionAbortRef.current = controller
@@ -243,7 +275,7 @@ export function IngredientScanner({
 				}
 			}
 		},
-		[confidenceThreshold, stopCamera, t],
+		[confidenceThreshold, onConfirmedIngredientsChange, stopCamera, t],
 	)
 
 	const handleThresholdChange = (newThreshold: number) => {
@@ -290,6 +322,7 @@ export function IngredientScanner({
 	)
 
 	const resetScan = () => {
+		onConfirmedIngredientsChange?.([])
 		setImageUrl(null)
 		setDetections([])
 		setConfirmedDetectionIds([])
@@ -503,6 +536,10 @@ export function IngredientScanner({
 										type='checkbox'
 										aria-label={`Use ${detection.name} in recipe search`}
 										checked={confirmedDetectionIds.includes(detection.id)}
+										disabled={
+											!confirmedDetectionIds.includes(detection.id) &&
+											disableAdditionalConfirmations
+										}
 										onChange={event =>
 											setConfirmedDetectionIds(ids =>
 												event.target.checked
