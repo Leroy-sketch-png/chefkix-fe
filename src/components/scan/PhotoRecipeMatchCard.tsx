@@ -15,6 +15,7 @@ interface PhotoRecipeMatchCardProps {
 export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 	const t = useTranslations('cooking')
 	const imageUrl = safeRecipeImageSrc(match.coverImageUrl ?? undefined)
+	const isStoredOverlap = match.matchMethod === 'exact-ingredient-overlap'
 
 	return (
 		<article className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-sm'>
@@ -67,7 +68,11 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 				<div className='grid gap-3 sm:grid-cols-2'>
 					<div>
 						<p className='mb-1 text-xs font-semibold uppercase tracking-wide text-success'>
-							{t('scanMatchedIngredients')}
+							{t(
+								isStoredOverlap
+									? 'scanStoredOverlapMatchedIngredients'
+									: 'scanMatchedIngredients',
+							)}
 						</p>
 						<p className='text-sm text-text-secondary'>
 							{match.matchedIngredients.length > 0
@@ -77,7 +82,11 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 					</div>
 					<div>
 						<p className='mb-1 text-xs font-semibold uppercase tracking-wide text-warning-vivid'>
-							{t('scanMissingIngredients')}
+							{t(
+								isStoredOverlap
+									? 'scanStoredOverlapMissingIngredients'
+									: 'scanMissingIngredients',
+							)}
 						</p>
 						{match.missingIngredients.length > 0 ? (
 							<ul className='space-y-1 text-sm text-text-secondary'>
@@ -96,7 +105,11 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 							</ul>
 						) : (
 							<p className='text-sm text-text-secondary'>
-								{t('scanNoMissingIngredients')}
+								{t(
+									isStoredOverlap
+										? 'scanStoredOverlapNoMissingIngredients'
+										: 'scanNoMissingIngredients',
+								)}
 							</p>
 						)}
 					</div>

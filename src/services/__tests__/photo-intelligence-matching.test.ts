@@ -79,6 +79,103 @@ describe('findRecipesFromIngredients stored-recipe fallback', () => {
 		expect(result.matches.some(match => match.recipeId === 'alias')).toBe(false)
 	})
 
+	it('ranks fewer not-in-list names before title and ID tie-breakers', async () => {
+		jest.mocked(aiApi.post).mockRejectedValue(integrationPending())
+		jest.mocked(getAllRecipes).mockResolvedValue({
+			success: true,
+			data: [
+				recipe('more', 'A recipe with more missing', [
+					{ name: 'Garlic' },
+					{ name: 'Rice' },
+					{ name: 'Oil' },
+					{ name: 'Salt' },
+				]),
+				recipe('z', 'Same title', [
+					{ name: 'garlic' },
+					{ name: 'Pasta' },
+					{ name: 'Oil' },
+				]),
+				recipe('a', 'Same title', [
+					{ name: 'Garlic' },
+					{ name: 'Pasta' },
+					{ name: 'Oil' },
+				]),
+				recipe('one', 'Z recipe with fewer missing', [
+					{ name: 'GARLIC' },
+					{ name: 'Bread' },
+				]),
+			] as Recipe[],
+			statusCode: 200,
+		})
+
+		const result = await findRecipesFromIngredients(['garlic'])
+
+		expect(
+			result.matches.every(match => match.matchedIngredients.length === 1),
+		).toBe(true)
+		expect(result.matches.map(match => match.recipeId)).toEqual([
+			'one',
+			'a',
+			'z',
+			'more',
+		])
+	})
+
+	it('counts case-folded duplicate supplied and recipe names once', async () => {
+		jest.mocked(aiApi.post).mockRejectedValue(integrationPending())
+		jest.mocked(getAllRecipes).mockResolvedValue({
+			success: true,
+			data: [
+				recipe('duplicate-names', 'Garlic rice', [
+					{ name: ' Garlic ' },
+					{ name: 'garlic' },
+					{ name: 'Rice' },
+					{ name: ' rice ' },
+				]),
+			] as Recipe[],
+			statusCode: 200,
+		})
+
+		const result = await findRecipesFromIngredients([' GARLIC ', 'garlic'])
+
+		expect(result.queryIngredients).toEqual(['GARLIC'])
+		expect(result.matches).toHaveLength(1)
+		expect(result.matches[0]).toMatchObject({
+			inputIngredientCount: 1,
+			matchedIngredients: ['garlic'],
+			missingIngredients: ['rice'],
+		})
+	})
+
+	it('preserves the backend-provided match order', async () => {
+		const matches = [
+			{
+				recipeId: 'backend-first',
+				recipeTitle: 'Backend first',
+				matchedIngredients: ['Garlic'],
+				missingIngredients: ['Rice', 'Oil'],
+			},
+			{
+				recipeId: 'backend-second',
+				recipeTitle: 'Backend second',
+				matchedIngredients: ['Garlic'],
+				missingIngredients: [],
+			},
+		]
+		jest.mocked(aiApi.post).mockResolvedValue({
+			data: {
+				success: true,
+				data: { matches, queryIngredients: ['Garlic'], source: 'backend' },
+			},
+		} as never)
+
+		const result = await findRecipesFromIngredients(['Garlic'])
+
+		expect(result.source).toBe('backend')
+		expect(result.matches).toEqual(matches)
+		expect(getAllRecipes).not.toHaveBeenCalled()
+	})
+
 	it('does not activate fallback for other upstream errors', async () => {
 		const unauthorized = Object.assign(new axios.AxiosError('unauthorized'), {
 			response: {

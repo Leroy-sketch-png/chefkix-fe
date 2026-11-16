@@ -176,6 +176,7 @@ async function matchVisibleStoredRecipes(
 	matches.sort(
 		(a, b) =>
 			b.matchedIngredients.length - a.matchedIngredients.length ||
+			a.missingIngredients.length - b.missingIngredients.length ||
 			a.recipeTitle.localeCompare(b.recipeTitle) ||
 			a.recipeId.localeCompare(b.recipeId),
 	)

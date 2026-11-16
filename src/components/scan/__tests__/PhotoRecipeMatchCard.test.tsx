@@ -38,5 +38,33 @@ describe('PhotoRecipeMatchCard', () => {
 			'max-w-full',
 			'whitespace-normal',
 		)
+		expect(
+			screen.getByText('scanStoredOverlapMatchedIngredients'),
+		).toBeInTheDocument()
+		expect(
+			screen.getByText('scanStoredOverlapMissingIngredients'),
+		).toBeInTheDocument()
+		expect(screen.queryByText('scanMatchedIngredients')).not.toBeInTheDocument()
+		expect(screen.queryByText('scanMissingIngredients')).not.toBeInTheDocument()
+	})
+
+	it('keeps the existing labels for backend-produced matches', () => {
+		render(
+			<PhotoRecipeMatchCard
+				match={{
+					recipeId: 'backend-recipe',
+					recipeTitle: 'Backend recipe',
+					matchMethod: 'backend',
+					matchedIngredients: ['Garlic'],
+					missingIngredients: ['Rice'],
+				}}
+			/>,
+		)
+
+		expect(screen.getByText('scanMatchedIngredients')).toBeInTheDocument()
+		expect(screen.getByText('scanMissingIngredients')).toBeInTheDocument()
+		expect(
+			screen.queryByText('scanStoredOverlapMatchedIngredients'),
+		).not.toBeInTheDocument()
 	})
 })
