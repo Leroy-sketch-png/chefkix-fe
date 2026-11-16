@@ -75,6 +75,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SocialProof } from '@/components/recipe/SocialProof'
+import { ScanRecipeFitSummary } from '@/components/recipe/ScanRecipeFitSummary'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { RecipeIngredientChecklistItem } from '@/components/recipe/RecipeIngredientChecklistItem'
@@ -115,6 +116,7 @@ import { useTranslations } from 'next-intl'
 import { logDevError } from '@/lib/dev-log'
 import { settleOptimisticMutation } from '@/lib/optimistic-mutation'
 import { generateRecipeJsonLd, jsonLd } from '@/lib/seo'
+import { useScanIngredientDraftStore } from '@/store/scanIngredientDraftStore'
 
 const DIFFICULTY_BADGE_CLASSES: Record<Difficulty, string> = {
 	Beginner: 'bg-success/80',
@@ -122,6 +124,8 @@ const DIFFICULTY_BADGE_CLASSES: Record<Difficulty, string> = {
 	Advanced: 'bg-error/80',
 	Expert: 'bg-xp/80',
 }
+
+const EMPTY_SCAN_INGREDIENTS: string[] = []
 
 function RecipeDetailContent() {
 	const params = useParams()
@@ -164,6 +168,18 @@ function RecipeDetailContent() {
 		session: activeSession,
 	} = useCookingStore()
 	const { user } = useAuth()
+	const scanOwnerId = user?.userId ?? null
+	const scanConfirmedIngredients = useScanIngredientDraftStore(state =>
+		state.ownerId === scanOwnerId
+			? state.confirmedScanIngredients
+			: EMPTY_SCAN_INGREDIENTS,
+	)
+	const scanManualIngredients = useScanIngredientDraftStore(state =>
+		state.ownerId === scanOwnerId
+			? state.manualIngredients
+			: EMPTY_SCAN_INGREDIENTS,
+	)
+	const isFromScan = searchParams?.get('from') === 'scan'
 	const { requireAuth } = useAuthActionGuard()
 	const autoStartAttempted = useRef(false)
 	const recipeRequestSequence = useRef(0)
@@ -1551,6 +1567,19 @@ function RecipeDetailContent() {
 							<h2 className='mb-4 flex items-center gap-2 text-2xl font-bold text-text-primary'>
 								<ChefHat className='size-6 text-brand' /> {t('ingredients')}
 							</h2>
+							{isFromScan &&
+								(scanConfirmedIngredients.length > 0 ||
+									scanManualIngredients.length > 0) && (
+									<ScanRecipeFitSummary
+										providedIngredients={[
+											...scanConfirmedIngredients,
+											...scanManualIngredients,
+										]}
+										recipeIngredients={recipe.fullIngredientList.map(
+											ingredient => ingredient.name,
+										)}
+									/>
+								)}
 							<p className='mb-4 text-sm text-text-muted'>
 								{t('forServings', { n: recipe.servings })}
 							</p>

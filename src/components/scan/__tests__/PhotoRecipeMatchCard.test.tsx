@@ -25,6 +25,9 @@ describe('PhotoRecipeMatchCard', () => {
 		)
 
 		expect(screen.getByText('scanStoredOverlapCount')).toBeInTheDocument()
+		expect(
+			screen.getByRole('link', { name: 'scanViewRecipe' }),
+		).toHaveAttribute('href', '/recipes/recipe-1?from=scan')
 		expect(screen.queryByText(/%/)).not.toBeInTheDocument()
 		expect(screen.getByText('Tofu and greens')).toHaveClass(
 			'min-w-0',

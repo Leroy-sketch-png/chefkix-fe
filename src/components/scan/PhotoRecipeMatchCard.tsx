@@ -121,7 +121,7 @@ export function PhotoRecipeMatchCard({ match }: PhotoRecipeMatchCardProps) {
 						{t('scanSubstitutionSafetyHint')}
 					</p>
 					<Link
-						href={`/recipes/${match.recipeId}`}
+						href={`/recipes/${match.recipeId}?from=scan`}
 						className='inline-flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand/80'
 					>
 						{t('scanViewRecipe')} <ArrowRight className='size-4' />
