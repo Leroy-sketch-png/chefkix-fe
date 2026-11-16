@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeftRight, Check, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -49,16 +49,75 @@ export function CookingSubstitutionButton({
 }: CookingSubstitutionButtonProps) {
 	const t = useTranslations('cooking')
 	const { user } = useAuth()
+	const allergenFlagsKey = (user?.allergenFlags ?? []).join('\u0000')
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [substitutions, setSubstitutions] = useState<Substitution[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [customSubstitute, setCustomSubstitute] = useState('')
 	const [submitting, setSubmitting] = useState(false)
+	const requestGenerationRef = useRef(0)
+	const requestContextRef = useRef({
+		ingredientName,
+		recipeTitle,
+		stepContext,
+		sessionId,
+		userId: user?.userId,
+		allergenFlagsKey,
+	})
 
-	useEscapeKey(open && !submitting, () => setOpen(false))
+	const closeDialog = useCallback(() => {
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setOpen(false)
+	}, [])
+
+	useEscapeKey(open && !submitting, closeDialog)
+
+	useLayoutEffect(() => {
+		const previous = requestContextRef.current
+		const next = {
+			ingredientName,
+			recipeTitle,
+			stepContext,
+			sessionId,
+			userId: user?.userId,
+			allergenFlagsKey,
+		}
+		const changed =
+			previous.ingredientName !== next.ingredientName ||
+			previous.recipeTitle !== next.recipeTitle ||
+			previous.stepContext !== next.stepContext ||
+			previous.sessionId !== next.sessionId ||
+			previous.userId !== next.userId ||
+			previous.allergenFlagsKey !== next.allergenFlagsKey
+
+		if (!changed) return
+
+		requestContextRef.current = next
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setSubstitutions([])
+		setError(null)
+		setCustomSubstitute('')
+	}, [
+		allergenFlagsKey,
+		ingredientName,
+		recipeTitle,
+		sessionId,
+		stepContext,
+		user?.userId,
+	])
+
+	useLayoutEffect(
+		() => () => {
+			requestGenerationRef.current += 1
+		},
+		[],
+	)
 
 	const fetchSuggestions = async () => {
+		const requestGeneration = ++requestGenerationRef.current
 		setLoading(true)
 		setError(null)
 		try {
@@ -75,21 +134,27 @@ export function CookingSubstitutionButton({
 				user?.allergenFlags,
 				sessionId,
 			)
+			if (requestGeneration !== requestGenerationRef.current) return
 			if (response.success && response.data) {
 				setSubstitutions(response.data.substitutions)
 			} else {
 				setError(response.message || t('substitutionSuggestionsUnavailable'))
 			}
 		} catch {
+			if (requestGeneration !== requestGenerationRef.current) return
 			setError(t('substitutionSuggestionsUnavailable'))
 		} finally {
-			setLoading(false)
+			if (requestGeneration === requestGenerationRef.current) {
+				setLoading(false)
+			}
 		}
 	}
 
 	const openSuggestions = () => {
 		setOpen(true)
 		setCustomSubstitute('')
+		setSubstitutions([])
+		setError(null)
 		void fetchSuggestions()
 	}
 
@@ -158,7 +223,7 @@ export function CookingSubstitutionButton({
 									</div>
 									<button
 										type='button'
-										onClick={() => setOpen(false)}
+										onClick={closeDialog}
 										disabled={submitting}
 										className='rounded-full p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 										aria-label={t('closeSubstitution')}

@@ -1,12 +1,17 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { CookingSubstitutionButton } from '../CookingSubstitutionButton'
 import { suggestSubstitutions } from '@/services/ai'
 
 jest.mock('next-intl', () => ({
-	useTranslations: () => (key: string, values?: { ingredient?: string; count?: number; recipe?: string }) => {
-		if (values?.ingredient) return `${key}:${values.ingredient}`
-		return key
-	},
+	useTranslations:
+		() =>
+		(
+			key: string,
+			values?: { ingredient?: string; count?: number; recipe?: string },
+		) => {
+			if (values?.ingredient) return `${key}:${values.ingredient}`
+			return key
+		},
 }))
 
 jest.mock('@/hooks/useAuth', () => ({
@@ -18,6 +23,16 @@ jest.mock('@/services/ai', () => ({
 }))
 
 const mockedSuggest = jest.mocked(suggestSubstitutions)
+
+function deferred<T>() {
+	let resolve!: (value: T) => void
+	let reject!: (reason?: unknown) => void
+	const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+		resolve = resolvePromise
+		reject = rejectPromise
+	})
+	return { promise, resolve, reject }
+}
 
 describe('CookingSubstitutionButton engineering contract', () => {
 	beforeEach(() => {
@@ -55,7 +70,11 @@ describe('CookingSubstitutionButton engineering contract', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByRole('button', { name: 'findSubstituteForIngredient:butter' }))
+		fireEvent.click(
+			screen.getByRole('button', {
+				name: 'findSubstituteForIngredient:butter',
+			}),
+		)
 
 		await waitFor(() => {
 			expect(mockedSuggest).toHaveBeenCalledWith(
@@ -79,5 +98,80 @@ describe('CookingSubstitutionButton engineering contract', () => {
 				'sug-456',
 			)
 		})
+	})
+
+	it('does not let a closed cooking request replace the reopened dialog loading state', async () => {
+		type SuggestionResponse = Awaited<ReturnType<typeof suggestSubstitutions>>
+		const oldRequest = deferred<SuggestionResponse>()
+		const currentRequest = deferred<SuggestionResponse>()
+		mockedSuggest
+			.mockReturnValueOnce(oldRequest.promise)
+			.mockReturnValueOnce(currentRequest.promise)
+		const onChoice = jest.fn().mockResolvedValue(true)
+		render(
+			<CookingSubstitutionButton
+				ingredientName='butter'
+				recipeTitle='Weeknight Curry'
+				onChoice={onChoice}
+			/>,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', {
+				name: 'findSubstituteForIngredient:butter',
+			}),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'closeSubstitution' }))
+		fireEvent.click(
+			screen.getByRole('button', {
+				name: 'findSubstituteForIngredient:butter',
+			}),
+		)
+
+		await act(async () => {
+			oldRequest.resolve({
+				success: true,
+				message: 'stale',
+				statusCode: 200,
+				data: {
+					originalIngredient: 'butter',
+					reason: 'unavailable',
+					substitutions: [
+						{
+							name: 'stale suggestion',
+							ratio: '1:1',
+							notes: '',
+							confidenceScore: 0.5,
+						},
+					],
+				},
+			})
+			await oldRequest.promise
+		})
+
+		expect(screen.getByText('substitutionLoading')).toBeTruthy()
+		expect(screen.queryByText('stale suggestion')).toBeNull()
+
+		await act(async () => {
+			currentRequest.resolve({
+				success: true,
+				message: 'current',
+				statusCode: 200,
+				data: {
+					originalIngredient: 'butter',
+					reason: 'unavailable',
+					substitutions: [
+						{
+							name: 'current suggestion',
+							ratio: '1:1',
+							notes: '',
+							confidenceScore: 0.5,
+						},
+					],
+				},
+			})
+			await currentRequest.promise
+		})
+		expect(await screen.findByText('current suggestion')).toBeTruthy()
 	})
 })

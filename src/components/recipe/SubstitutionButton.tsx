@@ -54,6 +54,7 @@ export function SubstitutionButton({
 	const { user } = useAuth()
 	const t = useTranslations('recipe')
 	const { requireAuth } = useAuthActionGuard()
+	const allergenFlagsKey = (user?.allergenFlags ?? []).join('\u0000')
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [substitutions, setSubstitutions] = useState<Substitution[] | null>(
@@ -69,6 +70,15 @@ export function SubstitutionButton({
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const dialogRef = useRef<HTMLDivElement>(null)
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
+	const requestGenerationRef = useRef(0)
+	const requestContextRef = useRef({
+		ingredientName,
+		recipeTitle,
+		sessionId,
+		userId: user?.userId,
+		allergenFlagsKey,
+		researchFetcher: activeResearchMode?.fetcher,
+	})
 	const wasOpenRef = useRef(false)
 	const [dialogMounted, setDialogMounted] = useState(false)
 	const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -91,7 +101,57 @@ export function SubstitutionButton({
 		preference: 'reasonPreference',
 	}
 
-	useEscapeKey(open, () => setOpen(false))
+	const closeDialog = useCallback(() => {
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setOpen(false)
+	}, [])
+
+	useEscapeKey(open, closeDialog)
+
+	useLayoutEffect(() => {
+		const previous = requestContextRef.current
+		const next = {
+			ingredientName,
+			recipeTitle,
+			sessionId,
+			userId: user?.userId,
+			allergenFlagsKey,
+			researchFetcher: activeResearchMode?.fetcher,
+		}
+		const changed =
+			previous.ingredientName !== next.ingredientName ||
+			previous.recipeTitle !== next.recipeTitle ||
+			previous.sessionId !== next.sessionId ||
+			previous.userId !== next.userId ||
+			previous.allergenFlagsKey !== next.allergenFlagsKey ||
+			previous.researchFetcher !== next.researchFetcher
+
+		if (!changed) return
+
+		requestContextRef.current = next
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setSubstitutions(null)
+		setResearchEvidence(null)
+		setError(null)
+		setReason('unavailable')
+		setFeedbackState({})
+	}, [
+		activeResearchMode?.fetcher,
+		allergenFlagsKey,
+		ingredientName,
+		recipeTitle,
+		sessionId,
+		user?.userId,
+	])
+
+	useLayoutEffect(
+		() => () => {
+			requestGenerationRef.current += 1
+		},
+		[],
+	)
 
 	useLayoutEffect(() => {
 		if (open) {
@@ -183,6 +243,7 @@ export function SubstitutionButton({
 	}, [open])
 
 	const handleFetch = async (r: SubstitutionReason) => {
+		const requestGeneration = ++requestGenerationRef.current
 		setReason(r)
 		setLoading(true)
 		setError(null)
@@ -193,6 +254,7 @@ export function SubstitutionButton({
 				// fields through this research-only caller. Abstention is terminal;
 				// this branch must not fall through to the legacy Gemini request.
 				const response = await activeResearchMode.fetcher(ingredientName)
+				if (requestGeneration !== requestGenerationRef.current) return
 				const evidence = parseResearchSubstitutionResponse(response)
 				if (!evidence) {
 					setError(t('researchGenericAbstention'))
@@ -219,12 +281,14 @@ export function SubstitutionButton({
 						undefined,
 						sessionId,
 					)
+			if (requestGeneration !== requestGenerationRef.current) return
 			if (res.success && res.data) {
 				setSubstitutions(res.data.substitutions)
 			} else {
 				setError(res.message || t('failedToGetSuggestions'))
 			}
 		} catch {
+			if (requestGeneration !== requestGenerationRef.current) return
 			setError(
 				t(
 					activeResearchMode
@@ -233,7 +297,9 @@ export function SubstitutionButton({
 				),
 			)
 		} finally {
-			setLoading(false)
+			if (requestGeneration === requestGenerationRef.current) {
+				setLoading(false)
+			}
 		}
 	}
 
@@ -299,10 +365,7 @@ export function SubstitutionButton({
 			<AnimatePresence>
 				{open && (
 					<Portal>
-						<div
-							className='fixed inset-0 z-dropdown'
-							onMouseDown={() => setOpen(false)}
-						>
+						<div className='fixed inset-0 z-dropdown' onMouseDown={closeDialog}>
 							<motion.div
 								ref={attachDialog}
 								initial={{ opacity: 0, y: -4, scale: 0.96 }}
@@ -327,7 +390,7 @@ export function SubstitutionButton({
 									<button
 										ref={attachCloseButton}
 										type='button'
-										onClick={() => setOpen(false)}
+										onClick={closeDialog}
 										aria-label={t('subClose')}
 										className='rounded-md p-1 text-text-muted hover:bg-bg-elevated'
 									>

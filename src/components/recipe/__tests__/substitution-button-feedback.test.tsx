@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SubstitutionButton } from '../SubstitutionButton'
 import { suggestSubstitutions } from '@/services/ai'
 import { submitSubstitutionFeedback } from '@/services/cookingSession'
@@ -24,6 +24,16 @@ jest.mock('@/hooks/useAuthActionGuard', () => ({
 
 const mockedSuggest = jest.mocked(suggestSubstitutions)
 const mockedSubmit = jest.mocked(submitSubstitutionFeedback)
+
+function deferred<T>() {
+	let resolve!: (value: T) => void
+	let reject!: (reason?: unknown) => void
+	const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+		resolve = resolvePromise
+		reject = rejectPromise
+	})
+	return { promise, resolve, reject }
+}
 
 describe('SubstitutionButton feedback evidence', () => {
 	beforeEach(() => {
@@ -111,6 +121,72 @@ describe('SubstitutionButton feedback evidence', () => {
 				.getByRole('button', { name: 'feedbackRecorded' })
 				.getAttribute('disabled'),
 		).not.toBeNull()
+	})
+
+	it('does not let an old product-suggestion response replace the reopened dialog request', async () => {
+		type SuggestionResponse = Awaited<ReturnType<typeof suggestSubstitutions>>
+		const oldRequest = deferred<SuggestionResponse>()
+		const currentRequest = deferred<SuggestionResponse>()
+		mockedSuggest
+			.mockReturnValueOnce(oldRequest.promise)
+			.mockReturnValueOnce(currentRequest.promise)
+		render(<SubstitutionButton ingredientName='butter' />)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'subClose' }))
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:butter' }),
+		)
+
+		await act(async () => {
+			oldRequest.resolve({
+				success: true,
+				message: 'stale',
+				statusCode: 200,
+				data: {
+					originalIngredient: 'butter',
+					reason: 'unavailable',
+					substitutions: [
+						{
+							name: 'stale suggestion',
+							ratio: '1:1',
+							notes: '',
+							confidenceScore: 0.5,
+						},
+					],
+				},
+			})
+			await oldRequest.promise
+		})
+
+		expect(
+			screen.getByRole('dialog').querySelector('.animate-spin'),
+		).not.toBeNull()
+		expect(screen.queryByText('stale suggestion')).toBeNull()
+
+		await act(async () => {
+			currentRequest.resolve({
+				success: true,
+				message: 'current',
+				statusCode: 200,
+				data: {
+					originalIngredient: 'butter',
+					reason: 'unavailable',
+					substitutions: [
+						{
+							name: 'current suggestion',
+							ratio: '1:1',
+							notes: '',
+							confidenceScore: 0.5,
+						},
+					],
+				},
+			})
+			await currentRequest.promise
+		})
+		expect(await screen.findByText('current suggestion')).toBeTruthy()
 	})
 
 	it('does not expose feedback controls for an unreceipted candidate', async () => {
