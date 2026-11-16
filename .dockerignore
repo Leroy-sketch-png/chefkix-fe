@@ -1,0 +1,24 @@
+# Fail-closed context allowlist: private workspace data, local env files,
+# research outputs, dependencies and Git history are never sent to the builder.
+**
+!package.json
+!package-lock.json
+!next.config.mjs
+!next-env.d.ts
+!tsconfig.json
+!postcss.config.mjs
+!tailwind.config.js
+!src/
+!src/**
+!messages/
+!messages/**
+!public/
+!public/**
+
+# Generated PWA files are recreated by next-pwa during the production build.
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/demo-manifest.json
+public/demo-readiness.json
