@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Flame, Loader2, MessageSquare, Sparkles } from 'lucide-react'
+import { Flame, Loader2, MessageSquare, ScanLine, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -29,12 +29,14 @@ import {
 	rememberFeedScrollPosition,
 	restoreFeedScrollPositionIfReady,
 } from '@/lib/app-scroll'
+import { PATHS } from '@/constants/paths'
 
 const POSTS_PER_PAGE = 10
 
 export default function FeedPage() {
 	const { user } = useAuth()
 	const t = useTranslations('feed')
+	const nav = useTranslations('nav')
 	const tc = useTranslations('common')
 	const [feedMode, setFeedMode] = useState<FeedMode>(() =>
 		user ? 'forYou' : 'trending',
@@ -429,6 +431,19 @@ export default function FeedPage() {
 																<Link href='/explore'>
 																	<Sparkles className='size-4' />
 																	{t('emptyExploreAction')}
+																</Link>
+															</Button>
+															<Button
+																asChild
+																variant='outline'
+																className='h-10 gap-2 rounded-xl px-5 xl:hidden'
+															>
+																<Link href={PATHS.SCAN}>
+																	<ScanLine
+																		className='size-4'
+																		aria-hidden='true'
+																	/>
+																	{nav('kitchenScanner')}
 																</Link>
 															</Button>
 															<Button
