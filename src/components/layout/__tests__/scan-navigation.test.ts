@@ -8,7 +8,6 @@ const readSource = (relativePath: string) =>
 
 const desktopSource = readSource('src/components/layout/LeftSidebar.tsx')
 const mobileSource = readSource('src/components/layout/MobileBottomNav.tsx')
-const feedSource = readSource('src/app/(main)/feed/page.tsx')
 const feedRailSource = readSource('src/components/social/FeedContextRail.tsx')
 const messages = JSON.parse(readSource('messages/en.json')) as {
 	nav: Record<string, string>
@@ -61,12 +60,7 @@ describe('Kitchen Scanner navigation', () => {
 		expect(mobileSource).toContain("labelKey: 'kitchenScanner'")
 	})
 
-	it('offers a direct scanner route from the Feed', () => {
-		expect(feedSource).toContain('href={PATHS.SCAN}')
-		expect(feedSource).toContain("nav('kitchenScanner')")
-		expect(feedSource).toContain(
-			"className='h-10 gap-2 rounded-xl px-5 xl:hidden'",
-		)
+	it('keeps the wide Feed Quick Moves scanner route', () => {
 		expect(feedRailSource).toContain('href={PATHS.SCAN}')
 		expect(feedRailSource).toContain("nav('kitchenScanner')")
 	})
