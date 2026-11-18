@@ -1,5 +1,6 @@
 import { isIP } from 'node:net'
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerBackendUrl } from '@/lib/server-backend-url'
 
 import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
 import {
@@ -13,7 +14,6 @@ export const dynamic = 'force-dynamic'
 
 const AI_PROXY_ERROR = 'AI proxy request failed'
 const DEFAULT_AI_SERVICE_URL = 'http://localhost:8000'
-const DEFAULT_BACKEND_URL = 'http://localhost:8080'
 const RESEARCH_AUTH_HEADER = 'X-Iron-Chef-Research-Key'
 const RESEARCH_ROUTE = ['research', 'suggest_substitutions']
 const RESEARCH_KEY_PLACEHOLDERS = new Set([
@@ -140,11 +140,7 @@ const resolveAiConfig = () => {
 	const baseUrl = normalizeEnvValue(
 		process.env.AI_SERVICE_URL || DEFAULT_AI_SERVICE_URL,
 	).replace(/\/+$/, '')
-	const backendUrl = normalizeEnvValue(
-		process.env.BACKEND_URL ||
-			process.env.NEXT_PUBLIC_BASE_URL ||
-			DEFAULT_BACKEND_URL,
-	).replace(/\/+$/, '')
+	const backendUrl = getServerBackendUrl()
 
 	const rateLimitSubjectSecret = normalizeEnvValue(
 		process.env.AI_RATE_LIMIT_SUBJECT_SECRET || '',

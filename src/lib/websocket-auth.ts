@@ -5,12 +5,15 @@ import {
 } from '@/lib/tokenManager'
 import { useAuthStore } from '@/store/authStore'
 import app from '@/configs/app'
+import { buildWebSocketUrl } from '@/lib/api-origin'
+import { API_PREFIX } from '@/constants/api'
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired. Please sign in again.'
 
 export function getWebSocketUrl(): string {
-	const wsBase = app.API_BASE_URL.replace(/^http/, 'ws')
-	return `${wsBase}/api/v1/ws`
+	const pageOrigin =
+		typeof window === 'undefined' ? undefined : window.location.origin
+	return buildWebSocketUrl(`${API_PREFIX}/ws`, app.API_BASE_URL, pageOrigin)
 }
 
 export function getReadableWebSocketError(message?: string | null): string {

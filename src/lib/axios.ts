@@ -41,7 +41,7 @@ const t = (key: ScalarCommonMessageKey): string => messages.common[key]
 // AXIOS INSTANCES
 
 export const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080',
+	baseURL: app.API_BASE_URL,
 	headers: {
 		'Content-Type': 'application/json',
 	},

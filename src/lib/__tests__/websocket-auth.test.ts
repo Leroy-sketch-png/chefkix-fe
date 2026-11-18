@@ -1,9 +1,14 @@
 import {
 	getReadableWebSocketError,
+	getWebSocketUrl,
 	isWebSocketAuthenticationError,
 } from '@/lib/websocket-auth'
 
 describe('WebSocket authentication errors', () => {
+	it('keeps the canonical chat/notification/room endpoint path', () => {
+		expect(new URL(getWebSocketUrl()).pathname).toBe('/api/v1/ws')
+	})
+
 	it.each([
 		'Authentication required for WebSocket connection',
 		'Unauthorized',

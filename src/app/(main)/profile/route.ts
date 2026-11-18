@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { API_ENDPOINTS } from '@/constants'
+import { getServerBackendUrl } from '@/lib/server-backend-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,11 +16,7 @@ type MeResponse = {
 	}
 }
 
-const backendBaseUrl =
-	process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, '') ||
-	'http://localhost:8080'
-
-const buildBackendUrl = (path: string) => `${backendBaseUrl}${path}`
+const buildBackendUrl = (path: string) => `${getServerBackendUrl()}${path}`
 
 function createSignInRedirect(request: NextRequest) {
 	return NextResponse.redirect(

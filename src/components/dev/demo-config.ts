@@ -1,4 +1,5 @@
 import type { CookingRoom, RoomParticipant } from '@/lib/types/room'
+import app from '@/configs/app'
 import { getRecipeById } from '@/services/recipe'
 import { useAuthStore } from '@/store/authStore'
 import { useCookingStore } from '@/store/cookingStore'
@@ -166,12 +167,11 @@ export function getDemoBaseUrl() {
 	if (getDemoEnvMode() === 'local') {
 		return 'http://localhost:8080'
 	}
-	return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+	return app.API_BASE_URL
 }
 
 // Keeping the static export for backwards compatibility, but recommending getDemoBaseUrl()
-export const DEMO_BASE_URL =
-	process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+export const DEMO_BASE_URL = app.API_BASE_URL
 
 const DEMO_MANIFEST_URL = '/demo-manifest.json'
 const DEMO_READINESS_URL = '/demo-readiness.json'

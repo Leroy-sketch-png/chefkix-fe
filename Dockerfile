@@ -10,7 +10,7 @@ FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_APP_URL=https://app.example.invalid
-ARG NEXT_PUBLIC_BASE_URL=https://api.example.invalid
+ARG NEXT_PUBLIC_BASE_URL=/
 ARG NEXT_PUBLIC_KEYCLOAK_URL=https://auth.example.invalid
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL} \
     NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL} \
@@ -22,7 +22,7 @@ RUN npm run build
 FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a AS runner
 WORKDIR /app
 ARG NEXT_PUBLIC_APP_URL=https://app.example.invalid
-ARG NEXT_PUBLIC_BASE_URL=https://api.example.invalid
+ARG NEXT_PUBLIC_BASE_URL=/
 ARG NEXT_PUBLIC_KEYCLOAK_URL=https://auth.example.invalid
 LABEL com.chefkix.public-app-url=${NEXT_PUBLIC_APP_URL} \
       com.chefkix.public-api-url=${NEXT_PUBLIC_BASE_URL} \

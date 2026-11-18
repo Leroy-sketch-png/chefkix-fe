@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { probeHttpService, type HealthService } from '@/lib/service-health'
+import app from '@/configs/app'
 
 export type OrchestratorLaunchMode = 'single-strict' | 'certify-strict'
 
@@ -89,12 +90,7 @@ function getTaskMaxRuntimeMs(mode: OrchestratorLaunchMode): number {
 }
 
 function getBackendBaseUrl(): string {
-	const configured = (process.env.NEXT_PUBLIC_BASE_URL || '').trim()
-	if (configured.length > 0) {
-		return configured.replace(/\/+$/, '')
-	}
-
-	return 'http://localhost:8080'
+	return app.API_BASE_URL
 }
 
 async function probeUrl(
