@@ -2,14 +2,17 @@
 
 import { Loader2, RotateCw, SearchX, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { PATHS } from '@/constants/paths'
+import type { ApiError } from '@/lib/error-utils'
 import type { PhotoRecipeMatch } from '@/lib/types/photo-intelligence'
 import { PhotoRecipeMatchCard } from './PhotoRecipeMatchCard'
 
 interface PhotoRecipeMatchesProps {
 	matches: PhotoRecipeMatch[]
 	loading?: boolean
-	error?: string | null
+	error?: ApiError | null
 	mode: 'ingredients' | 'dish'
 	source?: 'backend' | 'stored-overlap'
 	onRetry?: () => void
@@ -33,6 +36,22 @@ export function PhotoRecipeMatches({
 						: 'scanRecipeMatchesTitle',
 				)
 			: t('scanDishMatchesTitle')
+	const requiresSignIn = error?.status === 401
+	const accessDenied = error?.status === 403
+	const retryable =
+		error !== null &&
+		error !== undefined &&
+		(error.status === 0 ||
+			error.status === 408 ||
+			error.status === 429 ||
+			error.status >= 500)
+	const errorMessage = requiresSignIn
+		? t('scanMatchingRequiresSignIn')
+		: accessDenied
+			? t('scanMatchingAccessDenied')
+			: retryable
+				? t('scanRecipeMatchingUnavailable')
+				: t('scanMatchingCouldNotComplete')
 
 	return (
 		<section className='space-y-3' aria-live='polite' aria-busy={loading}>
@@ -58,8 +77,16 @@ export function PhotoRecipeMatches({
 					role='alert'
 				>
 					<div className='flex min-w-0 flex-wrap items-center justify-between gap-3'>
-						<p className='min-w-0 [overflow-wrap:anywhere]'>{error}</p>
-						{onRetry && (
+						<p className='min-w-0 [overflow-wrap:anywhere]'>{errorMessage}</p>
+						{requiresSignIn && (
+							<Link
+								href={`${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.SCAN)}`}
+								className='inline-flex min-h-10 items-center rounded-lg border border-border bg-bg-card px-3 py-2 font-medium text-text-primary hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
+							>
+								{t('scanSignInToMatch')}
+							</Link>
+						)}
+						{retryable && onRetry && (
 							<Button
 								type='button'
 								variant='outline'

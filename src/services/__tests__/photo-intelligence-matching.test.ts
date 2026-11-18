@@ -2,6 +2,7 @@ import axios from 'axios'
 import { aiApi } from '@/lib/axios'
 import { getAllRecipes } from '@/services/recipe'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
+import { ApiError } from '@/lib/error-utils'
 import type { Recipe } from '@/lib/types/recipe'
 
 jest.mock('@/lib/axios', () => ({ aiApi: { post: jest.fn() } }))
@@ -23,6 +24,17 @@ const integrationPending = () =>
 			status: 503,
 			data: { code: 'INTEGRATION_PENDING' },
 			statusText: 'Service Unavailable',
+			headers: {},
+			config: {},
+		},
+	})
+
+const httpError = (status: number, code = 'REQUEST_REJECTED') =>
+	Object.assign(new axios.AxiosError(`HTTP ${status}`), {
+		response: {
+			status,
+			data: { code },
+			statusText: `HTTP ${status}`,
 			headers: {},
 			config: {},
 		},
@@ -238,9 +250,52 @@ describe('findRecipesFromIngredients stored-recipe fallback', () => {
 			statusCode: 503,
 		})
 
-		await expect(findRecipesFromIngredients(['Tofu'])).rejects.toThrow(
-			'Stored recipes could not be loaded for ingredient matching.',
-		)
+		await expect(findRecipesFromIngredients(['Tofu'])).rejects.toMatchObject({
+			name: 'ApiError',
+			status: 503,
+			message: 'Stored recipes could not be loaded for ingredient matching.',
+		})
+	})
+
+	it.each([401, 403])(
+		'preserves HTTP %s from the stored-recipe fallback',
+		async status => {
+			jest.mocked(aiApi.post).mockRejectedValue(integrationPending())
+			jest.mocked(getAllRecipes).mockResolvedValue({
+				success: false,
+				message: 'Request denied',
+				statusCode: status,
+			})
+
+			await expect(findRecipesFromIngredients(['Tofu'])).rejects.toMatchObject({
+				name: 'ApiError',
+				status,
+				code: 'RECIPE_LIST_UNAVAILABLE',
+			})
+		},
+	)
+
+	it('preserves 401 from the primary matcher without activating stored fallback', async () => {
+		jest.mocked(aiApi.post).mockRejectedValue(httpError(401, 'UNAUTHORIZED'))
+
+		await expect(findRecipesFromIngredients(['Tofu'])).rejects.toMatchObject({
+			name: 'ApiError',
+			status: 401,
+			code: 'UNAUTHORIZED',
+		})
+		expect(getAllRecipes).not.toHaveBeenCalled()
+	})
+
+	it('keeps a failure status included in a successful HTTP response body', async () => {
+		jest.mocked(aiApi.post).mockResolvedValue({
+			data: { success: false, statusCode: 401, message: 'unauthorized' },
+		} as never)
+
+		await expect(findRecipesFromIngredients(['Tofu'])).rejects.toMatchObject({
+			name: 'ApiError',
+			status: 401,
+		})
+		expect(getAllRecipes).not.toHaveBeenCalled()
 	})
 
 	it('does not start the stored-list fallback if cancellation arrives with the exact pending response', async () => {

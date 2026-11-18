@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { PhotoIntelligencePanel } from '@/components/scan/PhotoIntelligencePanel'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
+import { ApiError } from '@/lib/error-utils'
 
 jest.mock('next-intl', () => {
 	const translate = (key: string) => key
@@ -19,15 +20,17 @@ jest.mock('@/components/scan/PhotoRecipeMatches', () => ({
 		onRetry,
 	}: {
 		matches: Array<{ recipeTitle: string }>
-		error?: string | null
+		error?: ApiError | null
 		loading?: boolean
 		onRetry?: () => void
 	}) => (
 		<div data-testid='recipe-matches'>
 			{error && !loading && (
 				<>
-					<p role='alert'>{error}</p>
-					{onRetry && (
+					<p role='alert' data-error-status={error.status}>
+						{error.message}
+					</p>
+					{onRetry && (error.status === 0 || error.status >= 500) && (
 						<button type='button' onClick={onRetry}>
 							scanRetryIngredientMatching
 						</button>
@@ -47,6 +50,23 @@ describe('PhotoIntelligencePanel', () => {
 
 		expect(findRecipesFromIngredients).not.toHaveBeenCalled()
 		expect(screen.queryByTestId('recipe-matches')).not.toBeInTheDocument()
+	})
+
+	it('preserves an authentication status instead of converting it to a retryable message', async () => {
+		jest
+			.mocked(findRecipesFromIngredients)
+			.mockRejectedValue(new ApiError('unauthorized', 401, 'UNAUTHORIZED'))
+
+		render(
+			<PhotoIntelligencePanel ingredients={['Tofu']} inputSource='manual' />,
+		)
+
+		const alert = await screen.findByRole('alert')
+		expect(alert).toHaveAttribute('data-error-status', '401')
+		expect(alert).toHaveTextContent('unauthorized')
+		expect(
+			screen.queryByRole('button', { name: 'scanRetryIngredientMatching' }),
+		).not.toBeInTheDocument()
 	})
 
 	it('matches only the confirmed ingredient list and renders returned recipes', async () => {
@@ -154,7 +174,9 @@ describe('PhotoIntelligencePanel', () => {
 			}),
 		)
 
-		expect(await screen.findByRole('alert')).toHaveTextContent('Retry failure')
+		expect(await screen.findByRole('alert')).toHaveTextContent(
+			'Network error. Please check your connection.',
+		)
 		expect(
 			screen.getByRole('button', { name: 'scanRetryIngredientMatching' }),
 		).toBeEnabled()

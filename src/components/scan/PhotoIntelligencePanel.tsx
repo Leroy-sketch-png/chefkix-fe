@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { parseError, type ApiError } from '@/lib/error-utils'
 import type { PhotoRecipeMatch } from '@/lib/types/photo-intelligence'
 import { findRecipesFromIngredients } from '@/services/photo-intelligence'
 import { PhotoRecipeMatches } from './PhotoRecipeMatches'
@@ -23,7 +24,7 @@ export function PhotoIntelligencePanel({
 	>(null)
 	const [withheldRecipeCount, setWithheldRecipeCount] = useState(0)
 	const [loading, setLoading] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const [error, setError] = useState<ApiError | null>(null)
 	const [retryKey, setRetryKey] = useState(0)
 	const loadingRef = useRef(false)
 
@@ -56,11 +57,7 @@ export function PhotoIntelligencePanel({
 					setMatches([])
 					setMatchSource(null)
 					setWithheldRecipeCount(0)
-					setError(
-						matchError instanceof Error
-							? matchError.message
-							: t('scanRecipeMatchingUnavailable'),
-					)
+					setError(parseError(matchError))
 				}
 			})
 			.finally(() => {

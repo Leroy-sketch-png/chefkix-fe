@@ -7,7 +7,7 @@ import type {
 import type { Recipe } from '@/lib/types/recipe'
 import { isAxiosError } from 'axios'
 import { aiApi } from '@/lib/axios'
-import { getUserFriendlyMessage } from '@/lib/error-utils'
+import { ApiError, getUserFriendlyMessage, parseError } from '@/lib/error-utils'
 import { getAllRecipes } from '@/services/recipe'
 
 const INGREDIENT_MATCH_ENDPOINT = '/api/photo-intelligence/ingredient-recipes'
@@ -28,6 +28,7 @@ interface ApiPayload<T> {
 	success: boolean
 	message?: string
 	data?: T
+	statusCode?: number
 }
 
 /** Query the Lead-owned HGAT adapter with normalized confirmed/manual ingredients. */
@@ -71,11 +72,13 @@ export async function findRecipesFromIngredients(
 		) {
 			return matchVisibleStoredRecipes(normalizedIngredients, signal)
 		}
-		throw new Error(getUserFriendlyMessage(error))
+		throw parseError(error)
 	}
 	if (!payload.success || !payload.data) {
-		throw new Error(
+		throw new ApiError(
 			payload.message || 'Ingredient recipe matching is unavailable.',
+			payload.statusCode || 502,
+			'INVALID_MATCH_RESPONSE',
 		)
 	}
 	return payload.data
@@ -102,8 +105,10 @@ async function matchVisibleStoredRecipes(
 	}
 	throwIfAborted(signal)
 	if (!response.success || !Array.isArray(response.data)) {
-		throw new Error(
+		throw new ApiError(
 			'Stored recipes could not be loaded for ingredient matching.',
+			response.success ? 502 : response.statusCode || 503,
+			response.success ? 'INVALID_RECIPE_RESPONSE' : 'RECIPE_LIST_UNAVAILABLE',
 		)
 	}
 
