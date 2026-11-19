@@ -2,6 +2,7 @@ import type {
 	DetectionSpeed,
 	IngredientDetectionResult,
 } from '@/lib/types/ingredient-detection'
+import { isAxiosError } from 'axios'
 import { aiApi } from '@/lib/axios'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
 
@@ -18,6 +19,13 @@ interface DetectionApiResponse {
 		model?: string
 		device?: string
 		speed?: DetectionSpeed
+	}
+}
+
+export class IngredientDetectionUnavailableError extends Error {
+	constructor() {
+		super('Ingredient photo detection is unavailable.')
+		this.name = 'IngredientDetectionUnavailableError'
 	}
 }
 
@@ -47,6 +55,9 @@ export async function detectIngredients(
 		})
 		payload = response.data
 	} catch (error) {
+		if (isAxiosError(error) && error.response?.status === 503) {
+			throw new IngredientDetectionUnavailableError()
+		}
 		throw new Error(getUserFriendlyMessage(error))
 	}
 

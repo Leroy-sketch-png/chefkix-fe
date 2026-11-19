@@ -1,4 +1,7 @@
-import { detectIngredients } from '@/services/ingredient-detection'
+import {
+	detectIngredients,
+	IngredientDetectionUnavailableError,
+} from '@/services/ingredient-detection'
 import { aiApi } from '@/lib/axios'
 
 jest.mock('@/lib/axios', () => ({
@@ -56,5 +59,24 @@ describe('ingredient detection service', () => {
 		await expect(
 			detectIngredients(new Blob(['image'], { type: 'image/jpeg' })),
 		).rejects.toThrow('Scan unavailable')
+	})
+
+	it('normalizes a detector 503 for a clear manual-entry recovery message', async () => {
+		postMock.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 503,
+				data: {
+					success: false,
+					code: 'INTEGRATION_PENDING',
+					message:
+						'Ingredient detection is waiting for the configured YOLOv8 service.',
+				},
+			},
+		})
+
+		await expect(
+			detectIngredients(new Blob(['image'], { type: 'image/jpeg' })),
+		).rejects.toBeInstanceOf(IngredientDetectionUnavailableError)
 	})
 })

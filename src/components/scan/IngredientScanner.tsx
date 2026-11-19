@@ -19,7 +19,10 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
-import { detectIngredients } from '@/services/ingredient-detection'
+import {
+	detectIngredients,
+	IngredientDetectionUnavailableError,
+} from '@/services/ingredient-detection'
 import type {
 	DetectionSpeed,
 	IngredientDetection,
@@ -263,9 +266,11 @@ export function IngredientScanner({
 			} catch (scanError) {
 				if (!controller.signal.aborted) {
 					setError(
-						scanError instanceof Error && scanError.message
-							? scanError.message
-							: t('scanDetectionUnavailable'),
+						scanError instanceof IngredientDetectionUnavailableError
+							? t('scanDetectionUnavailableManual')
+							: scanError instanceof Error && scanError.message
+								? scanError.message
+								: t('scanDetectionUnavailable'),
 					)
 				}
 			} finally {

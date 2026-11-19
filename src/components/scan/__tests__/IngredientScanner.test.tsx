@@ -6,13 +6,17 @@ import {
 	waitFor,
 } from '@testing-library/react'
 import { IngredientScanner } from '@/components/scan/IngredientScanner'
-import { detectIngredients } from '@/services/ingredient-detection'
+import {
+	detectIngredients,
+	IngredientDetectionUnavailableError,
+} from '@/services/ingredient-detection'
 
 jest.mock('next-intl', () => ({
 	useTranslations: () => (key: string) => key,
 }))
 
 jest.mock('@/services/ingredient-detection', () => ({
+	...jest.requireActual('@/services/ingredient-detection'),
 	detectIngredients: jest.fn(),
 }))
 
@@ -124,6 +128,32 @@ describe('IngredientScanner camera controls', () => {
 			expect(
 				screen.queryByRole('link', { name: 'Search recipes' }),
 			).not.toBeInTheDocument()
+		} finally {
+			cleanup()
+			URL.createObjectURL = create
+			URL.revokeObjectURL = revoke
+		}
+	})
+
+	it('explains the unavailable detector without pretending a photo was scanned', async () => {
+		const create = URL.createObjectURL
+		const revoke = URL.revokeObjectURL
+		URL.createObjectURL = jest.fn(() => 'blob:test-unavailable')
+		URL.revokeObjectURL = jest.fn()
+		jest
+			.mocked(detectIngredients)
+			.mockRejectedValue(new IngredientDetectionUnavailableError())
+		try {
+			render(<IngredientScanner />)
+			fireEvent.change(screen.getByTestId('ingredient-scanner-file-input'), {
+				target: {
+					files: [new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' })],
+				},
+			})
+			expect(await screen.findByRole('alert')).toHaveTextContent(
+				'scanDetectionUnavailableManual',
+			)
+			expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
 		} finally {
 			cleanup()
 			URL.createObjectURL = create
