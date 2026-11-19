@@ -10,12 +10,22 @@ import {
 	DialogTitle,
 } from '@/components/ui/dialog'
 import type { Ingredient } from '@/lib/types/recipe'
+import type { SubstitutionFeedbackChoice } from '@/services/cookingSession'
+import { CookingSubstitutionButton } from './CookingSubstitutionButton'
 
 interface FullIngredientListDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	ingredients: Ingredient[]
 	recipeTitle: string
+	sessionId?: string
+	onSubstitutionChoice?: (
+		ingredientName: string,
+		choice: SubstitutionFeedbackChoice,
+		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
+	) => Promise<boolean>
 }
 
 export function FullIngredientListDialog({
@@ -23,6 +33,8 @@ export function FullIngredientListDialog({
 	onOpenChange,
 	ingredients,
 	recipeTitle,
+	sessionId,
+	onSubstitutionChoice,
 }: FullIngredientListDialogProps) {
 	const t = useTranslations('cooking')
 
@@ -61,9 +73,27 @@ export function FullIngredientListDialog({
 									key={`${ingredient.name}-${index}`}
 									className='flex min-h-14 items-center justify-between gap-4 py-3'
 								>
-									<span className='min-w-0 font-medium text-text-primary'>
-										{ingredient.name}
-									</span>
+									<div className='flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3'>
+										<span className='min-w-0 font-medium text-text-primary'>
+											{ingredient.name}
+										</span>
+										{onSubstitutionChoice && (
+											<CookingSubstitutionButton
+												ingredientName={ingredient.name}
+												recipeTitle={recipeTitle}
+												sessionId={sessionId}
+												onChoice={(choice, substitute, candidateReceipt, suggestionId) =>
+													onSubstitutionChoice(
+														ingredient.name,
+														choice,
+														substitute,
+														candidateReceipt,
+														suggestionId,
+													)
+												}
+											/>
+										)}
+									</div>
 									<span className='shrink-0 text-right text-sm font-semibold tabular-nums text-text-secondary'>
 										{amount || t('quantityAsNeeded')}
 									</span>

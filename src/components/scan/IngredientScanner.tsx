@@ -1,12 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import {
 	AlertTriangle,
 	Camera,
 	Check,
+	Compass,
+	Cpu,
+	Gauge,
 	ImagePlus,
 	Loader2,
 	RotateCcw,
@@ -15,19 +19,23 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { getUserMediaBounded } from '@/lib/media/get-user-media-bounded'
-import { detectIngredients } from '@/services/ingredient-detection'
+import {
+	detectIngredients,
+	IngredientDetectionUnavailableError,
+} from '@/services/ingredient-detection'
 import type {
+	DetectionSpeed,
 	IngredientDetection,
-	IngredientDetectionResult,
 } from '@/lib/types/ingredient-detection'
 import { IngredientDetectionOverlay } from './IngredientDetectionOverlay'
-
 type CameraStatus = 'idle' | 'requesting' | 'ready' | 'denied' | 'unsupported'
 type CameraFacingMode = 'environment' | 'user'
 
 interface IngredientScannerProps {
 	className?: string
-	onScanComplete?: (result: IngredientDetectionResult, image: Blob) => void
+	confirmedIngredients?: string[]
+	disableAdditionalConfirmations?: boolean
+	onConfirmedIngredientsChange?: (ingredients: string[]) => void
 }
 
 const getCameraError = (error: unknown) => {
@@ -48,7 +56,9 @@ const getCameraError = (error: unknown) => {
 
 export function IngredientScanner({
 	className,
-	onScanComplete,
+	confirmedIngredients,
+	disableAdditionalConfirmations = false,
+	onConfirmedIngredientsChange,
 }: IngredientScannerProps) {
 	const t = useTranslations('cooking')
 	const videoRef = useRef<HTMLVideoElement>(null)
@@ -63,8 +73,67 @@ export function IngredientScanner({
 	const [hasVideoFrame, setHasVideoFrame] = useState(false)
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 	const [detections, setDetections] = useState<IngredientDetection[]>([])
+	const [telemetry, setTelemetry] = useState<DetectionSpeed | null>(null)
+	const [device, setDevice] = useState<string>('unknown')
+	const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.2)
+	const [lastImageBlob, setLastImageBlob] = useState<Blob | null>(null)
 	const [isScanning, setIsScanning] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [applyScoreThreshold, setApplyScoreThreshold] = useState(true)
+	const [confirmedDetectionIds, setConfirmedDetectionIds] = useState<string[]>(
+		[],
+	)
+	const previousConfirmedNamesRef = useRef<string[] | null>(null)
+
+	const displayedDetections = useMemo(
+		() =>
+			applyScoreThreshold
+				? detections.filter(
+						detection => detection.confidence >= confidenceThreshold,
+					)
+				: detections,
+		[detections, applyScoreThreshold, confidenceThreshold],
+	)
+	const confirmedNames = useMemo(
+		() => [
+			...new Set(
+				displayedDetections
+					.filter(detection => confirmedDetectionIds.includes(detection.id))
+					.map(detection => detection.name),
+			),
+		],
+		[displayedDetections, confirmedDetectionIds],
+	)
+
+	useEffect(() => {
+		const previousNames = previousConfirmedNamesRef.current
+		previousConfirmedNamesRef.current = confirmedNames
+		if (
+			previousNames === null ||
+			(previousNames.length === confirmedNames.length &&
+				previousNames.every((name, index) => name === confirmedNames[index]))
+		) {
+			return
+		}
+		onConfirmedIngredientsChange?.(confirmedNames)
+	}, [confirmedNames, onConfirmedIngredientsChange])
+
+	useEffect(() => {
+		if (confirmedIngredients === undefined) return
+		const allowedNames = new Set(
+			confirmedIngredients.map(name => name.trim().toLowerCase()),
+		)
+		setConfirmedDetectionIds(current => {
+			const next = current.filter(id => {
+				const detection = displayedDetections.find(item => item.id === id)
+				return (
+					detection !== undefined &&
+					allowedNames.has(detection.name.trim().toLowerCase())
+				)
+			})
+			return next.length === current.length ? current : next
+		})
+	}, [confirmedIngredients, displayedDetections])
 
 	const clearCameraTimeout = useCallback(() => {
 		if (cameraTimeoutRef.current) {
@@ -161,30 +230,47 @@ export function IngredientScanner({
 	}, [imageUrl])
 
 	const scanImage = useCallback(
-		async (image: Blob) => {
+		async (image: Blob, threshold = confidenceThreshold) => {
+			onConfirmedIngredientsChange?.([])
 			detectionAbortRef.current?.abort()
 			const controller = new AbortController()
 			detectionAbortRef.current = controller
 			setError(null)
 			setDetections([])
+			setConfirmedDetectionIds([])
+			setTelemetry(null)
+			setDevice('unknown')
+			setLastImageBlob(image)
 			setImageUrl(URL.createObjectURL(image))
 			setIsScanning(true)
 			stopCamera()
 
 			try {
-				const result = await detectIngredients(image, controller.signal)
+				const result = await detectIngredients(
+					image,
+					controller.signal,
+					threshold,
+				)
 				if (controller.signal.aborted) return
 				setDetections(result.detections)
-				onScanComplete?.(result, image)
+				setConfirmedDetectionIds([])
+				if (result.speed) {
+					setTelemetry(result.speed)
+				}
+				if (result.device) {
+					setDevice(result.device)
+				}
 				toast.success(
 					t('scanFoundResults', { count: result.detections.length }),
 				)
 			} catch (scanError) {
 				if (!controller.signal.aborted) {
 					setError(
-						scanError instanceof Error && scanError.message
-							? scanError.message
-							: t('scanDetectionUnavailable'),
+						scanError instanceof IngredientDetectionUnavailableError
+							? t('scanDetectionUnavailableManual')
+							: scanError instanceof Error && scanError.message
+								? scanError.message
+								: t('scanDetectionUnavailable'),
 					)
 				}
 			} finally {
@@ -194,8 +280,15 @@ export function IngredientScanner({
 				}
 			}
 		},
-		[onScanComplete, stopCamera, t],
+		[confidenceThreshold, onConfirmedIngredientsChange, stopCamera, t],
 	)
+
+	const handleThresholdChange = (newThreshold: number) => {
+		setConfidenceThreshold(newThreshold)
+		if (lastImageBlob && !isScanning) {
+			void scanImage(lastImageBlob, newThreshold)
+		}
+	}
 
 	const captureFrame = useCallback(() => {
 		const video = videoRef.current
@@ -234,8 +327,12 @@ export function IngredientScanner({
 	)
 
 	const resetScan = () => {
+		onConfirmedIngredientsChange?.([])
 		setImageUrl(null)
 		setDetections([])
+		setConfirmedDetectionIds([])
+		setTelemetry(null)
+		setLastImageBlob(null)
 		setError(null)
 		void startCamera()
 	}
@@ -271,10 +368,8 @@ export function IngredientScanner({
 						className='absolute inset-0 z-10 size-full object-cover'
 					/>
 				)}
-				{imageUrl && detections.length > 0 && (
-					<div className='relative z-20'>
-						<IngredientDetectionOverlay detections={detections} />
-					</div>
+				{imageUrl && displayedDetections.length > 0 && (
+					<IngredientDetectionOverlay detections={displayedDetections} />
 				)}
 				{showEmptyState && (
 					<div className='absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-bg-elevated/95 via-bg-card/95 to-bg-elevated/95 p-6 text-center'>
@@ -333,16 +428,17 @@ export function IngredientScanner({
 				accept='image/*'
 				capture='environment'
 				className='hidden'
+				data-testid='ingredient-scanner-file-input'
 				onChange={handleFileChange}
 			/>
 
 			{error && (
 				<div
-					className='flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid'
+					className='flex min-w-0 items-start gap-3 rounded-2xl border border-warning/20 bg-warning/8 p-3 text-sm text-warning-vivid'
 					role='alert'
 				>
 					<AlertTriangle className='mt-0.5 size-4 shrink-0' />
-					<span>{error}</span>
+					<span className='min-w-0 [overflow-wrap:anywhere]'>{error}</span>
 				</div>
 			)}
 
@@ -397,20 +493,127 @@ export function IngredientScanner({
 			</p>
 
 			{imageUrl && detections.length > 0 && !isScanning && (
-				<div className='rounded-2xl border border-success/20 bg-success/5 p-4'>
-					<div className='mb-3 flex items-center gap-2 text-sm font-semibold text-success'>
-						<Check className='size-4' />
-						{t('scanFoundResults', { count: detections.length })}
-					</div>
-					<div className='flex flex-wrap gap-2'>
-						{detections.map(detection => (
-							<span
-								key={detection.id}
-								className='rounded-full bg-bg-card px-3 py-1.5 text-sm font-medium text-text-primary shadow-sm'
-							>
-								{detection.name} · {Math.round(detection.confidence * 100)}%
+				<div className='space-y-4 rounded-2xl border border-success/20 bg-success/5 p-4'>
+					<div className='flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-success'>
+						<div className='flex items-center gap-2'>
+							<Check className='size-4' />
+							<span>
+								{applyScoreThreshold
+									? 'Detections above score threshold'
+									: 'Returned detections'}
+								: <strong>{displayedDetections.length} item(s)</strong>
 							</span>
+						</div>
+						{telemetry && (
+							<div
+								data-testid='telemetry-strip'
+								className='flex flex-wrap items-center gap-2 rounded-xl border border-brand/20 bg-bg-card px-3 py-1 font-mono text-xs text-text-primary shadow-sm'
+							>
+								<span className='flex items-center gap-1 font-bold text-brand'>
+									<Cpu className='size-3.5' />
+									PyTorch {device.toUpperCase()}: {telemetry.total_ms}ms
+								</span>
+								<span className='text-text-muted'>|</span>
+								<span>Infer: {telemetry.inference_ms}ms</span>
+								<span>Pre: {telemetry.preprocess_ms}ms</span>
+								<span>Post: {telemetry.postprocess_ms}ms</span>
+							</div>
+						)}
+					</div>
+
+					<label className='flex items-center gap-2 text-xs text-text-secondary'>
+						<input
+							type='checkbox'
+							checked={applyScoreThreshold}
+							onChange={event => setApplyScoreThreshold(event.target.checked)}
+						/>
+						Apply model score threshold
+					</label>
+
+					<div className='flex flex-wrap gap-2.5'>
+						{displayedDetections.map(detection => (
+							<div
+								key={detection.id}
+								className='flex items-center gap-2 rounded-xl border border-border-subtle bg-bg-card px-3 py-2 text-sm shadow-sm'
+							>
+								<label className='inline-flex items-center gap-2'>
+									<input
+										type='checkbox'
+										aria-label={`Use ${detection.name} in recipe search`}
+										checked={confirmedDetectionIds.includes(detection.id)}
+										disabled={
+											!confirmedDetectionIds.includes(detection.id) &&
+											disableAdditionalConfirmations
+										}
+										onChange={event =>
+											setConfirmedDetectionIds(ids =>
+												event.target.checked
+													? [...ids, detection.id]
+													: ids.filter(id => id !== detection.id),
+											)
+										}
+									/>
+									<span className='font-semibold text-text-primary'>
+										{detection.name}
+									</span>
+								</label>
+								<span className='text-xs text-text-muted'>
+									Score {detection.confidence.toFixed(2)}
+								</span>
+								<span className='text-border-subtle'>•</span>
+								<Link
+									href={`/explore/graph?q=${encodeURIComponent(detection.name.toLowerCase())}`}
+									className='inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline'
+									title={`Explore ${detection.name} in Knowledge Graph`}
+								>
+									<Compass className='size-3' />
+									<span>Explore Graph →</span>
+								</Link>
+							</div>
 						))}
+					</div>
+
+					{/* Model-score controls do not establish precision or recall. */}
+					<div className='mt-2 rounded-xl border border-border-subtle bg-bg-card/70 p-3'>
+						<div className='flex items-center justify-between gap-2 text-xs'>
+							<label
+								htmlFor='threshold-slider'
+								className='flex items-center gap-1.5 font-medium text-text-secondary'
+							>
+								<Gauge className='size-3.5 text-brand' />
+								<span>
+									Minimum model score:{' '}
+									<strong>{confidenceThreshold.toFixed(2)}</strong>
+								</span>
+							</label>
+							<span className='text-[11px] text-text-muted'>
+								Detection threshold
+							</span>
+						</div>
+						<div className='mt-2 flex items-center gap-3'>
+							<span className='font-mono text-[11px] text-text-muted'>
+								0.10
+							</span>
+							<input
+								id='threshold-slider'
+								type='range'
+								min='0.10'
+								max='0.90'
+								step='0.05'
+								value={confidenceThreshold}
+								onChange={e =>
+									handleThresholdChange(parseFloat(e.target.value))
+								}
+								className='h-1.5 flex-1 cursor-pointer appearance-none rounded-lg bg-bg-elevated accent-brand'
+							/>
+							<span className='font-mono text-[11px] text-text-muted'>
+								0.90
+							</span>
+						</div>
+						<p className='mt-1.5 text-[11px] text-text-muted'>
+							Model scores are not calibrated accuracy. Confirm ingredients
+							before searching.
+						</p>
 					</div>
 				</div>
 			)}

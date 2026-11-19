@@ -38,6 +38,9 @@ const mockTranslate = (key: string) =>
 		shoppingListSaved: 'Shopping list saved',
 		failedSaveShoppingList: 'Could not save shopping list',
 		openShoppingList: 'Open shopping lists',
+		activeMinutesSummary: '45 of 60 hands-on minutes',
+		longestRecipeSummary: 'Longest recipe: 14h 30m',
+		totalTime: 'Total time',
 	})[key] ?? key
 
 jest.mock('next-intl', () => ({
@@ -63,7 +66,34 @@ const planWithDuplicateIngredients: CookPlan = {
 			title: 'Family batch',
 			activeMinutes: 45,
 			totalMinutes: 60,
-			dishes: [],
+			dishes: [
+				{
+					recipeId: 'brisket',
+					title: 'Texas Brisket',
+					coverImageUrl: null,
+					cuisineType: 'American',
+					mealRole: 'MAIN',
+					activeMinutes: 40,
+					totalTimeMinutes: 870,
+					sourceServings: 12,
+					plannedServings: 4,
+					pantryIngredientCount: 1,
+					shoppingIngredientCount: 3,
+				},
+				{
+					recipeId: 'banana-bread',
+					title: 'Banana Bread',
+					coverImageUrl: null,
+					cuisineType: 'American',
+					mealRole: 'DESSERT',
+					activeMinutes: 5,
+					totalTimeMinutes: 70,
+					sourceServings: 8,
+					plannedServings: 4,
+					pantryIngredientCount: 0,
+					shoppingIngredientCount: 6,
+				},
+			],
 		},
 	],
 	eatingOccasions: [],
@@ -90,6 +120,17 @@ describe('meal planner load truth', () => {
 		mockedGetAllSettings.mockResolvedValue({ success: false } as Awaited<
 			ReturnType<typeof getAllSettings>
 		>)
+	})
+
+	it('shows elapsed recipe time separately from the hands-on budget', async () => {
+		mockedGetCurrentCookPlan.mockResolvedValue(planWithDuplicateIngredients)
+		render(<MealPlannerPage />)
+
+		expect(await screen.findByText('Family batch')).not.toBeNull()
+		expect(screen.getByText('45 of 60 hands-on minutes')).not.toBeNull()
+		expect(screen.getByText('Longest recipe: 14h 30m')).not.toBeNull()
+		expect(screen.getAllByText('Total time')).toHaveLength(2)
+		expect(screen.getByText('14h 30m')).not.toBeNull()
 	})
 
 	it('shows a retryable failure instead of the legitimate empty state', async () => {

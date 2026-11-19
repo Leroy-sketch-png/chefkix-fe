@@ -167,6 +167,65 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 		expectedPathRegex: /^\/[0-9a-fA-F-]{36}$/,
 	},
 	{
+		path: '/profile/followers',
+		name: 'profile-other',
+		requiresAuth: true,
+		states: ['default'],
+		waitForSelector: 'main',
+		setup: async page => {
+			const auth = await page.evaluate(() => {
+				const state = JSON.parse(
+					localStorage.getItem('auth-storage') || '{}',
+				).state
+				return {
+					accessToken: localStorage.getItem('accessToken'),
+					userId: state?.user?.userId,
+				}
+			})
+			if (!auth.accessToken || !auth.userId) {
+				throw new Error(
+					'Other-profile visual requires authenticated fixture state',
+				)
+			}
+
+			const response = await page.request.get(`${API_URL}/social/followers`, {
+				headers: { Authorization: `Bearer ${auth.accessToken}` },
+			})
+			if (!response.ok()) {
+				throw new Error(`Follower lookup failed: HTTP ${response.status()}`)
+			}
+
+			const payload = await response.json()
+			const otherProfile = payload.data?.find(
+				(profile: { userId?: string }) => profile.userId !== auth.userId,
+			)
+			if (!otherProfile?.userId) {
+				throw new Error('Other-profile visual requires a real followed profile')
+			}
+
+			const profileResponses: string[] = []
+			page.on('response', response => {
+				if (response.url().includes('/profile-only/')) {
+					profileResponses.push(`${response.status()} ${response.url()}`)
+				}
+			})
+			await page.goto(`${BASE_URL}/${otherProfile.userId}`, {
+				waitUntil: 'domcontentloaded',
+				timeout: 120_000,
+			})
+			await page
+				.getByText(otherProfile.displayName, { exact: true })
+				.first()
+				.waitFor({
+					state: 'visible',
+					timeout: 30_000,
+				})
+			if (!profileResponses.some(response => response.startsWith('200 '))) {
+				throw new Error('Other-profile API request did not return HTTP 200')
+			}
+		},
+	},
+	{
 		path: '/profile/badges',
 		name: 'profile-badges',
 		requiresAuth: true,
@@ -1065,7 +1124,20 @@ test.describe('Visual Truth Machine', () => {
 				if (route.setup) {
 					await route.setup(page)
 				}
-
+				if (route.name === 'profile-other') {
+					const profileContent =
+						(await page.locator('main').textContent()) ?? ''
+					if (/Top 5%/.test(profileContent) || !/\bXP\b/.test(profileContent)) {
+						throw new Error(
+							'Other profile must show XP evidence and must not claim an unsupported percentile',
+						)
+					}
+					if (device === 'desktop-chrome') {
+						await expect(
+							page.locator('main').getByText(/XP/).first(),
+						).toBeVisible()
+					}
+				}
 				// ---- 7. Disable animations for deterministic capture ------------
 				await disableAnimations(page)
 

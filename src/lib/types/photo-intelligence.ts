@@ -7,7 +7,9 @@ export interface PhotoRecipeMatch {
 	coverImageUrl?: string | null
 	totalTimeMinutes?: number
 	difficulty?: string
-	matchScore: number
+	matchScore?: number
+	matchMethod?: 'backend' | 'exact-ingredient-overlap'
+	inputIngredientCount?: number
 	matchedIngredients: string[]
 	missingIngredients: string[]
 	substitutions?: Record<string, Substitution[]>
@@ -18,7 +20,8 @@ export type PhotoIntelligenceSource = 'backend'
 export interface IngredientRecipeMatchResponse {
 	matches: PhotoRecipeMatch[]
 	queryIngredients: string[]
-	source: PhotoIntelligenceSource
+	source: 'backend' | 'stored-overlap'
+	withheldRecipeCount?: number
 	model?: string
 }
 

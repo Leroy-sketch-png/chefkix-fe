@@ -25,10 +25,7 @@ import { cn } from '@/lib/utils'
 import { PATHS } from '@/constants/paths'
 import { navigateBackOrFallback } from '@/lib/safe-navigation'
 import { useTranslations } from 'next-intl'
-import {
-	PremiumSurface,
-	SurfaceSectionHeader,
-} from '@/components/layout/PremiumSurface'
+import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import {
 	getSettledProfileNetworkCount,
 	getSettledProfileNetworkTotal,
@@ -45,17 +42,17 @@ const TABS: {
 	{
 		key: 'followers',
 		labelKey: 'tabFollowers',
-		icon: <Users className='size-4' />,
+		icon: <Users className='hidden size-4 shrink-0 sm:block' />,
 	},
 	{
 		key: 'following',
 		labelKey: 'tabFollowing',
-		icon: <UserCheck className='size-4' />,
+		icon: <UserCheck className='hidden size-4 shrink-0 sm:block' />,
 	},
 	{
 		key: 'friends',
 		labelKey: 'tabFriends',
-		icon: <Heart className='size-4' />,
+		icon: <Heart className='hidden size-4 shrink-0 sm:block' />,
 	},
 ]
 
@@ -301,7 +298,7 @@ function FollowersContent() {
 					)}
 					className='mb-6 p-3 md:p-4'
 				>
-					<div className='flex gap-2 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
+					<div className='grid grid-cols-3 gap-1 rounded-radius border border-border-subtle bg-bg-elevated p-1'>
 						{TABS.map(tab => {
 							const count = settledCounts[tab.key]
 							return (
@@ -309,8 +306,9 @@ function FollowersContent() {
 									type='button'
 									key={tab.key}
 									onClick={() => setActiveTab(tab.key)}
+									aria-pressed={activeTab === tab.key}
 									className={cn(
-										'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
+										'flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-medium transition-all focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-brand/50 sm:flex-row sm:gap-2 sm:px-3 sm:py-2.5 sm:text-sm',
 										activeTab === tab.key
 											? 'bg-bg-card text-text-primary shadow-card'
 											: 'text-text-muted hover:text-text-secondary',
@@ -321,7 +319,7 @@ function FollowersContent() {
 									{count !== null ? (
 										<span
 											className={cn(
-												'ml-1 flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold',
+												'ml-0 flex min-w-5 shrink-0 items-center justify-center rounded-full px-1 py-0.5 text-2xs font-bold sm:ml-1 sm:px-1.5',
 												activeTab === tab.key
 													? 'bg-brand/15 text-brand'
 													: 'bg-bg-elevated text-text-muted',
@@ -348,11 +346,6 @@ function FollowersContent() {
 					}
 					className='p-3 md:p-4'
 				>
-					<SurfaceSectionHeader
-						eyebrow={tc('eyebrows.relationshipActions')}
-						chipText={tc('eyebrows.followUnfollowConnect')}
-						className='mb-3'
-					/>
 					<AnimatePresence mode='wait'>
 						<motion.div
 							key={activeTab}

@@ -67,4 +67,27 @@ describe('truthful competition state', () => {
 		expect(friends).not.toContain('Cook to defend')
 		expect(friends).not.toContain('Ready to Compete?')
 	})
+
+	it('supplies the XP-behind message with its declared interpolation values', () => {
+		const friends = readSource(
+			'src/components/leaderboard/FriendsLeaderboard.tsx',
+		)
+		const messages = JSON.parse(readSource('messages/en.json'))
+
+		expect(messages.leaderboard.xpBehind).toContain('{name}')
+		expect(messages.leaderboard.xpBehind).toContain('{n}')
+		expect(friends).toContain(
+			"t('xpBehind', { name: competitor.displayName, n: xpBehind })",
+		)
+	})
+
+	it('supplies the league demotion message with its declared XP interpolation', () => {
+		const league = readSource(
+			'src/components/leaderboard/LeagueLeaderboard.tsx',
+		)
+		const messages = JSON.parse(readSource('messages/en.json'))
+
+		expect(messages.leaderboard.xpToLeave).toContain('{n}')
+		expect(league).toContain("t('xpToLeave', { n: xpNeeded })")
+	})
 })

@@ -2,7 +2,7 @@
 
 ## Result
 
-E2 implementation gates pass. Authenticated responsive E3 remains open.
+E2 implementation gates pass. Authenticated local responsive E3 was verified on 2026-10-22. Representative preference and physical-device/screen-reader experience remain unknown.
 
 ## Passed
 
@@ -26,10 +26,19 @@ E2 implementation gates pass. Authenticated responsive E3 remains open.
 
 ## Experience Evidence
 
-Supported `dev.bat -Status` reported run `2026-08-05T16-03-01Z`, identity-verified monolith up, frontend `WARMING`, and AI service down. That state cannot certify the current UI. No E3 taste, layout, or representative comprehension claim is made.
+Historical limitation: `dev.bat -Status` then reported run `2026-08-05T16-03-01Z`, identity-verified monolith up, frontend `WARMING`, and AI service down, so that prior state could not certify the UI. Current local E3 evidence below supersedes only the missing layout/interaction walkthrough; representative comprehension or preference remains unknown.
+
+### Current Authenticated Runtime (2026-10-22)
+
+- Playwright Chromium signed in with the documented local `testuser` fixture and opened the rebuilt production-local `http://localhost:3000/notifications` route.
+- `GET /api/v1/notification/unread-count` returned HTTP 200 with `data: 18` twice; the deck displayed `18 unread` and exposed Mark all as read after the request settled.
+- All streams, Activity, Social, and Unread each became the sole `aria-pressed=true` filter when selected. No mark-read action was activated.
+- At 390x844 and 1440x900, `documentElement.scrollWidth` equaled viewport width. Page errors, console errors, HTTP >=400 responses, and notification write requests were zero.
+- Captures: `%TEMP%\q121-notifications-mobile.png` and `%TEMP%\q121-notifications-desktop.png`. Authentication may update normal login metadata/presence; no notification state was changed.
+- This is local E3 interaction/rendering evidence, not representative-user preference, physical-device, or screen-reader certification.
 
 ## Remaining Gaps
 
-- Authenticated desktop/mobile notification-center walkthrough with populated unread data.
+- Physical-device and screen-reader experience.
 - Representative preference for the reduced rail.
 - Full notification-history pagination and category totals require a future server contract.

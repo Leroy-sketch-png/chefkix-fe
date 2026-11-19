@@ -2,23 +2,32 @@ import fs from 'fs'
 import path from 'path'
 import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { AppShell } from '@/components/layout/AppShell'
 import {
+	clearPendingFeedScrollPosition,
 	getAppScrollContainer,
 	getAppScrollTarget,
 	getAppScrollTop,
+	getPendingFeedScrollPosition,
+	rememberFeedScrollPosition,
+	restoreFeedScrollPositionIfReady,
 	scrollAppTo,
 } from '@/lib/app-scroll'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
 
+let mockPathname = '/feed'
+
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/feed',
+	usePathname: () => mockPathname,
 }))
 
 const SRC = path.join(process.cwd(), 'src')
 
 describe('application scroll authority', () => {
 	afterEach(() => {
+		clearPendingFeedScrollPosition()
 		document.body.innerHTML = ''
+		mockPathname = '/feed'
 		jest.restoreAllMocks()
 	})
 
@@ -80,6 +89,133 @@ describe('application scroll authority', () => {
 
 		scrollAppTo(0, 'smooth')
 		expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+	})
+
+	it('waits for actual Feed readiness without frame polling or expiry', () => {
+		mockPathname = '/recipes/example'
+		const view = render(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		const container = document.getElementById('main-content') as HTMLElement
+		Object.defineProperty(container, 'scrollTop', {
+			configurable: true,
+			value: 704,
+			writable: true,
+		})
+		container.scrollTo = jest.fn()
+		rememberFeedScrollPosition()
+		const requestFrame = jest.spyOn(window, 'requestAnimationFrame')
+		mockPathname = '/feed'
+		const feed = React.createElement('div', {
+			'data-testid': 'feed-page',
+			'data-feed-ready': 'false',
+		})
+		view.rerender(React.createElement(AppShell, null, feed))
+
+		for (let frame = 0; frame < 200; frame += 1) {
+			expect(restoreFeedScrollPositionIfReady()).toBe(false)
+		}
+		expect(requestFrame).not.toHaveBeenCalled()
+		expect(getPendingFeedScrollPosition()).toBe(704)
+		expect(container.scrollTo).not.toHaveBeenCalled()
+
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', {
+					'data-testid': 'feed-page',
+					'data-feed-ready': 'true',
+				}),
+			),
+		)
+		expect(restoreFeedScrollPositionIfReady()).toBe(true)
+
+		expect(container.scrollTo).toHaveBeenCalledWith({
+			top: 704,
+			behavior: 'auto',
+		})
+		expect(getPendingFeedScrollPosition()).toBeNull()
+	})
+
+	it('cancels a delayed Feed restore when the user resumes scrolling', () => {
+		mockPathname = '/recipes/example'
+		const view = render(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		const container = document.getElementById('main-content') as HTMLElement
+		container.scrollTo = jest.fn()
+		Object.defineProperty(container, 'scrollTop', {
+			configurable: true,
+			value: 704,
+			writable: true,
+		})
+		rememberFeedScrollPosition()
+
+		mockPathname = '/feed'
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', {
+					'data-testid': 'feed-page',
+					'data-feed-ready': 'false',
+				}),
+			),
+		)
+
+		fireEvent.wheel(window)
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', {
+					'data-testid': 'feed-page',
+					'data-feed-ready': 'true',
+				}),
+			),
+		)
+
+		expect(getPendingFeedScrollPosition()).toBeNull()
+		expect(restoreFeedScrollPositionIfReady()).toBe(false)
+		expect(container.scrollTo).not.toHaveBeenCalled()
+	})
+
+	it('clears a pending Feed restore when navigating to an unrelated route', () => {
+		mockPathname = '/recipes/example'
+		const view = render(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		const container = document.getElementById('main-content') as HTMLElement
+		Object.defineProperty(container, 'scrollTop', {
+			configurable: true,
+			value: 704,
+			writable: true,
+		})
+		rememberFeedScrollPosition()
+
+		mockPathname = '/profile'
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'profile' }),
+			),
+		)
+
+		expect(getPendingFeedScrollPosition()).toBeNull()
 	})
 
 	it('removes duplicate and direct AppShell window-scroll authorities', () => {

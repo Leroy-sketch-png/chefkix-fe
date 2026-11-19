@@ -1,7 +1,13 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import {
+	clearPendingFeedScrollPosition,
+	getPendingFeedScrollPosition,
+	restoreFeedScrollPositionIfReady,
+} from '@/lib/app-scroll'
 
 interface AppShellProps {
 	children: ReactNode
@@ -22,6 +28,37 @@ export function AppShell({
 	className,
 	mainClassName,
 }: AppShellProps) {
+	const pathname = usePathname()
+
+	useEffect(() => {
+		if (pathname !== '/feed') {
+			if (!pathname.startsWith('/recipes/')) {
+				clearPendingFeedScrollPosition()
+			}
+			return
+		}
+
+		restoreFeedScrollPositionIfReady()
+		if (getPendingFeedScrollPosition() == null) return
+
+		const cancelRestoreOnIntent = () => clearPendingFeedScrollPosition()
+		window.addEventListener('wheel', cancelRestoreOnIntent, { passive: true })
+		window.addEventListener('touchstart', cancelRestoreOnIntent, {
+			passive: true,
+		})
+		window.addEventListener('pointerdown', cancelRestoreOnIntent, {
+			passive: true,
+		})
+		window.addEventListener('keydown', cancelRestoreOnIntent)
+
+		return () => {
+			window.removeEventListener('wheel', cancelRestoreOnIntent)
+			window.removeEventListener('touchstart', cancelRestoreOnIntent)
+			window.removeEventListener('pointerdown', cancelRestoreOnIntent)
+			window.removeEventListener('keydown', cancelRestoreOnIntent)
+		}
+	}, [pathname])
+
 	return (
 		<div
 			className={cn(

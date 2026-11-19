@@ -5,7 +5,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { serializeOrchestratorDiagnosticJson } from './orchestrator-diagnostic-report.mjs'
 import {
+	readOwnDataProperty,
+	safeErrorMessage,
+	safeErrorName,
 	sanitizeDiagnosticText,
 	sanitizeDiagnosticValue,
 } from '../src/lib/sanitize-diagnostics.mjs'
@@ -69,9 +73,9 @@ function isConnectionRefusedError(error) {
 	if (!(error instanceof Error)) {
 		return false
 	}
-	const cause = error.cause
-	const causeCode = cause && typeof cause === 'object' ? cause.code : undefined
-	const message = String(error.message || '')
+	const cause = readOwnDataProperty(error, 'cause')
+	const causeCode = readOwnDataProperty(cause, 'code')
+	const message = safeErrorMessage(error, '')
 	return (
 		causeCode === 'ECONNREFUSED' ||
 		message.includes('ECONNREFUSED') ||
@@ -104,7 +108,7 @@ function isNavigationTimeoutError(error) {
 	if (!(error instanceof Error)) {
 		return false
 	}
-	const details = `${error.name} ${error.message}`.toLowerCase()
+	const details = `${safeErrorName(error)} ${safeErrorMessage(error, '')}`.toLowerCase()
 	return details.includes('timeouterror') || details.includes('timeout')
 }
 
@@ -112,7 +116,7 @@ function isNavigationAbortError(error) {
 	if (!(error instanceof Error)) {
 		return false
 	}
-	const details = `${error.name} ${error.message}`.toLowerCase()
+	const details = `${safeErrorName(error)} ${safeErrorMessage(error, '')}`.toLowerCase()
 	return (
 		details.includes('net::err_aborted') ||
 		details.includes('net::err_network_io_suspended') ||
@@ -170,7 +174,7 @@ function step(message) {
 }
 
 function warn(message) {
-	console.warn(`[autopilot][warn] ${sanitizeDiagnosticText(message)}`)
+	console.warn(`[autopilot][warn] ${sanitizeDiagnosticValue({ message }).message}`)
 }
 
 // ============================================
@@ -293,7 +297,7 @@ const settings = {
 	strictMode: getOption(args, 'strict', 'true') === 'true',
 	strictSceneFallback:
 		getOption(args, 'strict-scene-fallback', 'false') === 'true',
-	captureScreenshots: getOption(args, 'capture-screenshots', 'true') === 'true',
+	captureScreenshots: getOption(args, 'capture-screenshots', 'false') === 'true',
 	selectorPreflight: getOption(args, 'selector-preflight', 'true') === 'true',
 	integrityThreshold: Number.parseInt(
 		getOption(args, 'integrity-threshold', '90'),
@@ -396,7 +400,7 @@ const SUPPORTED_SCENARIOS = new Set([
 ])
 
 if (!SUPPORTED_SCENARIOS.has(settings.scenario)) {
-	console.error(`[autopilot] Unsupported scenario: ${settings.scenario}`)
+	console.error('[autopilot] Unsupported scenario; see --help for supported values')
 	process.exit(1)
 }
 
@@ -405,15 +409,32 @@ function getRunReportPaths() {
 		return []
 	}
 
-	const runDirs = fs
-		.readdirSync(settings.artifactDir, { withFileTypes: true })
-		.filter(entry => entry.isDirectory() && entry.name.startsWith('run-'))
-		.map(entry =>
-			path.join(settings.artifactDir, entry.name, 'run-report.json'),
-		)
-		.filter(reportPath => fs.existsSync(reportPath))
+	try {
+		const runDirs = fs
+			.readdirSync(settings.artifactDir, { withFileTypes: true })
+			.filter(entry => entry.isDirectory() && entry.name.startsWith('run-'))
+			.map(entry => path.join(settings.artifactDir, entry.name, 'run-report.json'))
+			.filter(reportPath => fs.existsSync(reportPath))
+		return runDirs
+	} catch {
+		throw new Error('Unable to inspect configured artifact directory')
+	}
+}
 
-	return runDirs
+function ensureArtifactDirectory(directory) {
+	try {
+		fs.mkdirSync(directory, { recursive: true })
+	} catch {
+		throw new Error('Unable to prepare configured artifact directory')
+	}
+}
+
+function writeArtifactFile(filePath, contents, encoding = 'utf8') {
+	try {
+		fs.writeFileSync(filePath, contents, encoding)
+	} catch {
+		throw new Error('Unable to write configured diagnostic artifact')
+	}
 }
 
 function buildChildCliArgs() {
@@ -731,7 +752,7 @@ function runCertificationController() {
 	}
 
 	if (!fs.existsSync(settings.artifactDir)) {
-		fs.mkdirSync(settings.artifactDir, { recursive: true })
+		ensureArtifactDirectory(settings.artifactDir)
 	}
 
 	const childArgs = buildChildCliArgs()
@@ -752,12 +773,8 @@ function runCertificationController() {
 			reportPath => !beforeReports.has(reportPath),
 		)
 		const latestReportPath =
-			newReports.sort(
-				(a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs,
-			)[0] ||
-			afterReports.sort(
-				(a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs,
-			)[0] ||
+			newReports.sort((a, b) => a.localeCompare(b)).at(-1) ||
+			afterReports.sort((a, b) => a.localeCompare(b)).at(-1) ||
 			null
 
 		let report = null
@@ -799,9 +816,7 @@ function runCertificationController() {
 		runSummary.reportScenario = report?.scenario ?? null
 
 		if (!runSummary.pass) {
-			warn(
-				`[certify] run ${runIndex} failed gates: ${runSummary.reasons.join('; ')}`,
-			)
+			warn(`[certify] run ${runIndex} failed gates; details are retained only in the sanitized report`)
 		}
 
 		runs.push(runSummary)
@@ -837,7 +852,7 @@ function runCertificationController() {
 
 	const outputDir = path.dirname(settings.certifyOutput)
 	if (!fs.existsSync(outputDir)) {
-		fs.mkdirSync(outputDir, { recursive: true })
+		ensureArtifactDirectory(outputDir)
 	}
 	if (settings.certifyOutputIsDefault) {
 		certification.latestPointer = settings.certifyOutput
@@ -847,11 +862,11 @@ function runCertificationController() {
 		)
 	}
 
-	const certificationJson = `${JSON.stringify(sanitizeDiagnosticValue(certification), null, 2)}\n`
-	fs.writeFileSync(settings.certifyOutput, certificationJson, 'utf8')
+	const certificationJson = serializeOrchestratorDiagnosticJson(certification)
+	writeArtifactFile(settings.certifyOutput, certificationJson)
 
 	if (settings.certifyOutputIsDefault) {
-		fs.writeFileSync(certification.immutableArtifact, certificationJson, 'utf8')
+		writeArtifactFile(certification.immutableArtifact, certificationJson)
 	}
 
 	if (!certification.pass) {
@@ -1267,7 +1282,7 @@ function loadDemoAssetBuffer(...segments) {
 
 const runId = new Date().toISOString().replace(/[:.]/g, '-')
 const runArtifactDir = path.join(settings.artifactDir, `run-${runId}`)
-fs.mkdirSync(runArtifactDir, { recursive: true })
+ensureArtifactDirectory(runArtifactDir)
 
 const runState = {
 	runId,
@@ -1351,10 +1366,9 @@ function writeProgressSnapshot(reason = 'progress') {
 			forensics: runState.forensics,
 			preflight: runState.preflight,
 		}
-		fs.writeFileSync(
+		writeArtifactFile(
 			runProgressPath,
-			`${JSON.stringify(sanitizeDiagnosticValue(payload), null, 2)}\n`,
-			'utf8',
+			serializeOrchestratorDiagnosticJson(payload),
 		)
 	} catch {
 		// Never fail demo execution because snapshot persistence failed.
@@ -1564,7 +1578,7 @@ async function withRetry(label, fn, maxAttemptsOverride, options = {}) {
 			const canRetry = attempt < attempts
 			recordStep('operation', label, 'failure', {
 				attempt,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: safeErrorMessage(error),
 			})
 			if (!(suppressRetryWarnings && canRetry)) {
 				warn(
@@ -1919,7 +1933,7 @@ async function checkpoint(page, label) {
 }
 
 async function runCorePreflight(page, scenarioPlan = []) {
-	step(`Preflight probe: base URL ${settings.baseUrl}`)
+	step('Preflight probe: configured application endpoint')
 	await withRetry('preflight base-url', async () => {
 		const response = await fetchWithHardTimeout(settings.baseUrl, 20000)
 		if (!response.ok && response.status !== 404) {
@@ -1928,9 +1942,7 @@ async function runCorePreflight(page, scenarioPlan = []) {
 	})
 
 	if (settings.preflightBackendRequired) {
-		step(
-			`Preflight probe: backend health ${settings.preflightBackendHealthUrl}`,
-		)
+		step('Preflight probe: configured backend health endpoint')
 		await withRetry('preflight backend-health', async () => {
 			let response
 			try {
@@ -1941,7 +1953,7 @@ async function runCorePreflight(page, scenarioPlan = []) {
 			} catch (error) {
 				if (isConnectionRefusedError(error)) {
 					throw new Error(
-						`Backend is not reachable at ${settings.preflightBackendHealthUrl}. Start the monolith: cd d:/code/chefkix/chefkix-monolith && mvnw spring-boot:run -pl application`,
+						'Backend health endpoint is unreachable. Start the monolith: cd d:/code/chefkix/chefkix-monolith && mvnw spring-boot:run -pl application',
 					)
 				}
 				throw error
@@ -1953,7 +1965,7 @@ async function runCorePreflight(page, scenarioPlan = []) {
 	}
 
 	if (settings.preflightAuthProbeRequired && !settings.skipLogin) {
-		step(`Preflight probe: auth API ${settings.preflightAuthProbeUrl}`)
+		step('Preflight probe: configured auth API endpoint')
 		await withRetry('preflight auth-api', async () => {
 			const isUsernameProbe = /\/auth\/check-username\b/i.test(
 				settings.preflightAuthProbeUrl,
@@ -2119,7 +2131,7 @@ async function ensureSignedIn(page) {
 	const isChromeErrorPage = () =>
 		String(page.url() || '').startsWith('chrome-error://')
 	const isChromeErrorNavigation = error =>
-		String(error instanceof Error ? error.message : error || '').includes(
+		safeErrorMessage(error, '').includes(
 			'chrome-error://chromewebdata/',
 		)
 	const attemptBlankSurfaceRecovery = async () => {
@@ -2751,7 +2763,7 @@ async function runSelectorPreflight(page, scenarioPlan) {
 				const detail = {
 					scenario: scenarioId,
 					status: 'skipped-transient',
-					reason: error instanceof Error ? error.message : 'navigation failed',
+					reason: safeErrorMessage(error, 'navigation failed'),
 				}
 				runState.preflight.selectorChecks.push(detail)
 				recordStep(
@@ -3460,7 +3472,7 @@ async function assertDemoBeatEvidence(
 						`demo-cockpit evidence cockpit-escape ${beat.id}`,
 						'failure',
 						{
-							error: error instanceof Error ? error.message : 'Unknown error',
+							error: safeErrorMessage(error),
 						},
 					)
 				}
@@ -3835,12 +3847,12 @@ async function tryOptionalAction(label, fn, options = {}) {
 	} catch (error) {
 		if (warnOnSkip) {
 			addWarning(
-				`${label} skipped: ${error instanceof Error ? error.message : 'Unknown error'}`,
+				`${label} skipped: ${safeErrorMessage(error)}`,
 			)
 		}
 		recordStep('operation', label, 'skipped', {
 			durationMs: Date.now() - startedAt,
-			error: error instanceof Error ? error.message : 'Unknown error',
+			error: safeErrorMessage(error),
 		})
 	}
 }
@@ -6341,7 +6353,7 @@ async function runCreateRecipeAiScenario(page) {
 			? formatResponse5xxSignal(recentProcessRecipe5xx, 'process_recipe_5xx')
 			: 'preview_timeout_no_5xx_detected'
 		throw new Error(
-			`recipe preview did not become visible: reason=${timeoutReason}, diagnostics=${JSON.stringify(diagnostics)}, lastWaitError=${lastPreviewWaitError instanceof Error ? lastPreviewWaitError.message : String(lastPreviewWaitError || '')}`,
+			`recipe preview did not become visible: reason=${timeoutReason}, diagnostics=${JSON.stringify(diagnostics)}, lastWaitError=${safeErrorMessage(lastPreviewWaitError, '')}`,
 		)
 	}
 
@@ -7170,7 +7182,7 @@ async function runDemoCockpitDeepScenario(page) {
 		} catch (error) {
 			cockpitUnavailable = true
 			addWarning(
-				`demo cockpit root unavailable; switching to deterministic beat fallbacks (${error instanceof Error ? error.message : 'unknown error'})`,
+				`demo cockpit root unavailable; switching to deterministic beat fallbacks (${safeErrorMessage(error, 'unknown error')})`,
 			)
 		}
 	}
@@ -7441,8 +7453,7 @@ async function runDemoCockpitDeepScenario(page) {
 				await pacedWait(page, 350)
 			} else {
 				const fallbackReason =
-					triggerError instanceof Error &&
-					triggerError.message === 'cockpit-unavailable-root'
+					safeErrorMessage(triggerError, '') === 'cockpit-unavailable-root'
 						? 'cockpit-unavailable-root'
 						: 'cockpit-trigger-unavailable'
 				if (
@@ -7472,9 +7483,7 @@ async function runDemoCockpitDeepScenario(page) {
 					if (fallbackReason !== 'cockpit-unavailable-root') {
 						addWarning(
 							`demo cockpit beat trigger unavailable for ${beat.label}: ${
-								triggerError instanceof Error
-									? triggerError.message
-									: 'unknown error'
+								safeErrorMessage(triggerError, 'unknown error')
 							}`,
 						)
 					}
@@ -8935,7 +8944,7 @@ async function runCookSessionScenario(page) {
 		}
 	} catch (navErr) {
 		recordStep('operation', 'cook-session:recipe-nav', 'skipped', {
-			error: navErr instanceof Error ? navErr.message : String(navErr),
+			error: safeErrorMessage(navErr),
 		})
 	}
 
@@ -9077,7 +9086,7 @@ async function runCookSessionScenario(page) {
 		}
 	} catch (cookErr) {
 		recordStep('operation', 'cook-session:start-cooking', 'skipped', {
-			error: cookErr instanceof Error ? cookErr.message : String(cookErr),
+			error: safeErrorMessage(cookErr),
 		})
 	}
 
@@ -9704,11 +9713,7 @@ async function writeRunReport() {
 	runState.success = runState.errors.length === 0 && runState.integrity.pass
 
 	const jsonPath = path.join(runArtifactDir, 'run-report.json')
-	fs.writeFileSync(
-		jsonPath,
-		`${JSON.stringify(sanitizeDiagnosticValue(runState), null, 2)}\n`,
-		'utf8',
-	)
+	writeArtifactFile(jsonPath, serializeOrchestratorDiagnosticJson(runState))
 
 	const lines = [
 		'# Demo Driver Run Report',
@@ -9719,7 +9724,7 @@ async function writeRunReport() {
 		`- integrity: ${runState.integrity.score}/${runState.integrity.threshold} (${runState.integrity.pass ? 'pass' : 'fail'})`,
 		`- startedAt: ${runState.startedAt}`,
 		`- finishedAt: ${runState.finishedAt}`,
-		`- artifacts: ${runArtifactDir}`,
+		'- artifacts: [local path omitted]',
 		'',
 		'## Scenario Results',
 	]
@@ -9727,8 +9732,8 @@ async function writeRunReport() {
 	if (runState.preflight.config) {
 		lines.push('', '## Config Gate')
 		lines.push(`- status: ${runState.preflight.config.status}`)
-		for (const violation of runState.preflight.config.violations || []) {
-			lines.push(`- violation: ${violation}`)
+		for (const _violation of runState.preflight.config.violations || []) {
+			lines.push('- violation detail omitted from persisted diagnostic report')
 		}
 	}
 
@@ -9795,22 +9800,18 @@ async function writeRunReport() {
 
 	for (const result of runState.scenarioResults) {
 		lines.push(
-			`- ${result.scenario}: ${result.status}${result.error ? ` | error=${result.error}` : ''}`,
+			`- ${sanitizeDiagnosticText(result.scenario)}: ${result.status}${result.error ? ' | error=[OMITTED_DIAGNOSTIC_TEXT]' : ''}`,
 		)
 	}
 
 	if (runState.warnings.length > 0) {
 		lines.push('', '## Warnings')
-		for (const item of runState.warnings) {
-			lines.push(`- ${item}`)
-		}
+		lines.push(`- ${runState.warnings.length} warning detail(s) omitted from persisted diagnostic report`)
 	}
 
 	if (runState.errors.length > 0) {
 		lines.push('', '## Errors')
-		for (const item of runState.errors) {
-			lines.push(`- ${item}`)
-		}
+		lines.push(`- ${runState.errors.length} error detail(s) omitted from persisted diagnostic report`)
 	}
 
 	lines.push('', '## Integrity Factors')
@@ -9826,7 +9827,7 @@ async function writeRunReport() {
 		for (const b of beatSteps) {
 			const icon =
 				b.status === 'passed' ? '✓' : b.status === 'skipped' ? '○' : '✗'
-			lines.push(`- ${icon} ${b.label}`)
+			lines.push(`- ${icon} ${sanitizeDiagnosticText(b.label)}`)
 		}
 		lines.push(
 			``,
@@ -9835,12 +9836,8 @@ async function writeRunReport() {
 	}
 
 	const mdPath = path.join(runArtifactDir, 'run-report.md')
-	fs.writeFileSync(
-		mdPath,
-		`${sanitizeDiagnosticText(lines.join('\n'))}\n`,
-		'utf8',
-	)
-	step(`Run artifacts written: ${runArtifactDir}`)
+	writeArtifactFile(mdPath, `${sanitizeDiagnosticText(lines.join('\n'))}\n`)
+	step('Run artifacts written; local path omitted')
 }
 
 let exitCode = 0
@@ -9872,13 +9869,13 @@ try {
 			bootstrapError = error
 			recordStep('operation', 'browser-bootstrap', 'failure', {
 				attempt: bootstrapAttempt,
-				error: error instanceof Error ? error.message : 'Unknown error',
+				error: safeErrorMessage(error),
 			})
 			await browser?.close().catch(() => null)
 			browser = null
 			if (bootstrapAttempt < 2) {
 				addWarning(
-					`browser bootstrap transient failure; retrying (${error instanceof Error ? error.message : 'unknown error'})`,
+					`browser bootstrap transient failure; retrying (${safeErrorMessage(error, 'unknown error')})`,
 				)
 				await new Promise(resolve => setTimeout(resolve, 1000))
 			}
@@ -9923,7 +9920,7 @@ try {
 	page.on('pageerror', error => {
 		runState.forensics.pageErrors += 1
 		addBrowserSignal('page-error', {
-			text: error instanceof Error ? error.message : String(error),
+			text: safeErrorMessage(error),
 		})
 	})
 
@@ -10000,13 +9997,10 @@ try {
 		try {
 			await runScenario(page, scenarioId)
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: `Unknown failure in ${scenarioId}`
+			const message = safeErrorMessage(error, `Unknown failure in ${scenarioId}`)
 			runState.errors.push(`${scenarioId}: ${message}`)
 			console.error(
-				`[autopilot] Scenario ${scenarioId} error: ${sanitizeDiagnosticText(message)}`,
+				`[autopilot] Scenario ${sanitizeDiagnosticText(scenarioId)} error: ${sanitizeDiagnosticValue({ error: message }).error}`,
 			)
 			writeProgressSnapshot('scenario-error')
 			updateScenarioState(scenarioId, {
@@ -10014,20 +10008,22 @@ try {
 				completedAt: new Date().toISOString(),
 				error: message,
 			})
-			try {
-				await page.screenshot({
-					path: path.join(runArtifactDir, `failure-${scenarioId}.png`),
-					fullPage: false,
-					timeout: 5000,
-				})
-			} catch {
-				/* ignore screenshot failure — never mask real error */
-			}
+			if (settings.captureScreenshots) {
+				try {
+					await page.screenshot({
+						path: path.join(runArtifactDir, `failure-${scenarioId}.png`),
+						fullPage: false,
+						timeout: 5000,
+					})
+				} catch {
+					/* ignore screenshot failure — never mask real error */
+				}
 
+			}
 			if (!settings.continueOnError) {
 				throw error
 			}
-			warn(`Scenario ${scenarioId} failed but continuing: ${message}`)
+			warn(`Scenario ${scenarioId} failed but continuing; raw details omitted`)
 		}
 	}
 
@@ -10039,16 +10035,11 @@ try {
 	await context.close()
 } catch (error) {
 	exitCode = 1
-	const message =
-		error instanceof Error ? error.message : 'Unknown orchestrator failure'
+	const message = safeErrorMessage(error, 'Unknown orchestrator failure')
 	runState.errors.push(message)
 	console.error('[autopilot] Scenario failed')
 	console.error(
-		sanitizeDiagnosticText(
-			error instanceof Error
-				? `${error.name}: ${error.message}`
-				: String(error),
-		),
+		sanitizeDiagnosticValue(error),
 	)
 } finally {
 	if (browser) {

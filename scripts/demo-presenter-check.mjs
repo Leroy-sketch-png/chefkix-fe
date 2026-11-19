@@ -5,6 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { serializePresenterDiagnosticReport } from './presenter-diagnostic-report.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..')
@@ -493,7 +494,6 @@ async function main() {
 		const summary = summarizeSignals(signals)
 		const report = {
 			ok: summary.hardFailureCount === 0,
-			baseUrl,
 			headless,
 			seedHeadlessIoEvidence,
 			timeoutMs,
@@ -517,9 +517,9 @@ async function main() {
 				serverFailures: summary.serverFailures,
 			},
 		}
-		await writeFile(reportPath, JSON.stringify(report, null, 2))
+		await writeFile(reportPath, serializePresenterDiagnosticReport(report))
 
-		console.log(`Presenter check report: ${reportPath}`)
+		console.log('Presenter check report saved to the configured local output directory.')
 		console.log(
 			`Presenter check: ${report.ok ? 'PASS' : 'FAIL'} (${steps.length} steps, ${summary.hardFailureCount} hard signal failures)`,
 		)
@@ -529,11 +529,10 @@ async function main() {
 	} catch (error) {
 		const report = {
 			ok: false,
-			baseUrl,
 			headless,
 			seedHeadlessIoEvidence,
 			timeoutMs,
-			error: String(error?.stack || error),
+			error: true,
 			steps,
 			cockpitUrl: cockpit.url(),
 			remoteUrl: remote.url(),
@@ -542,13 +541,24 @@ async function main() {
 			gate: await gateText(remote).catch(() => ''),
 			signals,
 		}
-		await writeFile(reportPath, JSON.stringify(report, null, 2))
-		console.error(`Presenter check report: ${reportPath}`)
-		console.error(String(error?.stack || error))
+		try {
+			await writeFile(reportPath, serializePresenterDiagnosticReport(report))
+			console.error('Presenter check failed; untrusted diagnostic text was omitted.')
+		} catch {
+			console.error('Presenter check failed; report could not be saved; filesystem diagnostics were omitted.')
+		}
 		process.exitCode = 1
 	} finally {
-		await browser.close()
+		try {
+			await browser.close()
+		} catch {
+			console.error('Presenter browser cleanup failed; diagnostics were omitted.')
+			process.exitCode = 1
+		}
 	}
 }
 
-await main()
+await main().catch(() => {
+	console.error('Presenter check could not start; diagnostic details were omitted.')
+	process.exitCode = 1
+})

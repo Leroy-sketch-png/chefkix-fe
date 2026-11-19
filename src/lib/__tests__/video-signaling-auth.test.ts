@@ -10,7 +10,7 @@ describe('video signaling auth helpers', () => {
 		const url = new URL(buildVideoSignalingUrl())
 
 		expect(url.protocol).toBe('ws:')
-		expect(url.pathname).toContain('/ws/video-signaling')
+		expect(url.pathname).toBe('/api/v1/ws/video-signaling')
 		expect(url.searchParams.has('access_token')).toBe(false)
 		expect(url.searchParams.has('token')).toBe(false)
 		expect(url.search).toBe('')

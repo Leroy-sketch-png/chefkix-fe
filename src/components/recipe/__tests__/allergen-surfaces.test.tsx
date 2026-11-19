@@ -73,3 +73,37 @@ it.each(['recipe', 'cooking'])(
 		expect(screen.getByTestId('allergen-safety-blocked')).toBeInTheDocument()
 	},
 )
+
+it('hides unsupported ratio and confidence on the cooking surface', async () => {
+	jest.mocked(suggestSubstitutions).mockResolvedValueOnce({
+		success: true,
+		message: 'ok',
+		statusCode: 200,
+		data: {
+			originalIngredient: 'butter',
+			reason: 'unavailable',
+			substitutions: [
+				{
+					name: 'olive oil',
+					ratio: null,
+					notes: 'Reduce other liquids.',
+					confidenceScore: null,
+				},
+			],
+		},
+	})
+	render(
+		<CookingSubstitutionButton
+			ingredientName='butter'
+			recipeTitle='Pasta'
+			onChoice={jest.fn()}
+		/>,
+	)
+	fireEvent.click(
+		screen.getByRole('button', { name: 'findSubstituteForIngredient' }),
+	)
+
+	await screen.findByText('olive oil')
+	expect(screen.queryByText('1:1')).toBeNull()
+	expect(screen.queryByText(/substitutionConfidence/)).toBeNull()
+})

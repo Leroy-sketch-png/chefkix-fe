@@ -37,14 +37,11 @@ const COLORS = {
 type LogCategory = 'recipe' | 'cooking' | 'social'
 
 export function safeDiagnosticValue(value: unknown) {
-	if (value instanceof Error) {
-		return sanitizeDiagnosticValue({ name: value.name, message: value.message })
-	}
-	try {
-		return sanitizeDiagnosticValue(JSON.parse(JSON.stringify(value)))
-	} catch {
-		return sanitizeDiagnosticText(String(value))
-	}
+	return sanitizeDiagnosticValue(value)
+}
+
+function omittedDiagnosticLabel(value: string | number | symbol) {
+	return safeDiagnosticValue({ label: String(value) }).label
 }
 
 /**
@@ -59,7 +56,7 @@ export const diag = {
 
 		const timestamp = new Date().toISOString().split('T')[1].slice(0, 12)
 		console.group(
-			`%c${LOG_PREFIX} [${timestamp}] ${sanitizeDiagnosticText(action)}`,
+			`%c${LOG_PREFIX} [${timestamp}] ${omittedDiagnosticLabel(action)}`,
 			COLORS[category],
 		)
 		if (data !== undefined) {
@@ -117,7 +114,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} State: ${sanitizeDiagnosticText(description)}`,
+			`%c${LOG_PREFIX} State: ${omittedDiagnosticLabel(description)}`,
 			COLORS[category],
 		)
 		console.log('%cBefore:', COLORS.data, safeDiagnosticValue(before))
@@ -132,7 +129,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} ⚠️ ${sanitizeDiagnosticText(message)}`,
+			`%c${LOG_PREFIX} ⚠️ ${safeDiagnosticValue({ message }).message}`,
 			COLORS.warn,
 		)
 		if (data !== undefined) {
@@ -148,7 +145,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} ❌ ${sanitizeDiagnosticText(message)}`,
+			`%c${LOG_PREFIX} ❌ ${safeDiagnosticValue({ message }).message}`,
 			COLORS.error,
 		)
 		if (error !== undefined) {
@@ -170,7 +167,7 @@ export const diag = {
 
 		const action = isOpen ? 'OPENED' : 'CLOSED'
 		console.log(
-			`%c${LOG_PREFIX} Modal ${action}: ${sanitizeDiagnosticText(modalName)}${reason ? ` (${sanitizeDiagnosticText(reason)})` : ''}`,
+			`%c${LOG_PREFIX} Modal ${action}: ${omittedDiagnosticLabel(modalName)}${reason ? ` (${omittedDiagnosticLabel(reason)})` : ''}`,
 			COLORS[category],
 		)
 	},
@@ -187,7 +184,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.log(
-			`%c${LOG_PREFIX} Nav: ${sanitizeDiagnosticText(String(from))} → ${sanitizeDiagnosticText(String(to))} [${sanitizeDiagnosticText(trigger)}]`,
+			`%c${LOG_PREFIX} Nav: ${typeof from === 'number' ? String(from) : omittedDiagnosticLabel(from)} → ${typeof to === 'number' ? String(to) : omittedDiagnosticLabel(to)} [${omittedDiagnosticLabel(trigger)}]`,
 			COLORS[category],
 		)
 	},
@@ -228,7 +225,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} 📸 Snapshot: ${sanitizeDiagnosticText(label)}`,
+			`%c${LOG_PREFIX} 📸 Snapshot: ${omittedDiagnosticLabel(label)}`,
 			COLORS[category],
 		)
 		console.log(JSON.stringify(safeDiagnosticValue(data), null, 2))
@@ -258,7 +255,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} 🖥️ UI Inspection: ${sanitizeDiagnosticText(componentName)}`,
+			`%c${LOG_PREFIX} 🖥️ UI Inspection: ${omittedDiagnosticLabel(componentName)}`,
 			COLORS[category],
 		)
 		Object.entries(elements).forEach(([name, state]) => {
@@ -270,12 +267,8 @@ export const diag = {
 				state.value !== undefined
 					? ` = ${JSON.stringify(safeDiagnosticValue(state.value))}`
 					: ''
-			const textStr = state.text
-				? ` "${sanitizeDiagnosticText(state.text)}"`
-				: ''
-			console.log(
-				`  • ${sanitizeDiagnosticText(name)}${textStr}${valueStr}${flagStr}`,
-			)
+			const textStr = state.text ? ' [text omitted]' : ''
+			console.log(`  • ${omittedDiagnosticLabel(name)}${textStr}${valueStr}${flagStr}`)
 		})
 		console.groupEnd()
 	},
@@ -292,7 +285,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} 🔄 Local vs Remote: ${sanitizeDiagnosticText(label)}`,
+			`%c${LOG_PREFIX} 🔄 Local vs Remote: ${omittedDiagnosticLabel(label)}`,
 			COLORS[category],
 		)
 		console.log('%cLocal:', COLORS.data, safeDiagnosticValue(localData))
@@ -317,26 +310,18 @@ export const diag = {
 						...Object.keys(remoteObj || {}),
 					])
 					allKeys.forEach(key => {
-						const localVal = JSON.stringify(
-							safeDiagnosticValue(localObj?.[key]),
-						)
-						const remoteVal = JSON.stringify(
-							safeDiagnosticValue(remoteObj?.[key]),
-						)
+						const localVal = JSON.stringify(localObj?.[key])
+						const remoteVal = JSON.stringify(remoteObj?.[key])
 						if (localVal !== remoteVal) {
 							console.log(
-								`  ❌ ${key}: local=${localVal} vs remote=${remoteVal}`,
+								`  ❌ ${sanitizeDiagnosticText(key)}: local=${JSON.stringify(safeDiagnosticValue(localObj?.[key]))} vs remote=${JSON.stringify(safeDiagnosticValue(remoteObj?.[key]))}`,
 							)
 						}
 					})
 				}
 			}
 		} catch (err) {
-			console.log(
-				'%c❌ Failed to fetch remote',
-				COLORS.error,
-				safeDiagnosticValue(err),
-			)
+			console.log('%c❌ Failed to fetch remote', COLORS.error, safeDiagnosticValue(err))
 		}
 		console.groupEnd()
 	},
@@ -348,7 +333,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} 💾 LocalStorage: ${sanitizeDiagnosticText(storeKey)}`,
+			`%c${LOG_PREFIX} 💾 LocalStorage: ${omittedDiagnosticLabel(storeKey)}`,
 			COLORS[category],
 		)
 		try {
@@ -359,17 +344,13 @@ export const diag = {
 				console.log('%cParsed data:', COLORS.data, safeDiagnosticValue(parsed))
 				// Check for state key (Zustand format)
 				if (parsed.state) {
-					console.log('%cState keys:', COLORS.data, Object.keys(parsed.state))
+					console.log('%cState keys:', COLORS.data, Object.keys(parsed.state).map(omittedDiagnosticLabel))
 				}
 			} else {
 				console.log('%c(empty - no data stored)', COLORS.warn)
 			}
 		} catch (err) {
-			console.log(
-				'%c❌ Failed to parse localStorage',
-				COLORS.error,
-				safeDiagnosticValue(err),
-			)
+			console.log('%c❌ Failed to parse localStorage', COLORS.error, safeDiagnosticValue(err))
 		}
 		console.groupEnd()
 	},
@@ -385,10 +366,7 @@ export const diag = {
 	) => {
 		if (!ENABLE_DIAGNOSTICS) return
 
-		console.group(
-			`%c${LOG_PREFIX} ✅ Validate: ${sanitizeDiagnosticText(label)}`,
-			COLORS[category],
-		)
+		console.group(`%c${LOG_PREFIX} ✅ Validate: ${omittedDiagnosticLabel(label)}`, COLORS[category])
 
 		if (!data) {
 			console.log('%c❌ DATA IS NULL/UNDEFINED', COLORS.error)
@@ -403,15 +381,15 @@ export const diag = {
 		requiredFields.forEach(field => {
 			const value = data[field]
 			if (value === undefined) {
-				missing.push(String(field))
+				missing.push(omittedDiagnosticLabel(field))
 			} else if (
 				value === null ||
 				value === '' ||
 				(Array.isArray(value) && value.length === 0)
 			) {
-				empty.push(String(field))
+				empty.push(omittedDiagnosticLabel(field))
 			} else {
-				present.push(String(field))
+				present.push(omittedDiagnosticLabel(field))
 			}
 		})
 
@@ -453,7 +431,7 @@ export const diag = {
 		if (!ENABLE_DIAGNOSTICS) return
 
 		console.group(
-			`%c${LOG_PREFIX} 🏥 HEALTH CHECK: ${sanitizeDiagnosticText(pageName)}`,
+			`%c${LOG_PREFIX} 🏥 HEALTH CHECK: ${omittedDiagnosticLabel(pageName)}`,
 			'color: #EC4899; font-weight: bold; font-size: 14px',
 		)
 		console.log(`Timestamp: ${new Date().toISOString()}`)

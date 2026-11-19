@@ -206,7 +206,9 @@ export const CompoundExplanation = ({
 				/>
 			</div>
 
-			<ConfidenceBar score={substitution.confidenceScore} />
+			{substitution.confidenceScore != null && (
+				<ConfidenceBar score={substitution.confidenceScore} />
+			)}
 
 			{insight ? (
 				<>
@@ -328,14 +330,16 @@ export const CompoundComparison = ({
 							<span className='truncate text-xs font-semibold text-text-primary'>
 								{substitution.name}
 							</span>
-							<span
-								className={cn(
-									'text-xs font-bold',
-									confidenceTone(substitution.confidenceScore).text,
-								)}
-							>
-								{Math.round(substitution.confidenceScore * 100)}%
-							</span>
+							{substitution.confidenceScore != null && (
+								<span
+									className={cn(
+										'text-xs font-bold',
+										confidenceTone(substitution.confidenceScore).text,
+									)}
+								>
+									{Math.round(substitution.confidenceScore * 100)}%
+								</span>
+							)}
 						</div>
 						<div className='grid grid-cols-3 gap-1'>
 							<ComparisonMetric

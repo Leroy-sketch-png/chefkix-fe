@@ -13,9 +13,18 @@ export interface IngredientDetection {
 	boundingBox: IngredientBoundingBox
 }
 
+export interface DetectionSpeed {
+	preprocess_ms: number
+	inference_ms: number
+	postprocess_ms: number
+	total_ms: number
+}
+
 export interface IngredientDetectionResult {
 	detections: IngredientDetection[]
 	/** Indicates whether the configured detector or local demo fallback answered. */
 	source?: 'backend' | 'mock'
 	model?: string
+	device?: string
+	speed?: DetectionSpeed
 }

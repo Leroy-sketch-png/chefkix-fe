@@ -26,6 +26,7 @@ import { useAuthStore } from '@/store/authStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PremiumSurface } from '@/components/layout/PremiumSurface'
 import { cn } from '@/lib/utils'
+import { getDevDashboardProbe, probeHttpService } from '@/lib/service-health'
 import {
 	Terminal,
 	RefreshCw,
@@ -50,7 +51,7 @@ import {
 interface ServiceStatus {
 	name: string
 	port: number
-	status: 'up' | 'down' | 'checking'
+	status: 'up' | 'down' | 'unknown' | 'checking'
 	latency?: number
 	detail?: string
 }
@@ -128,19 +129,9 @@ const SERVICES: Omit<ServiceStatus, 'status'>[] = [
 	{ name: 'AI Service (FastAPI)', port: 8000 },
 	{ name: 'Keycloak (Identity)', port: 8180 },
 	{ name: 'MongoDB', port: 27017 },
-	{ name: 'Redis', port: 6379 },
+	{ name: 'Redis', port: 6380 },
 	{ name: 'Kafka', port: 9094 },
 	{ name: 'Typesense (Search)', port: 8108 },
-]
-
-const HEALTH_ENDPOINTS = [
-	{ name: 'Monolith Health', url: '/api/v1/actuator/health' },
-	{ name: 'AI Service', url: 'http://localhost:8000/health', direct: true },
-	{
-		name: 'Keycloak Realm',
-		url: 'http://localhost:8180/realms/nottisn',
-		direct: true,
-	},
 ]
 
 const API_TESTS = [
@@ -350,32 +341,29 @@ function formatReadinessTimestamp(value: string | null | undefined): string {
 	return parsed.toLocaleString()
 }
 
-async function checkServiceHealth(
-	port: number,
-): Promise<{ up: boolean; latency: number; detail?: string }> {
+async function checkServiceHealth(port: number): Promise<{
+	status: 'up' | 'down' | 'unknown'
+	latency: number
+	detail?: string
+}> {
 	const start = Date.now()
-	try {
-		// For HTTP services we can test, use fetch. For TCP-only (Mongo, Redis, Kafka), proxy through monolith health
-		if ([3000, 8080, 8000, 8180, 8108].includes(port)) {
-			const urlMap: Record<number, string> = {
-				3000: 'http://localhost:3000',
-				8080: `${BASE}/api/v1/actuator/health`,
-				8000: 'http://localhost:8000/health',
-				8180: 'http://localhost:8180/realms/nottisn',
-				8108: 'http://localhost:8108/health',
-			}
-			const url = urlMap[port]
-			const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
-			const latency = Date.now() - start
-			if (port === 8108 && res.status === 503) {
-				return { up: false, latency, detail: 'Raft not ready' }
-			}
-			return { up: res.ok || res.status === 401, latency }
+	const probe = getDevDashboardProbe(port, BASE)
+	if (!probe) {
+		return {
+			status: 'unknown',
+			latency: 0,
+			detail: 'Browser cannot verify this TCP service directly',
 		}
-		// For TCP services, just assume up if monolith is healthy (they're dependencies)
-		return { up: true, latency: 0, detail: 'Inferred from monolith health' }
-	} catch {
-		return { up: false, latency: Date.now() - start }
+	}
+
+	const result = await probeHttpService(probe.service, probe.url)
+	return {
+		status: result.healthy ? 'up' : 'down',
+		latency: Date.now() - start,
+		detail:
+			port === 8108 && result.statusCode === 503
+				? 'Raft not ready'
+				: result.detail,
 	}
 }
 
@@ -636,7 +624,7 @@ export default function DevDashboard() {
 				const result = await checkServiceHealth(svc.port)
 				return {
 					...svc,
-					status: result.up ? ('up' as const) : ('down' as const),
+					status: result.status,
 					latency: result.latency,
 					detail: result.detail,
 				}
@@ -1490,6 +1478,9 @@ export default function DevDashboard() {
 								return (
 									<div
 										key={svc.name}
+										role='group'
+										aria-label={`${svc.name}: ${svc.status}${svc.detail ? `, ${svc.detail}` : ''}`}
+										title={svc.detail || svc.status}
 										className={cn(
 											'relative overflow-hidden rounded-xl border p-3 flex items-center justify-between transition-colors',
 											isUp
@@ -1515,7 +1506,7 @@ export default function DevDashboard() {
 													{svc.name}
 												</span>
 												<span className='text-2xs text-text-muted block mt-0.5 font-mono'>
-													Port :{svc.port}
+													Port :{svc.port} · {svc.status}
 												</span>
 											</div>
 										</div>
@@ -2743,7 +2734,8 @@ export default function DevDashboard() {
 													</div>
 													<div>
 														preflight:
-														{orchestratorProgress.preflightCoreStatus ?? 'n/a'}{' '}
+														{orchestratorProgress.preflightCoreStatus ??
+															'n/a'}{' '}
 														· warnings:{' '}
 														{orchestratorProgress.warningCount ?? 'n/a'} ·
 														errors: {orchestratorProgress.errorCount ?? 'n/a'}

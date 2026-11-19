@@ -119,9 +119,13 @@ export class GhostDriver {
 	private isRunning = false
 
 	constructor(name: string) {
+		const viewportCenter =
+			typeof window === 'undefined'
+				? { x: 0, y: 0 }
+				: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+
 		this.state = {
-			x: typeof window === 'undefined' ? 0 : window.innerWidth / 2,
-			y: typeof window === 'undefined' ? 0 : window.innerHeight / 2,
+			...viewportCenter,
 			clicking: false,
 			typing: false,
 			visible: false,

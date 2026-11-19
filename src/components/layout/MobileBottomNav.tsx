@@ -24,6 +24,7 @@ import {
 	UserPlus,
 	BarChart3,
 	FolderHeart,
+	ScanLine,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -50,8 +51,9 @@ interface NavItem {
  *
  * DESIGN DECISION: Mobile nav has 5 items (iOS/Android standard).
  * Home, Feed, Explore, Create, Profile, More.
- * "More" opens a drawer with secondary nav: Challenges, Community,
- * Cook Together, Messages, Pantry, Meal Plan, Shopping, Collections, Settings.
+ * "More" opens a drawer with secondary nav: Kitchen Scanner, Challenges,
+ * Community, Cook Together, Messages, Pantry, Meal Plan, Shopping,
+ * Collections, Settings.
  * Notifications are accessible via the Topbar bell icon.
  */
 const navItems: NavItem[] = [
@@ -104,6 +106,7 @@ const guestNavItems: NavItem[] = [
 ]
 
 const moreMenuItems: NavItem[] = [
+	{ href: PATHS.SCAN, icon: ScanLine, labelKey: 'kitchenScanner' },
 	{ href: '/challenges', icon: Target, labelKey: 'challenges' },
 	{ href: '/community', icon: Users, labelKey: 'community' },
 	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
@@ -115,6 +118,11 @@ const moreMenuItems: NavItem[] = [
 	{ href: PATHS.COLLECTIONS, icon: FolderHeart, labelKey: 'collections' },
 	{ href: PATHS.CREATOR, icon: BarChart3, labelKey: 'creator' },
 	{ href: '/settings', icon: Settings, labelKey: 'settings' },
+]
+
+// Guests can use public kitchen tools without exposing authenticated destinations.
+const guestMoreMenuItems: NavItem[] = [
+	{ href: PATHS.SCAN, icon: ScanLine, labelKey: 'kitchenScanner' },
 ]
 
 export const MobileBottomNav = () => {
@@ -130,6 +138,9 @@ export const MobileBottomNav = () => {
 
 	// Use different nav items for guests vs authenticated users
 	const activeNavItems = isAuthenticated ? navItems : guestNavItems
+	const activeMoreMenuItems = isAuthenticated
+		? moreMenuItems
+		: guestMoreMenuItems
 
 	const isActive = (href: string) => {
 		if (href === '/dashboard') return pathname === '/dashboard'
@@ -152,23 +163,16 @@ export const MobileBottomNav = () => {
 	}
 
 	// Check if any "more" route is active (highlight More icon)
-	const isMoreActive = moreMenuItems.some(
+	const isMoreActive = activeMoreMenuItems.some(
 		item => pathname === item.href || pathname?.startsWith(item.href + '/'),
 	)
 
 	const groupedMoreMenu = [
 		{
-			headingKey: 'moreGroupSocial',
-			items: moreMenuItems.filter(item =>
-				['/community', '/challenges', PATHS.LEADERBOARD, '/messages'].includes(
-					item.href,
-				),
-			),
-		},
-		{
 			headingKey: 'moreGroupCooking',
-			items: moreMenuItems.filter(item =>
+			items: activeMoreMenuItems.filter(item =>
 				[
+					PATHS.SCAN,
 					'/cook-together',
 					'/pantry',
 					'/meal-planner',
@@ -178,8 +182,16 @@ export const MobileBottomNav = () => {
 			),
 		},
 		{
+			headingKey: 'moreGroupSocial',
+			items: activeMoreMenuItems.filter(item =>
+				['/community', '/challenges', PATHS.LEADERBOARD, '/messages'].includes(
+					item.href,
+				),
+			),
+		},
+		{
 			headingKey: 'moreGroupAccount',
-			items: moreMenuItems.filter(item =>
+			items: activeMoreMenuItems.filter(item =>
 				[PATHS.CREATOR, '/settings'].includes(item.href),
 			),
 		},
@@ -312,16 +324,18 @@ export const MobileBottomNav = () => {
 					)
 				})}
 
-				{/* More button — only for authenticated users (guests have minimal nav) */}
-				{isAuthenticated && (
+				{/* More exposes only public tools to guests and the full menu to members. */}
+				{activeMoreMenuItems.length > 0 && (
 					<button
 						type='button'
+						aria-label={t('more')}
+						aria-expanded={showMore}
 						onClick={() => {
 							setDrawerQuery('')
 							setShowMore(true)
 						}}
 						className={cn(
-							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
+							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 							isMoreActive
 								? 'bg-brand/10 text-brand shadow-glow'
 								: 'text-text-secondary hover:bg-bg-elevated/70',

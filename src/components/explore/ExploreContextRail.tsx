@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Compass, Sparkles, TrendingUp, ArrowRight } from 'lucide-react'
+import { PATHS } from '@/constants/paths'
+import { Compass, Sparkles, TrendingUp, ArrowRight, Network, Camera } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { TonightsPick } from '@/components/dashboard/TonightsPick'
 import { SeasonsBest } from '@/components/explore/SeasonsBest'
@@ -71,6 +72,26 @@ export function ExploreContextRail({
 					{t('railQuickMovesHeading')}
 				</h3>
 				<div className='mt-3 grid gap-2'>
+					<Link
+						href={PATHS.EXPLORE_GRAPH}
+						className='group inline-flex items-center justify-between gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+					>
+						<span className='inline-flex items-center gap-2'>
+							<Network className='size-3.5' />
+							{t('railGraphExplorer')}
+						</span>
+						<ArrowRight className='size-3.5 text-text-muted transition-transform group-hover:translate-x-0.5' />
+					</Link>
+					<Link
+						href={PATHS.COPILOT}
+						className='group inline-flex items-center justify-between gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'
+					>
+						<span className='inline-flex items-center gap-2'>
+							<Camera className='size-3.5' />
+							{t('railVoiceCopilot')}
+						</span>
+						<ArrowRight className='size-3.5 text-text-muted transition-transform group-hover:translate-x-0.5' />
+					</Link>
 					<Link
 						href='/create'
 						className='group inline-flex items-center justify-between gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2.5 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'

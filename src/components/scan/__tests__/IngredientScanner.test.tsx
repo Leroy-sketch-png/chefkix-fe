@@ -1,11 +1,22 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from '@testing-library/react'
 import { IngredientScanner } from '@/components/scan/IngredientScanner'
+import {
+	detectIngredients,
+	IngredientDetectionUnavailableError,
+} from '@/services/ingredient-detection'
 
 jest.mock('next-intl', () => ({
 	useTranslations: () => (key: string) => key,
 }))
 
 jest.mock('@/services/ingredient-detection', () => ({
+	...jest.requireActual('@/services/ingredient-detection'),
 	detectIngredients: jest.fn(),
 }))
 
@@ -62,5 +73,91 @@ describe('IngredientScanner camera controls', () => {
 				}),
 			}),
 		)
+	})
+
+	it('retains returned tofu and searches only confirmed detections without inventing a recipe', async () => {
+		const onConfirmedIngredientsChange = jest.fn()
+		const create = URL.createObjectURL
+		const revoke = URL.revokeObjectURL
+		URL.createObjectURL = jest.fn(() => 'blob:test-scan')
+		URL.revokeObjectURL = jest.fn()
+		jest.mocked(detectIngredients).mockResolvedValue({
+			source: 'backend',
+			detections: [
+				{
+					id: 'fixture-carrot',
+					name: 'Carrot',
+					confidence: 0.5,
+					boundingBox: { x: 0, y: 0, width: 0.2, height: 0.2 },
+				},
+				{
+					id: 'fixture-tofu',
+					name: 'Tofu',
+					confidence: 0.33,
+					boundingBox: { x: 0.5, y: 0.5, width: 0.2, height: 0.2 },
+				},
+			],
+		})
+		try {
+			render(
+				<IngredientScanner
+					onConfirmedIngredientsChange={onConfirmedIngredientsChange}
+				/>,
+			)
+			expect(onConfirmedIngredientsChange).not.toHaveBeenCalled()
+			fireEvent.change(screen.getByTestId('ingredient-scanner-file-input'), {
+				target: {
+					files: [new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' })],
+				},
+			})
+			await screen.findByRole('checkbox', { name: 'Use Tofu in recipe search' })
+			expect(
+				screen.queryByRole('link', { name: 'Search recipes' }),
+			).not.toBeInTheDocument()
+			expect(
+				screen.queryByText(/96%|ZERO-ALLERGEN|Instant Recipe/),
+			).not.toBeInTheDocument()
+			fireEvent.click(
+				screen.getByRole('checkbox', { name: 'Use Carrot in recipe search' }),
+			)
+			await waitFor(() =>
+				expect(onConfirmedIngredientsChange).toHaveBeenLastCalledWith([
+					'Carrot',
+				]),
+			)
+			expect(
+				screen.queryByRole('link', { name: 'Search recipes' }),
+			).not.toBeInTheDocument()
+		} finally {
+			cleanup()
+			URL.createObjectURL = create
+			URL.revokeObjectURL = revoke
+		}
+	})
+
+	it('explains the unavailable detector without pretending a photo was scanned', async () => {
+		const create = URL.createObjectURL
+		const revoke = URL.revokeObjectURL
+		URL.createObjectURL = jest.fn(() => 'blob:test-unavailable')
+		URL.revokeObjectURL = jest.fn()
+		jest
+			.mocked(detectIngredients)
+			.mockRejectedValue(new IngredientDetectionUnavailableError())
+		try {
+			render(<IngredientScanner />)
+			fireEvent.change(screen.getByTestId('ingredient-scanner-file-input'), {
+				target: {
+					files: [new File(['fixture'], 'fixture.jpg', { type: 'image/jpeg' })],
+				},
+			})
+			expect(await screen.findByRole('alert')).toHaveTextContent(
+				'scanDetectionUnavailableManual',
+			)
+			expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+		} finally {
+			cleanup()
+			URL.createObjectURL = create
+			URL.revokeObjectURL = revoke
+		}
 	})
 })

@@ -1,5 +1,6 @@
 import React from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { toast } from 'sonner'
 
 import { ImmediateRewards } from '../ImmediateRewards'
 
@@ -35,6 +36,9 @@ jest.mock('next-intl', () => ({
 				photosCount: '{count}/{max} photos',
 				capturedPhotoAlt: 'Captured dish photo {number}',
 				removeCapturedPhoto: 'Remove captured dish photo {number}',
+				photoSizeLimit: 'Each photo must be under 10MB',
+				photoLimitReached:
+					'Only {max} photos can be shared. Remove one to add another.',
 				addPhoto: 'Add',
 				photoHintZero: 'Add photos',
 				photoHintFull: 'Photo requirement met',
@@ -49,6 +53,10 @@ jest.mock('next-intl', () => ({
 				copy[key] ?? key,
 			)
 		},
+}))
+
+jest.mock('sonner', () => ({
+	toast: { error: jest.fn(), warning: jest.fn() },
 }))
 
 jest.mock('@/lib/confetti', () => ({
@@ -123,10 +131,51 @@ const baseProps = {
 			bonusXp: 30,
 		},
 	],
-	postDeadlineHours: 336,
+	postDeadlineHours: 336 as number | null,
 	onPostNow: jest.fn(async () => true),
 	onPostLater: jest.fn(async () => true),
 }
+
+const originalCreateObjectURL = Object.getOwnPropertyDescriptor(
+	URL,
+	'createObjectURL',
+)
+const originalRevokeObjectURL = Object.getOwnPropertyDescriptor(
+	URL,
+	'revokeObjectURL',
+)
+const createObjectURL = jest.fn((file: File) => `blob:${file.name}`)
+const revokeObjectURL = jest.fn()
+
+beforeAll(() => {
+	Object.defineProperty(URL, 'createObjectURL', {
+		configurable: true,
+		value: createObjectURL,
+	})
+	Object.defineProperty(URL, 'revokeObjectURL', {
+		configurable: true,
+		value: revokeObjectURL,
+	})
+})
+
+beforeEach(() => {
+	createObjectURL.mockClear()
+	revokeObjectURL.mockClear()
+	jest.clearAllMocks()
+})
+
+afterAll(() => {
+	if (originalCreateObjectURL) {
+		Object.defineProperty(URL, 'createObjectURL', originalCreateObjectURL)
+	} else {
+		Reflect.deleteProperty(URL, 'createObjectURL')
+	}
+	if (originalRevokeObjectURL) {
+		Object.defineProperty(URL, 'revokeObjectURL', originalRevokeObjectURL)
+	} else {
+		Reflect.deleteProperty(URL, 'revokeObjectURL')
+	}
+})
 
 function renderRewards(overrides: Partial<typeof baseProps> = {}) {
 	return render(<ImmediateRewards {...baseProps} {...overrides} />)
@@ -175,6 +224,13 @@ describe('ImmediateRewards reward transparency', () => {
 		expect(screen.getByText('Up to +84 XP')).not.toBeNull()
 	})
 
+	it('omits exact deadline claims when the server timestamps are unavailable', () => {
+		renderRewards({ postDeadlineHours: null })
+
+		expect(screen.queryByText(/Eligible posts through day/)).toBeNull()
+		expect(screen.queryByText(/Post within/)).toBeNull()
+	})
+
 	it('enforces and communicates the same three-photo capacity', async () => {
 		renderRewards()
 		const fileInput =
@@ -198,6 +254,75 @@ describe('ImmediateRewards reward transparency', () => {
 		).not.toBeNull()
 	})
 
+	it('keeps valid photos and reports oversized files without blocking retry', async () => {
+		renderRewards()
+		const fileInput =
+			document.querySelector<HTMLInputElement>('input[type="file"]')!
+		const accepted = new File(['dish'], 'dish.png', { type: 'image/png' })
+		const oversized = new File(
+			[new Uint8Array(10 * 1024 * 1024 + 1)],
+			'large.png',
+			{ type: 'image/png' },
+		)
+
+		fireEvent.change(fileInput, { target: { files: [accepted, oversized] } })
+
+		await waitFor(() => expect(screen.getByText('1/3 photos')).not.toBeNull())
+		expect(toast.error).toHaveBeenCalledWith('Each photo must be under 10MB')
+		expect(fileInput.value).toBe('')
+		expect(screen.getAllByAltText(/Captured dish photo/)).toHaveLength(1)
+	})
+
+	it('warns when a selection exceeds the remaining review capacity', async () => {
+		renderRewards()
+		const fileInput =
+			document.querySelector<HTMLInputElement>('input[type="file"]')!
+		const files = Array.from(
+			{ length: 4 },
+			(_, index) =>
+				new File(['dish'], `dish-${index}.png`, { type: 'image/png' }),
+		)
+
+		fireEvent.change(fileInput, { target: { files } })
+
+		await waitFor(() => expect(screen.getByText('3/3 photos')).not.toBeNull())
+		expect(toast.warning).toHaveBeenCalledWith(
+			'Only 3 photos can be shared. Remove one to add another.',
+		)
+		expect(fileInput.value).toBe('')
+	})
+
+	it('preloads step photos into the review list and counts them toward the cap', async () => {
+		const onPostLater = jest.fn(async () => true)
+		const stepPhotos = ['step-1.jpg', 'step-2.jpg'].map(
+			name => new File([name], name, { type: 'image/jpeg' }),
+		)
+		const added = new File(['finish'], 'finish.jpg', { type: 'image/jpeg' })
+		render(
+			<ImmediateRewards
+				{...baseProps}
+				stepPhotos={stepPhotos}
+				onPostLater={onPostLater}
+			/>,
+		)
+
+		await waitFor(() => {
+			expect(screen.getByText('2/3 photos')).not.toBeNull()
+			expect(screen.getByAltText('Captured dish photo 1')).not.toBeNull()
+		})
+		const fileInput =
+			document.querySelector<HTMLInputElement>('input[type="file"]')
+		fireEvent.change(fileInput!, {
+			target: { files: [added, new File(['extra'], 'extra.jpg')] },
+		})
+		await waitFor(() => expect(screen.getByText('3/3 photos')).not.toBeNull())
+
+		fireEvent.click(screen.getByRole('button', { name: "I'll Post Later" }))
+		await waitFor(() => {
+			expect(onPostLater).toHaveBeenCalledWith([...stepPhotos, added])
+		})
+	})
+
 	it('hands captured photos to Post Later before dismissing the reward', async () => {
 		const onPostLater = jest.fn(async () => true)
 		renderRewards({ onPostLater })
@@ -214,6 +339,50 @@ describe('ImmediateRewards reward transparency', () => {
 		await waitFor(() => {
 			expect(onPostLater).toHaveBeenCalledWith([file])
 		})
+	})
+
+	it('keeps selected files and previews ordered through removal and posting', async () => {
+		const onPostLater = jest.fn(async () => true)
+		const { unmount } = renderRewards({ onPostLater })
+		const files = ['first.png', 'second.png', 'third.png'].map(
+			name => new File([name], name, { type: 'image/png' }),
+		)
+		const fileInput =
+			document.querySelector<HTMLInputElement>('input[type="file"]')
+
+		fireEvent.change(fileInput!, { target: { files } })
+
+		const firstPreview = await screen.findByAltText('Captured dish photo 1')
+		const secondPreview = screen.getByAltText('Captured dish photo 2')
+		const thirdPreview = screen.getByAltText('Captured dish photo 3')
+		expect(
+			[firstPreview, secondPreview, thirdPreview].map(image =>
+				image.getAttribute('src'),
+			),
+		).toEqual(['blob:first.png', 'blob:second.png', 'blob:third.png'])
+
+		fireEvent.load(thirdPreview)
+		fireEvent.load(firstPreview)
+		fireEvent.click(
+			screen.getByRole('button', { name: 'Remove captured dish photo 2' }),
+		)
+		expect(revokeObjectURL).toHaveBeenCalledWith('blob:second.png')
+		expect(screen.getByText('2/3 photos')).not.toBeNull()
+		expect(
+			screen.getByAltText('Captured dish photo 2').getAttribute('src'),
+		).toBe('blob:third.png')
+
+		fireEvent.click(screen.getByRole('button', { name: "I'll Post Later" }))
+		await waitFor(() => {
+			expect(onPostLater).toHaveBeenCalledWith([files[0], files[2]])
+		})
+
+		unmount()
+		expect(revokeObjectURL.mock.calls).toEqual([
+			['blob:second.png'],
+			['blob:first.png'],
+			['blob:third.png'],
+		])
 	})
 
 	it('persists captured photos when the close command dismisses the modal', async () => {

@@ -1,11 +1,14 @@
 import {
 	Clock,
 	MessageSquare,
+	ScanLine,
 	Sparkles,
 	TrendingUp,
 	Users2,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { PATHS } from '@/constants/paths'
 import { CommandDeckBase } from '@/components/layout/CommandDeckBase'
 import {
 	FeedTabBar,
@@ -28,6 +31,7 @@ export function FeedCommandDeck({
 }: FeedCommandDeckProps) {
 	const t = useTranslations('feed')
 	const tShared = useTranslations('shared')
+	const nav = useTranslations('nav')
 	const modeTabs: Record<FeedMode, TabItem<FeedMode>> = {
 		forYou: {
 			key: 'forYou',
@@ -59,9 +63,18 @@ export function FeedCommandDeck({
 			gradient='brand'
 			className={className}
 			controls={
-				<div className='inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand'>
-					<MessageSquare className='size-3.5' />
-					{t('commandChip')}
+				<div className='flex flex-wrap items-center gap-2'>
+					<div className='inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand'>
+						<MessageSquare className='size-3.5' />
+						{t('commandChip')}
+					</div>
+					<Link
+						href={PATHS.SCAN}
+						className='inline-flex min-h-9 items-center gap-2 rounded-full border border-brand/25 bg-brand/8 px-3 py-1.5 text-xs font-semibold text-brand transition-colors hover:border-brand/40 hover:bg-brand/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2'
+					>
+						<ScanLine className='size-3.5' aria-hidden='true' />
+						{nav('kitchenScanner')}
+					</Link>
 				</div>
 			}
 		>

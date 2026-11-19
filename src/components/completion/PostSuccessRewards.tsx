@@ -283,8 +283,8 @@ export const PostSuccessRewards = ({
 									</motion.div>
 								</div>
 
-								{/* XP breakdown */}
-								<div className='space-y-1 rounded-xl bg-bg-card p-3'>
+								{/* Show component rows only when authoritative attribution is available. */}
+								<div className='space-y-1'>
 									{xpRows.map((row, i) => (
 										<XPRowComponent key={row.id} row={row} index={i} />
 									))}

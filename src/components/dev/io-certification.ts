@@ -1,5 +1,4 @@
-export const IO_CERTIFICATION_STORAGE_KEY =
-	'chefkix-demo-io-certification-v1'
+export const IO_CERTIFICATION_STORAGE_KEY = 'chefkix-demo-io-certification-v1'
 
 export const IO_CERTIFICATION_MAX_AGE_MS = 4 * 60 * 60 * 1000
 
@@ -50,9 +49,7 @@ export interface IoCertificationSummary {
 	oldestVerifiedAt?: string
 }
 
-export function getIoCertificationGateResult(
-	summary: IoCertificationSummary,
-): {
+export function getIoCertificationGateResult(summary: IoCertificationSummary): {
 	status: 'pass' | 'warn' | 'fail'
 	detail: string
 } {
@@ -63,6 +60,27 @@ export function getIoCertificationGateResult(
 		return { status: 'warn', detail: summary.stageDetail }
 	}
 	return { status: 'fail', detail: summary.stageDetail }
+}
+
+export function getIoCertificationBlockers(
+	requiredChecks: readonly IoCertificationCheckId[],
+	results: Partial<IoCertificationResults> | null,
+	nowMs = Date.now(),
+	maxAgeMs = IO_CERTIFICATION_MAX_AGE_MS,
+): string[] {
+	return requiredChecks.flatMap(id => {
+		const check = IO_CERTIFICATION_CHECKS.find(candidate => candidate.id === id)
+		const label = check?.label || id
+		const result = results?.[id]
+		if (!result || result.status !== 'pass') return [label]
+		if (!result.verifiedAt) return [`${label} (missing timestamp)`]
+
+		const verifiedMs = Date.parse(result.verifiedAt)
+		if (!Number.isFinite(verifiedMs) || verifiedMs > nowMs)
+			return [`${label} (invalid timestamp)`]
+		if (nowMs - verifiedMs > maxAgeMs) return [`${label} (stale)`]
+		return []
+	})
 }
 
 export const EMPTY_IO_CERTIFICATION_RESULTS: IoCertificationResults =
@@ -76,9 +94,7 @@ export const EMPTY_IO_CERTIFICATION_RESULTS: IoCertificationResults =
 	}, {} as IoCertificationResults)
 
 function labelFor(id: IoCertificationCheckId) {
-	return (
-		IO_CERTIFICATION_CHECKS.find(check => check.id === id)?.label || id
-	)
+	return IO_CERTIFICATION_CHECKS.find(check => check.id === id)?.label || id
 }
 
 export function summarizeIoCertification(
@@ -152,6 +168,15 @@ export function summarizeIoCertification(
 			if (check.stageRequired)
 				stageBlocking.push(`${check.label}: missing timestamp`)
 			else optionalUnavailable.push(`${check.label}: missing timestamp`)
+			continue
+		}
+
+		if (verifiedMs > nowMs) {
+			stale.push(`${check.label}: timestamp is in the future`)
+			if (check.stageRequired)
+				stageBlocking.push(`${check.label}: timestamp is in the future`)
+			else
+				optionalUnavailable.push(`${check.label}: timestamp is in the future`)
 			continue
 		}
 
@@ -229,17 +254,72 @@ export function parseIoCertificationResults(
 	if (!raw) return null
 
 	try {
-		const parsed = JSON.parse(raw) as Partial<IoCertificationResults>
-		return parsed && typeof parsed === 'object' ? parsed : null
+		const parsed: unknown = JSON.parse(raw)
+		if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+			return null
+
+		const source = parsed as Record<string, unknown>
+		const validated: Partial<IoCertificationResults> = {}
+		for (const check of IO_CERTIFICATION_CHECKS) {
+			const value = source[check.id]
+			if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+
+			const candidate = value as Record<string, unknown>
+			if (
+				!['idle', 'running', 'confirm', 'pass', 'fail'].includes(
+					String(candidate.status),
+				) ||
+				typeof candidate.detail !== 'string' ||
+				(candidate.verifiedAt !== undefined &&
+					typeof candidate.verifiedAt !== 'string')
+			) {
+				continue
+			}
+
+			validated[check.id] = {
+				status: candidate.status as IoCertificationStatus,
+				detail: candidate.detail,
+				...(typeof candidate.verifiedAt === 'string'
+					? { verifiedAt: candidate.verifiedAt }
+					: {}),
+			}
+		}
+		return validated
 	} catch {
 		return null
 	}
 }
 
 export function getStoredIoCertificationSummary(
-	storage: Pick<Storage, 'getItem'> | null =
-		typeof window !== 'undefined' ? window.localStorage : null,
+	storage?: Pick<Storage, 'getItem'> | null,
 ) {
-	const raw = storage?.getItem(IO_CERTIFICATION_STORAGE_KEY) ?? null
-	return summarizeIoCertification(parseIoCertificationResults(raw))
+	try {
+		const target =
+			storage === undefined
+				? typeof window !== 'undefined'
+					? window.localStorage
+					: null
+				: storage
+		const raw = target?.getItem(IO_CERTIFICATION_STORAGE_KEY) ?? null
+		return summarizeIoCertification(parseIoCertificationResults(raw))
+	} catch {
+		return summarizeIoCertification(null)
+	}
+}
+
+export function getStoredIoCertificationResults(
+	storage?: Pick<Storage, 'getItem'> | null,
+) {
+	try {
+		const target =
+			storage === undefined
+				? typeof window !== 'undefined'
+					? window.localStorage
+					: null
+				: storage
+		const raw = target?.getItem(IO_CERTIFICATION_STORAGE_KEY) ?? null
+		return parseIoCertificationResults(raw)
+	} catch {
+		return null
+	}
 }

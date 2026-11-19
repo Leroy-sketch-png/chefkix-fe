@@ -25,6 +25,10 @@ import { useStoryStore } from '@/store/storyStore'
 import { StoryFeed } from '@/components/story/StoryFeed'
 import { ColdStartExperience } from '@/components/onboarding/ColdStartExperience'
 import { PullToRefresh } from '@/components/ui/pull-to-refresh'
+import {
+	rememberFeedScrollPosition,
+	restoreFeedScrollPositionIfReady,
+} from '@/lib/app-scroll'
 
 const POSTS_PER_PAGE = 10
 
@@ -55,7 +59,6 @@ export default function FeedPage() {
 	const fetchStoryFeed = useStoryStore(state => state.fetchStoryFeed)
 	const storyUsers = useStoryStore(state => state.storyUsers)
 	const [isStoryLoading, setIsStoryLoading] = useState(true)
-
 	useEffect(() => {
 		if (user) {
 			setIsStoryLoading(true)
@@ -64,6 +67,10 @@ export default function FeedPage() {
 			setIsStoryLoading(false)
 		}
 	}, [user, fetchStoryFeed])
+
+	useEffect(() => {
+		if (!isLoading) restoreFeedScrollPositionIfReady()
+	}, [isLoading])
 
 	useEffect(() => {
 		if (user && !initializedAuthMode.current) {
@@ -295,7 +302,19 @@ export default function FeedPage() {
 			</AnimatePresence>
 
 			<PageContainer maxWidth='2xl'>
-				<div data-testid='feed-page'>
+				<div
+					data-testid='feed-page'
+					data-feed-ready={isLoading ? 'false' : 'true'}
+					onClickCapture={event => {
+						const target = event.target
+						if (
+							target instanceof Element &&
+							target.closest('a[href^="/recipes/"]')
+						) {
+							rememberFeedScrollPosition()
+						}
+					}}
+				>
 					<div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]'>
 						<ColdStartExperience
 							isAuthenticated={!!user}

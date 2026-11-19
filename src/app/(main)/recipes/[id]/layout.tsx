@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-
-const API_BASE = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080'
+import { getServerBackendUrl } from '@/lib/server-backend-url'
 
 interface RecipeApiResponse {
 	success: boolean
@@ -35,7 +34,7 @@ export async function generateMetadata({
 	const { id } = await params
 
 	try {
-		const res = await fetch(`${API_BASE}/api/v1/recipes/${id}`, {
+		const res = await fetch(`${getServerBackendUrl()}/api/v1/recipes/${id}`, {
 			next: { revalidate: 3600 },
 		})
 

@@ -96,6 +96,18 @@ describe('notification context value', () => {
 		expect(screen.queryByText('50')).toBeNull()
 	})
 
+	it('announces exactly which notification filter is selected', () => {
+		renderDeck(3)
+
+		for (const filter of ['All', 'Activity', 'Social', 'Unread']) {
+			expect(
+				(
+					screen.getByRole('button', { name: filter }) as HTMLButtonElement
+				).getAttribute('aria-pressed'),
+			).toBe(filter === 'All' ? 'true' : 'false')
+		}
+	})
+
 	it('retains navigation value after removing the telemetry rail', () => {
 		render(<NotificationsContextRail />)
 

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerBackendUrl } from '@/lib/server-backend-url'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const MAX_BODY_BYTES = 8 * 1024
-const DEFAULT_BACKEND_URL = 'http://localhost:8080'
 
 function jsonFailure(message: string, status: number) {
 	return NextResponse.json(
@@ -76,11 +76,7 @@ export async function POST(request: NextRequest) {
 		return jsonFailure('The substitution request is invalid JSON.', 400)
 	}
 
-	const backendUrl = (
-		process.env.BACKEND_URL ||
-		process.env.NEXT_PUBLIC_BASE_URL ||
-		DEFAULT_BACKEND_URL
-	).replace(/\/+$/, '')
+	const backendUrl = getServerBackendUrl()
 	try {
 		const upstream = await fetch(
 			`${backendUrl}/api/v1/knowledge/substitutions/from-photo`,

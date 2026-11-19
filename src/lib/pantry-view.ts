@@ -6,6 +6,14 @@ export interface PantryCounts {
 	expiringSoon: number
 }
 
+export interface PantryCategory {
+	key: string
+}
+
+export type PantryCategoryGroup<T extends PantryCategory> = T & {
+	items: PantryItem[]
+}
+
 export function getPantryCounts(items: PantryItem[]): PantryCounts {
 	return items.reduce<PantryCounts>(
 		(counts, item) => {
@@ -35,5 +43,45 @@ export function getVisiblePantryItems(
 			item.ingredientName.toLocaleLowerCase().includes(normalizedQuery)
 
 		return matchesCategory && matchesSearch
+	})
+}
+
+export function getPantryGroups<T extends PantryCategory>(
+	items: PantryItem[],
+	categories: readonly T[],
+	sortByExpiry: boolean,
+): PantryCategoryGroup<T>[] {
+	const groups = categories
+		.map(category => ({
+			...category,
+			items: items.filter(
+				item => item.category.toLocaleLowerCase() === category.key,
+			),
+		}))
+		.filter(group => group.items.length > 0)
+
+	if (!sortByExpiry) return groups
+
+	const compareExpiry = (left: PantryItem, right: PantryItem) => {
+		if (left.expiryDate === null) return right.expiryDate === null ? 0 : 1
+		if (right.expiryDate === null) return -1
+		return left.expiryDate.localeCompare(right.expiryDate)
+	}
+
+	const sortedGroups = groups.map(group => ({
+		...group,
+		items: [...group.items].sort(
+			(left, right) =>
+				compareExpiry(left, right) ||
+				left.ingredientName.localeCompare(right.ingredientName),
+		),
+	}))
+
+	return sortedGroups.sort((left, right) => {
+		const leftExpiry = left.items[0]?.expiryDate ?? null
+		const rightExpiry = right.items[0]?.expiryDate ?? null
+		if (leftExpiry === null) return rightExpiry === null ? 0 : 1
+		if (rightExpiry === null) return -1
+		return leftExpiry.localeCompare(rightExpiry)
 	})
 }

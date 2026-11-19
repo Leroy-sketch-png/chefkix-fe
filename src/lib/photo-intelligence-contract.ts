@@ -57,6 +57,7 @@ export function normalizePhotoRecipeMatches(
 				matchScore: asScore(
 					match.matchScore ?? match.match_score ?? match.score,
 				),
+				matchMethod: 'backend',
 				matchedIngredients: asStringArray(
 					match.matchedIngredients ?? match.matched_ingredients,
 				),

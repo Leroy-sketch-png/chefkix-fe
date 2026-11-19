@@ -30,7 +30,14 @@ interface UseNotificationSocketReturn {
  * Replaces HTTP polling with instant push.
  */
 export function useNotificationSocket(): UseNotificationSocketReturn {
-	const { accessToken, user, isAuthenticated, isHydrated, isLoading } =
+	const {
+		accessToken,
+		user,
+		isAuthenticated,
+		isLoggingOut,
+		isHydrated,
+		isLoading,
+	} =
 		useAuthStore()
 	const { incrementUnreadCount, stopPolling, startPolling } =
 		useNotificationStore()
@@ -59,13 +66,17 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 	const stopPollingRef = useRef(stopPolling)
 	stopPollingRef.current = stopPolling
 	const startPollingRef = useRef(startPolling)
-	startPollingRef.current = startPolling
+	startPollingRef.current = () => {
+		const auth = useAuthStore.getState()
+		if (auth.isAuthenticated && !auth.isLoggingOut) startPolling()
+	}
 
 	// Connect to WebSocket
 	useEffect(() => {
 		if (
 			!isHydrated ||
 			isLoading ||
+			isLoggingOut ||
 			!isAuthenticated ||
 			!accessToken ||
 			!userId
@@ -180,7 +191,7 @@ export function useNotificationSocket(): UseNotificationSocketReturn {
 			}
 			setIsConnected(false)
 		}
-	}, [accessToken, userId, isAuthenticated, isHydrated, isLoading])
+	}, [accessToken, userId, isAuthenticated, isLoggingOut, isHydrated, isLoading])
 
 	return { isConnected, error }
 }

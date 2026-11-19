@@ -1,7 +1,13 @@
 import { User } from '@/lib/types'
 import { create } from 'zustand'
-import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
+import {
+	createJSONStorage,
+	persist,
+	type StateStorage,
+} from 'zustand/middleware'
 import { logDevError, logDevWarn } from '@/lib/dev-log'
+import { useStepPhotoStore } from '@/lib/step-photo-store'
+import { useScanIngredientDraftStore } from '@/store/scanIngredientDraftStore'
 
 /**
  * IMPORTANT: This store does NOT import axios to avoid circular dependency.
@@ -35,7 +41,10 @@ export const createSafeAuthStorage = (): StateStorage => ({
 			JSON.parse(value)
 			return value
 		} catch (error) {
-			logDevError('[authStore] Ignoring unreadable persisted auth state:', error)
+			logDevError(
+				'[authStore] Ignoring unreadable persisted auth state:',
+				error,
+			)
 			try {
 				window.localStorage.removeItem(name)
 			} catch (removeError) {
@@ -73,7 +82,9 @@ export interface AuthState {
 	accessToken: string | null
 	isLoading: boolean
 	isHydrated: boolean // Track hydration state explicitly
+	isLoggingOut: boolean
 	login: (accessToken: string) => void
+	beginLogout: () => void
 	setUser: (user: User) => void
 	logout: () => void
 	setLoading: (isLoading: boolean) => void
@@ -100,12 +111,13 @@ export const completeAuthHydration = (
 
 export const useAuthStore = create<AuthState>()(
 	persist(
-		set => ({
+		(set, get) => ({
 			isAuthenticated: false,
 			user: null,
 			accessToken: null,
 			isLoading: true, // Start as loading until hydration + validation complete
 			isHydrated: false, // Not hydrated until persist rehydrates
+			isLoggingOut: false,
 
 			/**
 			 * login() ONLY sets the access token and marks as authenticated.
@@ -127,6 +139,14 @@ export const useAuthStore = create<AuthState>()(
 				set({
 					isAuthenticated: true,
 					accessToken,
+					isLoggingOut: false,
+				})
+			},
+
+			beginLogout: () => {
+				set({ isLoggingOut: true })
+				void import('./notificationStore').then(({ useNotificationStore }) => {
+					useNotificationStore.getState().stopPolling()
 				})
 			},
 
@@ -141,6 +161,10 @@ export const useAuthStore = create<AuthState>()(
 					})
 					return
 				}
+				if (get().user?.userId && get().user?.userId !== user.userId) {
+					useStepPhotoStore.getState().clearAllPhotos()
+					useScanIngredientDraftStore.getState().clear()
+				}
 				set({ user })
 			},
 
@@ -150,6 +174,8 @@ export const useAuthStore = create<AuthState>()(
 			 * checks for accessToken on every request and won't attach if null.
 			 */
 			logout: () => {
+				useStepPhotoStore.getState().clearAllPhotos()
+				useScanIngredientDraftStore.getState().clear()
 				// Stop notification polling to prevent memory leaks
 				// Dynamically import to avoid circular dependency
 				import('./notificationStore').then(({ useNotificationStore }) => {
@@ -170,6 +196,7 @@ export const useAuthStore = create<AuthState>()(
 					user: null,
 					accessToken: null,
 					isLoading: false,
+					isLoggingOut: false,
 				})
 			},
 			setLoading: (isLoading: boolean) => set({ isLoading }),

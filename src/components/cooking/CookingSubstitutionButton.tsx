@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeftRight, Check, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -24,9 +24,12 @@ interface CookingSubstitutionButtonProps {
 	ingredientName: string
 	recipeTitle: string
 	stepContext?: string
+	sessionId?: string
 	onChoice: (
 		choice: SubstitutionFeedbackChoice,
 		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
 	) => Promise<boolean>
 }
 
@@ -41,20 +44,80 @@ export function CookingSubstitutionButton({
 	ingredientName,
 	recipeTitle,
 	stepContext,
+	sessionId,
 	onChoice,
 }: CookingSubstitutionButtonProps) {
 	const t = useTranslations('cooking')
 	const { user } = useAuth()
+	const allergenFlagsKey = (user?.allergenFlags ?? []).join('\u0000')
 	const [open, setOpen] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [substitutions, setSubstitutions] = useState<Substitution[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [customSubstitute, setCustomSubstitute] = useState('')
 	const [submitting, setSubmitting] = useState(false)
+	const requestGenerationRef = useRef(0)
+	const requestContextRef = useRef({
+		ingredientName,
+		recipeTitle,
+		stepContext,
+		sessionId,
+		userId: user?.userId,
+		allergenFlagsKey,
+	})
 
-	useEscapeKey(open && !submitting, () => setOpen(false))
+	const closeDialog = useCallback(() => {
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setOpen(false)
+	}, [])
+
+	useEscapeKey(open && !submitting, closeDialog)
+
+	useLayoutEffect(() => {
+		const previous = requestContextRef.current
+		const next = {
+			ingredientName,
+			recipeTitle,
+			stepContext,
+			sessionId,
+			userId: user?.userId,
+			allergenFlagsKey,
+		}
+		const changed =
+			previous.ingredientName !== next.ingredientName ||
+			previous.recipeTitle !== next.recipeTitle ||
+			previous.stepContext !== next.stepContext ||
+			previous.sessionId !== next.sessionId ||
+			previous.userId !== next.userId ||
+			previous.allergenFlagsKey !== next.allergenFlagsKey
+
+		if (!changed) return
+
+		requestContextRef.current = next
+		requestGenerationRef.current += 1
+		setLoading(false)
+		setSubstitutions([])
+		setError(null)
+		setCustomSubstitute('')
+	}, [
+		allergenFlagsKey,
+		ingredientName,
+		recipeTitle,
+		sessionId,
+		stepContext,
+		user?.userId,
+	])
+
+	useLayoutEffect(
+		() => () => {
+			requestGenerationRef.current += 1
+		},
+		[],
+	)
 
 	const fetchSuggestions = async () => {
+		const requestGeneration = ++requestGenerationRef.current
 		setLoading(true)
 		setError(null)
 		try {
@@ -69,31 +132,45 @@ export function CookingSubstitutionButton({
 					.join('\n'),
 				undefined,
 				user?.allergenFlags,
+				sessionId,
 			)
+			if (requestGeneration !== requestGenerationRef.current) return
 			if (response.success && response.data) {
 				setSubstitutions(response.data.substitutions)
 			} else {
 				setError(response.message || t('substitutionSuggestionsUnavailable'))
 			}
 		} catch {
+			if (requestGeneration !== requestGenerationRef.current) return
 			setError(t('substitutionSuggestionsUnavailable'))
 		} finally {
-			setLoading(false)
+			if (requestGeneration === requestGenerationRef.current) {
+				setLoading(false)
+			}
 		}
 	}
 
 	const openSuggestions = () => {
 		setOpen(true)
 		setCustomSubstitute('')
+		setSubstitutions([])
+		setError(null)
 		void fetchSuggestions()
 	}
 
 	const recordChoice = async (
 		choice: SubstitutionFeedbackChoice,
 		substituteIngredient?: string,
+		candidateReceipt?: string,
+		suggestionId?: string,
 	) => {
 		setSubmitting(true)
-		const recorded = await onChoice(choice, substituteIngredient)
+		const recorded = await onChoice(
+			choice,
+			substituteIngredient,
+			candidateReceipt,
+			suggestionId,
+		)
 		setSubmitting(false)
 		if (recorded) setOpen(false)
 	}
@@ -146,7 +223,7 @@ export function CookingSubstitutionButton({
 									</div>
 									<button
 										type='button'
-										onClick={() => setOpen(false)}
+										onClick={closeDialog}
 										disabled={submitting}
 										className='rounded-full p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary focus-visible:ring-2 focus-visible:ring-brand/50'
 										aria-label={t('closeSubstitution')}
@@ -188,20 +265,28 @@ export function CookingSubstitutionButton({
 																<p className='font-semibold text-text-primary'>
 																	{substitution.name}
 																</p>
-																<p className='text-xs text-text-muted'>
-																	{substitution.ratio}
-																</p>
-															</div>
-															<span
-																className={cn(
-																	'rounded-full px-2 py-1 text-xs font-semibold',
-																	confidenceClass(substitution.confidenceScore),
+																{substitution.ratio && (
+																	<p className='text-xs text-text-muted'>
+																		{substitution.ratio}
+																	</p>
 																)}
-															>
-																{t('substitutionConfidence')}{' '}
-																{Math.round(substitution.confidenceScore * 100)}
-																%
-															</span>
+															</div>
+															{substitution.confidenceScore != null && (
+																<span
+																	className={cn(
+																		'rounded-full px-2 py-1 text-xs font-semibold',
+																		confidenceClass(
+																			substitution.confidenceScore,
+																		),
+																	)}
+																>
+																	{t('substitutionConfidence')}{' '}
+																	{Math.round(
+																		substitution.confidenceScore * 100,
+																	)}
+																	%
+																</span>
+															)}
 														</div>
 														<AllergenSafetyIndicator safety={safety} />
 														{substitution.notes && (
@@ -217,7 +302,12 @@ export function CookingSubstitutionButton({
 															type='button'
 															disabled={blocked || submitting}
 															onClick={() =>
-																void recordChoice('accept', substitution.name)
+																void recordChoice(
+																	'accept',
+																	substitution.name,
+																	substitution.candidateReceipt,
+																	substitution.suggestionId,
+																)
 															}
 															className='mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-brand/50'
 														>

@@ -5,12 +5,15 @@ import {
 } from '@/lib/tokenManager'
 import { useAuthStore } from '@/store/authStore'
 import app from '@/configs/app'
+import { buildWebSocketUrl } from '@/lib/api-origin'
+import { API_PREFIX } from '@/constants/api'
 
 const SESSION_EXPIRED_MESSAGE = 'Session expired. Please sign in again.'
 
 export function getWebSocketUrl(): string {
-	const wsBase = app.API_BASE_URL.replace(/^http/, 'ws')
-	return `${wsBase}/api/v1/ws`
+	const pageOrigin =
+		typeof window === 'undefined' ? undefined : window.location.origin
+	return buildWebSocketUrl(`${API_PREFIX}/ws`, app.API_BASE_URL, pageOrigin)
 }
 
 export function getReadableWebSocketError(message?: string | null): string {
@@ -40,7 +43,8 @@ export function isWebSocketAuthenticationError(
 }
 
 export async function getFreshWebSocketAccessToken(): Promise<string | null> {
-	const { accessToken, login, logout } = useAuthStore.getState()
+	const initialAuth = useAuthStore.getState()
+	const { accessToken } = initialAuth
 
 	if (!accessToken) {
 		return null
@@ -50,8 +54,48 @@ export async function getFreshWebSocketAccessToken(): Promise<string | null> {
 		return accessToken
 	}
 
-	const result = await refreshAccessToken(login, logout)
-	if (result.success && result.token) {
+	const ownerId = initialAuth.user?.userId
+	if (
+		!ownerId ||
+		!initialAuth.isAuthenticated ||
+		initialAuth.isLoggingOut
+	) {
+		return null
+	}
+
+	const result = await refreshAccessToken(
+		newToken => {
+			const current = useAuthStore.getState()
+			if (
+				current.isAuthenticated &&
+				!current.isLoggingOut &&
+				current.user?.userId === ownerId &&
+				current.accessToken === accessToken
+			) {
+				useAuthStore.setState({ accessToken: newToken })
+			}
+		},
+		() => {
+			const current = useAuthStore.getState()
+			if (
+				current.isAuthenticated &&
+				!current.isLoggingOut &&
+				current.user?.userId === ownerId &&
+				current.accessToken === accessToken
+			) {
+				current.logout()
+			}
+		},
+	)
+	const current = useAuthStore.getState()
+	if (
+		result.success &&
+		result.token &&
+		current.isAuthenticated &&
+		!current.isLoggingOut &&
+		current.user?.userId === ownerId &&
+		current.accessToken === result.token
+	) {
 		return result.token
 	}
 

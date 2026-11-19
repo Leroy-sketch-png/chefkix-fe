@@ -20,6 +20,7 @@ export const PATHS = {
 	COOK: '/cook',
 	SCAN: '/scan',
 	COPILOT: '/copilot',
+	EXPLORE_GRAPH: '/explore/graph',
 	CREATE_POST: '/post/new',
 	COLLECTIONS: '/collections',
 	SHOPPING_LISTS: '/shopping-lists',

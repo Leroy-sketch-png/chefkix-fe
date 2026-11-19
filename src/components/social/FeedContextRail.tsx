@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Compass, MessageSquare, Sparkles, Users } from 'lucide-react'
+import { Compass, MessageSquare, ScanLine, Sparkles, Users } from 'lucide-react'
 import { FriendsOnlineWidget } from '@/components/social/FriendsOnlineWidget'
+import { PATHS } from '@/constants/paths'
 
 interface FeedContextRailProps {
 	showFriendsOnline: boolean
@@ -10,6 +11,7 @@ interface FeedContextRailProps {
 
 export function FeedContextRail({ showFriendsOnline }: FeedContextRailProps) {
 	const t = useTranslations('feed')
+	const nav = useTranslations('nav')
 	return (
 		<motion.aside
 			initial={{ opacity: 0, x: 10 }}
@@ -23,6 +25,13 @@ export function FeedContextRail({ showFriendsOnline }: FeedContextRailProps) {
 						{t('quickMovesEyebrow')}
 					</p>
 					<div className='mt-3 grid gap-2'>
+						<Link
+							href={PATHS.SCAN}
+							className='inline-flex items-center gap-2 rounded-lg border border-brand/25 bg-brand/8 px-3 py-2 text-xs font-semibold text-brand transition-all hover:border-brand/40 hover:bg-brand/12'
+						>
+							<ScanLine className='size-3.5' aria-hidden='true' />
+							{nav('kitchenScanner')}
+						</Link>
 						<Link
 							href='/community'
 							className='inline-flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-3 py-2 text-xs font-semibold text-text-primary transition-all hover:border-brand/25 hover:bg-brand/8 hover:text-brand'

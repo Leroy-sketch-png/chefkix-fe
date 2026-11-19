@@ -1,6 +1,6 @@
 # Q110 Test Report
 
-Status: IMPLEMENTED - VERIFIED E2; AUTHENTICATED VISUAL E3 OPEN
+Status: IMPLEMENTED - VERIFIED E2 + AUTHENTICATED LOCAL CHROME E3 (2026-10-22); REPRESENTATIVE ACCENT PREFERENCE OPEN
 
 ## Trigger Proof
 
@@ -29,6 +29,15 @@ Status: IMPLEMENTED - VERIFIED E2; AUTHENTICATED VISUAL E3 OPEN
 
 ## Claim Limits
 
-- Authenticated Collections, Profile, Taste, Recipe Detail, and Year in Cooking were not visually walked in this slice.
+- Authenticated Collections and Profile > Collections were visually walked at 390x844 in light and dark modes; screenshot evidence is below. Taste, Recipe Detail, and Year in Cooking were not walked.
 - Representative preference for combo accents remains unknown.
 - InterestPicker's misuse of status colors is a separate taste/semantic cluster and was intentionally not hidden inside this mechanical repair.
+
+## Current Authenticated Runtime (2026-10-22)
+
+- Playwright Chromium signed in using the documented local `testuser` fixture and loaded the rebuilt production-local `http://localhost:3000` app.
+- Light-mode `/collections` showed the `Collection` type label with `bg-combo/10 text-combo`; computed foreground was `rgb(236, 72, 153)`. Two real seeded collections were visible.
+- The app's dark theme was selected in the isolated browser context. Profile > Collections rendered the profile cover type labels with `text-white` and `bg-black/65`; computed foreground was `rgb(255, 255, 255)` and background was black at 65% opacity over real seeded food imagery.
+- At 390x844, document width matched viewport. Page errors, console errors, and HTTP >=400 responses were zero. Requests were limited to login, presence heartbeat, and existing analytics; no profile or collection content was changed.
+- Captures: `%TEMP%\q110-collections-mobile.png` and `%TEMP%\q110-profile-collections-dark.png`.
+- This verifies only local rendering in the exercised theme/image cases; representative accent preference and broader theme/device coverage remain unknown.

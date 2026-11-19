@@ -4,7 +4,7 @@ The scan UI is wired to stable same-origin adapters and does not invent recipe m
 
 ## Request protection and limits
 
-Photo routes require a bearer token that the monolith validates at its authenticated profile endpoint. The user's token is not forwarded to AI providers. Image uploads are capped at 10 MiB; ingredient matching accepts at most 100 names, each at most 120 characters, within a 32 KiB JSON body. Provider timeouts and invalid responses remain visible errors and are never replaced with mock output.
+Existing photo retrieval and ingredient-matching routes validate the bearer token at the monolith profile endpoint. The new `/api/v1/food-vision/analyze` and `/api/v1/food-vision/parse-substitution-intent` endpoints are public and rate-limited by trusted client IP. User tokens are not forwarded to external model providers. Image uploads are capped at 10 MiB; ingredient matching accepts at most 100 names, each at most 120 characters, within a 32 KiB JSON body. Provider timeouts and invalid responses remain visible errors and are never replaced with mock output.
 
 Provider-specific service credentials and production endpoint acceptance are deployment handoff requirements; this proxy's user-session check does not authenticate the external model provider.
 
@@ -44,21 +44,21 @@ Scores can be sent as either `0..1` or percentages. Snake_case and camelCase fie
 
 ## Dish image analysis
 
-The scan page posts an image to the authenticated AI proxy at `POST /api/v1/food-vision/analyze` using multipart field `image`. The AI service calls its configured Gemini model and requires `GOOGLE_API_KEY`; no VLM training or CLIP index is needed for this MVP. Supported formats are JPEG, PNG, and WebP.
+The scan page posts an image through the public same-origin AI proxy at `POST /api/v1/food-vision/analyze` using multipart field `image`. The AI service calls its configured Gemini model and requires `GOOGLE_API_KEY`; no VLM training or CLIP index is needed for this MVP. Supported formats are JPEG, PNG, and WebP.
 
 The response identifies a likely dish and lists ingredients with `basis: visible` or `basis: inferred`. Inferred items come from likely dish composition and may not be present in the pictured serving. The UI displays this caveat and does not treat the result as a verified recipe or allergen check.
 
 ```json
 {
-	"status": "identified",
-	"dishName": "Hummus",
-	"possibleDishes": [],
-	"ingredients": [
-		{ "name": "chickpeas", "basis": "inferred" },
-		{ "name": "parsley", "basis": "visible" }
-	],
-	"source": "backend",
-	"model": "gemini-2.5-flash"
+  "status": "identified",
+  "dishName": "Hummus",
+  "possibleDishes": [],
+  "ingredients": [
+    { "name": "chickpeas", "basis": "inferred" },
+    { "name": "parsley", "basis": "visible" }
+  ],
+  "source": "backend",
+  "model": "gemini-2.5-flash"
 }
 ```
 

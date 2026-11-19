@@ -3,7 +3,12 @@
 import { useEffect, useState, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { AUTH_ROUTES, PATHS, isPublicRoutePath } from '@/constants'
+import {
+	AUTH_ROUTES,
+	PATHS,
+	getPostAuthRedirectPath,
+	isPublicRoutePath,
+} from '@/constants'
 import { getMyProfileWithAccessToken } from '@/services/profile'
 import { AuthLoader } from '@/components/auth/AuthLoader'
 import { waitForVisibilityRefresh } from './TokenRefreshProvider'
@@ -175,7 +180,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 			if (!redirectTriggeredRef.current) {
 				redirectTriggeredRef.current = true
 				setIsRedirecting(true)
-				router.push(PATHS.DASHBOARD)
+				const returnTo = new URLSearchParams(window.location.search).get(
+					'returnTo',
+				)
+				router.replace(getPostAuthRedirectPath(returnTo))
 			}
 			return
 		}

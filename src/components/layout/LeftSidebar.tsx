@@ -24,6 +24,9 @@ import {
 	MoreHorizontal,
 	FolderHeart,
 	BarChart3,
+	Sparkles,
+	Network,
+	ScanLine,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { PATHS, isUserProfileRoutePath } from '@/constants'
@@ -43,6 +46,7 @@ interface NavItem {
 	labelKey: string
 	showBadge?: boolean // Whether this item can show a notification badge
 	requiresAuth?: boolean // True if this item needs authentication
+	wrapLabel?: boolean // Keep selected long tool names readable in the narrow sidebar
 }
 
 // Primary nav: the 7 items users need most (serves 80% scrollers + 15% cooks)
@@ -74,8 +78,29 @@ const guestPrimaryNavItems: NavItem[] = [
 	{ href: PATHS.LEADERBOARD, icon: Trophy, labelKey: 'leaderboard' },
 ]
 
+// The scanner is public and belongs with the other secondary kitchen tools.
+const guestSecondaryNavItems: NavItem[] = [
+	{
+		href: PATHS.SCAN,
+		icon: ScanLine,
+		labelKey: 'kitchenScanner',
+		wrapLabel: true,
+	},
+]
+
 // Secondary nav: kitchen tools, social features, settings (under "More")
 const secondaryNavItems: NavItem[] = [
+	...guestSecondaryNavItems,
+	{
+		href: PATHS.COPILOT,
+		icon: Sparkles,
+		labelKey: 'copilot',
+	},
+	{
+		href: PATHS.EXPLORE_GRAPH,
+		icon: Network,
+		labelKey: 'graphExplorer',
+	},
 	{
 		href: '/challenges',
 		icon: Target,
@@ -131,17 +156,15 @@ const adminNavItem: NavItem = {
 
 export const LeftSidebar = () => {
 	const pathname = usePathname()
-	const { user, isAuthenticated } = useAuth()
+	const { user, isAuthenticated, isLoggingOut } = useAuth()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
 	const t = useTranslations('nav')
 
 	// Check if any secondary route is active (auto-expand "More" when on a secondary page)
 	const isSecondaryActive = useMemo(() => {
-		if (!isAuthenticated) {
-			return false
-		}
-
-		const allSecondary = [...secondaryNavItems]
+		const allSecondary = isAuthenticated
+			? [...secondaryNavItems]
+			: [...guestSecondaryNavItems]
 		if (user?.accountType === 'admin') allSecondary.push(adminNavItem)
 		return allSecondary.some(item => {
 			const href =
@@ -164,10 +187,10 @@ export const LeftSidebar = () => {
 		if (isSecondaryActive) setShowMore(true)
 	}, [isSecondaryActive])
 
-	// Build the secondary items list (including admin if applicable), filtered for auth
+	// Guests get public tools only; authenticated users also get the full menu/admin link.
 	const secondaryItems = useMemo(() => {
 		if (!isAuthenticated) {
-			return []
+			return [...guestSecondaryNavItems]
 		}
 
 		let items = [...secondaryNavItems]
@@ -177,14 +200,14 @@ export const LeftSidebar = () => {
 
 	// Start/stop polling based on auth state
 	useEffect(() => {
-		if (isAuthenticated) {
+		if (isAuthenticated && !isLoggingOut) {
 			startPolling()
 		} else {
 			stopPolling()
 		}
 
 		return () => stopPolling()
-	}, [isAuthenticated, startPolling, stopPolling])
+	}, [isAuthenticated, isLoggingOut, startPolling, stopPolling])
 
 	const getHref = (item: NavItem): string => {
 		if (typeof item.href === 'function') {
@@ -256,7 +279,14 @@ export const LeftSidebar = () => {
 							</span>
 						)}
 					</motion.div>
-					<div className='min-w-0 truncate text-left text-caption leading-none z-10'>
+					<div
+						className={cn(
+							'min-w-0 text-left text-caption z-10',
+							item.wrapLabel
+								? 'whitespace-normal leading-tight'
+								: 'truncate leading-none',
+						)}
+					>
 						{label}
 					</div>
 				</div>

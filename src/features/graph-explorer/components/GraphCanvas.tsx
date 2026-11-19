@@ -7,7 +7,7 @@ import {
 	useState,
 	type PointerEvent as ReactPointerEvent,
 } from 'react'
-import { LocateFixed, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
+import { LocateFixed, RotateCcw, Scan, ZoomIn, ZoomOut } from 'lucide-react'
 import { useForceLayout, type ForcePosition } from '../hooks/useForceLayout'
 import { graphEdgeKey } from '../services/graphExplorerService'
 import type {
@@ -23,7 +23,7 @@ import {
 } from './GraphDetailPanel'
 
 const width = 760
-const height = 540
+const height = 600
 const categoryColors: Record<string, string> = {
 	baking: '#fbbf24',
 	condiment: '#f97316',
@@ -95,9 +95,10 @@ export function GraphCanvas({
 		view: typeof initialView
 	} | null>(null)
 	const focusedSearchRef = useRef<string | null>(null)
+	const centeredSelectionRef = useRef<string | null>(null)
 	const userMovedViewRef = useRef(false)
 	const canvasHeight = Math.max(
-		440,
+		480,
 		Math.min(height, Math.round((canvasWidth * height) / width)),
 	)
 
@@ -117,23 +118,38 @@ export function GraphCanvas({
 		return () => observer.disconnect()
 	}, [])
 
+	const selectedSearchId = query.trim() ? selected : undefined
 	const layoutData = useMemo(() => {
 		const edges = data.edges.filter(
 			edge =>
 				signals.includes(edge.type) &&
 				(!query.trim() ||
 					edge.source === searchTargetId ||
-					edge.target === searchTargetId),
+					edge.target === searchTargetId ||
+					edge.source === selectedSearchId ||
+					edge.target === selectedSearchId),
 		)
 		const connected = new Set(edges.flatMap(edge => [edge.source, edge.target]))
 		if (searchTargetId) connected.add(searchTargetId)
+		if (selectedSearchId) connected.add(selectedSearchId)
 		return { nodes: data.nodes.filter(node => connected.has(node.id)), edges }
-	}, [data.edges, data.nodes, query, searchTargetId, signals])
+	}, [data.edges, data.nodes, query, searchTargetId, selectedSearchId, signals])
 	const { positions, dragNode, pinNode } = useForceLayout(
 		layoutData,
 		canvasWidth,
 		canvasHeight,
 	)
+	const highlightedId = searchTargetId
+	const focusedNodeId = selected ?? highlightedId
+	const focusedNodeIds = useMemo(() => {
+		if (!focusedNodeId) return null
+		const related = new Set([focusedNodeId])
+		for (const edge of layoutData.edges) {
+			if (edge.source === focusedNodeId) related.add(edge.target)
+			if (edge.target === focusedNodeId) related.add(edge.source)
+		}
+		return related
+	}, [focusedNodeId, layoutData.edges])
 	const degree = useMemo(
 		() =>
 			data.edges.reduce(
@@ -145,7 +161,6 @@ export function GraphCanvas({
 			),
 		[data.edges],
 	)
-	const highlightedId = searchTargetId
 	const nodeNames = useMemo(
 		() => new Map(data.nodes.map(node => [node.id, node.name])),
 		[data.nodes],
@@ -171,9 +186,9 @@ export function GraphCanvas({
 		if (!query.trim() || !highlightedId) {
 			focusedSearchRef.current = null
 			userMovedViewRef.current = false
-			setView(initialView)
+			if (!selected) setView(initialView)
 		}
-	}, [highlightedId, query])
+	}, [highlightedId, query, selected])
 
 	useEffect(() => {
 		if (!query.trim() || !highlightedId) return
@@ -194,6 +209,24 @@ export function GraphCanvas({
 				: { x, y, scale },
 		)
 	}, [canvasHeight, canvasWidth, highlightedId, positions, query])
+	useEffect(() => {
+		if (!selected) {
+			centeredSelectionRef.current = null
+			return
+		}
+		if (centeredSelectionRef.current === selected) return
+		const node = positions.get(selected)
+		if (!node) return
+
+		centeredSelectionRef.current = selected
+		userMovedViewRef.current = true
+		const scale = 1.35
+		setView({
+			x: node.x - canvasWidth / scale / 2,
+			y: node.y - canvasHeight / scale / 2,
+			scale,
+		})
+	}, [canvasHeight, canvasWidth, positions, selected])
 
 	function getGraphPosition(
 		event: ReactPointerEvent<SVGSVGElement>,
@@ -223,9 +256,42 @@ export function GraphCanvas({
 		setSelectedEdgeKey(null)
 	}
 
+	function fitGraph() {
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+		for (const node of layoutData.nodes) {
+			const point = positions.get(node.id)
+			if (!point) continue
+			const labelHalfWidth = node.name.length * 3.5 + 12
+			minX = Math.min(minX, point.x - labelHalfWidth)
+			maxX = Math.max(maxX, point.x + labelHalfWidth)
+			minY = Math.min(minY, point.y - 32)
+			maxY = Math.max(maxY, point.y + 52)
+		}
+		if (!Number.isFinite(minX)) return
+
+		const padding = 40
+		const scale = Math.max(
+			0.15,
+			Math.min(
+				2.2,
+				canvasWidth / (maxX - minX + padding * 2),
+				canvasHeight / (maxY - minY + padding * 2),
+			),
+		)
+		userMovedViewRef.current = true
+		setView({
+			x: (minX + maxX) / 2 - canvasWidth / scale / 2,
+			y: (minY + maxY) / 2 - canvasHeight / scale / 2,
+			scale,
+		})
+	}
+
 	function selectNode(nodeId: string) {
 		setSelectedEdgeKey(null)
-		setSelected(nodeId)
+		setSelected(current => (current === nodeId ? null : nodeId))
 		onNodeSelect?.(nodeId)
 	}
 
@@ -238,7 +304,7 @@ export function GraphCanvas({
 	function changeZoom(delta: number) {
 		userMovedViewRef.current = true
 		setView(previous => {
-			const scale = Math.max(0.35, Math.min(2.2, previous.scale + delta))
+			const scale = Math.max(0.15, Math.min(2.2, previous.scale + delta))
 			const centerX = previous.x + canvasWidth / previous.scale / 2
 			const centerY = previous.y + canvasHeight / previous.scale / 2
 			return {
@@ -264,8 +330,9 @@ export function GraphCanvas({
 							Relationship map
 						</h2>
 						<p className='mt-1 text-xs text-text-muted'>
-							Search focuses an ingredient and its direct links. Select a node
-							or line to inspect it.
+							Click a node to focus its direct links; click again to clear. Drag
+							nodes to spread them out; drag empty space to pan and scroll to
+							zoom.
 						</p>
 					</div>
 					<div className='flex flex-wrap items-center gap-2 self-start'>
@@ -278,6 +345,15 @@ export function GraphCanvas({
 							aria-label='Relationship map controls'
 							className='flex shrink-0 gap-1 rounded-xl border border-border-subtle bg-bg-card/90 p-1 shadow-sm'
 						>
+							<button
+								type='button'
+								aria-label='Fit graph to view'
+								title='Fit graph to view'
+								onClick={fitGraph}
+								className='rounded-lg p-2 text-text-muted hover:bg-bg-elevated hover:text-text-primary'
+							>
+								<Scan className='size-4' />
+							</button>
 							<button
 								type='button'
 								aria-label='Zoom in'
@@ -307,7 +383,7 @@ export function GraphCanvas({
 				</div>
 				<div
 					ref={canvasRef}
-					className='relative overflow-x-auto bg-bg-elevated/30'
+					className='relative overflow-hidden bg-bg-elevated/30'
 					style={{
 						backgroundImage:
 							'radial-gradient(var(--border-medium) 0.8px, transparent 0.8px)',
@@ -334,6 +410,28 @@ export function GraphCanvas({
 								setView({ ...pan.view, x: pan.view.x - dx, y: pan.view.y - dy })
 							}
 						}}
+						onWheel={event => {
+							event.preventDefault()
+							userMovedViewRef.current = true
+							const rect = event.currentTarget.getBoundingClientRect()
+							const pointerX =
+								((event.clientX - rect.left) / rect.width) * canvasWidth
+							const pointerY =
+								((event.clientY - rect.top) / rect.height) * canvasHeight
+							const nextScale = Math.max(
+								0.15,
+								Math.min(2.2, view.scale * Math.exp(-event.deltaY * 0.0012)),
+							)
+							setView(previous => {
+								const graphX = previous.x + pointerX / previous.scale
+								const graphY = previous.y + pointerY / previous.scale
+								return {
+									x: graphX - pointerX / nextScale,
+									y: graphY - pointerY / nextScale,
+									scale: nextScale,
+								}
+							})
+						}}
 						onPointerUp={() => {
 							if (dragRef.current) pinNode(dragRef.current)
 							dragRef.current = null
@@ -356,9 +454,15 @@ export function GraphCanvas({
 							const source = positions.get(edge.source)
 							const target = positions.get(edge.target)
 							if (!source || !target) return null
+							const edgeKey = graphEdgeKey(edge)
+							const isSelectedEdge = selectedEdgeKey === edgeKey
+							const isRelatedToFocus =
+								!focusedNodeId ||
+								edge.source === focusedNodeId ||
+								edge.target === focusedNodeId
 							return (
 								<g
-									key={graphEdgeKey(edge)}
+									key={edgeKey}
 									role='button'
 									tabIndex={0}
 									aria-label={`View ${nodeNames.get(edge.source) ?? edge.source} to ${nodeNames.get(edge.target) ?? edge.target} relationship`}
@@ -384,24 +488,28 @@ export function GraphCanvas({
 										y1={source.y}
 										x2={target.x}
 										y2={target.y}
-										stroke={
-											selectedEdgeKey === graphEdgeKey(edge)
-												? '#fff'
-												: signalColors[edge.type]
-										}
+										stroke={isSelectedEdge ? '#fff' : signalColors[edge.type]}
 										strokeOpacity={
-											selectedEdgeKey === graphEdgeKey(edge)
+											isSelectedEdge
 												? 1
-												: edge.confidence === undefined
-													? 0.65
-													: 0.35 + edge.confidence * 0.6
+												: focusedNodeId
+													? isRelatedToFocus
+														? 0.95
+														: 0.035
+													: edge.confidence === undefined
+														? 0.22
+														: 0.14 + edge.confidence * 0.34
 										}
 										strokeWidth={
-											selectedEdgeKey === graphEdgeKey(edge)
-												? 4
-												: edge.confidence === undefined
-													? 2
-													: 1 + edge.confidence * 3
+											isSelectedEdge
+												? 2.8
+												: focusedNodeId
+													? isRelatedToFocus
+														? 2.2
+														: 0.8
+													: edge.confidence === undefined
+														? 1.2
+														: 0.8 + edge.confidence * 1.4
 										}
 									/>
 								</g>
@@ -411,13 +519,20 @@ export function GraphCanvas({
 							const point = positions.get(node.id)
 							if (!point) return null
 							const radius = 11 + Math.min((degree.get(node.id) ?? 0) * 2, 6)
-							const isDimmed = Boolean(query) && node.id !== highlightedId
+							const isFocusNode = node.id === focusedNodeId
+							const focusOpacity =
+								!focusedNodeIds || isFocusNode
+									? 'opacity-100'
+									: focusedNodeIds.has(node.id)
+										? 'opacity-75'
+										: 'opacity-20'
 							return (
 								<g
 									key={node.id}
 									role='button'
 									tabIndex={0}
 									aria-label={`Explore ${node.name}`}
+									aria-pressed={isFocusNode}
 									onPointerDown={event => {
 										userMovedViewRef.current = true
 										dragRef.current = node.id
@@ -431,13 +546,9 @@ export function GraphCanvas({
 											selectNode(node.id)
 										}
 									}}
-									className={
-										isDimmed
-											? 'opacity-20 cursor-grab'
-											: 'cursor-grab active:cursor-grabbing'
-									}
+									className={`${focusOpacity} cursor-grab active:cursor-grabbing transition-opacity duration-150`}
 								>
-									{node.id === highlightedId && (
+									{isFocusNode && (
 										<circle
 											cx={point.x}
 											cy={point.y}

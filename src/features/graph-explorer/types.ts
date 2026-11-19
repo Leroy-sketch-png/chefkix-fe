@@ -3,7 +3,11 @@ export type GraphSignal =
 	| 'chemical_similarity'
 	| 'co_occurrence'
 
-export type GraphDataSource = 'leader-api' | 'leader-sample' | 'local-sample'
+export type GraphDataSource =
+	| 'leader-api'
+	| 'leader-sample'
+	| 'local-sample'
+	| 'ai-service-candidate'
 
 export interface CompoundMolecule {
 	name: string
@@ -64,8 +68,33 @@ export interface GraphData {
 	edges: GraphEdge[]
 	source?: GraphDataSource
 	totalNodeCount?: number
+	totalEdgeCount?: number
 	hasMore?: boolean
 	loadedRootId?: string
+	previewState?: string
+	manifestSha256?: string
+}
+
+export interface GraphSnapshotResponse {
+	contractVersion: 'graph-evidence.v1'
+	status: 'AVAILABLE' | 'UNAVAILABLE' | 'REFUSED'
+	unavailableReason?: string
+	artifactIntegrity?: {
+		status: 'VERIFIED' | 'MISSING' | 'INVALID' | 'UNVERIFIED'
+		expectedSha256?: string
+		observedSha256?: string
+	}
+	snapshot?: {
+		totalNodes: number
+		totalEdges: number
+		acceptanceState: string
+		provenance?: {
+			sourceId?: string
+			split?: string
+			evidenceTier?: string
+			manifestSha256?: string
+		}
+	}
 }
 
 export interface GraphEvidenceResponse {

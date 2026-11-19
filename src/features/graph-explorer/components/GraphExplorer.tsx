@@ -12,6 +12,7 @@ import {
 	getGraphData,
 	getGraphCompoundOverlap,
 	getGraphEvidence,
+	getGraphEvidenceSnapshot,
 	getGraphNodeDetail,
 	getGraphNeighborhood,
 	isGraphEvidenceEnabled,
@@ -23,6 +24,7 @@ import type {
 	GraphEdge,
 	GraphEvidenceLoadState,
 	GraphSignal,
+	GraphSnapshotResponse,
 } from '../types'
 
 const signals: Array<{ value: GraphSignal | 'all'; label: string }> = [
@@ -38,6 +40,7 @@ export function GraphExplorer() {
 	const [error, setError] = useState<string | null>(null)
 	const [searchError, setSearchError] = useState<string | null>(null)
 	const [graphEvidence, setGraphEvidence] = useState<GraphEvidenceLoadState>()
+	const [snapshot, setSnapshot] = useState<GraphSnapshotResponse>()
 	const [loadingNeighborhood, setLoadingNeighborhood] = useState(false)
 	const loadedRoots = useRef(new Set<string>())
 	const pendingRoots = useRef(new Set<string>())
@@ -57,6 +60,21 @@ export function GraphExplorer() {
 	useEffect(() => {
 		void loadGraph()
 	}, [loadGraph])
+	useEffect(() => {
+		if (!isGraphEvidenceEnabled()) return
+		let active = true
+		const promise = getGraphEvidenceSnapshot()
+		if (promise && typeof promise.then === 'function') {
+			promise
+				.then(result => {
+					if (active && result) setSnapshot(result)
+				})
+				.catch(() => undefined)
+		}
+		return () => {
+			active = false
+		}
+	}, [])
 	useEffect(() => {
 		const term = query.trim()
 		setSearchData(null)
@@ -207,6 +225,7 @@ export function GraphExplorer() {
 			.flatMap(edge => [edge.source, edge.target]),
 	).size
 	const visibleError = searchError ?? error
+	const candidatePreview = visibleData?.source === 'ai-service-candidate'
 
 	if (error && !data)
 		return (
@@ -232,8 +251,12 @@ export function GraphExplorer() {
 				{[
 					{
 						value: visibleData?.totalNodeCount ?? data.nodes.length,
-						label: 'Ingredients in the index',
-						note: 'Browse every ingredient below',
+						label: candidatePreview
+							? 'Candidate ingredient nodes'
+							: 'Ingredients in the index',
+						note: candidatePreview
+							? 'Full private graph; previewed in bounded slices'
+							: 'Browse every ingredient below',
 					},
 					{
 						value: mappedIngredientCount,
@@ -241,9 +264,15 @@ export function GraphExplorer() {
 						note: 'Shown on the map',
 					},
 					{
-						value: visibleData?.edges.length ?? 0,
-						label: 'Documented relationships',
-						note: 'Across the full index',
+						value: candidatePreview
+							? (visibleData?.totalEdgeCount ?? visibleData?.edges.length ?? 0)
+							: (visibleData?.edges.length ?? 0),
+						label: candidatePreview
+							? 'Candidate graph relationships'
+							: 'Documented relationships',
+						note: candidatePreview
+							? 'Total in the private graph'
+							: 'Across the full index',
 					},
 				].map(item => (
 					<div
@@ -372,7 +401,9 @@ export function GraphExplorer() {
 						? 'Knowledge API'
 						: visibleData?.source === 'leader-sample'
 							? 'Verified Lead sample'
-							: 'Local demo sample'}
+							: visibleData?.source === 'ai-service-candidate'
+								? 'AI service candidate via Monolith'
+								: 'Local demo sample'}
 				</span>
 				{visibleData?.hasMore && (
 					<>
@@ -384,6 +415,20 @@ export function GraphExplorer() {
 					<>
 						<span>•</span>
 						<span role='status'>Loading neighborhood…</span>
+					</>
+				)}
+				{snapshot?.artifactIntegrity?.observedSha256 && (
+					<>
+						<span>•</span>
+						<span
+							data-testid='graph-artifact-footer-hash'
+							title={`Manifest SHA-256: ${snapshot.artifactIntegrity.observedSha256}`}
+						>
+							Artifact: {snapshot.artifactIntegrity.observedSha256.slice(0, 12)}
+							…
+							{snapshot.snapshot &&
+								` (${snapshot.snapshot.totalNodes} nodes, ${snapshot.snapshot.totalEdges} edges)`}
+						</span>
 					</>
 				)}
 			</div>

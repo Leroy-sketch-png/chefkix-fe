@@ -31,6 +31,7 @@ import {
 	SurfaceSectionHeader,
 } from '@/components/layout/PremiumSurface'
 import { PantryCommandDeck } from '@/components/pantry/PantryCommandDeck'
+import { PantryIngredientBreakdown } from '@/components/pantry/PantryIngredientBreakdown'
 import { EmptyStateGamified } from '@/components/shared'
 import { Portal } from '@/components/ui/portal'
 import {
@@ -73,7 +74,11 @@ import { createFromRecipe } from '@/services/shoppingList'
 import { relativeExpiry } from '@/lib/relative-time'
 import { getImageDeliveryProps } from '@/lib/imageOptimization'
 import { reconcilePantryItems } from '@/lib/pantry-items'
-import { getPantryCounts, getVisiblePantryItems } from '@/lib/pantry-view'
+import {
+	getPantryCounts,
+	getPantryGroups,
+	getVisiblePantryItems,
+} from '@/lib/pantry-view'
 
 // ── Category Config ─────────────────────────────────────
 
@@ -87,6 +92,7 @@ const CATEGORIES = [
 	{ key: 'frozen', labelKey: 'catFrozen', emoji: '🧊' },
 	{ key: 'other', labelKey: 'catOther', emoji: '📦' },
 ] as const
+const PANTRY_SUGGESTION_PAGE_SIZE = 10
 
 const FRESHNESS_KEYS: Record<
 	string,
@@ -115,6 +121,7 @@ export default function PantryPage() {
 	const [error, setError] = useState(false)
 	const [filterCategory, setFilterCategory] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
+	const [sortByExpiry, setSortByExpiry] = useState(false)
 
 	// Quick-add state
 	const [quickAddName, setQuickAddName] = useState('')
@@ -150,6 +157,9 @@ export default function PantryPage() {
 
 	// Recipe matching
 	const [matchedRecipes, setMatchedRecipes] = useState<PantryRecipeMatch[]>([])
+	const [visibleSuggestionCount, setVisibleSuggestionCount] = useState(
+		PANTRY_SUGGESTION_PAGE_SIZE,
+	)
 	const [showSuggestions, setShowSuggestions] = useState(false)
 	const [loadingRecipes, setLoadingRecipes] = useState(false)
 	const [suggestionsLoaded, setSuggestionsLoaded] = useState(false)
@@ -268,7 +278,7 @@ export default function PantryPage() {
 		if (!editingId) return
 		try {
 			const updated = await updatePantryItem(editingId, editForm)
-			setItems(prev => prev.map(i => (i.id === editingId ? updated : i)))
+			setItems(prev => reconcilePantryItems(prev, updated, filterCategory))
 			setEditingId(null)
 			toast.success(t('itemUpdated'))
 		} catch {
@@ -331,6 +341,7 @@ export default function PantryPage() {
 		try {
 			const data = await getMatchingRecipes(0.3, true)
 			setMatchedRecipes(data)
+			setVisibleSuggestionCount(PANTRY_SUGGESTION_PAGE_SIZE)
 			setSuggestionsLoaded(true)
 		} catch {
 			setShowSuggestions(false)
@@ -391,10 +402,7 @@ export default function PantryPage() {
 	const trackedItemsLabel = t('itemCount', { count: pantryCounts.total })
 	const filtered = getVisiblePantryItems(items, filterCategory, searchQuery)
 	const hasActiveViewFilter = Boolean(filterCategory || searchQuery.trim())
-	const grouped = CATEGORIES.map(cat => ({
-		...cat,
-		items: filtered.filter(i => i.category === cat.key),
-	})).filter(g => g.items.length > 0)
+	const grouped = getPantryGroups(filtered, CATEGORIES, sortByExpiry)
 
 	// ── Error state ───────────────────────────────────────
 
@@ -501,10 +509,32 @@ export default function PantryPage() {
 							</div>
 						</PantryCommandDeck>
 
-						<SurfaceSectionHeader
-							eyebrow={t('controlCenterEyebrow')}
-							chipText={trackedItemsLabel}
-						/>
+						<div className='flex flex-wrap items-center justify-between gap-2'>
+							<SurfaceSectionHeader
+								eyebrow={t('controlCenterEyebrow')}
+								chipText={trackedItemsLabel}
+								className='min-w-0 flex-1'
+							/>
+							<Select
+								value={sortByExpiry ? 'expiryDate' : 'category'}
+								onValueChange={value => setSortByExpiry(value === 'expiryDate')}
+							>
+								<SelectTrigger
+									aria-label={t('sortBy')}
+									className='h-9 w-36 flex-shrink-0 text-xs'
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='category'>
+										{t('sortByCategory')}
+									</SelectItem>
+									<SelectItem value='expiryDate'>
+										{t('sortByExpiryDate')}
+									</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
 
 						{/* ── Expiry Warning Banner ─────────── */}
 						{(expiringCount > 0 || expiredCount > 0) && (
@@ -983,86 +1013,147 @@ export default function PantryPage() {
 											{t('noMatchingRecipes')}
 										</p>
 									) : (
-										<div className='grid gap-3'>
-											{matchedRecipes.slice(0, 10).map(match => {
-												const coverImageDelivery =
-													match.coverImageUrl &&
-													getImageDeliveryProps(match.coverImageUrl, {
-														width: 112,
-														height: 112,
-														crop: 'fill',
-													})
+										<div className='grid gap-3' id='pantry-recipe-match-list'>
+											{matchedRecipes
+												.slice(0, visibleSuggestionCount)
+												.map(match => {
+													const coverImageDelivery =
+														match.coverImageUrl &&
+														getImageDeliveryProps(match.coverImageUrl, {
+															width: 112,
+															height: 112,
+															crop: 'fill',
+														})
 
-												return (
-													<motion.div
-														key={match.recipeId}
-														whileHover={CARD_HOVER}
-														className='flex items-center rounded-xl border border-border-subtle bg-bg transition-colors hover:bg-bg-elevated'
-													>
-														<Link
-															href={`/recipes/${match.recipeId}?cook=true`}
-															className='flex min-w-0 flex-1 items-center gap-4 rounded-xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+													return (
+														<motion.div
+															key={match.recipeId}
+															whileHover={CARD_HOVER}
+															className='rounded-xl border border-border-subtle bg-bg transition-colors hover:bg-bg-elevated'
 														>
-															{coverImageDelivery && (
-																<Image
-																	src={coverImageDelivery.src}
-																	alt={match.recipeTitle}
-																	width={56}
-																	height={56}
-																	unoptimized={coverImageDelivery.unoptimized}
-																	className='size-14 rounded-xl object-cover'
-																/>
-															)}
-															<div className='min-w-0 flex-1'>
-																<p className='font-medium text-text-primary'>
-																	{match.recipeTitle}
-																</p>
-																<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
-																	<span>{match.difficulty}</span>
-																	<span>
-																		{match.totalTimeMinutes} {t('min')}
-																	</span>
-																</div>
-																<div className='mt-1.5 flex items-center gap-2'>
-																	<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
-																		<div
-																			className='h-full rounded-full bg-brand transition-all'
-																			style={{
-																				width: `${match.matchPercentage * 100}%`,
-																			}}
+															<div className='flex items-center'>
+																<Link
+																	href={`/recipes/${match.recipeId}?cook=true`}
+																	className='flex min-w-0 flex-1 items-center gap-4 rounded-xl p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+																>
+																	{coverImageDelivery && (
+																		<Image
+																			src={coverImageDelivery.src}
+																			alt={match.recipeTitle}
+																			width={56}
+																			height={56}
+																			unoptimized={
+																				coverImageDelivery.unoptimized
+																			}
+																			className='size-14 rounded-xl object-cover'
 																		/>
+																	)}
+																	<div className='min-w-0 flex-1'>
+																		<p className='font-medium text-text-primary'>
+																			{match.recipeTitle}
+																		</p>
+																		<div className='mt-1 flex items-center gap-3 text-xs text-text-secondary'>
+																			<span>{match.difficulty}</span>
+																			<span>
+																				{match.totalTimeMinutes} {t('min')}
+																			</span>
+																		</div>
+																		<div className='mt-1.5 flex items-center gap-2'>
+																			<div className='h-1.5 flex-1 overflow-hidden rounded-full bg-bg-elevated'>
+																				<div
+																					className='h-full rounded-full bg-brand transition-all'
+																					style={{
+																						width: `${match.matchPercentage * 100}%`,
+																					}}
+																				/>
+																			</div>
+																			<span className='text-xs font-semibold text-brand'>
+																				{Math.round(
+																					match.matchPercentage * 100,
+																				)}
+																				%
+																			</span>
+																		</div>
+																		{match.expiringIngredientsUsed.length >
+																			0 && (
+																			<p className='mt-1 text-xs text-warning'>
+																				{t('usesExpiring')}{' '}
+																				{match.expiringIngredientsUsed.join(
+																					', ',
+																				)}
+																			</p>
+																		)}
 																	</div>
-																	<span className='text-xs font-semibold text-brand'>
-																		{Math.round(match.matchPercentage * 100)}%
-																	</span>
-																</div>
-																{match.expiringIngredientsUsed.length > 0 && (
-																	<p className='mt-1 text-xs text-warning'>
-																		{t('usesExpiring')}{' '}
-																		{match.expiringIngredientsUsed.join(', ')}
-																	</p>
-																)}
+																</Link>
+																<button
+																	type='button'
+																	onClick={() =>
+																		handleAddToShoppingList(match.recipeId)
+																	}
+																	aria-label={t('addToShoppingList')}
+																	aria-busy={addingToListId === match.recipeId}
+																	disabled={addingToListId !== null}
+																	className='mr-3 grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10 disabled:cursor-not-allowed disabled:opacity-60'
+																>
+																	{addingToListId === match.recipeId ? (
+																		<Loader2 className='size-4 animate-spin text-text-muted' />
+																	) : (
+																		<ShoppingCart className='size-4 text-text-secondary' />
+																	)}
+																</button>
 															</div>
-														</Link>
-														<button
-															type='button'
-															onClick={() =>
-																handleAddToShoppingList(match.recipeId)
-															}
-															aria-label={t('addToShoppingList')}
-															aria-busy={addingToListId === match.recipeId}
-															disabled={addingToListId !== null}
-															className='mr-3 grid size-10 flex-shrink-0 place-items-center rounded-xl border border-border-subtle transition-colors hover:border-success hover:bg-success/10 disabled:cursor-not-allowed disabled:opacity-60'
-														>
-															{addingToListId === match.recipeId ? (
-																<Loader2 className='size-4 animate-spin text-text-muted' />
-															) : (
-																<ShoppingCart className='size-4 text-text-secondary' />
-															)}
-														</button>
-													</motion.div>
-												)
-											})}
+															<PantryIngredientBreakdown
+																matchedIngredients={match.matchedIngredients}
+																missingIngredients={match.missingIngredients}
+															/>
+														</motion.div>
+													)
+												})}
+										</div>
+									)}
+									{matchedRecipes.length > PANTRY_SUGGESTION_PAGE_SIZE && (
+										<div className='flex justify-center pt-2'>
+											{visibleSuggestionCount < matchedRecipes.length ? (
+												<button
+													type='button'
+													aria-controls='pantry-recipe-match-list'
+													aria-expanded={
+														visibleSuggestionCount > PANTRY_SUGGESTION_PAGE_SIZE
+													}
+													onClick={() =>
+														setVisibleSuggestionCount(current =>
+															Math.min(
+																current + PANTRY_SUGGESTION_PAGE_SIZE,
+																matchedRecipes.length,
+															),
+														)
+													}
+													className='inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													<ChevronDown className='size-4' aria-hidden='true' />
+													{t('showMoreRecipes', {
+														count: Math.min(
+															PANTRY_SUGGESTION_PAGE_SIZE,
+															matchedRecipes.length - visibleSuggestionCount,
+														),
+													})}
+												</button>
+											) : (
+												<button
+													type='button'
+													aria-controls='pantry-recipe-match-list'
+													aria-expanded='true'
+													onClick={() =>
+														setVisibleSuggestionCount(
+															PANTRY_SUGGESTION_PAGE_SIZE,
+														)
+													}
+													className='inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-brand hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+												>
+													<ChevronUp className='size-4' aria-hidden='true' />
+													{t('showFewerRecipes')}
+												</button>
+											)}
 										</div>
 									)}
 								</motion.div>

@@ -1,5 +1,8 @@
 import {
 	getIoCertificationGateResult,
+	getIoCertificationBlockers,
+	getStoredIoCertificationResults,
+	getStoredIoCertificationSummary,
 	IO_CERTIFICATION_CHECKS,
 	parseIoCertificationResults,
 	summarizeIoCertification,
@@ -18,6 +21,38 @@ function passingResults(verifiedAt: string): IoCertificationResults {
 }
 
 describe('io certification summary', () => {
+	it('gates only required checks and rejects missing, failed, stale, or future evidence', () => {
+		const now = Date.parse('2026-06-11T08:00:00.000Z')
+		const recent = passingResults('2026-06-11T07:30:00.000Z')
+
+		expect(
+			getIoCertificationBlockers(['speaker', 'timer'], recent, now),
+		).toEqual([])
+		expect(getIoCertificationBlockers(['turn'], recent, now)).toEqual([])
+		expect(getIoCertificationBlockers(['turn'], null, now)).toEqual([
+			'TURN relay candidate',
+		])
+
+		recent.timer = { status: 'fail', detail: 'Not audible' }
+		expect(getIoCertificationBlockers(['timer'], recent, now)).toEqual([
+			'Timer while narration muted',
+		])
+		expect(
+			getIoCertificationBlockers(
+				['speaker'],
+				passingResults('2026-06-11T02:30:00.000Z'),
+				now,
+			),
+		).toEqual(['Speaker output (stale)'])
+		expect(
+			getIoCertificationBlockers(
+				['speaker'],
+				passingResults('2026-06-11T08:01:00.000Z'),
+				now,
+			),
+		).toEqual(['Speaker output (invalid timestamp)'])
+	})
+
 	it('requires evidence for every physical check', () => {
 		const summary = summarizeIoCertification(null)
 
@@ -97,7 +132,37 @@ describe('io certification summary', () => {
 		expect(summary.stale).toHaveLength(IO_CERTIFICATION_CHECKS.length)
 	})
 
+	it('rejects future-dated physical evidence instead of extending its lifetime', () => {
+		const now = Date.parse('2026-06-11T08:00:00.000Z')
+		const summary = summarizeIoCertification(
+			passingResults('2026-06-11T08:01:00.000Z'),
+			now,
+		)
+
+		expect(summary.ok).toBe(false)
+		expect(summary.stageOk).toBe(false)
+		expect(summary.stale).toHaveLength(IO_CERTIFICATION_CHECKS.length)
+		expect(summary.stale[0]).toContain('timestamp is in the future')
+	})
+
 	it('preserves malformed storage as missing evidence', () => {
 		expect(parseIoCertificationResults('not-json')).toBeNull()
+		expect(parseIoCertificationResults('{"speaker":null}')).toEqual({})
+		expect(
+			parseIoCertificationResults(
+				'{"speaker":{"status":"pass","detail":4,"verifiedAt":"2026-06-11T07:30:00.000Z"}}',
+			),
+		).toEqual({})
+	})
+
+	it('fails closed without crashing when browser storage is denied', () => {
+		const deniedStorage = {
+			getItem: () => {
+				throw new Error('SecurityError')
+			},
+		}
+
+		expect(getStoredIoCertificationResults(deniedStorage)).toBeNull()
+		expect(getStoredIoCertificationSummary(deniedStorage).stageOk).toBe(false)
 	})
 })

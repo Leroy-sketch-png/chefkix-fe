@@ -6,6 +6,13 @@ import axios, { AxiosError } from 'axios'
 import { logDevError } from '@/lib/dev-log'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
 
+const logProfileRequestFailure = (operation: string, error: unknown): void => {
+	const status = (error as AxiosError).response?.status
+	logDevError(
+		`${operation} request failed: ${status === undefined ? 'no HTTP response' : `HTTP ${status}`}`,
+	)
+}
+
 const normalizePaginatedProfiles = (
 	data: Profile[] | Page<Profile> | undefined,
 	pagination?: PaginationMeta,
@@ -59,7 +66,7 @@ export const getProfileByUserId = async (
 			API_ENDPOINTS.PROFILE.GET_PROFILE_ONLY(userId),
 		)
 
-		if (response.data?.data) {
+		if (response.data?.success && response.data.data) {
 			return {
 				success: true,
 				statusCode: response.data.statusCode,
@@ -70,11 +77,11 @@ export const getProfileByUserId = async (
 
 		return {
 			success: false,
-			statusCode: 404,
-			message: 'Profile not found',
+			statusCode: response.data?.statusCode ?? 404,
+			message: response.data?.message || 'Profile not found',
 		}
 	} catch (error) {
-		logDevError('response failed:', error)
+		logProfileRequestFailure('profile lookup', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return {
@@ -111,6 +118,14 @@ const normalizeMyProfileResponse = (
 	const data = wrappedResponse
 		? (response as ApiResponse<Profile>).data
 		: (response as Profile)
+	if (wrappedResponse && !(response as ApiResponse<Profile>).success) {
+		const failedResponse = response as ApiResponse<Profile>
+		return {
+			success: false,
+			statusCode: failedResponse.statusCode ?? statusCode,
+			message: failedResponse.message || 'Profile validation failed',
+		}
+	}
 
 	if (data) {
 		return {
@@ -133,20 +148,20 @@ const normalizeMyProfileResponse = (
 }
 
 const normalizeMyProfileError = (error: unknown): ApiResponse<Profile> => {
-	logDevError('response failed:', error)
 	const axiosError = error as AxiosError<ApiResponse<Profile>>
+	logProfileRequestFailure('profile validation', error)
 	if (axiosError.response) {
+		const body = axiosError.response.data
 		return {
 			success: false,
-			statusCode:
-				axiosError.response.data?.statusCode || axiosError.response.status,
-			message: axiosError.response.data?.message || 'Failed to fetch profile',
+			statusCode: body?.statusCode ?? axiosError.response.status,
+			message: body?.message || 'Failed to fetch profile',
 		}
 	}
 	return {
 		success: false,
 		message: getUserFriendlyMessage(error),
-		statusCode: 500,
+		statusCode: 0,
 	}
 }
 
@@ -244,7 +259,7 @@ export const getProfilesPaginated = async (
 			statusCode: 500,
 		}
 	} catch (error) {
-		logDevError('unknown failed:', error)
+		logProfileRequestFailure('paginated profiles', error)
 		const axiosError = error as AxiosError<
 			ApiResponse<Profile[] | Page<Profile>>
 		>
@@ -287,7 +302,7 @@ export const updateProfile = async (
 		)
 		return response.data
 	} catch (error) {
-		logDevError('response failed:', error)
+		logProfileRequestFailure('update profile', error)
 		const axiosError = error as AxiosError<ApiResponse<Profile>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -307,7 +322,7 @@ export const deleteAccount = async (): Promise<ApiResponse<void>> => {
 		)
 		return response.data
 	} catch (error) {
-		logDevError('Delete account failed:', error)
+		logProfileRequestFailure('delete account', error)
 		const axiosError = error as AxiosError<ApiResponse<void>>
 		if (axiosError.response) {
 			return axiosError.response.data
@@ -329,7 +344,7 @@ export const exportUserData = async (): Promise<
 		)
 		return response.data
 	} catch (error) {
-		logDevError('Export data failed:', error)
+		logProfileRequestFailure('export user data', error)
 		const axiosError = error as AxiosError<ApiResponse<Record<string, unknown>>>
 		if (axiosError.response) {
 			return axiosError.response.data

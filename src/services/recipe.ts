@@ -46,17 +46,31 @@ const API_BASE = API_ENDPOINTS.RECIPES.BASE
  */
 export const getAllRecipes = async (
 	params?: RecipeQueryParams,
+	requestOptions?: { signal?: AbortSignal },
 ): Promise<PaginatedRecipeResponse> => {
+	if (requestOptions?.signal?.aborted) {
+		const error = new Error('Recipe request was aborted')
+		error.name = 'AbortError'
+		throw error
+	}
 	try {
 		const backendParams = toBackendRecipeParams(
 			params as Record<string, unknown>,
 		)
-		const response = await api.get<PaginatedRecipeResponse>(API_BASE, {
+		const config = {
 			params: backendParams,
 			paramsSerializer: { indexes: null },
-		})
+			...(requestOptions?.signal ? { signal: requestOptions.signal } : {}),
+		}
+		const response = await api.get<PaginatedRecipeResponse>(API_BASE, config)
+		if (requestOptions?.signal?.aborted) {
+			const error = new Error('Recipe request was aborted')
+			error.name = 'AbortError'
+			throw error
+		}
 		return response.data
 	} catch (error) {
+		if (requestOptions?.signal?.aborted) throw error
 		logDevError('response failed:', error)
 		const axiosError = error as AxiosError<PaginatedRecipeResponse>
 		if (axiosError.response) return axiosError.response.data

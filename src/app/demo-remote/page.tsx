@@ -12,10 +12,16 @@ import {
 	loadDemoReadinessReport,
 	getBeatReadinessStatus,
 	getDemoPitchShortcut,
+	getDemoShortcutIoBlockers,
 	type DemoEnvMode,
 	type DemoReadinessReport,
 	type PreShowReport,
 } from '@/components/dev/demo-config'
+import {
+	IO_CERTIFICATION_STORAGE_KEY,
+	getStoredIoCertificationResults,
+	type IoCertificationResults,
+} from '@/components/dev/io-certification'
 import { usePaceTimerState, formatTime } from '@/components/dev/PaceTimer'
 import type { DemoRemoteCommand } from '@/components/dev/PhantomConductor'
 import { DEMO_PITCH_SCRIPT } from '@/components/dev/demo-script'
@@ -49,6 +55,8 @@ export default function DemoRemote() {
 	const [commandRuns, setCommandRuns] = useState<CommandRun[]>([])
 	const [readinessReport, setReadinessReport] =
 		useState<DemoReadinessReport | null>(null)
+	const [ioResults, setIoResults] =
+		useState<Partial<IoCertificationResults> | null>(null)
 
 	const [envMode, setEnvModeState] = useState<DemoEnvMode>('cloud')
 	const [latency, setLatency] = useState<number>(0)
@@ -150,6 +158,22 @@ export default function DemoRemote() {
 				}
 				ch.close()
 			}
+		}
+	}, [])
+
+	useEffect(() => {
+		const refreshIoResults = () =>
+			setIoResults(getStoredIoCertificationResults())
+		refreshIoResults()
+		const onStorage = (event: StorageEvent) => {
+			if (event.key === IO_CERTIFICATION_STORAGE_KEY || event.key === null)
+				refreshIoResults()
+		}
+		window.addEventListener('storage', onStorage)
+		window.addEventListener('focus', refreshIoResults)
+		return () => {
+			window.removeEventListener('storage', onStorage)
+			window.removeEventListener('focus', refreshIoResults)
 		}
 	}, [])
 
@@ -833,11 +857,24 @@ export default function DemoRemote() {
 										beat,
 										readinessReport,
 									)
-									const blocked = isControlBlocked || readiness !== 'ready'
+									const firstAction = beat.actions[0]
+									const ioBlockers = getDemoShortcutIoBlockers(
+										getDemoPitchShortcut(firstAction),
+										ioResults,
+									)
+									const blocked =
+										isControlBlocked ||
+										readiness !== 'ready' ||
+										ioBlockers.length > 0
+									const statusLabel = ioBlockers.length
+										? `Stage check required: ${ioBlockers.join(', ')}`
+										: readiness || 'unresolved'
 									return (
 										<button
 											key={beat.id}
 											disabled={blocked}
+											title={ioBlockers.length ? statusLabel : undefined}
+											aria-label={`Beat ${idx + 1}: ${beat.title}. ${statusLabel}`}
 											onClick={() =>
 												sendCommand({ type: 'GOTO_BEAT', beatIndex: idx })
 											}
@@ -875,16 +912,18 @@ export default function DemoRemote() {
 													style={{
 														fontSize: 10,
 														color:
-															readiness === 'ready'
-																? '#3fb950'
-																: readiness === 'warning'
-																	? '#d29922'
-																	: '#f85149',
+															ioBlockers.length > 0
+																? '#d29922'
+																: readiness === 'ready'
+																	? '#3fb950'
+																	: readiness === 'warning'
+																		? '#d29922'
+																		: '#f85149',
 														textAlign: 'left',
 														marginTop: 4,
 													}}
 												>
-													{readiness || 'unresolved'}
+													{statusLabel}
 												</div>
 											</div>
 										</button>
@@ -922,6 +961,17 @@ export default function DemoRemote() {
 								const currentReadiness = currentBeat
 									? getBeatReadinessStatus(currentBeat, readinessReport)
 									: null
+								const autopilotIoBlockers =
+									timer.state.currentBeatIndex === 2
+										? getDemoShortcutIoBlockers(
+												getDemoPitchShortcut('co-cook'),
+												ioResults,
+											)
+										: []
+								const autopilotBlocked =
+									isControlBlocked ||
+									currentReadiness !== 'ready' ||
+									autopilotIoBlockers.length > 0
 								const script = currentBeat
 									? DEMO_PITCH_SCRIPT[currentBeat.id]
 									: null
@@ -945,9 +995,7 @@ export default function DemoRemote() {
 												{script.title}
 											</div>
 											<button
-												disabled={
-													isControlBlocked || currentReadiness !== 'ready'
-												}
+												disabled={autopilotBlocked}
 												onClick={() =>
 													sendCommand({
 														type: 'GHOST_DRIVER_BEAT',
@@ -960,20 +1008,26 @@ export default function DemoRemote() {
 													border: '1px solid #30363d',
 													padding: '6px 12px',
 													borderRadius: 4,
-													cursor:
-														isControlBlocked || currentReadiness !== 'ready'
-															? 'not-allowed'
-															: 'pointer',
-													opacity:
-														isControlBlocked || currentReadiness !== 'ready'
-															? 0.6
-															: 1,
+													cursor: autopilotBlocked ? 'not-allowed' : 'pointer',
+													opacity: autopilotBlocked ? 0.6 : 1,
 													fontSize: 12,
 													fontWeight: 600,
 												}}
 											>
 												👻 Autopilot Beat
 											</button>
+											{autopilotIoBlockers.length > 0 && (
+												<div
+													role='status'
+													style={{
+														color: '#d29922',
+														fontSize: 11,
+														marginTop: 6,
+													}}
+												>
+													Requires verified {autopilotIoBlockers.join(' and ')}
+												</div>
+											)}
 										</div>
 										<div
 											style={{
@@ -1013,10 +1067,26 @@ export default function DemoRemote() {
 														isControlBlocked ||
 														readiness !== 'ready' ||
 														!shortcut
+													const ioBlockers = getDemoShortcutIoBlockers(
+														shortcut,
+														ioResults,
+													)
+													const blockedByIo = ioBlockers.length > 0
+													const actionBlocked = blocked || blockedByIo
 													return (
 														<button
 															key={actionId}
-															disabled={blocked}
+															disabled={actionBlocked}
+															title={
+																blockedByIo
+																	? `Stage check required: ${ioBlockers.join(', ')}`
+																	: undefined
+															}
+															aria-label={
+																blockedByIo
+																	? `${shortcut?.label || actionId}. Stage check required: ${ioBlockers.join(', ')}`
+																	: undefined
+															}
 															onClick={() =>
 																sendCommand({
 																	type: 'GOTO_ACTION',
@@ -1025,17 +1095,33 @@ export default function DemoRemote() {
 															}
 															style={{
 																background: '#161b22',
-																color: blocked ? '#6e7681' : '#e6edf3',
+																color: actionBlocked ? '#6e7681' : '#e6edf3',
 																border: '1px solid #30363d',
 																padding: '10px',
 																borderRadius: 4,
-																cursor: blocked ? 'not-allowed' : 'pointer',
+																cursor: actionBlocked
+																	? 'not-allowed'
+																	: 'pointer',
 																textAlign: 'left',
 																fontSize: 12,
 																fontWeight: 600,
 															}}
 														>
-															{shortcut?.label || actionId}
+															<span>{shortcut?.label || actionId}</span>
+															{blockedByIo && (
+																<span
+																	style={{
+																		display: 'block',
+																		marginTop: 4,
+																		color: '#d29922',
+																		fontSize: 10,
+																		fontWeight: 400,
+																		whiteSpace: 'normal',
+																	}}
+																>
+																	Requires verified {ioBlockers.join(' and ')}
+																</span>
+															)}
 														</button>
 													)
 												})}

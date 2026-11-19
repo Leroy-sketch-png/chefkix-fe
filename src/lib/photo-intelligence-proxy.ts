@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import app from '@/configs/app'
 import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
+import { getServerBackendUrl } from '@/lib/server-backend-url'
 
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024
 export const MAX_PHOTO_REQUEST_BYTES = MAX_PHOTO_BYTES + 64 * 1024
@@ -15,13 +15,7 @@ export function photoProxyError(message: string, status: number, code: string) {
 }
 
 export async function getPhotoProxyAuthFailure(request: Request) {
-	const backendUrl = (
-		process.env.BACKEND_URL ||
-		process.env.NEXT_PUBLIC_BASE_URL ||
-		app.API_BASE_URL
-	)
-		.trim()
-		.replace(/\/+$/, '')
+	const backendUrl = getServerBackendUrl()
 	const caller = await authenticateAiProxyCaller(
 		request.headers.get('authorization'),
 		backendUrl,

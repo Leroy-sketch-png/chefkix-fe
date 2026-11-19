@@ -41,6 +41,16 @@ const unresolvedIdentity: ResearchSubstitutionResponse = {
 	abstentionReason: 'source_identity_unresolved',
 }
 
+function deferred<T>() {
+	let resolve!: (value: T) => void
+	let reject!: (reason?: unknown) => void
+	const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+		resolve = resolvePromise
+		reject = rejectPromise
+	})
+	return { promise, resolve, reject }
+}
+
 describe('SubstitutionButton research evidence consumer', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
@@ -141,6 +151,122 @@ describe('SubstitutionButton research evidence consumer', () => {
 
 		expect(await screen.findByText('researchRequestFailed')).toBeTruthy()
 		expect(mockedSuggest).not.toHaveBeenCalled()
+	})
+
+	it('ignores an old research success after close and reopen while the current request is pending', async () => {
+		const oldRequest = deferred<ResearchSubstitutionResponse>()
+		const currentRequest = deferred<ResearchSubstitutionResponse>()
+		const fetcher = jest
+			.fn()
+			.mockReturnValueOnce(oldRequest.promise)
+			.mockReturnValueOnce(currentRequest.promise)
+		const { unmount } = render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'subClose' }))
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+		expect(fetcher).toHaveBeenCalledTimes(2)
+
+		await act(async () => {
+			oldRequest.resolve(unresolvedIdentity)
+			await oldRequest.promise
+		})
+
+		const dialog = screen.getByRole('dialog')
+		expect(dialog.querySelector('.animate-spin')).not.toBeNull()
+		expect(screen.queryByText('researchIdentityUnresolved')).toBeNull()
+
+		await act(async () => {
+			currentRequest.resolve(unresolvedIdentity)
+			await currentRequest.promise
+		})
+		expect(await screen.findByText('researchIdentityUnresolved')).toBeTruthy()
+		unmount()
+	})
+
+	it('keeps the current research loader when an old request fails after close and reopen', async () => {
+		const oldRequest = deferred<ResearchSubstitutionResponse>()
+		const currentRequest = deferred<ResearchSubstitutionResponse>()
+		const fetcher = jest
+			.fn()
+			.mockReturnValueOnce(oldRequest.promise)
+			.mockReturnValueOnce(currentRequest.promise)
+		render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+		fireEvent.click(screen.getByRole('button', { name: 'subClose' }))
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+
+		await act(async () => {
+			oldRequest.reject(new Error('stale failure'))
+			await oldRequest.promise.catch(() => undefined)
+		})
+
+		const dialog = screen.getByRole('dialog')
+		expect(dialog.querySelector('.animate-spin')).not.toBeNull()
+		expect(screen.queryByText('researchRequestFailed')).toBeNull()
+
+		await act(async () => {
+			currentRequest.resolve(unresolvedIdentity)
+			await currentRequest.promise
+		})
+		expect(await screen.findByText('researchIdentityUnresolved')).toBeTruthy()
+	})
+
+	it('invalidates pending research results when the source ingredient changes', async () => {
+		const request = deferred<ResearchSubstitutionResponse>()
+		const fetcher = jest.fn().mockReturnValue(request.promise)
+		const { rerender } = render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+
+		rerender(
+			<SubstitutionButton
+				ingredientName='sunflower seed'
+				researchMode={{ fetcher }}
+			/>,
+		)
+		await act(async () => {
+			request.resolve(unresolvedIdentity)
+			await request.promise
+		})
+
+		expect(screen.getByRole('dialog')).toBeTruthy()
+		expect(screen.queryByText('researchIdentityUnresolved')).toBeNull()
+		expect(screen.queryByText('researchRequestFailed')).toBeNull()
+	})
+
+	it('safely ignores a research response that resolves after unmount', async () => {
+		const request = deferred<ResearchSubstitutionResponse>()
+		const fetcher = jest.fn().mockReturnValue(request.promise)
+		const { unmount } = render(
+			<SubstitutionButton ingredientName='sesame' researchMode={{ fetcher }} />,
+		)
+		fireEvent.click(
+			screen.getByRole('button', { name: 'findSubstituteFor:sesame' }),
+		)
+		unmount()
+
+		await act(async () => {
+			request.resolve(unresolvedIdentity)
+			await request.promise
+		})
+		expect(fetcher).toHaveBeenCalledTimes(1)
 	})
 
 	it('withholds a contradictory response instead of rendering candidates', async () => {
@@ -680,7 +806,9 @@ describe('research graph-evidence cutoff contract', () => {
 	})
 
 	it('accepts a compatible, sufficiently supported cutoff exactly at 10', () => {
-		expect(parseResearchSubstitutionResponse(supportedResponse())).not.toBeNull()
+		expect(
+			parseResearchSubstitutionResponse(supportedResponse()),
+		).not.toBeNull()
 	})
 
 	it('accepts a ranked candidate list exactly at its finite cutoff', () => {
@@ -695,59 +823,104 @@ describe('research graph-evidence cutoff contract', () => {
 	})
 
 	it.each([
-		['legacy v1 recommendation without a cutoff', (value: MutableResponse) => {
-			value.contractVersion = 'graph-evidence-v1'
-			delete value.calibration.cutoff
-		}],
-		['ok cutoff above 10', (value: MutableResponse) => {
-			value.calibration.cutoff = 11
-		}],
-		['fractional finite cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = 9.5
-		}],
-		['zero finite cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = 0
-		}],
-		['negative finite cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = -1
-		}],
-		['recommendation with an uninformative cutoff', (value: MutableResponse) => {
-			value.calibration.status = 'uninformative'
-			value.calibration.cutoff = 11
-		}],
-		['missing cutoff', (value: MutableResponse) => {
-			delete value.calibration.cutoff
-		}],
-		['null cutoff on an ok state', (value: MutableResponse) => {
-			value.calibration.cutoff = null
-		}],
-		['non-finite cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = Number.POSITIVE_INFINITY
-		}],
-		['NaN cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = Number.NaN
-		}],
-		['insufficient calibration support', (value: MutableResponse) => {
-			value.calibration.calibrationCaseCount = 199
-		}],
-		['candidate count above the cutoff', (value: MutableResponse) => {
-			value.calibration.cutoff = 1
-			value.candidates.push({
-				...value.candidates[0],
-				candidateId: 'node-2',
-				rank: 2,
-			})
-		}],
-		['unknown graph candidate', (value: MutableResponse) => {
-			value.candidates[0].knownNode = false
-		}],
-		['candidate without train support', (value: MutableResponse) => {
-			value.candidates[0].trainPairCount = 0
-			value.candidates[0].seen = false
-		}],
-		['non-contiguous candidate rank', (value: MutableResponse) => {
-			value.candidates[0].rank = 2
-		}],
+		[
+			'legacy v1 recommendation without a cutoff',
+			(value: MutableResponse) => {
+				value.contractVersion = 'graph-evidence-v1'
+				delete value.calibration.cutoff
+			},
+		],
+		[
+			'ok cutoff above 10',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = 11
+			},
+		],
+		[
+			'fractional finite cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = 9.5
+			},
+		],
+		[
+			'zero finite cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = 0
+			},
+		],
+		[
+			'negative finite cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = -1
+			},
+		],
+		[
+			'recommendation with an uninformative cutoff',
+			(value: MutableResponse) => {
+				value.calibration.status = 'uninformative'
+				value.calibration.cutoff = 11
+			},
+		],
+		[
+			'missing cutoff',
+			(value: MutableResponse) => {
+				delete value.calibration.cutoff
+			},
+		],
+		[
+			'null cutoff on an ok state',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = null
+			},
+		],
+		[
+			'non-finite cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = Number.POSITIVE_INFINITY
+			},
+		],
+		[
+			'NaN cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = Number.NaN
+			},
+		],
+		[
+			'insufficient calibration support',
+			(value: MutableResponse) => {
+				value.calibration.calibrationCaseCount = 199
+			},
+		],
+		[
+			'candidate count above the cutoff',
+			(value: MutableResponse) => {
+				value.calibration.cutoff = 1
+				value.candidates.push({
+					...value.candidates[0],
+					candidateId: 'node-2',
+					rank: 2,
+				})
+			},
+		],
+		[
+			'unknown graph candidate',
+			(value: MutableResponse) => {
+				value.candidates[0].knownNode = false
+			},
+		],
+		[
+			'candidate without train support',
+			(value: MutableResponse) => {
+				value.candidates[0].trainPairCount = 0
+				value.candidates[0].seen = false
+			},
+		],
+		[
+			'non-contiguous candidate rank',
+			(value: MutableResponse) => {
+				value.candidates[0].rank = 2
+			},
+		],
 	])('refuses %s', (_name, mutate) => {
 		const value = supportedResponse()
 		mutate(value)

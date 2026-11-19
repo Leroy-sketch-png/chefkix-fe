@@ -1,4 +1,8 @@
-import type { IngredientDetectionResult } from '@/lib/types/ingredient-detection'
+import type {
+	DetectionSpeed,
+	IngredientDetectionResult,
+} from '@/lib/types/ingredient-detection'
+import { isAxiosError } from 'axios'
 import { aiApi } from '@/lib/axios'
 import { getUserFriendlyMessage } from '@/lib/error-utils'
 
@@ -10,7 +14,19 @@ interface DetectionApiResponse {
 	success: boolean
 	message?: string
 	data?: IngredientDetectionResult
-	meta?: { source?: 'real' | 'mock'; model?: string }
+	meta?: {
+		source?: 'real' | 'mock'
+		model?: string
+		device?: string
+		speed?: DetectionSpeed
+	}
+}
+
+export class IngredientDetectionUnavailableError extends Error {
+	constructor() {
+		super('Ingredient photo detection is unavailable.')
+		this.name = 'IngredientDetectionUnavailableError'
+	}
 }
 
 /**
@@ -21,22 +37,27 @@ interface DetectionApiResponse {
 export async function detectIngredients(
 	image: Blob,
 	signal?: AbortSignal,
+	confidenceThreshold?: number,
 ): Promise<IngredientDetectionResult> {
 	const body = new FormData()
 	body.append('image', image, 'ingredient-scan.jpg')
 
+	const url =
+		confidenceThreshold !== undefined
+			? `${DETECTION_ENDPOINT}?confidence_threshold=${confidenceThreshold}`
+			: DETECTION_ENDPOINT
+
 	let payload: DetectionApiResponse
 	try {
-		const response = await aiApi.post<DetectionApiResponse>(
-			DETECTION_ENDPOINT,
-			body,
-			{
-				signal,
-				headers: { 'Content-Type': 'multipart/form-data' },
-			},
-		)
+		const response = await aiApi.post<DetectionApiResponse>(url, body, {
+			signal,
+			headers: { 'Content-Type': 'multipart/form-data' },
+		})
 		payload = response.data
 	} catch (error) {
+		if (isAxiosError(error) && error.response?.status === 503) {
+			throw new IngredientDetectionUnavailableError()
+		}
 		throw new Error(getUserFriendlyMessage(error))
 	}
 
@@ -49,6 +70,8 @@ export async function detectIngredients(
 		...(payload.meta && {
 			source: payload.meta.source === 'real' ? 'backend' : 'mock',
 			...(payload.meta.model ? { model: payload.meta.model } : {}),
+			...(payload.meta.device ? { device: payload.meta.device } : {}),
+			...(payload.meta.speed ? { speed: payload.meta.speed } : {}),
 		}),
 	}
 }

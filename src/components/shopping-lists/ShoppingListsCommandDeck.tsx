@@ -9,6 +9,7 @@ import {
 
 interface ShoppingListsCommandDeckProps {
 	variant: 'list' | 'detail'
+	heading?: string
 	counts: {
 		lists: number
 		totalItems: number
@@ -56,6 +57,7 @@ function StatCard({
 
 export function ShoppingListsCommandDeck({
 	variant,
+	heading,
 	counts,
 	onPrimaryAction,
 	primaryActionLabel,
@@ -80,9 +82,10 @@ export function ShoppingListsCommandDeck({
 						{t('commandEyebrow')}
 					</p>
 					<h2 className='mt-1 text-base font-black text-text-primary sm:text-lg'>
-						{variant === 'detail'
-							? t('commandHeadingDetail')
-							: t('commandHeadingList')}
+						{heading ??
+							(variant === 'detail'
+								? t('commandHeadingDetail')
+								: t('commandHeadingList'))}
 					</h2>
 				</div>
 				<div className='grid grid-cols-2 gap-2 sm:flex sm:flex-wrap'>

@@ -47,13 +47,124 @@ const recipe = { id: 'recipe-1', title: 'Pho', steps: [] } as Recipe
 describe('cooking session restoration', () => {
 	beforeEach(() => {
 		jest.clearAllMocks()
+		localStorage.removeItem('chefkix-cooking-session')
 		useCookingStore.setState({
 			session: partialSession as never,
 			recipe: null,
 			isLoading: false,
 			error: null,
 			interactionMode: null,
+			isPreviewMode: false,
+			previewPreviousState: null,
+			checkedIngredients: {},
+			localTimers: new Map(),
 		})
+	})
+
+	it('does not persist an unpublished preview when no real cook is active', () => {
+		useCookingStore.setState({ session: null, recipe: null })
+		useCookingStore.getState().startPreviewCooking({
+			...recipe,
+			id: 'unpublished-recipe',
+			title: 'Private draft',
+		} as Recipe)
+
+		const persisted = JSON.parse(
+			localStorage.getItem('chefkix-cooking-session') || '{}',
+		) as {
+			state?: { session?: unknown; recipe?: unknown; localTimers?: unknown[] }
+		}
+
+		expect(persisted.state?.session).toBeNull()
+		expect(persisted.state?.recipe).toBeNull()
+		expect(persisted.state?.localTimers).toEqual([])
+		expect(useCookingStore.getState().isPreviewMode).toBe(true)
+	})
+
+	it('preserves and restores an existing real cook while preview is open', () => {
+		const realTimers = new Map([
+			[2, { initialDuration: 90, startedAt: 1000, remaining: 60 }],
+		])
+		useCookingStore.setState({
+			session: restoredSession as never,
+			recipe,
+			checkedIngredients: { '1-0': true },
+			localTimers: realTimers,
+			interactionMode: 'ACTIVE',
+		})
+
+		useCookingStore.getState().startPreviewCooking({
+			...recipe,
+			id: 'unpublished-recipe',
+			title: 'Private draft',
+		} as Recipe)
+
+		const persisted = JSON.parse(
+			localStorage.getItem('chefkix-cooking-session') || '{}',
+		) as {
+			state?: {
+				session?: { sessionId?: string }
+				recipe?: { title?: string }
+				checkedIngredients?: Record<string, boolean>
+				localTimers?: [number, { remaining: number }][]
+			}
+		}
+		expect(persisted.state?.session?.sessionId).toBe('session-1')
+		expect(persisted.state?.recipe?.title).toBe('Pho')
+		expect(persisted.state?.checkedIngredients).toEqual({ '1-0': true })
+		expect(persisted.state?.localTimers?.[0]?.[1].remaining).toBe(60)
+		expect(useCookingStore.getState().recipe?.title).toBe('Private draft')
+
+		useCookingStore.getState().exitPreview()
+
+		expect(useCookingStore.getState()).toMatchObject({
+			session: restoredSession,
+			recipe,
+			isPreviewMode: false,
+			checkedIngredients: { '1-0': true },
+			interactionMode: 'ACTIVE',
+		})
+		expect(useCookingStore.getState().localTimers).toEqual(realTimers)
+	})
+
+	it('sanitizes persisted preview-prefixed sessions during hydration', () => {
+		const merge = useCookingStore.persist.getOptions().merge
+		expect(merge).toBeDefined()
+		const hydrated = merge?.(
+			{
+				session: { sessionId: 'preview-1712345678', recipeId: 'draft-1' },
+				recipe: { ...recipe, id: 'draft-1' },
+				checkedIngredients: { '1-0': true },
+				localTimers: [
+					[1, { initialDuration: 60, startedAt: 1000, remaining: 30 }],
+				],
+			},
+			useCookingStore.getState(),
+		)
+
+		expect(hydrated).toMatchObject({
+			session: null,
+			recipe: null,
+			isPreviewMode: false,
+			checkedIngredients: {},
+		})
+		expect(hydrated?.localTimers).toEqual(new Map())
+	})
+
+	it('never resumes a legacy preview-prefixed ID from the backend', async () => {
+		useCookingStore.setState({
+			session: { sessionId: 'preview-1712345678' } as never,
+			recipe,
+			isPreviewMode: false,
+		})
+
+		await expect(
+			useCookingStore.getState().resumeExistingSession(),
+		).resolves.toBe(false)
+
+		expect(mockCurrentSession).not.toHaveBeenCalled()
+		expect(useCookingStore.getState().session).toBeNull()
+		expect(useCookingStore.getState().recipe).toBeNull()
 	})
 
 	it('retains partial continuity and exposes a failed current-session response', async () => {

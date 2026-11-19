@@ -54,6 +54,16 @@ import { logDevError, logDevWarn } from '@/lib/dev-log'
 // ── Hooks ───────────────────────────────────────────────────────────
 import { useAutoSave, type SaveStatus } from '@/hooks/useAutoSave'
 import { useBeforeUnloadWarning } from '@/hooks/useBeforeUnloadWarning'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 // ── Services & stores ───────────────────────────────────────────────
 import { processRecipe, calculateMetas, validateRecipe } from '@/services/ai'
@@ -66,6 +76,7 @@ import {
 import { guardContent } from '@/services/ml'
 import { useCookingStore } from '@/store/cookingStore'
 import { useUiStore } from '@/store/uiStore'
+import { useAuthStore } from '@/store/authStore'
 import { parsedRecipeToRecipe } from '@/lib/recipeTransforms'
 import { triggerRecipeCompleteConfetti } from '@/lib/confetti'
 import { trackEvent } from '@/lib/eventTracker'
@@ -95,7 +106,7 @@ import { useModifierSymbol } from '@/hooks/useKeyboardShortcuts'
 
 // ── Extracted sub-components ────────────────────────────────────────
 import { RecipeFormDetailed, type RecipeFormData } from './RecipeFormDetailed'
-import { saveLocalRecipeDraft } from '@/lib/local-recipe-draft'
+import { recipeDraftRepository } from '@/lib/recipe-draft-repository'
 import { MethodCard } from './MethodCard'
 import { PasteArea } from './PasteArea'
 import { RecipeParsingOverlay } from './RecipeParsingOverlay'
@@ -238,6 +249,7 @@ export const RecipeCreateAiFlow = ({
 	const t = useTranslations('recipe')
 	const modKey = useModifierSymbol()
 	const tShared = useTranslations('shared')
+	const ownerId = useAuthStore(state => state.user?.userId)
 	const cuisineOptions: ComboboxOption[] = CUISINE_OPTION_SPECS.map(option => ({
 		value: option.value,
 		label: tShared(option.labelKey),
@@ -252,14 +264,16 @@ export const RecipeCreateAiFlow = ({
 		initialDraft ? 'preview' : 'input',
 	)
 	const [rawText, setRawText] = useState('')
-	const [parsingStep, setParsingStep] = useState(0)
 	const [recipe, setRecipe] = useState<ParsedRecipe | null>(null)
 	const [xpBreakdown, setXpBreakdown] = useState<XpBreakdown | null>(null)
 	// Draft management state
 	const [draftId, setDraftId] = useState<string | null>(null)
 	const [isSaving, setIsSaving] = useState(false)
 	const [isPublishing, setIsPublishing] = useState(false)
+	const [isPreparingManualReview, setIsPreparingManualReview] = useState(false)
 	const [isCalculatingXp, setIsCalculatingXp] = useState(false)
+	const [showUnsavedDraftExit, setShowUnsavedDraftExit] = useState(false)
+	const manualDraftSaveFailedRef = useRef(false)
 	// Original recipe state for smart recalculation detection (30% threshold)
 	const [originalRecipe, setOriginalRecipe] = useState<ParsedRecipe | null>(
 		null,
@@ -271,31 +285,22 @@ export const RecipeCreateAiFlow = ({
 	// Cover image upload
 	const coverImageRef = React.useRef<HTMLInputElement>(null)
 	const [isUploadingCover, setIsUploadingCover] = useState(false)
-	// Ref for AI parsing progress interval — prevents memory leak on unmount
-	const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-		null,
-	)
 	const parseInFlightRef = useRef(false)
+	const parseAbortControllerRef = useRef<AbortController | null>(null)
 	const publishInFlightRef = useRef(false)
-
-	const clearParseProgressInterval = useCallback(() => {
-		if (progressIntervalRef.current) {
-			clearInterval(progressIntervalRef.current)
-			progressIntervalRef.current = null
-		}
-	}, [])
 
 	const releasePublishLock = useCallback(() => {
 		publishInFlightRef.current = false
 		setIsPublishing(false)
 	}, [])
 
-	// Cleanup interval on unmount
 	useEffect(() => {
 		return () => {
-			clearParseProgressInterval()
+			parseAbortControllerRef.current?.abort()
+			parseAbortControllerRef.current = null
+			parseInFlightRef.current = false
 		}
-	}, [clearParseProgressInterval])
+	}, [])
 
 	// ── Auto-save ────────────────────────────────────────────────────
 	const autoSavePayload = useMemo(() => {
@@ -337,6 +342,14 @@ export const RecipeCreateAiFlow = ({
 		autoSavePayload,
 		isAutoSaveEnabled,
 	)
+	useEffect(() => {
+		if (method === 'manual' && step === 'preview' && saveStatus === 'saved') {
+			manualDraftSaveFailedRef.current = false
+		}
+	}, [method, saveStatus, step])
+	const handleManualDraftSaveErrorChange = useCallback((failed: boolean) => {
+		manualDraftSaveFailedRef.current = failed
+	}, [])
 
 	// ── Derived state ───────────────────────────────────────────────
 	const changePercent = calculateRecipeChangePercent(originalRecipe, recipe)
@@ -353,6 +366,14 @@ export const RecipeCreateAiFlow = ({
 	const hasUnsavedWork =
 		(rawText.trim().length > 0 || recipe !== null) && !isPublishing
 	useBeforeUnloadWarning(hasUnsavedWork, t('unfinishedRecipeWarning'))
+
+	const handleBack = () => {
+		if (method === 'manual' && manualDraftSaveFailedRef.current) {
+			setShowUnsavedDraftExit(true)
+			return
+		}
+		onBack?.()
+	}
 
 	// ── Load initial draft ──────────────────────────────────────────
 	useEffect(() => {
@@ -531,6 +552,60 @@ export const RecipeCreateAiFlow = ({
 		[xpBreakdown],
 	)
 
+	const prepareManualRecipe = useCallback(
+		async (data: RecipeFormData): Promise<ParsedRecipe | null> => {
+			const stepFiles = data.steps.flatMap(step =>
+				step.imageFile ? [{ stepId: step.id, file: step.imageFile }] : [],
+			)
+			const files = [
+				...(data.coverImageFile ? [data.coverImageFile] : []),
+				...stepFiles.map(item => item.file),
+			]
+			let urls: string[] = []
+			if (files.length) {
+				const response = await uploadRecipeImages(files)
+				if (
+					!response.success ||
+					!response.data ||
+					response.data.length !== files.length
+				) {
+					toast.error(t('draftReviewImagesFailed'))
+					return null
+				}
+				urls = response.data
+			}
+
+			let imageIndex = data.coverImageFile ? 1 : 0
+			const stepImageUrls = new Map<string, string>()
+			stepFiles.forEach(({ stepId }) => {
+				stepImageUrls.set(stepId, urls[imageIndex])
+				imageIndex += 1
+			})
+			return {
+				title: data.title,
+				description: data.description,
+				coverImageUrl: data.coverImageFile ? urls[0] : data.coverImageUrl,
+				cookTime: `${data.cookTimeMinutes} min`,
+				difficulty: data.difficulty,
+				servings: data.servings,
+				cuisine: data.category || 'General',
+				ingredients: data.ingredients.map(ingredient => ({
+					id: ingredient.id,
+					quantity: `${ingredient.amount} ${ingredient.unit}`,
+					name: ingredient.name,
+				})),
+				steps: data.steps.map(step => ({
+					id: step.id,
+					instruction: step.instruction,
+					timerSeconds: step.timerSeconds,
+					imageUrl: stepImageUrls.get(step.id) || step.imageUrl,
+				})),
+				detectedBadges: [],
+			}
+		},
+		[t],
+	)
+
 	// ── Save draft ──────────────────────────────────────────────────
 	const handleSaveDraft = useCallback(
 		async (targetRecipe?: ParsedRecipe) => {
@@ -641,6 +716,16 @@ export const RecipeCreateAiFlow = ({
 	)
 
 	// ── AI parse ────────────────────────────────────────────────────
+	const cancelRecipeParse = useCallback(() => {
+		const controller = parseAbortControllerRef.current
+		if (!controller) return
+
+		controller.abort()
+		parseAbortControllerRef.current = null
+		parseInFlightRef.current = false
+		setStep('input')
+	}, [])
+
 	const handleParse = useCallback(async () => {
 		diag.action('recipe', 'AI_PARSE clicked', { textLength: rawText.length })
 
@@ -656,28 +741,23 @@ export const RecipeCreateAiFlow = ({
 		}
 
 		parseInFlightRef.current = true
-		clearParseProgressInterval()
+		const controller = new AbortController()
+		parseAbortControllerRef.current = controller
 
 		setStep('parsing')
-		setParsingStep(0)
-
-		const progressInterval = setInterval(() => {
-			setParsingStep(prev => Math.min(prev + 1, 3))
-		}, 600)
-		progressIntervalRef.current = progressInterval
 
 		try {
 			diag.request('recipe', 'POST /process_recipe', {
 				textPreview: rawText.slice(0, 200) + '...',
 			})
-			const response = await processRecipe(rawText)
+			const response = await processRecipe(rawText, controller.signal)
+			if (controller.signal.aborted) return
 			diag.response(
 				'recipe',
 				'POST /process_recipe',
 				response,
 				response.success,
 			)
-			setParsingStep(4)
 
 			if (response.success && response.data) {
 				const parsed = transformProcessedRecipe(response.data)
@@ -721,6 +801,7 @@ export const RecipeCreateAiFlow = ({
 				setStep('input')
 			}
 		} catch (err) {
+			if (controller.signal.aborted) return
 			diag.error('recipe', 'AI_PARSE exception', err)
 			toast.error(t('aiFlowParsingFailed'), {
 				description:
@@ -730,14 +811,12 @@ export const RecipeCreateAiFlow = ({
 			})
 			setStep('input')
 		} finally {
-			parseInFlightRef.current = false
-			if (progressIntervalRef.current === progressInterval) {
-				clearParseProgressInterval()
-			} else {
-				clearInterval(progressInterval)
+			if (parseAbortControllerRef.current === controller) {
+				parseAbortControllerRef.current = null
+				parseInFlightRef.current = false
 			}
 		}
-	}, [rawText, t, clearParseProgressInterval])
+	}, [rawText, t])
 
 	// ── XP preview ──────────────────────────────────────────────────
 	const handlePreviewXp = useCallback(async () => {
@@ -1288,7 +1367,8 @@ export const RecipeCreateAiFlow = ({
 				{onBack && (
 					<motion.button
 						type='button'
-						onClick={onBack}
+						onClick={handleBack}
+						aria-label={t('aiFlowBackToDrafts')}
 						whileHover={ICON_BUTTON_HOVER}
 						whileTap={ICON_BUTTON_TAP}
 						transition={TRANSITION_SPRING}
@@ -1362,7 +1442,10 @@ export const RecipeCreateAiFlow = ({
 								description={t('aiFlowAiExtractsRecipe')}
 								isActive={method === 'ai'}
 								badge={t('aiFlowRecommended')}
-								onClick={() => setMethod('ai')}
+								onClick={() => {
+									manualDraftSaveFailedRef.current = false
+									setMethod('ai')
+								}}
 							/>
 							<MethodCard
 								method='manual'
@@ -1370,7 +1453,10 @@ export const RecipeCreateAiFlow = ({
 								title={t('aiFlowManualEntry')}
 								description={t('aiFlowFillInFields')}
 								isActive={method === 'manual'}
-								onClick={() => setMethod('manual')}
+								onClick={() => {
+									manualDraftSaveFailedRef.current = false
+									setMethod('manual')
+								}}
 							/>
 						</div>
 
@@ -1442,64 +1528,50 @@ export const RecipeCreateAiFlow = ({
 								>
 									<RecipeFormDetailed
 										initialData={initialManualDraft}
+										ownerId={!initialDraft ? ownerId : undefined}
+										onLocalDraftSaveErrorChange={
+											handleManualDraftSaveErrorChange
+										}
 										onSubmit={async data => {
-											saveLocalRecipeDraft(data)
-											const parsed: ParsedRecipe = {
-												title: data.title,
-												description: data.description,
-												coverImageUrl: data.coverImageUrl,
-												cookTime: `${data.cookTimeMinutes} min`,
-												difficulty: data.difficulty,
-												servings: data.servings,
-												cuisine: data.category || 'General',
-												ingredients: (data.ingredients || []).map(i => ({
-													id: i.id,
-													quantity: `${i.amount} ${i.unit}`,
-													name: i.name,
-												})),
-												steps: (data.steps || []).map(s => ({
-													id: s.id,
-													instruction: s.instruction,
-													timerSeconds: s.timerSeconds,
-													imageUrl: s.imageUrl,
-												})),
-												detectedBadges: [],
+											setIsPreparingManualReview(true)
+											try {
+												const parsed = await prepareManualRecipe(data)
+												if (!parsed) return
+												setRecipe(parsed)
+												setPrevStepIds((parsed.steps || []).map(s => s.id))
+												setForceRecalculate(true)
+												setStep('preview')
+												toast.success(t('aiFlowReadyForReview'), {
+													description: t('aiFlowPreviewXpDesc'),
+												})
+											} catch (error) {
+												logDevError(
+													'Failed to prepare manual recipe images:',
+													error,
+												)
+												toast.error(t('draftReviewImagesFailed'))
+											} finally {
+												setIsPreparingManualReview(false)
 											}
-											setRecipe(parsed)
-											setPrevStepIds((parsed.steps || []).map(s => s.id))
-											setForceRecalculate(true)
-											setStep('preview')
-											toast.success(t('aiFlowReadyForReview'), {
-												description: t('aiFlowPreviewXpDesc'),
-											})
 										}}
 										onSaveDraft={async data => {
-											const parsed: ParsedRecipe = {
-												title: data.title,
-												description: data.description,
-												coverImageUrl: data.coverImageUrl,
-												cookTime: `${data.cookTimeMinutes} min`,
-												difficulty: data.difficulty,
-												servings: data.servings,
-												cuisine: data.category || 'General',
-												ingredients: (data.ingredients || []).map(i => ({
-													id: i.id,
-													quantity: `${i.amount} ${i.unit}`,
-													name: i.name,
-												})),
-												steps: (data.steps || []).map(s => ({
-													id: s.id,
-													instruction: s.instruction,
-													timerSeconds: s.timerSeconds,
-													imageUrl: s.imageUrl,
-												})),
-												detectedBadges: [],
+											setIsPreparingManualReview(true)
+											try {
+												const parsed = await prepareManualRecipe(data)
+												if (parsed) await handleSaveDraft(parsed)
+											} catch (error) {
+												logDevError(
+													'Failed to prepare manual recipe images:',
+													error,
+												)
+												toast.error(t('draftReviewImagesFailed'))
+											} finally {
+												setIsPreparingManualReview(false)
 											}
-											saveLocalRecipeDraft(data)
-											await handleSaveDraft(parsed)
 										}}
 										isSaving={isSaving}
-										isSubmitting={isPublishing}
+										isSubmitting={isPublishing || isPreparingManualReview}
+										submittingLabel={t('draftReviewImagesUploading')}
 										className='-mx-5 -mb-5'
 									/>
 								</motion.div>
@@ -1905,10 +1977,7 @@ export const RecipeCreateAiFlow = ({
 			{/* Parsing Overlay */}
 			<AnimatePresence>
 				{step === 'parsing' && (
-					<RecipeParsingOverlay
-						currentStep={parsingStep}
-						onCancel={() => setStep('input')}
-					/>
+					<RecipeParsingOverlay onCancel={cancelRecipeParse} />
 				)}
 			</AnimatePresence>
 
@@ -1925,6 +1994,32 @@ export const RecipeCreateAiFlow = ({
 				)}
 			</AnimatePresence>
 			<OverlayLoader isOpen={isPublishing} message={t('aiFlowPublishing')} />
+			<AlertDialog
+				open={showUnsavedDraftExit}
+				onOpenChange={setShowUnsavedDraftExit}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>{t('manualDraftExitTitle')}</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t('manualDraftExitDescription')}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>{t('manualDraftStay')}</AlertDialogCancel>
+						<AlertDialogAction
+							className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+							onClick={event => {
+								event.preventDefault()
+								setShowUnsavedDraftExit(false)
+								onBack?.()
+							}}
+						>
+							{t('manualDraftLeave')}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	)
 }

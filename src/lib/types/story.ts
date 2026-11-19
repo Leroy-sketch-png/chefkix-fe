@@ -75,7 +75,6 @@ export interface UserStoryFeedResponse {
 	displayName: string
 	avatarUrl: string
 	hasUnseenStory: boolean
-	hasStories?: boolean
 }
 
 export interface StoryInteraction {

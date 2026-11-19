@@ -134,6 +134,18 @@ describe('content-first onboarding contract', () => {
 		const italian = await screen.findByRole('button', { name: 'Italian' })
 		expect(italian.getAttribute('aria-pressed')).toBe('false')
 		expect(italian.innerHTML).toContain('bg-bg-elevated')
+		expect(italian.className).toContain('aspect-square')
+		const emoji = italian.querySelector('[role="img"]')
+		const label = Array.from(italian.querySelectorAll('span')).find(
+			span => span.textContent === 'Italian',
+		)
+		expect(emoji?.parentElement?.className).toContain('bottom-8')
+		expect(label?.parentElement?.className).toContain('min-h-8')
+		expect(label?.parentElement?.className).toContain('bg-black/65')
+		expect(
+			screen.getByRole('heading', { name: 'Shape your taste' }).parentElement
+				?.className,
+		).toContain('py-4')
 
 		fireEvent.click(italian)
 

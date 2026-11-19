@@ -23,7 +23,7 @@ import { ResendOtpButton } from '@/components/ui/resend-otp-button'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { resendOtp, verifyOtp } from '@/services/auth'
 import { useAuth } from '@/hooks/useAuth'
-import { PATHS } from '@/constants'
+import { getPostAuthRedirectPath, PATHS } from '@/constants'
 import { useState, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
 import { triggerSuccessConfetti } from '@/lib/confetti'
@@ -69,11 +69,10 @@ export const VerifyOtpForm = () => {
 
 	// Determine the redirect target after login
 	// Only allow relative paths to prevent open redirect attacks
-	const postLoginPath =
-		returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard'
+	const postLoginPath = getPostAuthRedirectPath(returnTo)
 	const signInPath =
-		returnTo && returnTo.startsWith('/')
-			? `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(returnTo)}`
+		postLoginPath !== PATHS.DASHBOARD
+			? `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(postLoginPath)}`
 			: PATHS.AUTH.SIGN_IN
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
@@ -130,7 +129,6 @@ export const VerifyOtpForm = () => {
 				})
 				if (profileResponse.success && profileResponse.data) {
 					toast.success(t('toastWelcomeNew'))
-					router.push(postLoginPath)
 					return
 				}
 			}
