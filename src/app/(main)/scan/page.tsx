@@ -40,6 +40,10 @@ export default async function ScanIngredientsPage() {
 				</div>
 			</div>
 
+			<div className='mb-6'>
+				<DishPhotoRetrievalPanel />
+			</div>
+
 			<div className='grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]'>
 				<div className='rounded-3xl border border-border-subtle bg-bg-card p-4 shadow-card sm:p-6'>
 					<div className='mb-5 flex items-center gap-3'>
@@ -86,10 +90,6 @@ export default async function ScanIngredientsPage() {
 						{t('scanSafetyDisclaimer')}
 					</div>
 				</aside>
-			</div>
-
-			<div className='mt-6'>
-				<DishPhotoRetrievalPanel />
 			</div>
 		</main>
 	)

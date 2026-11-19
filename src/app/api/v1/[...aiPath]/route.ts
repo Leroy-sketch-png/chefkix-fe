@@ -1,3 +1,4 @@
+import { isIP } from 'node:net'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { authenticateAiProxyCaller } from '@/lib/ai-proxy-auth'
@@ -20,6 +21,8 @@ const RESEARCH_KEY_PLACEHOLDERS = new Set([
 	'CHANGE_ME_IRON_CHEF_RESEARCH_API_KEY',
 ])
 const MAX_RESEARCH_BODY_CHARS = 1024
+const MAX_FOOD_VISION_BODY_BYTES = 10 * 1024 * 1024 + 64 * 1024
+const MAX_SUBSTITUTION_INTENT_BODY_BYTES = 8 * 1024
 const ALLOWED_AI_PATHS = new Set([
 	'process_recipe',
 	'calculate_metas',
@@ -38,6 +41,8 @@ const ALLOWED_AI_PATHS = new Set([
 	'generate_meal_plan',
 	'copilot/query',
 	'compound/analyze-pair',
+	'food-vision/analyze',
+	'food-vision/parse-substitution-intent',
 ])
 
 const jsonFailure = (message: string, status: number) =>
@@ -100,6 +105,36 @@ async function readRequestBodyAtMost(request: NextRequest, maxBytes: number) {
 	}
 }
 
+async function readRequestBytesAtMost(request: NextRequest, maxBytes: number) {
+	const reader = request.body?.getReader()
+	if (!reader) return null
+
+	const chunks: Uint8Array[] = []
+	let byteLength = 0
+	try {
+		while (true) {
+			const { done, value } = await reader.read()
+			if (done) break
+			byteLength += value.byteLength
+			if (byteLength > maxBytes) {
+				await reader.cancel()
+				return null
+			}
+			chunks.push(value)
+		}
+	} catch {
+		return null
+	}
+
+	const body = new Uint8Array(byteLength)
+	let offset = 0
+	for (const chunk of chunks) {
+		body.set(chunk, offset)
+		offset += chunk.byteLength
+	}
+	return body
+}
+
 const resolveAiConfig = () => {
 	const apiKey = normalizeEnvValue(process.env.AI_SERVICE_API_KEY || '')
 	const baseUrl = normalizeEnvValue(
@@ -149,6 +184,15 @@ function allowedPath(parts: string[], method: 'GET' | 'POST') {
 		name !== '..'
 		? `compound/profile/${encodeURIComponent(name)}`
 		: null
+}
+
+function getClientAddressForRateLimit(request: NextRequest) {
+	// These headers must be set or sanitized by the deployment's trusted edge proxy.
+	const candidates = [
+		request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+		request.headers.get('x-real-ip')?.trim(),
+	]
+	return candidates.find(value => value && isIP(value)) || 'unknown'
 }
 
 async function createResearchRequestBody(request: NextRequest) {
@@ -216,6 +260,10 @@ async function proxyAiRequest(
 	if (!targetPath) {
 		return jsonFailure('AI route not found', 404)
 	}
+	const foodVisionUpload =
+		method === 'POST' && targetPath === 'food-vision/analyze'
+	const substitutionIntentParse =
+		method === 'POST' && targetPath === 'food-vision/parse-substitution-intent'
 
 	const {
 		apiKey,
@@ -253,29 +301,82 @@ async function proxyAiRequest(
 		)
 	}
 
-	const caller = await authenticateAiProxyCaller(
-		request.headers.get('authorization'),
-		backendUrl,
-	)
-	if (caller.authenticated === false) {
-		return jsonFailure(caller.message, caller.status)
+	let rateLimitIdentity: string
+	if (foodVisionUpload || substitutionIntentParse) {
+		// Photo analysis and intent parsing are public; rate-limit guests by trusted IP.
+		rateLimitIdentity = `food-vision-guest:${getClientAddressForRateLimit(request)}`
+	} else {
+		const caller = await authenticateAiProxyCaller(
+			request.headers.get('authorization'),
+			backendUrl,
+		)
+		if (caller.authenticated === false) {
+			return jsonFailure(caller.message, caller.status)
+		}
+		rateLimitIdentity = caller.userId
 	}
 	const rateLimitSubject = createAiRateLimitSubject(
-		caller.userId,
+		rateLimitIdentity,
 		rateLimitPseudonymSecret,
 		rateLimitSubjectSecret,
 	)
 
+	const declaredBodyLength = Number(request.headers.get('content-length'))
+	if (
+		foodVisionUpload &&
+		Number.isFinite(declaredBodyLength) &&
+		declaredBodyLength > MAX_FOOD_VISION_BODY_BYTES
+	) {
+		return jsonFailure('Image must be 10 MiB or smaller.', 413)
+	}
+	if (
+		foodVisionUpload &&
+		!request.headers
+			.get('content-type')
+			?.toLowerCase()
+			.includes('multipart/form-data')
+	) {
+		return jsonFailure('Please provide an image upload.', 400)
+	}
+	if (
+		substitutionIntentParse &&
+		Number.isFinite(declaredBodyLength) &&
+		declaredBodyLength > MAX_SUBSTITUTION_INTENT_BODY_BYTES
+	) {
+		return jsonFailure('The request is too long.', 413)
+	}
+	if (
+		substitutionIntentParse &&
+		!request.headers
+			.get('content-type')
+			?.toLowerCase()
+			.includes('application/json')
+	) {
+		return jsonFailure('Please provide a JSON cooking request.', 400)
+	}
 	const requestBody = researchRoute
 		? await createResearchRequestBody(request)
-		: method === 'POST'
-			? await request.text()
-			: undefined
+		: foodVisionUpload
+			? await readRequestBytesAtMost(request, MAX_FOOD_VISION_BODY_BYTES)
+			: substitutionIntentParse
+				? await readRequestBytesAtMost(
+						request,
+						MAX_SUBSTITUTION_INTENT_BODY_BYTES,
+					)
+				: method === 'POST'
+					? await request.text()
+					: undefined
 	if (researchRoute && !requestBody) {
 		return jsonFailure(
 			'Research substitution accepts only a source ingredient.',
 			400,
 		)
+	}
+	if (foodVisionUpload && !requestBody) {
+		return jsonFailure('Image must be 10 MiB or smaller.', 413)
+	}
+	if (substitutionIntentParse && !requestBody) {
+		return jsonFailure('The request is too long.', 413)
 	}
 	const upstreamUrl = `${baseUrl}/api/v1/${targetPath}`
 

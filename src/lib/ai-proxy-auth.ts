@@ -10,7 +10,7 @@ type FetchCaller = (
 const AUTH_REQUIRED: AiProxyCallerAuth = {
 	authenticated: false,
 	status: 401,
-	message: 'Authentication required for AI features.',
+	message: 'Please sign in to continue.',
 }
 
 const AUTH_UNAVAILABLE: AiProxyCallerAuth = {
