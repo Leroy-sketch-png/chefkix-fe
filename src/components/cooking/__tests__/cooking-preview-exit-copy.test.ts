@@ -13,7 +13,7 @@ describe('cooking preview exit copy', () => {
 		const panel = read('src/components/cooking/CookingPanel.tsx')
 
 		expect(messages.cooking.abandonDesc).toBe(
-			'Your progress has been saved. You can resume anytime from the recipe page.',
+			'This cooking session will end and cannot be resumed.',
 		)
 		expect(messages.cooking.previewAbandonDesc).toMatch(
 			/preview will end.*No cooking progress or XP will be saved/i,

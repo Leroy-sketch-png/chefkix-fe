@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { useCookingStore } from '@/store/cookingStore'
-import { getCurrentSession } from '@/services/cookingSession'
+import { abandonSession, getCurrentSession } from '@/services/cookingSession'
 import { getRecipeById } from '@/services/recipe'
 import type { Recipe } from '@/lib/types/recipe'
 
@@ -28,6 +28,7 @@ jest.mock('@/services/cookingRoom', () => ({
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }))
 
 const mockCurrentSession = getCurrentSession as jest.Mock
+const mockAbandonSession = abandonSession as jest.Mock
 const mockRecipe = getRecipeById as jest.Mock
 const partialSession = {
 	sessionId: 'session-1',
@@ -125,6 +126,25 @@ describe('cooking session restoration', () => {
 			interactionMode: 'ACTIVE',
 		})
 		expect(useCookingStore.getState().localTimers).toEqual(realTimers)
+	})
+
+	it('ends a normal cooking session through the server abandon contract', async () => {
+		mockAbandonSession.mockResolvedValue({
+			success: true,
+			data: { abandoned: true },
+		})
+		useCookingStore.setState({ session: restoredSession as never, recipe })
+
+		await useCookingStore.getState().abandonCooking()
+
+		expect(mockAbandonSession).toHaveBeenCalledWith(restoredSession.sessionId)
+		expect(useCookingStore.getState()).toMatchObject({
+			session: null,
+			recipe: null,
+			isPreviewMode: false,
+			checkedIngredients: {},
+		})
+		expect(useCookingStore.getState().localTimers).toEqual(new Map())
 	})
 
 	it('sanitizes persisted preview-prefixed sessions during hydration', () => {

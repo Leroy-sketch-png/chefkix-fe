@@ -1641,7 +1641,7 @@
 		"complete": "Complete",
 		"nextStep": "Next",
 		"abandonTitle": "Leave this session?",
-		"abandonDesc": "Your progress has been saved. You can resume anytime from the recipe page.",
+		"abandonDesc": "This cooking session will end and cannot be resumed.",
 		"previewAbandonDesc": "This preview will end. No cooking progress or XP will be saved.",
 		"keepCooking": "Keep Cooking",
 		"abandon": "Leave Session",
