@@ -1,4 +1,7 @@
 import { GraphExplorer } from '@/features/graph-explorer/components/GraphExplorer'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+import { PATHS } from '@/constants'
 
 export default function PublicGraphExplorerPage() {
 	const graphExplorerEnabled =
@@ -8,6 +11,13 @@ export default function PublicGraphExplorerPage() {
 
 	return (
 		<main className='mx-auto w-full max-w-[1440px] space-y-6 px-4 py-8 md:px-8'>
+			<Link
+				href={PATHS.EXPLORE}
+				className='inline-flex items-center gap-2 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+			>
+				<ArrowLeft aria-hidden='true' className='size-4' />
+				Back to Explore
+			</Link>
 			<header className='relative overflow-hidden rounded-3xl border border-border-subtle bg-bg-card px-6 py-6 shadow-sm md:px-8 md:py-7'>
 				<div className='pointer-events-none absolute -right-12 -top-28 size-80 rounded-full bg-primary/10 blur-3xl' />
 				<div className='relative'>
