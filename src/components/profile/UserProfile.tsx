@@ -827,30 +827,26 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 										{userRecipes.map(recipe => (
-											<div
+											<Link
 												key={recipe.id}
-												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md shadow-card transition-all hover:shadow-warm duration-300'
+												href={`/recipes/${recipe.id}`}
+												aria-label={`${t('viewRecipe')}: ${recipe.title}`}
+												className='group block overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md shadow-card transition-all hover:shadow-warm duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
 											>
-												<div
-													className='relative h-48 w-full'
-													onClick={() => router.push(`/recipes/${recipe.id}`)}
-												>
+												<div className='relative h-48 w-full'>
 													<Image
 														src={
 															getRecipeImage(recipe) ||
 															'/placeholder-recipe.svg'
 														}
-														alt={recipe.title}
+														alt=''
 														fill
 														sizes='(max-width: 768px) 100vw, 50vw'
 														className='object-cover transition-transform duration-300 group-hover:scale-[1.03]'
 													/>
 												</div>
 												<div className='p-4'>
-													<h3
-														className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary transition-colors hover:text-brand'
-														onClick={() => router.push(`/recipes/${recipe.id}`)}
-													>
+													<h3 className='mb-2 line-clamp-1 text-lg font-semibold leading-tight text-text-primary transition-colors group-hover:text-brand'>
 														{recipe.title}
 													</h3>
 													<div className='mb-4 flex items-center gap-4 text-sm leading-normal text-text-secondary'>
@@ -865,14 +861,11 @@ export const UserProfile = ({
 																: recipe.likeCount}
 														</span>
 													</div>
-													<Button
-														className='h-11 w-full transition-all duration-300 group-hover:bg-brand group-hover:text-white'
-														onClick={() => router.push(`/recipes/${recipe.id}`)}
-													>
-														{t('cookNow')}
-													</Button>
+													<div className='flex h-11 w-full items-center justify-center rounded-md bg-brand px-4 text-sm font-medium text-white transition-colors group-hover:bg-brand/90'>
+														{t('viewRecipe')}
+													</div>
 												</div>
-											</div>
+											</Link>
 										))}
 									</div>
 								)}
@@ -948,9 +941,7 @@ export const UserProfile = ({
 													href={`/collections/${collection.id}`}
 													className='block h-full'
 												>
-											<div
-												className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'
-											>
+													<div className='group h-full overflow-hidden rounded-2xl border-none bg-bg-card/75 shadow-card transition-all duration-300 hover:shadow-warm'>
 														<div className='relative h-32 overflow-hidden bg-gradient-to-br from-brand/10 via-combo/5 to-xp/10'>
 															{coverImageDelivery ? (
 																<Image
@@ -967,7 +958,7 @@ export const UserProfile = ({
 																</div>
 															)}
 															<div className='pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent' />
-													<div className='absolute left-3 top-3 rounded-full bg-black/65 px-2 py-1 text-2xs font-semibold text-white'>
+															<div className='absolute left-3 top-3 rounded-full bg-black/65 px-2 py-1 text-2xs font-semibold text-white'>
 																{typeLabel}
 															</div>
 														</div>
@@ -1155,12 +1146,11 @@ export const UserProfile = ({
 												) : (
 													<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 														{savedRecipes.map(recipe => (
-															<div
+															<Link
 																key={recipe.id}
-																className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
-																onClick={() =>
-																	router.push(`/recipes/${recipe.id}`)
-																}
+																href={`/recipes/${recipe.id}`}
+																aria-label={`${t('viewRecipe')}: ${recipe.title}`}
+																className='group block cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
 															>
 																<div className='relative h-40 overflow-hidden'>
 																	<Image
@@ -1168,7 +1158,7 @@ export const UserProfile = ({
 																			getRecipeImage(recipe) ||
 																			'/placeholder-recipe.svg'
 																		}
-																		alt={recipe.title}
+																		alt=''
 																		fill
 																		sizes='(max-width: 768px) 100vw, 50vw'
 																		className='object-cover transition-transform duration-300 group-hover:scale-105'
@@ -1189,7 +1179,7 @@ export const UserProfile = ({
 																		</span>
 																	</div>
 																</div>
-															</div>
+															</Link>
 														))}
 													</div>
 												)}
@@ -1278,10 +1268,11 @@ export const UserProfile = ({
 								) : (
 									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
 										{likedRecipes.map(recipe => (
-											<div
+											<Link
 												key={recipe.id}
-												className='group cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300'
-												onClick={() => router.push(`/recipes/${recipe.id}`)}
+												href={`/recipes/${recipe.id}`}
+												aria-label={`${t('viewRecipe')}: ${recipe.title}`}
+												className='group block cursor-pointer overflow-hidden rounded-2xl border-none bg-bg-card/75 backdrop-blur-md transition-all hover:shadow-card duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
 											>
 												<div className='relative h-40 overflow-hidden'>
 													<Image
@@ -1289,7 +1280,7 @@ export const UserProfile = ({
 															getRecipeImage(recipe) ||
 															'/placeholder-recipe.svg'
 														}
-														alt={recipe.title}
+														alt=''
 														fill
 														sizes='(max-width: 768px) 100vw, 50vw'
 														className='object-cover transition-transform duration-300 group-hover:scale-105'
@@ -1310,7 +1301,7 @@ export const UserProfile = ({
 														</span>
 													</div>
 												</div>
-											</div>
+											</Link>
 										))}
 									</div>
 								)}

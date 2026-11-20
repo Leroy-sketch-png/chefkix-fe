@@ -22,9 +22,8 @@ jest.mock('@/services/recipe', () => ({
 }))
 
 jest.mock('next-intl', () => ({
-	useTranslations: () =>
-		(key: string, params?: Record<string, unknown>) =>
-			params ? `${key}:${JSON.stringify(params)}` : key,
+	useTranslations: () => (key: string, params?: Record<string, unknown>) =>
+		params ? `${key}:${JSON.stringify(params)}` : key,
 }))
 
 jest.mock('next/navigation', () => ({
@@ -46,17 +45,21 @@ jest.mock('next/link', () => ({
 
 jest.mock('framer-motion', () => {
 	const React = require('react')
+	const createMotionComponent = (component: React.ElementType) => {
+		const MotionComponent = ({ children, ...props }: Record<string, unknown>) =>
+			React.createElement(component, props, children as React.ReactNode)
+		MotionComponent.displayName = 'MockMotionComponent'
+		return MotionComponent
+	}
+
 	return {
 		AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-		motion: new Proxy(
-			{},
-			{
-				get:
-					(_target, tag: string) =>
-					({ children, ...props }: React.HTMLAttributes<HTMLElement>) =>
-						React.createElement(tag, props, children),
-			},
-		),
+		motion: new Proxy(createMotionComponent, {
+			get:
+				(_target, tag: string) =>
+				({ children, ...props }: React.HTMLAttributes<HTMLElement>) =>
+					React.createElement(tag, props, children),
+		}),
 	}
 })
 
@@ -87,9 +90,7 @@ describe('FriendsCookingNow state truth', () => {
 		render(<FriendsCookingNow />)
 
 		expect(await screen.findByText('friendsCookingEmptyTitle')).toBeTruthy()
-		expect(
-			screen.queryByText('friendsCookingUnavailableTitle'),
-		).toBeNull()
+		expect(screen.queryByText('friendsCookingUnavailableTitle')).toBeNull()
 	})
 
 	it('shows unavailable instead of zero when initial presence cannot load', async () => {
@@ -102,9 +103,7 @@ describe('FriendsCookingNow state truth', () => {
 			await screen.findByText('friendsCookingUnavailableTitle'),
 		).toBeTruthy()
 		expect(screen.queryByText('friendsCookingEmptyTitle')).toBeNull()
-		expect(
-			screen.getByLabelText('friendsCookingCountUnavailable'),
-		).toBeTruthy()
+		expect(screen.getByLabelText('friendsCookingCountUnavailable')).toBeTruthy()
 	})
 
 	it('retries both presence sources from the unavailable state', async () => {
@@ -112,7 +111,9 @@ describe('FriendsCookingNow state truth', () => {
 		mockGetFriendsActiveCooking.mockResolvedValueOnce(failed)
 
 		render(<FriendsCookingNow />)
-		fireEvent.click(await screen.findByRole('button', { name: 'friendsCookingRetry' }))
+		fireEvent.click(
+			await screen.findByRole('button', { name: 'friendsCookingRetry' }),
+		)
 
 		await waitFor(() => {
 			expect(mockGetFriendsActiveRooms).toHaveBeenCalledTimes(2)
@@ -123,7 +124,11 @@ describe('FriendsCookingNow state truth', () => {
 
 	it('preserves known room data when a later refresh partially fails', async () => {
 		mockGetFriendsActiveRooms
-			.mockResolvedValueOnce({ success: true, statusCode: 200, data: [liveRoom] })
+			.mockResolvedValueOnce({
+				success: true,
+				statusCode: 200,
+				data: [liveRoom],
+			})
 			.mockResolvedValue(failed)
 		mockGetFriendsActiveCooking
 			.mockResolvedValueOnce(emptySolo)
@@ -135,6 +140,36 @@ describe('FriendsCookingNow state truth', () => {
 		expect(await screen.findByText('friendsCookingPartial')).toBeTruthy()
 		expect(screen.getByText('Mai & Minh')).toBeTruthy()
 		expect(screen.queryByText('friendsCookingEmptyTitle')).toBeNull()
+	})
+
+	it('exposes solo-friend recipe navigation as a keyboard link', async () => {
+		mockGetFriendsActiveCooking.mockResolvedValue({
+			success: true,
+			statusCode: 200,
+			data: {
+				friends: [
+					{
+						userId: 'friend-1',
+						username: 'linh',
+						displayName: 'Linh',
+						avatarUrl: null,
+						recipeId: 'recipe-solo',
+						recipeTitle: 'Weeknight Pho',
+						coverImageUrl: [],
+						currentStep: 2,
+						totalSteps: 5,
+						startedAt: '2026-11-20T00:00:00Z',
+						roomCode: null,
+					},
+				],
+				totalActive: 1,
+			},
+		})
+
+		render(<FriendsCookingNow />)
+
+		const recipeLink = await screen.findByRole('link', { name: /Linh/ })
+		expect(recipeLink).toHaveAttribute('href', '/recipes/recipe-solo')
 	})
 })
 

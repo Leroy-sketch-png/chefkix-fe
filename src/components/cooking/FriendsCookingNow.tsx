@@ -30,6 +30,7 @@ interface FriendsCookingNowProps {
 }
 
 const FRIENDS_COOKING_TIMEOUT_MS = 8000
+const MotionLink = motion(Link)
 
 /**
  * "Friends Cooking Now" widget for the dashboard.
@@ -282,14 +283,14 @@ export function FriendsCookingNow({
 						</p>
 						<AnimatePresence mode='popLayout'>
 							{soloFriends.map(friend => (
-								<motion.div
+								<MotionLink
 									key={friend.userId}
+									href={`/recipes/${friend.recipeId}`}
 									initial={{ opacity: 0, x: -10 }}
 									animate={{ opacity: 1, x: 0 }}
 									exit={{ opacity: 0, x: 10 }}
 									transition={TRANSITION_SPRING}
-									onClick={() => router.push(`/recipes/${friend.recipeId}`)}
-									className='group flex cursor-pointer items-center gap-3 rounded-xl border border-border-subtle bg-bg-elevated/60 p-3 transition-all hover:border-border-medium hover:bg-bg-elevated'
+									className='group flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-elevated/60 p-3 transition-all hover:border-border-medium hover:bg-bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand'
 								>
 									<Avatar size='sm'>
 										{friend.avatarUrl && (
@@ -335,7 +336,7 @@ export function FriendsCookingNow({
 											</span>
 										</div>
 									</div>
-								</motion.div>
+								</MotionLink>
 							))}
 						</AnimatePresence>
 					</div>
