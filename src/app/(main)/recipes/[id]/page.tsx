@@ -642,14 +642,6 @@ function RecipeDetailContent() {
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
-			// Ignore if typing in an input/textarea
-			if (
-				e.target instanceof HTMLInputElement ||
-				e.target instanceof HTMLTextAreaElement
-			) {
-				return
-			}
-
 			// Escape always works - closes modals or navigates back
 			if (e.key === 'Escape') {
 				e.preventDefault()
@@ -672,6 +664,17 @@ function RecipeDetailContent() {
 
 			// Ignore if any modifier keys are pressed (except shift)
 			if (e.ctrlKey || e.metaKey || e.altKey) {
+				return
+			}
+
+			// Let native controls handle Enter and character keys instead of stealing
+			// them for page shortcuts (e.g. Enter on Manage must open its menu, not cook).
+			if (
+				e.target instanceof HTMLElement &&
+				e.target.closest(
+					'button, a, input, textarea, select, summary, [role="button"], [role="link"], [role="menuitem"], [contenteditable="true"]',
+				)
+			) {
 				return
 			}
 
