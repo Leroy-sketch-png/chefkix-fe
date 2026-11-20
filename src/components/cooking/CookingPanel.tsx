@@ -207,7 +207,11 @@ export const CookingPanel = () => {
 	const voice = useVoiceMode()
 
 	// Step photo capture (Wave 2: Kitchen Protocol)
-	const stepPhotos = useStepPhotos(session?.sessionId)
+	// Preview is local-only; keep the shared photo store attached to the real
+	// session so leaving a preview cannot discard its step-photo drafts.
+	const stepPhotos = useStepPhotos(
+		isPreviewMode ? undefined : session?.sessionId,
+	)
 	const clearStepPhotos = stepPhotos.clearPhotos
 	const [showPhotoPrompt, setShowPhotoPrompt] = useState(false)
 	const [photoStepNumber, setPhotoStepNumber] = useState(0)

@@ -63,6 +63,29 @@ afterAll(() => {
 })
 
 describe('useStepPhotos account ownership', () => {
+	it('does not let a photo-free preview take ownership from a real cook', () => {
+		const realPhoto = new File(['real cook'], 'real-cook.jpg', {
+			type: 'image/jpeg',
+		})
+		useStepPhotoStore.getState().setSession('real-session', 'owner-1')
+		useStepPhotoStore
+			.getState()
+			.addPhoto('real-session', 'owner-1', 2, realPhoto)
+
+		const preview = renderHook(() => useStepPhotos(undefined))
+		expect(useStepPhotoStore.getState()).toMatchObject({
+			sessionId: 'real-session',
+			ownerId: 'owner-1',
+			photos: [expect.objectContaining({ file: realPhoto })],
+		})
+		expect(preview.result.current.getFiles()).toEqual([])
+
+		act(() => preview.result.current.clearPhotos())
+		expect(useStepPhotoStore.getState().photos).toEqual([
+			expect.objectContaining({ file: realPhoto }),
+		])
+	})
+
 	it('explains oversized photo rejection and resets the capture input', () => {
 		const { result } = renderHook(() => useStepPhotos('session-1'))
 		const input = {

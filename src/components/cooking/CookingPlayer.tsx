@@ -623,7 +623,11 @@ export const CookingPlayer = () => {
 	}, [])
 
 	// Step photo capture (Wave 2: Kitchen Protocol)
-	const stepPhotos = useStepPhotos(session?.sessionId)
+	// Preview is local-only; do not let its temporary session claim the single
+	// photo-store slot from a real cook that will be restored on preview exit.
+	const stepPhotos = useStepPhotos(
+		isPreviewMode ? undefined : session?.sessionId,
+	)
 	const [showPhotoPrompt, setShowPhotoPrompt] = useState(false)
 	const [photoStepNumber, setPhotoStepNumber] = useState(0) // Tracks which step was just completed (for photo prompt)
 	const [completionPhotoCaptureEnabled, setCompletionPhotoCaptureEnabled] =
@@ -2441,7 +2445,7 @@ export const CookingPlayer = () => {
 									id='abandon-description'
 									className='mb-6 text-text-secondary'
 								>
-									{t('abandonDesc')}
+									{t(isPreviewMode ? 'previewAbandonDesc' : 'abandonDesc')}
 								</p>
 								<div className='flex gap-3'>
 									<motion.button
