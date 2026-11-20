@@ -78,6 +78,21 @@ it('keeps live API data separate from unvalidated academic fixtures', async () =
 	).not.toBeInTheDocument()
 })
 
+it('states that no graph evidence is shown when the live graph request fails', async () => {
+	jest.mocked(getGraphData).mockRejectedValue(new Error('Not found'))
+	render(<GraphExplorer />)
+
+	await waitFor(() =>
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			'This graph preview is unavailable right now. No ingredient relationships or study/safety evidence are being shown.',
+		),
+	)
+	expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+	expect(screen.queryByTestId('graph-content')).not.toBeInTheDocument()
+	// The refusal must not silently fall back to the local mock graph.
+	expect(getGraphData).toHaveBeenCalledTimes(1)
+})
+
 it('finds an ingredient by remote alias outside the initial page', async () => {
 	jest.mocked(getGraphData).mockImplementation(async query =>
 		query?.query

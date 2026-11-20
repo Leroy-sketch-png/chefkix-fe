@@ -55,7 +55,11 @@ export function GraphExplorer() {
 		setError(null)
 		getGraphData()
 			.then(setData)
-			.catch(() => setError('The ingredient graph could not be loaded.'))
+			.catch(() =>
+				setError(
+					'This graph preview is unavailable right now. No ingredient relationships or study/safety evidence are being shown.',
+				),
+			)
 	}, [])
 	useEffect(() => {
 		void loadGraph()
