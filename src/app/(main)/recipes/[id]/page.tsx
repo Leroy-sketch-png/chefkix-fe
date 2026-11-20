@@ -76,6 +76,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SocialProof } from '@/components/recipe/SocialProof'
 import { ScanRecipeFitSummary } from '@/components/recipe/ScanRecipeFitSummary'
+import { handleRecipeDetailKeyDown } from '@/lib/recipeDetailKeyboardShortcuts'
 import { SimilarRecipes } from '@/components/recipe/SimilarRecipes'
 import { RecipeReviews } from '@/components/recipe/RecipeReviews'
 import { RecipeIngredientChecklistItem } from '@/components/recipe/RecipeIngredientChecklistItem'
@@ -641,66 +642,32 @@ function RecipeDetailContent() {
 
 	// Keyboard shortcuts: Enter=cook, S=save, L=like, Esc=back
 	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			// Escape always works - closes modals or navigates back
-			if (e.key === 'Escape') {
-				e.preventDefault()
-				if (showDeleteConfirm) {
-					setShowDeleteConfirm(false)
-				} else if (showRemixMenu) {
-					setShowRemixMenu(false)
-				} else if (remixResult) {
-					setRemixResult(null)
-				} else {
-					navigateBackOrFallback(router, PATHS.EXPLORE)
-				}
-				return
-			}
-
-			// All other shortcuts: ignore when menus or modals are open
-			if (showRemixMenu || remixResult || showDeleteConfirm) {
-				return
-			}
-
-			// Ignore if any modifier keys are pressed (except shift)
-			if (e.ctrlKey || e.metaKey || e.altKey) {
-				return
-			}
-
-			// Let native controls handle Enter and character keys instead of stealing
-			// them for page shortcuts (e.g. Enter on Manage must open its menu, not cook).
-			if (
-				e.target instanceof HTMLElement &&
-				e.target.closest(
-					'button, a, input, textarea, select, summary, [role="button"], [role="link"], [role="menuitem"], [contenteditable="true"]',
-				)
-			) {
-				return
-			}
-
-			switch (e.key) {
-				case 'Enter':
-					e.preventDefault()
-					if (!isCookingLoading && recipe) {
-						handleStartCooking()
+		const handleKeyDown = (e: KeyboardEvent) =>
+			handleRecipeDetailKeyDown(e, {
+				hasOpenOverlay: Boolean(
+					showRemixMenu || remixResult || showDeleteConfirm,
+				),
+				onEscape: () => {
+					if (showDeleteConfirm) {
+						setShowDeleteConfirm(false)
+					} else if (showRemixMenu) {
+						setShowRemixMenu(false)
+					} else if (remixResult) {
+						setRemixResult(null)
+					} else {
+						navigateBackOrFallback(router, PATHS.EXPLORE)
 					}
-					break
-				case 's':
-				case 'S':
-					e.preventDefault()
-					if (!isSaveLoading && recipe) {
-						handleSave()
-					}
-					break
-				case 'l':
-				case 'L':
-					e.preventDefault()
-					if (!isLikeLoading && recipe) {
-						handleLike()
-					}
-					break
-			}
-		}
+				},
+				onEnter: () => {
+					if (!isCookingLoading && recipe) handleStartCooking()
+				},
+				onSave: () => {
+					if (!isSaveLoading && recipe) handleSave()
+				},
+				onLike: () => {
+					if (!isLikeLoading && recipe) handleLike()
+				},
+			})
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)

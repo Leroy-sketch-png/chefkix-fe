@@ -45,15 +45,8 @@ describe('recipe detail coherence contract', () => {
 		expect(messages.recipeDetail.continueCooking).toBe('Continue Cooking')
 	})
 
-	it('does not steal Enter from focused recipe controls', () => {
-		const nativeControlGuard = pageSource.indexOf('e.target.closest(')
-		const shortcutSwitch = pageSource.indexOf('switch (e.key)')
-
-		expect(nativeControlGuard).toBeGreaterThan(-1)
-		expect(nativeControlGuard).toBeLessThan(shortcutSwitch)
-		expect(pageSource).toContain(
-			'button, a, input, textarea, select, summary, [role="button"], [role="link"], [role="menuitem"], [contenteditable="true"]',
-		)
+	it('delegates page shortcuts to the behavior-tested keyboard handler', () => {
+		expect(pageSource).toContain('handleRecipeDetailKeyDown(e, {')
 	})
 
 	it('keeps the mobile desire-to-cook action inside the first viewport', () => {
