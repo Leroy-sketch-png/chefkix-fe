@@ -34,7 +34,6 @@ import { useEscapeKey } from '@/hooks/useEscapeKey'
 import { StickyHeader } from '@/components/layout/StickyHeader'
 import { getHeaderRoutePolicy } from '@/components/layout/topbar-route-policy'
 import { getTopbarProgress } from '@/components/layout/topbar-progress'
-import { useScrollCollapse } from '@/lib/use-scroll-collapse'
 import {
 	CommandMenu,
 	type CommandMenuGroup,
@@ -57,7 +56,6 @@ export const Topbar = () => {
 	const { user, logout, isLoggingOut } = useAuth()
 	const { toggleMessagesDrawer, toggleNotificationsPopup } = useUiStore()
 	const { unreadCount, startPolling, stopPolling } = useNotificationStore()
-	const collapsed = useScrollCollapse()
 
 	const [query, setQuery] = useState('')
 	const [showUserMenu, setShowUserMenu] = useState(false)
@@ -488,8 +486,7 @@ export const Topbar = () => {
 	return (
 		<>
 			<StickyHeader
-				height='h-12 md:h-18'
-				collapsed={collapsed}
+				height='h-16 md:h-18'
 				left={leftSlot}
 				center={routePolicy.showDesktopSearchBar ? centerSlot : undefined}
 				right={rightSlot}

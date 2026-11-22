@@ -37,7 +37,6 @@ import { PATHS, isUserProfileRoutePath } from '@/constants'
 import { Portal } from '@/components/ui/portal'
 import { useTranslations } from '@/i18n/hooks'
 import { useAuth } from '@/hooks/useAuth'
-import { useScrollCollapse } from '@/lib/use-scroll-collapse'
 
 interface NavItem {
 	href: string
@@ -134,7 +133,6 @@ export const MobileBottomNav = () => {
 	const [drawerQuery, setDrawerQuery] = useState('')
 	const t = useTranslations('nav')
 	const { isAuthenticated } = useAuth()
-	const collapsed = useScrollCollapse()
 	const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 	const guestSignUpHref = `${PATHS.AUTH.SIGN_UP}?returnTo=${encodeURIComponent(currentPath)}`
 
@@ -213,11 +211,7 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className={cn(
-					'fixed bottom-0 left-0 right-0 z-sticky flex min-h-[calc(var(--h-mobile-nav)+env(safe-area-inset-bottom))] items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden',
-					'transition-transform duration-200 ease-in-out',
-					collapsed && 'translate-y-full',
-				)}
+				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-[calc(var(--h-mobile-nav)+env(safe-area-inset-bottom))] items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
 				<div

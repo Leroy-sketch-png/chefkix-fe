@@ -10,7 +10,6 @@ interface StickyHeaderProps {
 	centerOnMobile?: boolean
 	height?: string
 	className?: string
-	collapsed?: boolean
 }
 
 export function StickyHeader({
@@ -20,14 +19,11 @@ export function StickyHeader({
 	centerOnMobile = false,
 	height = 'h-16',
 	className,
-	collapsed = false,
 }: StickyHeaderProps) {
 	return (
 		<header
 			className={cn(
 				'sticky top-0 z-sticky w-full shrink-0 border-b border-border-subtle/60 bg-bg/90 dark:bg-bg-card/75 backdrop-blur-sm shadow-card transition-colors',
-				'transition-transform duration-200 ease-in-out',
-				collapsed && '-translate-y-full md:translate-y-0',
 				height,
 				className,
 			)}
