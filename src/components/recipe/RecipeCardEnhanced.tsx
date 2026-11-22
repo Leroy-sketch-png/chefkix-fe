@@ -549,6 +549,7 @@ const GridCard = ({
 
 	return (
 		<motion.article
+			data-explore-recipe-id={id}
 			whileHover={CARD_GRID_HOVER}
 			transition={TRANSITION_SPRING}
 			className='group/recipe overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-card transition-all duration-300 hover:border-border-medium hover:shadow-warm'
