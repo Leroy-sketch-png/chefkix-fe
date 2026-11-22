@@ -39,6 +39,7 @@ export function CommandMenu({
 	const [query, setQuery] = React.useState('')
 	const [selectedIndex, setSelectedIndex] = React.useState(0)
 	const inputRef = React.useRef<HTMLInputElement>(null)
+	const returnFocusRef = React.useRef<HTMLElement | null>(null)
 
 	const filteredGroups = React.useMemo(() => {
 		const normalized = query.toLowerCase().trim()
@@ -59,10 +60,21 @@ export function CommandMenu({
 
 	React.useEffect(() => {
 		if (!open) return
+		const activeElement = document.activeElement
+		returnFocusRef.current =
+			activeElement instanceof HTMLElement && activeElement !== document.body
+				? activeElement
+				: null
 		setQuery('')
 		setSelectedIndex(0)
 		const id = setTimeout(() => inputRef.current?.focus(), 50)
-		return () => clearTimeout(id)
+		return () => {
+			clearTimeout(id)
+			if (returnFocusRef.current?.isConnected) {
+				returnFocusRef.current.focus()
+			}
+			returnFocusRef.current = null
+		}
 	}, [open])
 
 	const handleSelect = React.useCallback(
@@ -74,6 +86,13 @@ export function CommandMenu({
 	)
 
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Escape') {
+			event.preventDefault()
+			event.stopPropagation()
+			onOpenChange(false)
+			return
+		}
+
 		if (event.key === 'ArrowDown') {
 			event.preventDefault()
 			setSelectedIndex(prev => Math.min(prev + 1, allItems.length - 1))

@@ -60,7 +60,11 @@ describe('Explore search-signal contract', () => {
 	})
 
 	it('keeps mode and sort controls compact and readable on narrow screens', () => {
-		expect(commandDeckSource).toContain('flex-row items-center gap-2')
+		expect(commandDeckSource).toContain('flex flex-row flex-wrap items-center gap-2')
+		expect(commandDeckSource).toContain(
+			'flex-[1_1_100%] sm:flex-[1_1_11.5rem]',
+		)
+		expect(commandDeckSource).toContain('[&>button]:whitespace-normal')
 		expect(commandDeckSource).toContain('max-[319px]:flex-col')
 		expect(commandDeckSource).toContain('max-[319px]:items-stretch')
 		expect(commandDeckSource).toContain(

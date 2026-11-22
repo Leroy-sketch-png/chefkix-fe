@@ -1287,10 +1287,10 @@ function ExploreContent() {
 									className='mb-6'
 								>
 									<div className='space-y-2.5'>
-										<div className='flex items-center gap-2'>
+										<div className='flex flex-wrap items-center gap-2'>
 											<div
 												ref={autocompleteRef}
-												className='group relative flex-1'
+												className='group relative min-w-0 flex-[1_1_11rem]'
 											>
 												<Search className='absolute left-4 top-1/2 size-5 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-brand' />
 												<Input

@@ -277,10 +277,10 @@ export const MobileBottomNav = () => {
 									<Link
 										href={href}
 										aria-label={t('signUp')}
-										className='flex h-11 w-full items-center justify-center gap-1 rounded-lg bg-brand px-1 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+						className='flex h-11 w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-lg bg-brand px-1 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
-										<Icon className='size-3.5 shrink-0 max-[319px]:hidden' />
-										<span className='whitespace-nowrap text-2xs font-semibold leading-none'>
+										<Icon className='size-3.5 shrink-0' />
+										<span className='max-w-full whitespace-normal text-center text-[11px] font-semibold leading-tight'>
 											{label}
 										</span>
 									</Link>

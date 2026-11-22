@@ -103,8 +103,8 @@ export function ExploreCommandDeck({
 
 			{/* Controls row */}
 			<div className='flex flex-col gap-2 sm:gap-3'>
-				<div className='flex flex-row items-center gap-2 max-[319px]:flex-col max-[319px]:items-stretch sm:gap-3'>
-					<div className='min-w-0 flex-1'>
+				<div className='flex flex-row flex-wrap items-center gap-2 max-[319px]:flex-col max-[319px]:items-stretch sm:gap-3'>
+					<div className='min-w-0 flex-[1_1_100%] sm:flex-[1_1_11.5rem]'>
 						<SlideTabs
 							tabs={[
 								{
@@ -139,7 +139,7 @@ export function ExploreCommandDeck({
 							variant='pill'
 							size='sm'
 							fullWidth
-							className='w-full [&>button]:min-h-11 [&>button]:whitespace-nowrap [&>button]:px-1.5 [&>button]:text-xs sm:[&>button]:px-4 sm:[&>button]:text-sm'
+							className='w-full [&>button]:min-h-11 [&>button]:whitespace-normal [&>button]:px-1.5 [&>button]:text-center [&>button]:text-xs sm:[&>button]:px-4 sm:[&>button]:text-sm'
 						/>
 					</div>
 
