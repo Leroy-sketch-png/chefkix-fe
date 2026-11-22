@@ -1,8 +1,16 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { PATHS } from '@/constants/paths'
-import { Compass, Sparkles, TrendingUp, ArrowRight, Network, Camera } from 'lucide-react'
+import {
+	Compass,
+	Sparkles,
+	TrendingUp,
+	ArrowRight,
+	Network,
+	Camera,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TonightsPick } from '@/components/dashboard/TonightsPick'
 import { SeasonsBest } from '@/components/explore/SeasonsBest'
 import { BUTTON_HOVER, BUTTON_TAP } from '@/lib/motion'
@@ -19,6 +27,8 @@ export function ExploreContextRail({
 	showDiscoveryWidgets,
 }: ExploreContextRailProps) {
 	const t = useTranslations('explore')
+	// Match the 2xl rail visibility before mounting widgets that fetch data.
+	const isRailVisible = useMediaQuery('(min-width: 96rem)')
 	const quickTerms = trendingSearches.slice(0, 8)
 
 	return (
@@ -28,7 +38,7 @@ export function ExploreContextRail({
 			transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
 			className='hidden 2xl:flex 2xl:flex-col 2xl:gap-6 2xl:self-start 2xl:sticky 2xl:top-24'
 		>
-			{showDiscoveryWidgets && (
+			{showDiscoveryWidgets && isRailVisible && (
 				<>
 					<TonightsPick className='mb-0' />
 					<SeasonsBest className='mb-0' />

@@ -60,12 +60,16 @@ describe('Explore search-signal contract', () => {
 	})
 
 	it('keeps mode and sort controls compact and readable on narrow screens', () => {
+		expect(commandDeckSource).toContain('flex-row items-center gap-2')
+		expect(commandDeckSource).toContain('max-[319px]:flex-col')
+		expect(commandDeckSource).toContain('max-[319px]:items-stretch')
 		expect(commandDeckSource).toContain(
-			"className='flex flex-row items-center gap-2 sm:gap-3'",
+			'w-32 shrink-0 max-[319px]:w-full sm:w-44',
 		)
-		expect(commandDeckSource).toContain("className='w-32 shrink-0 sm:w-44'")
 		expect(commandDeckSource).toContain('[&>button]:min-h-11')
-		expect(commandDeckSource).toContain("className='explore-command-result-count text-xs font-medium text-text-muted'")
+		expect(commandDeckSource).toContain(
+			"className='explore-command-result-count text-xs font-medium text-text-muted'",
+		)
 		expect(commandDeckSource).toContain('{labels.subtitle}')
 		expect(commandDeckSource).toContain('{labels.commandInput}')
 		expect(commandDeckSource).toContain('explore-command-intro sm:mb-4')

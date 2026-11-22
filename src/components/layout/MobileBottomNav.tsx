@@ -237,7 +237,7 @@ export const MobileBottomNav = () => {
 							? t('leaderboardShort')
 							: item.labelKey === 'community'
 								? t('communityShort')
-							: label
+								: label
 
 					// Special handling for the elevated Create button.
 					if (item.isCreate) {
@@ -285,8 +285,8 @@ export const MobileBottomNav = () => {
 										aria-label={t('signUp')}
 										className='flex h-11 w-full items-center justify-center gap-1 rounded-lg bg-brand px-1 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
-										<Icon className='size-3.5' />
-											<span className='whitespace-nowrap text-2xs font-semibold leading-none'>
+										<Icon className='size-3.5 shrink-0 max-[319px]:hidden' />
+										<span className='whitespace-nowrap text-2xs font-semibold leading-none'>
 											{label}
 										</span>
 									</Link>
@@ -302,7 +302,7 @@ export const MobileBottomNav = () => {
 							aria-label={label}
 							aria-current={active ? 'page' : undefined}
 							className={cn(
-							'group relative flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-all duration-200',
+								'group relative flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-all duration-200',
 								isAuthenticated && 'max-w-20',
 								active
 									? 'bg-brand/10 text-brand shadow-glow'
@@ -330,7 +330,7 @@ export const MobileBottomNav = () => {
 									)}
 								/>
 							</motion.div>
-							<span className='max-w-full truncate text-[11px] font-semibold leading-tight'>
+							<span className='max-w-full truncate text-[11px] font-semibold leading-tight max-[319px]:text-[10px]'>
 								{displayLabel}
 							</span>
 						</Link>

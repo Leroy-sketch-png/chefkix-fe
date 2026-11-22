@@ -242,7 +242,7 @@ export const Topbar = () => {
 				>
 					<ChefHat className='size-4 md:size-5' />
 				</motion.div>
-				<div className='font-display text-lg font-bold leading-none tracking-tight md:text-2xl'>
+				<div className='font-display text-lg font-bold leading-none tracking-tight max-[319px]:sr-only md:text-2xl'>
 					<span className='bg-gradient-to-r from-brand to-brand/80 bg-clip-text text-transparent'>
 						Chef
 					</span>
