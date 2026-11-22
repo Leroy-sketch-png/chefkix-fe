@@ -60,8 +60,7 @@ export function ExploreCommandDeck({
 	className,
 	children,
 }: ExploreCommandDeckProps) {
-	const hasResultSignals =
-		resultCount > 0 || activeFiltersCount > 0
+	const hasResultSignals = resultCount > 0 || activeFiltersCount > 0
 
 	return (
 		<motion.section
@@ -104,7 +103,7 @@ export function ExploreCommandDeck({
 
 			{/* Controls row */}
 			<div className='flex flex-col gap-2 sm:gap-3'>
-				<div className='flex flex-row items-center gap-2 sm:gap-3'>
+				<div className='flex flex-row items-center gap-2 max-[319px]:flex-col max-[319px]:items-stretch sm:gap-3'>
 					<div className='min-w-0 flex-1'>
 						<SlideTabs
 							tabs={[
@@ -144,7 +143,7 @@ export function ExploreCommandDeck({
 						/>
 					</div>
 
-					<div className='w-32 shrink-0 sm:w-44'>
+					<div className='w-32 shrink-0 max-[319px]:w-full sm:w-44'>
 						<label htmlFor='explore-sort-select' className='sr-only'>
 							{labels.sort}
 						</label>
