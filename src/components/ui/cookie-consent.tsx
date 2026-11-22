@@ -158,7 +158,7 @@ export function CookieConsent({
 					exit={{ y: 100, opacity: 0 }}
 					transition={{ type: 'spring', damping: 25, stiffness: 300 }}
 					className={cn(
-						'cookie-consent-banner fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 sm:bottom-4 sm:right-4 sm:left-auto sm:max-w-[15rem] sm:px-0',
+						'cookie-consent-banner fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 md:bottom-4 md:right-4 md:left-auto md:max-w-[15rem] md:px-0',
 						className,
 					)}
 					style={
@@ -171,11 +171,11 @@ export function CookieConsent({
 					role='dialog'
 					aria-label={t('cookieConsent')}
 				>
-					<div className='mx-auto w-full rounded-radius border border-border-subtle bg-bg-card p-3 shadow-warm sm:p-4'>
-						<div className='flex items-start gap-2.5 sm:gap-3'>
-							<Cookie className='mt-0.5 size-4 flex-shrink-0 text-brand sm:size-5' />
+					<div className='mx-auto w-full rounded-radius border border-border-subtle bg-bg-card p-3 shadow-warm md:p-4'>
+						<div className='flex items-start gap-2.5 md:gap-3'>
+							<Cookie className='mt-0.5 size-4 flex-shrink-0 text-brand md:size-5' />
 							<div className='min-w-0 flex-1'>
-								<p className='pr-6 text-xs leading-5 text-text-secondary sm:pr-0 sm:text-sm'>
+								<p className='pr-6 text-xs leading-5 text-text-secondary md:pr-0 md:text-sm'>
 									{useCompactCopy
 										? t('cookieConsentMessageCompact')
 										: t('cookieConsentMessage')}{' '}
@@ -186,10 +186,10 @@ export function CookieConsent({
 										{t('cookiePrivacyPolicy')}
 									</a>
 								</p>
-								<div className='cookie-consent-actions mt-2.5 flex flex-wrap gap-2 sm:mt-3'>
+								<div className='cookie-consent-actions mt-2.5 flex flex-wrap gap-2 md:mt-3'>
 									<Button
 										size={useCompactCopy ? 'sm' : 'default'}
-										className='h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm'
+										className='h-8 px-3 text-xs md:h-9 md:px-4 md:text-sm'
 										onClick={handleAccept}
 									>
 										{t('cookieAccept')}
@@ -197,7 +197,7 @@ export function CookieConsent({
 									<Button
 										size={useCompactCopy ? 'sm' : 'default'}
 										variant='outline'
-										className='h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm'
+										className='h-8 px-3 text-xs md:h-9 md:px-4 md:text-sm'
 										onClick={handleDecline}
 									>
 										{t('cookieDecline')}
