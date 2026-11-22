@@ -7,7 +7,7 @@ import type {
 	GraphEdge,
 	GraphEvidenceResponse,
 	GraphNode,
-	GraphSnapshotResponse,
+	GraphSnapshotSummary,
 	NutritionSnapshot,
 	TechniqueContext,
 } from '../types'
@@ -15,6 +15,9 @@ import type {
 const SAMPLE_LIMIT = 100
 const RENDER_LIMIT = 500
 const CANDIDATE_OVERVIEW_LIMIT = 30
+
+// The monolith's verified T395 integration test uses this canonical center.
+const EVIDENCE_SNAPSHOT_CENTER_ID = '1'
 
 export function graphEdgeKey(
 	edge: Pick<GraphEdge, 'source' | 'target' | 'type'>,
@@ -265,10 +268,8 @@ export async function getGraphEvidence(
 			status: 'AVAILABLE',
 			artifactIntegrity: {
 				status: 'VERIFIED',
-				expectedSha256:
-					'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-				observedSha256:
-					'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+				expectedSha256: '0'.repeat(64),
+				observedSha256: '0'.repeat(64),
 			},
 			evidence: {
 				identityResolution: {
@@ -321,52 +322,62 @@ export async function getGraphEvidence(
 }
 
 export async function getGraphEvidenceSnapshot(): Promise<
-	GraphSnapshotResponse | undefined
+	GraphSnapshotSummary | undefined
 > {
-	if (!isGraphEvidenceEnabled()) return undefined
-	if (isMockEnabled()) {
-		return {
-			contractVersion: 'graph-evidence.v1',
-			status: 'AVAILABLE',
-			artifactIntegrity: {
-				status: 'VERIFIED',
-				expectedSha256:
-					'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-				observedSha256:
-					'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-			},
-			snapshot: {
-				totalNodes: 6633,
-				totalEdges: 23185,
-				acceptanceState: 'PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED',
-			},
-		}
-	}
+	if (!isGraphEvidenceEnabled() || isMockEnabled()) return undefined
 
-	let payload: unknown
-	try {
-		const response = await api.get(
-			API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE_SNAPSHOT,
-		)
-		payload = response.data ?? response
-	} catch (error) {
-		payload = errorResponseData(error)
-		if (payload === undefined) {
-			throw error instanceof Error
-				? error
-				: new Error('The graph evidence snapshot could not be loaded.')
-		}
-	}
-	const response = unwrapData(payload)
+	const { data } = await api.get(
+		API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE_SNAPSHOT,
+		{
+			params: {
+				centerIngredientId: EVIDENCE_SNAPSHOT_CENTER_ID,
+				depth: 0,
+				limit: 1,
+			},
+		},
+	)
+	const response = unwrapData(data)
 	if (
 		!isRecord(response) ||
-		response.contractVersion !== 'graph-evidence.v1' ||
-		typeof response.status !== 'string' ||
-		!GRAPH_EVIDENCE_STATUSES.has(response.status)
-	) {
+		response.contractVersion !== 'graph-evidence-snapshot.v1' ||
+		response.status !== 'AVAILABLE'
+	)
 		return undefined
-	}
-	return response as unknown as GraphSnapshotResponse
+
+	const { artifactIntegrity, center, snapshot } = response
+	if (
+		!isRecord(artifactIntegrity) ||
+		artifactIntegrity.status !== 'VERIFIED' ||
+		!isRecord(center) ||
+		center.status !== 'RESOLVED' ||
+		center.requestedId !== EVIDENCE_SNAPSHOT_CENTER_ID ||
+		center.canonicalId !== EVIDENCE_SNAPSHOT_CENTER_ID ||
+		!isRecord(snapshot) ||
+		!isRecord(snapshot.provenance) ||
+		!isRecord(snapshot.stats)
+	)
+		return undefined
+
+	const { expectedSha256, observedSha256 } = artifactIntegrity
+	const manifestSha256 = asString(
+		snapshot.provenance.manifestSha256,
+	).toLowerCase()
+	const totalNodes = asNumber(snapshot.stats.totalNodes)
+	const totalEdges = asNumber(snapshot.stats.totalEdges)
+	if (
+		!SHA256.test(manifestSha256) ||
+		asString(expectedSha256).toLowerCase() !== manifestSha256 ||
+		asString(observedSha256).toLowerCase() !== manifestSha256 ||
+		totalNodes === undefined ||
+		!Number.isSafeInteger(totalNodes) ||
+		totalNodes < 1 ||
+		totalEdges === undefined ||
+		!Number.isSafeInteger(totalEdges) ||
+		totalEdges < 0
+	)
+		return undefined
+
+	return { manifestSha256, totalNodes, totalEdges }
 }
 
 function normalizeEdgeType(value: unknown): GraphEdge['type'] {

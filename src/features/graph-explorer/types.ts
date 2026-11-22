@@ -75,26 +75,10 @@ export interface GraphData {
 	manifestSha256?: string
 }
 
-export interface GraphSnapshotResponse {
-	contractVersion: 'graph-evidence.v1'
-	status: 'AVAILABLE' | 'UNAVAILABLE' | 'REFUSED'
-	unavailableReason?: string
-	artifactIntegrity?: {
-		status: 'VERIFIED' | 'MISSING' | 'INVALID' | 'UNVERIFIED'
-		expectedSha256?: string
-		observedSha256?: string
-	}
-	snapshot?: {
-		totalNodes: number
-		totalEdges: number
-		acceptanceState: string
-		provenance?: {
-			sourceId?: string
-			split?: string
-			evidenceTier?: string
-			manifestSha256?: string
-		}
-	}
+export interface GraphSnapshotSummary {
+	manifestSha256: string
+	totalNodes: number
+	totalEdges: number
 }
 
 export interface GraphEvidenceResponse {

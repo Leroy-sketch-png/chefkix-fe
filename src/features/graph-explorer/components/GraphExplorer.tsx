@@ -24,7 +24,7 @@ import type {
 	GraphEdge,
 	GraphEvidenceLoadState,
 	GraphSignal,
-	GraphSnapshotResponse,
+	GraphSnapshotSummary,
 } from '../types'
 
 const signals: Array<{ value: GraphSignal | 'all'; label: string }> = [
@@ -40,7 +40,7 @@ export function GraphExplorer() {
 	const [error, setError] = useState<string | null>(null)
 	const [searchError, setSearchError] = useState<string | null>(null)
 	const [graphEvidence, setGraphEvidence] = useState<GraphEvidenceLoadState>()
-	const [snapshot, setSnapshot] = useState<GraphSnapshotResponse>()
+	const [snapshot, setSnapshot] = useState<GraphSnapshotSummary>()
 	const [loadingNeighborhood, setLoadingNeighborhood] = useState(false)
 	const loadedRoots = useRef(new Set<string>())
 	const pendingRoots = useRef(new Set<string>())
@@ -421,17 +421,15 @@ export function GraphExplorer() {
 						<span role='status'>Loading neighborhood…</span>
 					</>
 				)}
-				{snapshot?.artifactIntegrity?.observedSha256 && (
+				{snapshot && (
 					<>
 						<span>•</span>
 						<span
 							data-testid='graph-artifact-footer-hash'
-							title={`Manifest SHA-256: ${snapshot.artifactIntegrity.observedSha256}`}
+							title={`Manifest SHA-256: ${snapshot.manifestSha256}`}
 						>
-							Artifact: {snapshot.artifactIntegrity.observedSha256.slice(0, 12)}
-							…
-							{snapshot.snapshot &&
-								` (${snapshot.snapshot.totalNodes} nodes, ${snapshot.snapshot.totalEdges} edges)`}
+							Evidence artifact: {snapshot.manifestSha256.slice(0, 12)}… (
+							{snapshot.totalNodes} nodes, {snapshot.totalEdges} edges)
 						</span>
 					</>
 				)}

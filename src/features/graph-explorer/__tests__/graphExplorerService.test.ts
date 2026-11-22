@@ -432,27 +432,96 @@ describe('live graph API', () => {
 		expect(api.get).not.toHaveBeenCalled()
 	})
 
-	it('fetches graph evidence snapshot when enabled', async () => {
-		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
-		const snapshot = {
-			contractVersion: 'graph-evidence.v1',
-			status: 'AVAILABLE',
-			artifactIntegrity: {
-				status: 'VERIFIED',
-				expectedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-				observedSha256: 'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-			},
-			snapshot: {
-				totalNodes: 6633,
-				totalEdges: 23185,
-				acceptanceState: 'PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED',
-			},
-		}
-		;(api.get as jest.Mock).mockResolvedValueOnce({ data: snapshot })
+	const snapshotDigest = 'a'.repeat(64)
+	const snapshotResponse = {
+		contractVersion: 'graph-evidence-snapshot.v1',
+		status: 'AVAILABLE',
+		artifactIntegrity: {
+			status: 'VERIFIED',
+			expectedSha256: snapshotDigest,
+			observedSha256: snapshotDigest,
+		},
+		center: { status: 'RESOLVED', requestedId: '1', canonicalId: '1' },
+		snapshot: {
+			stats: { totalNodes: 6633, totalEdges: 23185 },
+			provenance: { manifestSha256: snapshotDigest },
+		},
+	}
 
-		const result = await getGraphEvidenceSnapshot()
-		expect(result).toEqual(snapshot)
-		expect(api.get).toHaveBeenCalledWith('/api/v1/graph/evidence/snapshot')
+	it('requests the monolith snapshot and returns its verified aggregate metadata', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		jest.mocked(api.get).mockResolvedValueOnce({ data: snapshotResponse })
+
+		await expect(getGraphEvidenceSnapshot()).resolves.toEqual({
+			manifestSha256: snapshotDigest,
+			totalNodes: 6633,
+			totalEdges: 23185,
+		})
+		expect(api.get).toHaveBeenCalledWith('/api/v1/graph/evidence/snapshot', {
+			params: { centerIngredientId: '1', depth: 0, limit: 1 },
+		})
+	})
+
+	it.each([
+		['pair response version', { contractVersion: 'graph-evidence.v1' }],
+		['typed refusal', { status: 'REFUSED' }],
+		[
+			'unverified integrity',
+			{
+				artifactIntegrity: {
+					...snapshotResponse.artifactIntegrity,
+					status: 'UNVERIFIED',
+				},
+			},
+		],
+		[
+			'mismatched digests',
+			{
+				artifactIntegrity: {
+					...snapshotResponse.artifactIntegrity,
+					expectedSha256: 'b'.repeat(64),
+				},
+			},
+		],
+		[
+			'mismatched provenance',
+			{
+				snapshot: {
+					...snapshotResponse.snapshot,
+					provenance: { manifestSha256: 'b'.repeat(64) },
+				},
+			},
+		],
+		[
+			'mismatched center',
+			{ center: { ...snapshotResponse.center, canonicalId: '2' } },
+		],
+		[
+			'invalid totals',
+			{
+				snapshot: {
+					...snapshotResponse.snapshot,
+					stats: { totalNodes: -1, totalEdges: 0 },
+				},
+			},
+		],
+	])('omits an evidence artifact footer for %s', async (_label, overrides) => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		jest
+			.mocked(api.get)
+			.mockResolvedValueOnce({ data: { ...snapshotResponse, ...overrides } })
+		await expect(getGraphEvidenceSnapshot()).resolves.toBeUndefined()
+	})
+
+	it('does not request or return a live evidence snapshot in mock mode', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK = 'true'
+		try {
+			await expect(getGraphEvidenceSnapshot()).resolves.toBeUndefined()
+			expect(api.get).not.toHaveBeenCalled()
+		} finally {
+			delete process.env.NEXT_PUBLIC_GRAPH_EXPLORER_MOCK
+		}
 	})
 
 	it('reads typed unavailable evidence from the backend refusal response', async () => {

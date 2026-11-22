@@ -338,20 +338,10 @@ it('displays the verified artifact manifest hash in the footer when evidence is 
 	process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
 	jest.mocked(getGraphData).mockResolvedValue(base)
 	jest.mocked(getGraphEvidenceSnapshot).mockResolvedValue({
-		contractVersion: 'graph-evidence.v1',
-		status: 'AVAILABLE',
-		artifactIntegrity: {
-			status: 'VERIFIED',
-			expectedSha256:
-				'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-			observedSha256:
-				'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
-		},
-		snapshot: {
-			totalNodes: 6633,
-			totalEdges: 23185,
-			acceptanceState: 'PROVISIONAL_PRIVATE_CANDIDATE_ACCEPTED',
-		},
+		manifestSha256:
+			'ade85c3312b8d72c851c525d34869e70d759aec144b0d1c2d6d2be6f114c1ef1',
+		totalNodes: 6633,
+		totalEdges: 23185,
 	})
 
 	render(<GraphExplorer />)
@@ -359,7 +349,7 @@ it('displays the verified artifact manifest hash in the footer when evidence is 
 		const el = screen.getByTestId('graph-artifact-footer-hash')
 		expect(el).toBeInTheDocument()
 		expect(el.textContent).toContain(
-			'Artifact: ade85c3312b8… (6633 nodes, 23185 edges)',
+			'Evidence artifact: ade85c3312b8… (6633 nodes, 23185 edges)',
 		)
 		expect(el).toHaveAttribute(
 			'title',
