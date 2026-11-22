@@ -168,7 +168,7 @@ function RecipeDetailContent() {
 		isLoading: isCookingLoading,
 		session: activeSession,
 	} = useCookingStore()
-	const { user } = useAuth()
+	const { user, isHydrated } = useAuth()
 	const scanOwnerId = user?.userId ?? null
 	const scanConfirmedIngredients = useScanIngredientDraftStore(state =>
 		state.ownerId === scanOwnerId
@@ -265,7 +265,7 @@ function RecipeDetailContent() {
 
 	// AI difficulty calibration - fail-open, non-blocking
 	useEffect(() => {
-		if (!recipe) return
+		if (!isHydrated || !user || !recipe) return
 		const req = {
 			ingredient_count: recipe.fullIngredientList?.length ?? 0,
 			step_count: recipe.steps?.length ?? 0,
@@ -288,11 +288,11 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe])
+	}, [isHydrated, recipe, user])
 
 	// Fetch per-ingredient buy links - fail-open, non-blocking
 	useEffect(() => {
-		if (!recipe?.fullIngredientList?.length) return
+		if (!isHydrated || !user || !recipe?.fullIngredientList?.length) return
 		let cancelled = false
 		const items = recipe.fullIngredientList.map((ing, i) => ({
 			itemId: `ing-${i}`,
@@ -310,7 +310,7 @@ function RecipeDetailContent() {
 		return () => {
 			cancelled = true
 		}
-	}, [recipe?.fullIngredientList])
+	}, [isHydrated, recipe?.fullIngredientList, user])
 
 	// Auto-start cooking if navigated with ?cook=true
 	useEffect(() => {
@@ -760,7 +760,7 @@ function RecipeDetailContent() {
 				>
 					<div className='relative mb-8 overflow-hidden rounded-2xl border border-border-subtle bg-bg-card shadow-2xl'>
 						{/* Hero Image with overlay */}
-						<div className='group relative h-[20rem] w-full overflow-hidden sm:h-[24rem] md:h-[34rem]'>
+						<div className='group relative h-[min(18rem,42dvh)] w-full overflow-hidden sm:h-[min(24rem,50dvh)] md:h-[min(34rem,70dvh)]'>
 							<motion.div
 								initial={{ scale: 1.1 }}
 								animate={{ scale: 1 }}

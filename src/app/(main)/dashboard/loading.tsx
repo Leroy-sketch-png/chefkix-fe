@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function Loading() {
 	return (
 		<PageContainer maxWidth='lg'>
-			<div className='space-y-5 pb-[calc(var(--h-mobile-nav)+var(--space-24))] md:space-y-6 md:pb-8'>
+			<div className='space-y-5 pb-4 md:space-y-6 md:pb-8'>
 				<div className='grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.92fr)]'>
 					<div className='overflow-hidden rounded-2xl border border-border-subtle bg-bg-card p-5'>
 						<Skeleton className='mb-3 h-4 w-24 rounded' />

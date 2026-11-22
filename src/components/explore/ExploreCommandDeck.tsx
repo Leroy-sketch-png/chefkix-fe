@@ -60,11 +60,8 @@ export function ExploreCommandDeck({
 	className,
 	children,
 }: ExploreCommandDeckProps) {
-	const activeSortLabel =
-		sortOptions.find(option => option.value === sortValue)?.label ??
-		labels.sortNewest
 	const hasResultSignals =
-		resultCount > 0 || activeFiltersCount > 0 || viewMode === 'trending'
+		resultCount > 0 || activeFiltersCount > 0
 
 	return (
 		<motion.section
@@ -72,33 +69,33 @@ export function ExploreCommandDeck({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
 			className={cn(
-				'rounded-2xl border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-brand/5 p-3 shadow-card sm:p-4 md:p-5',
+				'explore-command-deck sm:rounded-2xl sm:border sm:border-border-subtle sm:bg-gradient-to-br sm:from-bg-card sm:via-bg-card sm:to-brand/5 sm:p-4 sm:shadow-card md:p-5',
 				className,
 			)}
 		>
 			{/* Header: identity + mode signal */}
-			<div className='mb-3 flex flex-wrap items-start justify-between gap-3 sm:mb-4'>
+			<div className='explore-command-intro sm:mb-4'>
 				<div className='min-w-0'>
-					<p className='text-2xs font-bold uppercase tracking-widest text-brand'>
+					<p className='hidden text-2xs font-bold uppercase tracking-widest text-brand sm:block'>
 						{labels.eyebrow}
 					</p>
-					<h2 className='mt-1 text-base font-black leading-tight text-text-primary sm:text-[1.1rem]'>
+					<h2 className='sr-only font-bold leading-tight text-text-primary sm:not-sr-only sm:mt-1 sm:block sm:text-[1.1rem]'>
 						{labels.heading}
 					</h2>
-					<p className='mt-1 text-xs font-medium text-text-secondary'>
+					<p className='hidden font-medium text-text-secondary sm:mt-1 sm:block sm:text-xs'>
 						{labels.subtitle}
 					</p>
 				</div>
 
-				<div className='inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand'>
+				<div className='hidden items-center gap-1.5 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-1 text-2xs font-semibold text-brand sm:inline-flex'>
 					<Sparkles className='size-3.5' />
 					{labels.modeChip}
 				</div>
 			</div>
 
 			{/* Search slot: one clear command zone */}
-			<div className='mb-3 rounded-2xl border border-border-subtle/80 bg-bg-card/70 p-2 sm:mb-4 sm:p-2.5'>
-				<div className='pointer-events-none mb-2 inline-flex items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-text-muted'>
+			<div className='explore-command-search sm:mb-4 sm:rounded-2xl sm:border sm:border-border-subtle/80 sm:bg-bg-card/70 sm:p-2.5'>
+				<div className='explore-command-input-label pointer-events-none mb-2 hidden items-center gap-1.5 rounded-full bg-bg-elevated px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-text-muted sm:inline-flex'>
 					<Search className='size-3' />
 					{labels.commandInput}
 				</div>
@@ -106,8 +103,8 @@ export function ExploreCommandDeck({
 			</div>
 
 			{/* Controls row */}
-			<div className='flex flex-col gap-2.5 sm:gap-3'>
-				<div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+			<div className='flex flex-col gap-2 sm:gap-3'>
+				<div className='flex flex-row items-center gap-2 sm:gap-3'>
 					<div className='min-w-0 flex-1'>
 						<SlideTabs
 							tabs={[
@@ -143,11 +140,11 @@ export function ExploreCommandDeck({
 							variant='pill'
 							size='sm'
 							fullWidth
-							className='w-full'
+							className='w-full [&>button]:min-h-11 [&>button]:whitespace-nowrap [&>button]:px-1.5 [&>button]:text-xs sm:[&>button]:px-4 sm:[&>button]:text-sm'
 						/>
 					</div>
 
-					<div className='w-full shrink-0 sm:w-44'>
+					<div className='w-32 shrink-0 sm:w-44'>
 						<label htmlFor='explore-sort-select' className='sr-only'>
 							{labels.sort}
 						</label>
@@ -162,7 +159,7 @@ export function ExploreCommandDeck({
 									id='explore-sort-select'
 									aria-label={labels.sort}
 									className={cn(
-										'h-9 w-full rounded-xl border border-border-medium bg-bg-card pl-8 pr-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10',
+										'h-11 w-full rounded-xl border border-border-medium bg-bg-card pl-8 pr-3 text-sm font-semibold text-text-secondary outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60 sm:h-10',
 									)}
 								>
 									<SelectValue placeholder={labels.sort} />
@@ -182,8 +179,7 @@ export function ExploreCommandDeck({
 				{hasResultSignals && (
 					<div className='flex flex-wrap items-center gap-2 text-2xs font-semibold text-text-muted sm:text-xs'>
 						{resultCount > 0 && (
-							<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2 py-1'>
-								<Compass className='size-3.5' />
+							<span className='explore-command-result-count text-xs font-medium text-text-muted'>
 								{labels.results}: {resultCount.toString()}
 							</span>
 						)}
@@ -193,16 +189,6 @@ export function ExploreCommandDeck({
 								{labels.activeFilters}: {activeFiltersCount.toString()}
 							</span>
 						)}
-						{viewMode === 'trending' && (
-							<span className='inline-flex items-center gap-1 rounded-full border border-xp/25 bg-xp/10 px-2 py-1 text-xp'>
-								<Flame className='size-3.5' />
-								{labels.modeTrending}
-							</span>
-						)}
-						<span className='inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-elevated px-2 py-1'>
-							<ArrowUpDown className='size-3.5' />
-							{labels.sort}: {activeSortLabel}
-						</span>
 					</div>
 				)}
 			</div>

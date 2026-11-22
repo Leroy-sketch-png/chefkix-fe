@@ -137,7 +137,7 @@ describe('application scroll authority', () => {
 
 		expect(container.scrollTo).toHaveBeenCalledWith({
 			top: 704,
-			behavior: 'auto',
+			behavior: 'instant',
 		})
 		expect(getPendingFeedScrollPosition()).toBeNull()
 	})
@@ -199,6 +199,7 @@ describe('application scroll authority', () => {
 			),
 		)
 		const container = document.getElementById('main-content') as HTMLElement
+		container.scrollTo = jest.fn()
 		Object.defineProperty(container, 'scrollTop', {
 			configurable: true,
 			value: 704,
@@ -216,6 +217,51 @@ describe('application scroll authority', () => {
 		)
 
 		expect(getPendingFeedScrollPosition()).toBeNull()
+		expect(container.scrollTo).toHaveBeenCalledWith({
+			top: 0,
+			behavior: 'instant',
+		})
+	})
+
+	it('preserves Explore history restoration but resets forward recipe navigation', () => {
+		mockPathname = '/recipes/example'
+		const view = render(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		const container = document.getElementById('main-content') as HTMLElement
+		container.scrollTo = jest.fn()
+
+		window.history.pushState({}, '', '/explore')
+		fireEvent.popState(window)
+		mockPathname = '/explore'
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'explore' }),
+			),
+		)
+		expect(container.scrollTo).not.toHaveBeenCalled()
+
+		window.history.pushState({}, '', '/recipes/next')
+		fireEvent.popState(window)
+		mockPathname = '/recipes/next'
+		view.rerender(
+			React.createElement(
+				AppShell,
+				null,
+				React.createElement('div', { 'data-testid': 'recipe-detail' }),
+			),
+		)
+		expect(container.scrollTo).toHaveBeenCalledWith({
+			top: 0,
+			behavior: 'instant',
+		})
+		window.history.replaceState({}, '', '/')
 	})
 
 	it('removes duplicate and direct AppShell window-scroll authorities', () => {

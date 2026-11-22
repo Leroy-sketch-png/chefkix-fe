@@ -80,6 +80,8 @@ import { isPositiveSocialMetric } from '@/lib/positive-social-proof'
 const RECIPES_PER_PAGE = 12
 const SEARCH_DEBOUNCE_MS = 300
 const SCROLL_RESTORATION_KEY = 'explore-scroll-position'
+const SCROLL_RESTORATION_ANCHOR_KEY = 'explore-scroll-recipe-id'
+const RETURN_STATE_KEY = 'explore-return-state'
 
 // Maps lowercase filter-state keys -> API Title Case strings (for display in filter chips)
 const FILTER_STATE_TO_API_DISPLAY: Record<string, string> = {
@@ -104,6 +106,36 @@ interface RecipeFilters {
 	cookingTimeMax: number
 	rating: number | null
 	foolproofOnly: boolean
+}
+
+interface ExploreReturnState {
+	searchQuery: string
+	debouncedSearch: string
+	viewMode: 'all' | 'trending'
+	sortBy: string
+	filters: RecipeFilters
+}
+
+function isExploreReturnState(value: unknown): value is ExploreReturnState {
+	if (!value || typeof value !== 'object') return false
+	const state = value as Partial<ExploreReturnState>
+	const filters = state.filters
+	return (
+		typeof state.searchQuery === 'string' &&
+		typeof state.debouncedSearch === 'string' &&
+		(state.viewMode === 'all' || state.viewMode === 'trending') &&
+		typeof state.sortBy === 'string' &&
+		!!filters &&
+		Array.isArray(filters.dietary) &&
+		filters.dietary.every(item => typeof item === 'string') &&
+		Array.isArray(filters.cuisine) &&
+		filters.cuisine.every(item => typeof item === 'string') &&
+		Array.isArray(filters.difficulty) &&
+		filters.difficulty.every(item => typeof item === 'string') &&
+		typeof filters.cookingTimeMax === 'number' &&
+		(filters.rating === null || typeof filters.rating === 'number') &&
+		typeof filters.foolproofOnly === 'boolean'
+	)
 }
 
 function buildUnifiedSearchFilters(
@@ -482,6 +514,7 @@ function ExploreContent() {
 	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState(initialQuery)
 	const [debouncedSearch, setDebouncedSearch] = useState(initialQuery)
+	const [returnStateReady, setReturnStateReady] = useState(false)
 	const [viewMode, setViewMode] = useState<'all' | 'trending'>(initialViewMode)
 	const [sortBy, setSortBy] = useState<string>('newest')
 	const [savedRecipes, setSavedRecipes] = useState<Set<string>>(new Set())
@@ -498,6 +531,27 @@ function ExploreContent() {
 	})
 	const [focusedCardIndex, setFocusedCardIndex] = useState(-1)
 	const [retryCount, setRetryCount] = useState(0)
+
+	useEffect(() => {
+		try {
+			const savedState = sessionStorage.getItem(RETURN_STATE_KEY)
+			if (savedState) {
+				const parsed: unknown = JSON.parse(savedState)
+				if (isExploreReturnState(parsed)) {
+					setSearchQuery(parsed.searchQuery)
+					setDebouncedSearch(parsed.debouncedSearch)
+					setViewMode(parsed.viewMode)
+					setSortBy(parsed.sortBy)
+					setFilters(parsed.filters)
+				}
+				sessionStorage.removeItem(RETURN_STATE_KEY)
+			}
+		} catch {
+			sessionStorage.removeItem(RETURN_STATE_KEY)
+		} finally {
+			setReturnStateReady(true)
+		}
+	}, [])
 
 	// Autocomplete & trending state
 	const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<
@@ -717,6 +771,7 @@ function ExploreContent() {
 
 	// Fetch recipes - initial load or when filters/search/mode change
 	useEffect(() => {
+		if (!returnStateReady) return
 		let cancelled = false
 		const requestAuthority = paginationAuthority.current
 		requestAuthority.reset()
@@ -819,14 +874,33 @@ function ExploreContent() {
 			cancelled = true
 			requestAuthority.reset()
 		}
-	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t])
+	}, [debouncedSearch, viewMode, filters, retryCount, sortBy, t, returnStateReady])
 
 	// Scroll restoration - save on unmount (covers all navigations away), restore once after data loads
 	const scrollRestoredRef = useRef(false)
 
 	useEffect(() => {
-		if (scrollRestoredRef.current || isLoading) return
+		if (scrollRestoredRef.current || isLoading || !returnStateReady) return
 		const savedPosition = sessionStorage.getItem(SCROLL_RESTORATION_KEY)
+		const savedRecipeId = sessionStorage.getItem(
+			SCROLL_RESTORATION_ANCHOR_KEY,
+		)
+		if (savedRecipeId) {
+			const container = document.getElementById('main-content')
+			const recipeCard = container?.querySelector<HTMLElement>(
+				`[data-explore-recipe-id="${CSS.escape(savedRecipeId)}"]`,
+			)
+			if (container && recipeCard) {
+				const offset =
+					recipeCard.getBoundingClientRect().top -
+					container.getBoundingClientRect().top
+				scrollRestoredRef.current = true
+				scrollAppTo(container.scrollTop + offset - 16, 'instant')
+				sessionStorage.removeItem(SCROLL_RESTORATION_ANCHOR_KEY)
+				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
+				return
+			}
+		}
 		if (savedPosition) {
 			const top = Number.parseInt(savedPosition, 10)
 			if (!Number.isFinite(top) || top < 0) {
@@ -835,11 +909,11 @@ function ExploreContent() {
 			}
 			scrollRestoredRef.current = true
 			requestAnimationFrame(() => {
-				scrollAppTo(top)
+				scrollAppTo(top, 'instant')
 				sessionStorage.removeItem(SCROLL_RESTORATION_KEY)
 			})
 		}
-	}, [isLoading])
+	}, [isLoading, returnStateReady])
 
 	// Save scroll on unmount (covers client-side navigation) and beforeunload (covers refresh/close)
 	useEffect(() => {
@@ -1305,26 +1379,6 @@ function ExploreContent() {
 												/>
 											)}
 										</div>
-										{trendingSearches.length > 0 && (
-											<div className='flex flex-wrap items-center gap-x-2 gap-y-1 px-1 py-1 text-xs text-text-muted'>
-												<TrendingUp className='size-3.5 shrink-0 text-brand' />
-												<span className='font-semibold'>{t('trending')}:</span>
-												{trendingSearches.slice(0, 5).map(term => (
-													<button
-														type='button'
-														key={term}
-														onClick={() => {
-															setSearchQuery(term)
-															setDebouncedSearch(term)
-															setShowAutocomplete(false)
-														}}
-														className='max-w-full truncate rounded-md px-1.5 py-1 font-semibold text-brand transition-colors hover:bg-brand/10 hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
-													>
-														{term}
-													</button>
-												))}
-											</div>
-										)}
 									</div>
 								</ExploreCommandDeck>
 							</div>
@@ -1340,27 +1394,6 @@ function ExploreContent() {
 									/>
 								)}
 							</AnimatePresence>
-
-							{/* Trending Food Posts (social discovery - only when not searching) */}
-							{!debouncedSearch && trendingPosts.length > 0 && (
-								<section className='mb-6 md:mb-8'>
-									<div className='mb-3 flex items-center gap-2'>
-										<Flame className='size-4 text-brand' />
-										<span className='text-2xs font-semibold uppercase tracking-widest text-text-muted'>
-											{t('trendingCommunity')}
-										</span>
-									</div>
-									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-										{trendingPosts.map(post => (
-											<PostCard
-												key={post.id}
-												post={post}
-												currentUserId={user?.userId}
-											/>
-										))}
-									</div>
-								</section>
-							)}
 
 							{/* Hero/Featured Recipe (only when not searching) */}
 							<AnimatePresence mode='wait'>
@@ -1415,6 +1448,8 @@ function ExploreContent() {
 								<ErrorState
 									title={t('failedLoadRecipes')}
 									message={error}
+									showHomeButton={false}
+									compactOnMobile
 									onRetry={() => {
 										setError(null)
 										setRetryCount(c => c + 1)
@@ -1491,11 +1526,31 @@ function ExploreContent() {
 														? 'ring-2 ring-brand ring-offset-2 ring-offset-bg'
 														: ''
 												}`}
-												onClick={() => {
+												data-explore-recipe-id={recipe.id}
+												onClick={event => {
 													sessionStorage.setItem(
 														SCROLL_RESTORATION_KEY,
 														String(getAppScrollTop()),
 													)
+													if (
+													event.target instanceof Element &&
+													event.target.closest('a')
+													) {
+														sessionStorage.setItem(
+															RETURN_STATE_KEY,
+															JSON.stringify({
+																searchQuery,
+																debouncedSearch,
+																viewMode,
+																sortBy,
+																filters,
+															}),
+														)
+														sessionStorage.setItem(
+															SCROLL_RESTORATION_ANCHOR_KEY,
+															recipe.id,
+														)
+													}
 												}}
 											>
 												<RecipeCardEnhanced
@@ -1574,8 +1629,50 @@ function ExploreContent() {
 									)}
 								</>
 							)}
-							{/* Bottom breathing room for MobileBottomNav */}
-							<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+
+							{trendingSearches.length > 0 && (
+								<div className='mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 px-1 py-1 text-xs text-text-muted'>
+									<TrendingUp className='size-3.5 shrink-0 text-brand' />
+									<span className='font-semibold'>{t('trending')}:</span>
+									{trendingSearches.slice(0, 5).map(term => (
+										<button
+											type='button'
+											key={term}
+											onClick={() => {
+												setSearchQuery(term)
+												setDebouncedSearch(term)
+												setShowAutocomplete(false)
+											}}
+											className='max-w-full truncate rounded-md px-1.5 py-1 font-semibold text-brand transition-colors hover:bg-brand/10 hover:text-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50'
+										>
+											{term}
+										</button>
+									))}
+								</div>
+							)}
+
+							{/* Social discovery remains available after the recipe-first list. */}
+							{!debouncedSearch && trendingPosts.length > 0 && (
+								<section className='mb-6 md:mb-8'>
+									<div className='mb-3 flex items-center gap-2'>
+										<Flame className='size-4 text-brand' />
+										<span className='text-2xs font-semibold uppercase tracking-widest text-text-muted'>
+											{t('trendingCommunity')}
+										</span>
+									</div>
+									<div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+										{trendingPosts.map(post => (
+											<PostCard
+												key={post.id}
+												post={post}
+												currentUserId={user?.userId}
+											/>
+										))}
+									</div>
+								</section>
+							)}
+							{/* The app shell owns bottom-nav clearance for this page. */}
+							<div className='h-4 md:h-8' />
 						</div>
 
 						<ExploreContextRail

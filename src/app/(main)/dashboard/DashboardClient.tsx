@@ -298,7 +298,7 @@ export default function DashboardPage() {
 					<div
 						data-testid='dashboard-page'
 						className={cn(
-							'space-y-5 pb-[calc(var(--h-mobile-nav)+var(--space-24))]',
+							'space-y-5 pb-4',
 							'md:space-y-6 md:pb-8',
 						)}
 					>

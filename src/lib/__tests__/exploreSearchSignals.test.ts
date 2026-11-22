@@ -59,13 +59,17 @@ describe('Explore search-signal contract', () => {
 		expect(messages.explore.trendingCommunity).toBe('Trending in the community')
 	})
 
-	it('stacks mode and sort controls on narrow screens without hardcoded copy', () => {
+	it('keeps mode and sort controls compact and readable on narrow screens', () => {
 		expect(commandDeckSource).toContain(
-			"className='flex flex-col gap-2 sm:flex-row sm:items-center'",
+			"className='flex flex-row items-center gap-2 sm:gap-3'",
 		)
-		expect(commandDeckSource).toContain("className='w-full shrink-0 sm:w-44'")
+		expect(commandDeckSource).toContain("className='w-32 shrink-0 sm:w-44'")
+		expect(commandDeckSource).toContain('[&>button]:min-h-11')
+		expect(commandDeckSource).toContain("className='explore-command-result-count text-xs font-medium text-text-muted'")
 		expect(commandDeckSource).toContain('{labels.subtitle}')
 		expect(commandDeckSource).toContain('{labels.commandInput}')
+		expect(commandDeckSource).toContain('explore-command-intro sm:mb-4')
+		expect(commandDeckSource).toContain('explore-command-input-label')
 		expect(messages.explore.commandSubtitle).toBeTruthy()
 		expect(messages.explore.commandInput).toBeTruthy()
 	})

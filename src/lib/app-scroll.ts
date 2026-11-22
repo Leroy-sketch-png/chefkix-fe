@@ -20,7 +20,7 @@ export function restoreFeedScrollPositionIfReady(): boolean {
 	const feed = document.querySelector('[data-testid="feed-page"]')
 	if (feed?.getAttribute('data-feed-ready') !== 'true') return false
 
-	scrollAppTo(savedTop)
+	scrollAppTo(savedTop, 'instant')
 	clearPendingFeedScrollPosition()
 	return true
 }

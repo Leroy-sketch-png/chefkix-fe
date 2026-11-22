@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTranslations } from '@/i18n/hooks'
+import { cn } from '@/lib/utils'
 
 const LottieAnimation = dynamic(
 	() => import('@/components/shared/LottieAnimation'),
@@ -16,6 +17,7 @@ interface ErrorStateProps {
 	title?: string
 	message?: string
 	showHomeButton?: boolean
+	compactOnMobile?: boolean
 	onRetry?: () => void
 	actions?: ReactNode
 	/** Optional Lottie animation to show instead of AlertCircle icon */
@@ -28,6 +30,7 @@ export const ErrorState = ({
 	title,
 	message,
 	showHomeButton = true,
+	compactOnMobile = false,
 	onRetry,
 	actions,
 	lottieAnimation,
@@ -37,11 +40,18 @@ export const ErrorState = ({
 	const displayTitle = title || t('somethingWentWrong')
 	const displayMessage = message || t('defaultErrorMessage')
 	return (
-		<div className='flex min-h-content-tall flex-col items-center justify-center px-4'>
+		<div
+			className={cn(
+				'flex flex-col items-center justify-center px-4',
+				compactOnMobile
+					? 'min-h-0 py-4 sm:min-h-content-tall'
+					: 'min-h-content-tall',
+			)}
+		>
 			<div className='mx-auto max-w-md text-center' role='alert'>
 				{/* Show Lottie animation if provided, otherwise show AlertCircle icon */}
 				{lottieAnimation ? (
-					<div className='mb-6 flex justify-center'>
+					<div className={cn('mb-6 flex justify-center', compactOnMobile && 'mb-3 sm:mb-6')}>
 						<LottieAnimation
 							lottie={lottieAnimation}
 							sizeOfIllustrator={lottieSize}
@@ -51,16 +61,18 @@ export const ErrorState = ({
 					</div>
 				) : (
 					<div className='mb-6 flex justify-center'>
-						<div className='rounded-full bg-destructive/10 p-6'>
-							<AlertCircle className='size-16 text-destructive' />
+						<div className={cn('rounded-full bg-destructive/10 p-6', compactOnMobile && 'p-3 sm:p-6')}>
+							<AlertCircle className={cn('size-16 text-destructive', compactOnMobile && 'size-10 sm:size-16')} />
 						</div>
 					</div>
 				)}
 
-				<h1 className='mb-2 text-2xl font-bold leading-tight text-text-primary'>
+				<h1 className={cn('mb-2 text-2xl font-bold leading-tight text-text-primary', compactOnMobile && 'text-lg sm:text-2xl')}>
 					{displayTitle}
 				</h1>
-				<p className='mb-8 leading-normal text-text-secondary'>{displayMessage}</p>
+				<p className={cn('mb-8 leading-normal text-text-secondary', compactOnMobile && 'mb-4 text-sm sm:mb-8 sm:text-base')}>
+					{displayMessage}
+				</p>
 
 				<div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
 					{onRetry && (

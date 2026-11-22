@@ -34,7 +34,7 @@ export default function Loading() {
 						<PostCardSkeleton />
 					</div>
 
-					<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+					<div className='h-4 md:h-8' />
 				</div>
 
 				{/* Context rail skeleton */}

@@ -158,7 +158,7 @@ export function CookieConsent({
 					exit={{ y: 100, opacity: 0 }}
 					transition={{ type: 'spring', damping: 25, stiffness: 300 }}
 					className={cn(
-						'fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 sm:bottom-4 sm:right-4 sm:left-auto sm:max-w-[15rem] sm:px-0',
+						'cookie-consent-banner fixed inset-x-0 bottom-[calc(var(--h-mobile-nav)+var(--space-3)+env(safe-area-inset-bottom))] z-notification px-3 sm:bottom-4 sm:right-4 sm:left-auto sm:max-w-[15rem] sm:px-0',
 						className,
 					)}
 					style={
@@ -186,7 +186,7 @@ export function CookieConsent({
 										{t('cookiePrivacyPolicy')}
 									</a>
 								</p>
-								<div className='mt-2.5 flex flex-wrap gap-2 sm:mt-3'>
+								<div className='cookie-consent-actions mt-2.5 flex flex-wrap gap-2 sm:mt-3'>
 									<Button
 										size={useCompactCopy ? 'sm' : 'default'}
 										className='h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm'
@@ -207,7 +207,7 @@ export function CookieConsent({
 							<button
 								type='button'
 								onClick={handleDecline}
-								className='rounded-sm p-1 text-text-muted transition-colors hover:text-text-primary'
+								className='cookie-consent-dismiss rounded-sm p-1 text-text-muted transition-colors hover:text-text-primary'
 								aria-label={t('cookieDismiss')}
 							>
 								<X className='size-4' />

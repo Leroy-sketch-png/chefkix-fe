@@ -211,7 +211,7 @@ export const MobileBottomNav = () => {
 	return (
 		<>
 			<nav
-				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-16 items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden'
+				className='fixed bottom-0 left-0 right-0 z-sticky flex min-h-[calc(var(--h-mobile-nav)+env(safe-area-inset-bottom))] items-start justify-around border-t border-border-subtle/70 bg-bg-card/80 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-glow backdrop-blur-2xl supports-[backdrop-filter]:bg-bg-card/70 md:hidden'
 				aria-label={t('ariaMobileNavigation')}
 			>
 				<div
@@ -226,6 +226,12 @@ export const MobileBottomNav = () => {
 							: item.href
 					const active = isActive(item.href)
 					const label = t(item.labelKey)
+					const displayLabel =
+						item.href === PATHS.LEADERBOARD
+							? t('leaderboardShort')
+							: item.labelKey === 'community'
+								? t('communityShort')
+							: label
 
 					// Special handling for the elevated Create button.
 					if (item.isCreate) {
@@ -260,7 +266,7 @@ export const MobileBottomNav = () => {
 						return (
 							<div
 								key={item.href}
-								className='relative -mt-1 flex max-w-24 min-w-0 flex-1 items-center justify-center self-start'
+								className='relative -mt-1 flex min-w-0 flex-1 basis-0 items-center justify-center self-start'
 							>
 								<motion.div
 									whileHover={ICON_BUTTON_HOVER}
@@ -271,10 +277,10 @@ export const MobileBottomNav = () => {
 									<Link
 										href={href}
 										aria-label={t('signUp')}
-										className='flex h-11 w-full items-center justify-center gap-1 rounded-lg bg-brand px-2.5 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+										className='flex h-11 w-full items-center justify-center gap-1 rounded-lg bg-brand px-1 text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
 									>
 										<Icon className='size-3.5' />
-										<span className='truncate text-2xs font-semibold leading-none'>
+											<span className='whitespace-nowrap text-2xs font-semibold leading-none'>
 											{label}
 										</span>
 									</Link>
@@ -287,9 +293,10 @@ export const MobileBottomNav = () => {
 						<Link
 							key={item.href}
 							href={href}
+							aria-label={label}
 							aria-current={active ? 'page' : undefined}
 							className={cn(
-								'group relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200',
+							'group relative flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-all duration-200',
 								isAuthenticated && 'max-w-20',
 								active
 									? 'bg-brand/10 text-brand shadow-glow'
@@ -317,8 +324,8 @@ export const MobileBottomNav = () => {
 									)}
 								/>
 							</motion.div>
-							<span className='max-w-full truncate text-xs font-semibold leading-tight'>
-								{label}
+							<span className='max-w-full truncate text-[11px] font-semibold leading-tight'>
+								{displayLabel}
 							</span>
 						</Link>
 					)
@@ -335,7 +342,7 @@ export const MobileBottomNav = () => {
 							setShowMore(true)
 						}}
 						className={cn(
-							'group relative flex max-w-20 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
+							'group relative flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50',
 							isMoreActive
 								? 'bg-brand/10 text-brand shadow-glow'
 								: 'text-text-secondary hover:bg-bg-elevated/70',
@@ -363,7 +370,7 @@ export const MobileBottomNav = () => {
 								)}
 							/>
 						</motion.div>
-						<span className='text-xs font-semibold leading-tight'>
+						<span className='text-[10px] font-semibold leading-tight'>
 							{t('more')}
 						</span>
 					</button>

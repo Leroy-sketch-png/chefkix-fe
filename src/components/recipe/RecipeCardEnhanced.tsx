@@ -15,6 +15,7 @@ import {
 	RefreshCw,
 	History,
 	AlertCircle,
+	ImageOff,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -45,6 +46,7 @@ import { formatCookingTime } from '@/lib/types/recipe'
 import { resolveBadgesWithFallback } from '@/lib/data/badgeRegistry'
 import { formatPositiveSocialCount } from '@/lib/positive-social-proof'
 import { QualityBadge } from './QualityBadge'
+import { RECIPE_IMAGE_PLACEHOLDER } from '@/lib/imageSafety'
 
 type QualityTier = 'Foolproof' | 'Great' | 'Good' | 'Fair' | 'Needs Work'
 
@@ -183,7 +185,7 @@ const XPBadge = ({
 	return (
 		<div
 			className={cn(
-				'absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand/80 font-bold text-white shadow-badge backdrop-blur-sm',
+				'recipe-xp-badge absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand/80 font-bold text-white shadow-badge backdrop-blur-sm',
 				size === 'large' ? 'px-4 py-2 text-base' : 'px-2.5 py-1 text-xs',
 			)}
 		>
@@ -543,6 +545,7 @@ const GridCard = ({
 	const hasRating = rating !== undefined && rating > 0
 	const hasStats =
 		cookTimeMinutes !== undefined || Boolean(formattedCookCount) || hasRating
+	const hasRecipePhoto = imageUrl !== RECIPE_IMAGE_PLACEHOLDER
 
 	return (
 		<motion.article
@@ -557,20 +560,40 @@ const GridCard = ({
 				>
 					{/* Image - using Next.js Image wrapped in motion.div for optimization */}
 					<motion.div
-						className='relative aspect-[4/3] overflow-hidden'
+						className={cn(
+							'explore-recipe-image relative overflow-hidden sm:aspect-[4/3]',
+							hasRecipePhoto ? 'aspect-[4/3]' : 'aspect-[2.2/1]',
+						)}
 						whileHover={IMAGE_ZOOM_LARGE_HOVER}
 						transition={TRANSITION_SPRING}
 					>
-						<div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/30 to-transparent' />
-						<div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/40 to-transparent' />
-						<Image
-							src={imageUrl}
-							alt={title}
-							fallbackType='recipe'
-							fill
-							className='object-cover'
-							sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-						/>
+						{hasRecipePhoto && (
+							<>
+								<div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/30 to-transparent' />
+								<div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-black/40 to-transparent' />
+							</>
+						)}
+						{hasRecipePhoto ? (
+							<Image
+								src={imageUrl}
+								alt={title}
+								fallbackType='recipe'
+								fill
+								className='object-cover'
+								sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+							/>
+						) : (
+							<div
+								role='img'
+								aria-label={`${title}: ${t('imageUnavailable')}`}
+								className='absolute inset-0 flex items-center justify-center gap-2 bg-bg-elevated text-text-muted'
+							>
+								<ImageOff className='size-5' aria-hidden='true' />
+								<span className='text-xs font-medium'>
+									{t('imageUnavailable')}
+								</span>
+							</div>
+						)}
 						<XPBadge xp={xpReward} />
 						{/* Difficulty indicator - subtle pill instead of ribbon per design feedback */}
 						{difficulty && (
@@ -591,7 +614,7 @@ const GridCard = ({
 					</motion.div>
 
 					{/* Content */}
-					<div className='p-4'>
+					<div className='explore-recipe-content p-4'>
 						<h3 className='mb-1.5 text-label font-semibold leading-snug tracking-tight text-text-primary'>
 							{title}
 						</h3>

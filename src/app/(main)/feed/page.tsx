@@ -512,7 +512,7 @@ export default function FeedPage() {
 									)}
 
 									{/* Bottom breathing room for MobileBottomNav */}
-									<div className='pb-[calc(var(--h-mobile-nav)+var(--space-16))] md:pb-8' />
+									<div className='h-4 md:h-8' />
 								</div>
 							</PullToRefresh>
 						</ColdStartExperience>
