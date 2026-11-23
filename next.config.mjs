@@ -18,6 +18,16 @@ const nextConfig = {
 			},
 		]
 	},
+	async rewrites() {
+		return {
+			fallback: [
+				{
+					source: '/api/v1/:path*',
+					destination: `${process.env.BACKEND_URL || 'http://localhost:8080'}/api/v1/:path*`,
+				},
+			],
+		}
+	},
 	typescript: {
 		ignoreBuildErrors: process.env.CHEFKIX_SKIP_BUILD_TYPECHECK === '1',
 	},
