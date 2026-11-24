@@ -14,7 +14,7 @@
 
 import app from '@/configs/app'
 import { useAuthStore } from '@/store/authStore'
-import { PATHS } from '@/constants'
+import { API_ENDPOINTS, PATHS } from '@/constants'
 import axios, {
 	AxiosError,
 	AxiosResponse,
@@ -268,6 +268,17 @@ api.interceptors.response.use(
 		// ----------------------------------------------------------------
 		// HANDLE OTHER ERRORS
 		// ----------------------------------------------------------------
+		// This endpoint uses HTTP 503 for a typed, fail-closed research result.
+		// Keep its original response body so the graph explorer can distinguish
+		// an unresolved identity from a transport failure.
+		if (
+			error.response?.status === 503 &&
+			originalRequest?.url?.split('?')[0] ===
+				API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE
+		) {
+			return Promise.reject(error)
+		}
+
 		if (error.response) {
 			const backendError = error.response.data as Record<string, unknown>
 

@@ -9,6 +9,11 @@ jest.mock('@/configs/app', () => ({
 }))
 
 jest.mock('@/constants', () => ({
+	API_ENDPOINTS: {
+		KNOWLEDGE: {
+			GRAPH_EVIDENCE: '/api/v1/graph/evidence',
+		},
+	},
 	PATHS: {
 		AUTH: {
 			SIGN_IN: '/sign-in',
@@ -83,6 +88,27 @@ const rejectUnauthorized = (config: InternalAxiosRequestConfig): Promise<never> 
 		),
 	)
 
+const rejectWithResponse = (
+	config: InternalAxiosRequestConfig,
+	status: number,
+	data: Record<string, unknown>,
+): Promise<never> =>
+	Promise.reject(
+		new AxiosError(
+			'Service Unavailable',
+			'ERR_BAD_RESPONSE',
+			config,
+			undefined,
+			{
+				data,
+				status,
+				statusText: 'Service Unavailable',
+				headers: {},
+				config,
+			},
+		),
+	)
+
 const readAuthHeader = (config: InternalAxiosRequestConfig) => {
 	const directHeader = config.headers?.Authorization
 	if (typeof directHeader === 'string') return directHeader
@@ -118,6 +144,46 @@ describe('api refresh retry behavior', () => {
 				token: 'new-token',
 				error: null,
 			}
+		})
+	})
+
+	it('preserves the typed graph-evidence 503 body for its caller', async () => {
+		const body = {
+			contractVersion: 'graph-evidence.v1',
+			status: 'UNAVAILABLE',
+			unavailableReason: 'IDENTITY_UNKNOWN',
+		}
+
+		await expect(
+			api.get('/api/v1/graph/evidence', {
+				adapter: config =>
+					rejectWithResponse(
+						config as InternalAxiosRequestConfig,
+						503,
+						body,
+					),
+			}),
+		).rejects.toMatchObject({ response: { status: 503, data: body } })
+	})
+
+	it('continues to normalize unrelated 503 responses', async () => {
+		const request = api.get('/api/v1/other', {
+			adapter: config =>
+				rejectWithResponse(
+					config as InternalAxiosRequestConfig,
+					503,
+					{},
+				),
+		})
+
+		await expect(request).rejects.toMatchObject({
+			response: {
+				status: 503,
+				data: {
+					message: 'Service temporarily unavailable. Please try again.',
+					statusCode: 503,
+				},
+			},
 		})
 	})
 
