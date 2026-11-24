@@ -32,12 +32,12 @@ it('mounts the graph explorer only when the explicit build flag is true', () => 
 
 	render(<PublicGraphExplorerPage />)
 
-	expect(screen.getByTestId('graph-explorer')).toHaveTextContent('Explorer')
 	expect(
-		screen.getByTestId('graph-explorer-preview-boundary'),
-	).toHaveTextContent(
-		'This preview uses the bounded legacy Knowledge API. It is not the accepted hash-pinned study graph. Only relationships whose targets resolve to known ingredients are shown; unresolved alternatives are omitted. This preview does not provide calibrated substitution or allergy-safety decisions.',
-	)
+		screen.getByRole('heading', { name: 'Food composition map' }),
+	).toBeInTheDocument()
+	expect(screen.getByTestId('graph-explorer')).toHaveTextContent('Explorer')
+	expect(screen.queryByTestId('graph-explorer-preview-boundary')).toBeNull()
+	expect(screen.queryByText(/Preview ingredient relationships/)).toBeNull()
 	expect(screen.queryByTestId('graph-explorer-disabled')).toBeNull()
 	expect(screen.getByRole('link', { name: 'Back to Explore' })).toHaveAttribute(
 		'href',

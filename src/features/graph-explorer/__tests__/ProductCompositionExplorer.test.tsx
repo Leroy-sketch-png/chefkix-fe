@@ -54,14 +54,20 @@ it('makes pinned product composition the default and shows only typed source rel
 	})
 
 	render(<GraphExplorer />)
-	expect(screen.getByRole('heading', { name: 'Food composition map' })).toBeInTheDocument()
-	expect(screen.getByRole('button', { name: 'Legacy knowledge graph' })).toBeInTheDocument()
+	expect(
+		screen.getByRole('region', { name: 'FooDB food composition graph' }),
+	).toBeInTheDocument()
+	expect(
+		screen.queryByRole('button', { name: 'Legacy knowledge graph' }),
+	).toBeNull()
 	expect(screen.queryByTestId('graph-content')).not.toBeInTheDocument()
 
 	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
 		target: { value: 'Apple' },
 	})
-	const result = await screen.findByRole('button', { name: /Apple.*FooDB Food 42/ })
+	const result = await screen.findByRole('button', {
+		name: /Apple.*FooDB Food 42/,
+	})
 	fireEvent.click(result)
 
 	await waitFor(() =>
@@ -70,6 +76,43 @@ it('makes pinned product composition the default and shows only typed source rel
 	expect(screen.getByText('→ compound present')).toBeInTheDocument()
 	expect(screen.getByText(/Missing edges are unknown/)).toBeInTheDocument()
 	expect(getProductFoodComposition).toHaveBeenCalledWith('42')
+})
+
+it('explains that sign-in is required when the protected product search returns 401', async () => {
+	jest
+		.mocked(searchProductFoods)
+		.mockRejectedValue({ response: { status: 401 } })
+
+	render(<GraphExplorer />)
+	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
+		target: { value: 'Apple' },
+	})
+
+	const alert = await screen.findByRole('alert')
+	expect(alert).toHaveTextContent(
+		'Sign in to search the pinned FooDB product data.',
+	)
+	expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
+		'href',
+		'/auth/sign-in?returnTo=%2Fexplore%2Fgraph',
+	)
+	expect(alert).not.toHaveTextContent('temporarily unavailable')
+})
+
+it('keeps access denial distinct from authentication and service failures', async () => {
+	jest
+		.mocked(searchProductFoods)
+		.mockRejectedValue({ response: { status: 403 } })
+
+	render(<GraphExplorer />)
+	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
+		target: { value: 'Apple' },
+	})
+
+	expect(await screen.findByRole('alert')).toHaveTextContent(
+		'This account cannot access the pinned FooDB product data.',
+	)
+	expect(screen.queryByRole('link', { name: 'Sign in' })).toBeNull()
 })
 
 it('explains an out-of-scope selection instead of leaving a dead-looking result area', async () => {
@@ -88,7 +131,9 @@ it('explains an out-of-scope selection instead of leaving a dead-looking result 
 	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
 		target: { value: 'Apple' },
 	})
-	fireEvent.click(await screen.findByRole('button', { name: /Apple.*FooDB Food 42/ }))
+	fireEvent.click(
+		await screen.findByRole('button', { name: /Apple.*FooDB Food 42/ }),
+	)
 
 	expect(
 		await screen.findByText(/outside the pinned graph scope/i),

@@ -6,8 +6,6 @@ import { PATHS } from '@/constants'
 export default function PublicGraphExplorerPage() {
 	const graphExplorerEnabled =
 		process.env.NEXT_PUBLIC_GRAPH_EXPLORER_ENABLED === 'true'
-	const graphCandidatePreviewEnabled =
-		process.env.NEXT_PUBLIC_GRAPH_CANDIDATE_PREVIEW_ENABLED === 'true'
 
 	return (
 		<main className='mx-auto w-full max-w-[1440px] space-y-6 px-4 py-8 md:px-8'>
@@ -18,36 +16,18 @@ export default function PublicGraphExplorerPage() {
 				<ArrowLeft aria-hidden='true' className='size-4' />
 				Back to Explore
 			</Link>
-			<header className='relative overflow-hidden rounded-3xl border border-border-subtle bg-bg-card px-6 py-6 shadow-sm md:px-8 md:py-7'>
-				<div className='pointer-events-none absolute -right-12 -top-28 size-80 rounded-full bg-primary/10 blur-3xl' />
-				<div className='relative'>
-					<p className='text-xs font-bold uppercase tracking-[0.22em] text-primary'>
-						IRON CHEF · INGREDIENT INTELLIGENCE
-					</p>
-					<h1 className='mt-2 max-w-3xl text-3xl font-bold tracking-tight text-text-primary md:text-4xl'>
-						Explore how ingredients connect.
+			<header>
+				<div>
+					<h1 className='max-w-3xl text-3xl font-bold tracking-tight text-text-primary md:text-4xl'>
+						Food composition map
 					</h1>
 					<p className='mt-3 max-w-2xl text-sm leading-6 text-text-muted md:text-base'>
 						{graphExplorerEnabled
-							? graphCandidatePreviewEnabled
-								? 'Explore the newest private graph candidate fetched from the AI service through the Monolith. This candidate is not accepted for study claims or safety decisions.'
-								: 'Preview ingredient relationships from the bounded Knowledge API. This preview is not an accepted study graph or a safety decision.'
-							: 'Verified graph data is not available yet. This view stays off until a hash-pinned graph artifact is accepted.'}
+							? 'Explore FooDB’s recorded food–compound presence in the pinned product subset.'
+							: 'The pinned product graph is not available right now.'}
 					</p>
 				</div>
 			</header>
-			{graphExplorerEnabled && (
-				<aside
-					aria-label='Graph preview limitation'
-					className='rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm leading-6 text-text-muted'
-					data-testid='graph-explorer-preview-boundary'
-					role='note'
-				>
-					{graphCandidatePreviewEnabled
-						? 'Preview only: this provisional private graph candidate is fetched from the AI service through the Monolith. It shows Recipe1MSubs train relationships and has not been accepted as the research graph. It does not make calibrated substitution or allergy-safety decisions.'
-						: 'This preview uses the bounded legacy Knowledge API. It is not the accepted hash-pinned study graph. Only relationships whose targets resolve to known ingredients are shown; unresolved alternatives are omitted. This preview does not provide calibrated substitution or allergy-safety decisions.'}
-				</aside>
-			)}
 			{graphExplorerEnabled ? (
 				<GraphExplorer />
 			) : (

@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { PATHS } from '@/constants'
 import {
 	getProductFoodComposition,
 	searchProductFoods,
@@ -12,20 +14,35 @@ import type {
 	ProductFoodSearchResponse,
 } from '../types/productGraph'
 
-export function ProductCompositionExplorer({
-	onShowLegacy,
-}: {
-	onShowLegacy: () => void
-}) {
+type RequestFailure = 'unauthenticated' | 'forbidden' | 'unavailable'
+
+function classifyRequestFailure(error: unknown): RequestFailure {
+	const status =
+		typeof error === 'object' && error !== null && 'response' in error
+			? (error as { response?: { status?: unknown } }).response?.status
+			: undefined
+	if (status === 401) return 'unauthenticated'
+	if (status === 403) return 'forbidden'
+	return 'unavailable'
+}
+
+export function ProductCompositionExplorer() {
 	const [query, setQuery] = useState('')
 	const [search, setSearch] = useState<ProductFoodSearchResponse | null>(null)
-	const [selectedFood, setSelectedFood] = useState<ProductFoodCandidate | null>(null)
+	const [selectedFood, setSelectedFood] = useState<ProductFoodCandidate | null>(
+		null,
+	)
 	const [composition, setComposition] =
 		useState<ProductFoodCompositionResponse | null>(null)
-	const [searchError, setSearchError] = useState<string | null>(null)
-	const [compositionError, setCompositionError] = useState<string | null>(null)
+	const [searchError, setSearchError] = useState<
+		'unauthenticated' | 'forbidden' | 'unavailable' | null
+	>(null)
+	const [compositionError, setCompositionError] = useState<
+		'unauthenticated' | 'forbidden' | 'unavailable' | null
+	>(null)
 	const [searching, setSearching] = useState(false)
 	const [loadingComposition, setLoadingComposition] = useState(false)
+	const signInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.EXPLORE_GRAPH)}`
 
 	useEffect(() => {
 		const term = query.trim()
@@ -45,12 +62,8 @@ export function ProductCompositionExplorer({
 				.then(result => {
 					if (active) setSearch(result)
 				})
-				.catch(() => {
-					if (active) {
-						setSearchError(
-							'Pinned product data is unavailable. No legacy or evaluation graph was substituted.',
-						)
-					}
+				.catch(error => {
+					if (active) setSearchError(classifyRequestFailure(error))
 				})
 				.finally(() => {
 					if (active) setSearching(false)
@@ -71,11 +84,9 @@ export function ProductCompositionExplorer({
 			.then(result => {
 				if (active) setComposition(result)
 			})
-			.catch(() => {
+			.catch(error => {
 				if (active) {
-					setCompositionError(
-						'Could not verify this source graph. Nothing from the legacy graph is being shown instead.',
-					)
+					setCompositionError(classifyRequestFailure(error))
 				}
 			})
 			.finally(() => {
@@ -88,26 +99,6 @@ export function ProductCompositionExplorer({
 
 	return (
 		<section className='space-y-5' aria-label='FooDB food composition graph'>
-			<div className='flex flex-wrap items-start justify-between gap-3'>
-				<div>
-					<p className='text-sm font-semibold text-primary'>Product source</p>
-					<h2 className='mt-1 text-xl font-bold text-text-primary'>
-						Food composition map
-					</h2>
-					<p className='mt-1 max-w-2xl text-sm text-text-secondary'>
-						Explore FooDB’s recorded food–compound presence. This is a selected
-						source subset—not a substitution, nutrition, allergen, or safety guide.
-					</p>
-				</div>
-				<button
-					type='button'
-					onClick={onShowLegacy}
-					className='rounded-xl border border-border px-3 py-2 text-sm font-medium text-text-secondary hover:bg-bg-hover'
-				>
-					Legacy knowledge graph
-				</button>
-			</div>
-
 			<div className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<label
 					htmlFor='foodb-product-search'
@@ -135,9 +126,29 @@ export function ProductCompositionExplorer({
 					unresolved identity bridge.
 				</p>
 				{searchError && (
-					<p className='mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-text-secondary' role='alert'>
-						{searchError}
-					</p>
+					<div
+						className='mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-text-secondary'
+						role='alert'
+					>
+						{searchError === 'unauthenticated' ? (
+							<>
+								Sign in to search the pinned FooDB product data.{' '}
+								<Link
+									href={signInHref}
+									className='font-semibold text-primary underline underline-offset-2'
+								>
+									Sign in
+								</Link>
+							</>
+						) : searchError === 'forbidden' ? (
+							<>This account cannot access the pinned FooDB product data.</>
+						) : (
+							<>
+								Pinned product data is temporarily unavailable. No substitute
+								graph is shown.
+							</>
+						)}
+					</div>
 				)}
 				{search && (
 					<div className='mt-3 space-y-2' aria-label='FooDB food results'>
@@ -147,14 +158,16 @@ export function ProductCompositionExplorer({
 									key={food.foodId}
 									type='button'
 									aria-pressed={selectedFood?.foodId === food.foodId}
-					onClick={() => {
-						setComposition(null)
-						setCompositionError(null)
-						setSelectedFood(food)
-					}}
+									onClick={() => {
+										setComposition(null)
+										setCompositionError(null)
+										setSelectedFood(food)
+									}}
 									className='flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left hover:border-primary/50'
 								>
-									<span className='font-medium text-text-primary'>{food.name}</span>
+									<span className='font-medium text-text-primary'>
+										{food.name}
+									</span>
 									<span className='shrink-0 font-mono text-xs text-text-muted'>
 										FooDB Food {food.foodId}
 									</span>
@@ -171,28 +184,53 @@ export function ProductCompositionExplorer({
 			</div>
 
 			{loadingComposition && (
-				<div className='rounded-2xl border border-border-subtle bg-bg-card p-5 text-sm text-text-muted' role='status'>
+				<div
+					className='rounded-2xl border border-border-subtle bg-bg-card p-5 text-sm text-text-muted'
+					role='status'
+				>
 					Loading pinned food relations…
 				</div>
 			)}
 			{compositionError && (
-				<div className='rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-text-secondary' role='alert'>
-					{compositionError}
+				<div
+					className='rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-text-secondary'
+					role='alert'
+				>
+					{compositionError === 'unauthenticated' ? (
+						<>
+							Sign in to view this food’s pinned source relations.{' '}
+							<Link
+								href={signInHref}
+								className='font-semibold text-primary underline underline-offset-2'
+							>
+								Sign in
+							</Link>
+						</>
+					) : compositionError === 'forbidden' ? (
+						<>This account cannot access the pinned FooDB product data.</>
+					) : (
+						<>
+							Could not verify this source graph. No substitute graph is shown.
+						</>
+					)}
 				</div>
 			)}
 			{composition && composition.food && (
-				<section className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card' aria-label='Food compound relations'>
+				<section
+					className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'
+					aria-label='Food compound relations'
+				>
 					<div className='flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle pb-4'>
 						<div>
-						<p className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
-							Food node
-						</p>
-						<h3 className='mt-1 text-lg font-bold text-text-primary'>
-							{composition.food.name}
-						</h3>
-						<p className='mt-1 font-mono text-xs text-text-muted'>
-							{composition.food.id}
-						</p>
+							<p className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
+								Food node
+							</p>
+							<h3 className='mt-1 text-lg font-bold text-text-primary'>
+								{composition.food.name}
+							</h3>
+							<p className='mt-1 font-mono text-xs text-text-muted'>
+								{composition.food.id}
+							</p>
 						</div>
 						<span className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'>
 							FooDB 1.0 · 2020-04-07
@@ -210,7 +248,10 @@ export function ProductCompositionExplorer({
 							</h4>
 							<ul className='mt-3 divide-y divide-border-subtle'>
 								{composition.compounds.map(compound => (
-									<li key={compound.id} className='grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center'>
+									<li
+										key={compound.id}
+										className='grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center'
+									>
 										<div className='text-sm font-medium text-text-primary'>
 											{composition.food?.name}
 										</div>
@@ -232,9 +273,9 @@ export function ProductCompositionExplorer({
 					)}
 					{composition.filteredKnownRelationCount > 0 && (
 						<p className='border-t border-border-subtle pt-3 text-xs text-text-muted'>
-							{composition.filteredKnownRelationCount} source-present relation(s)
-								were withheld by the artifact’s export filter; they are not treated as
-								absent.
+							{composition.filteredKnownRelationCount} source-present
+							relation(s) were withheld by the artifact’s export filter; they
+							are not treated as absent.
 						</p>
 					)}
 				</section>
