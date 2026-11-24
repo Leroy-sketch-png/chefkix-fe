@@ -104,7 +104,10 @@ export function normalizeGraphEvidence(value: unknown): GraphEvidenceResponse {
 	}
 
 	let artifactIntegrity: GraphEvidenceResponse['artifactIntegrity']
-	if (response.artifactIntegrity !== undefined) {
+	if (
+		response.artifactIntegrity !== undefined &&
+		response.artifactIntegrity !== null
+	) {
 		const integrity = response.artifactIntegrity
 		if (
 			!isRecord(integrity) ||

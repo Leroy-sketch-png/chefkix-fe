@@ -187,6 +187,49 @@ describe('api refresh retry behavior', () => {
 		})
 	})
 
+	it('passes the full graph identity refusal through the accepted 503 path', async () => {
+		process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED = 'true'
+		const body = {
+			contractVersion: 'graph-evidence.v1',
+			status: 'UNAVAILABLE',
+			unavailableReason: 'IDENTITY_UNKNOWN',
+			artifactIntegrity: null,
+			identityResolution: {
+				status: 'UNKNOWN',
+				requestedSourceIngredientId: 'garlic',
+				sourceIngredientId: null,
+				sourceCandidates: [],
+				requestedCandidateIngredientId: 'shallot',
+				candidateIngredientId: null,
+				candidateCandidates: [],
+			},
+			evidence: null,
+		}
+		const originalAdapter = api.defaults.adapter
+		const { getGraphEvidence } =
+			require('@/features/graph-explorer/services/graphExplorerService') as typeof import('@/features/graph-explorer/services/graphExplorerService')
+
+		api.defaults.adapter = async config => ({
+			data: body,
+			status: 503,
+			statusText: 'Service Unavailable',
+			headers: {},
+			config,
+		})
+
+		try {
+			await expect(
+				getGraphEvidence('garlic', 'shallot'),
+			).resolves.toMatchObject({
+				status: 'UNAVAILABLE',
+				unavailableReason: 'IDENTITY_UNKNOWN',
+			})
+		} finally {
+			api.defaults.adapter = originalAdapter
+			delete process.env.NEXT_PUBLIC_GRAPH_EVIDENCE_ENABLED
+		}
+	})
+
 	it('preserves JSON request bodies when retrying after a refresh', async () => {
 		const seenConfigs: InternalAxiosRequestConfig[] = []
 		const payload = {
