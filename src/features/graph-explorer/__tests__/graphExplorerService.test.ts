@@ -529,16 +529,29 @@ describe('live graph API', () => {
 		const unavailable = {
 			contractVersion: 'graph-evidence.v1',
 			status: 'UNAVAILABLE',
-			unavailableReason: 'FEATURE_DISABLED',
+			unavailableReason: 'IDENTITY_UNKNOWN',
 		}
-		;(api.get as jest.Mock).mockRejectedValueOnce({
-			response: { data: unavailable },
+		;(api.get as jest.Mock).mockResolvedValueOnce({
+			data: {
+				success: true,
+				statusCode: 503,
+				message: 'Request completed',
+				data: unavailable,
+			},
 		})
 
 		expect(await getGraphEvidence('12', '34')).toEqual(unavailable)
-		expect(api.get).toHaveBeenCalledWith('/api/v1/graph/evidence', {
-			params: { sourceIngredientId: '12', candidateIngredientId: '34' },
-		})
+		const [, request] = (api.get as jest.Mock).mock.calls[0]
+		expect(api.get).toHaveBeenCalledWith(
+			'/api/v1/graph/evidence',
+			expect.objectContaining({
+				params: { sourceIngredientId: '12', candidateIngredientId: '34' },
+				validateStatus: expect.any(Function),
+			}),
+		)
+		expect(request.validateStatus(503)).toBe(true)
+		expect(request.validateStatus(401)).toBe(false)
+		expect(request.validateStatus(500)).toBe(false)
 	})
 
 	it('only exposes available graph evidence with a matching verified fingerprint and abstention', () => {

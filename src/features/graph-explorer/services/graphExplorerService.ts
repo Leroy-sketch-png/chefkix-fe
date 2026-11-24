@@ -296,6 +296,12 @@ export async function getGraphEvidence(
 	try {
 		const response = await api.get(API_ENDPOINTS.KNOWLEDGE.GRAPH_EVIDENCE, {
 			params: { sourceIngredientId, candidateIngredientId },
+			// This endpoint uses HTTP 503 for typed, fail-closed research states
+			// such as IDENTITY_UNKNOWN. Preserve that contract body instead of
+			// letting the shared Axios error normalizer replace it with a generic
+			// transport message. Authentication and other failures still reject.
+			validateStatus: status =>
+				(status >= 200 && status < 300) || status === 503,
 		})
 		payload = response.data ?? response
 	} catch (error) {

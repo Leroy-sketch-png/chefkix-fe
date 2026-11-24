@@ -34,13 +34,13 @@ it('keeps backend unavailable and refused graph evidence states explicit', () =>
 		response: {
 			contractVersion: 'graph-evidence.v1',
 			status: 'UNAVAILABLE',
-			unavailableReason: 'FEATURE_DISABLED',
+			unavailableReason: 'IDENTITY_UNKNOWN',
 		},
 	})
 
 	const unavailableStatus = screen.getByRole('status')
 	expect(unavailableStatus).toHaveTextContent(
-		'Graph evidence unavailable: feature disabled.',
+		'Graph evidence unavailable: identity unknown.',
 	)
 	expect(unavailableStatus).toHaveTextContent(
 		'No substitution decision was made.',
