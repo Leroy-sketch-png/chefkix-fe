@@ -15,6 +15,7 @@ import type {
 } from '../types/productGraph'
 
 type RequestFailure = 'unauthenticated' | 'forbidden' | 'unavailable'
+const INITIAL_COMPOUNDS_TO_SHOW = 12
 
 function classifyRequestFailure(error: unknown): RequestFailure {
 	const status =
@@ -42,7 +43,17 @@ export function ProductCompositionExplorer() {
 	>(null)
 	const [searching, setSearching] = useState(false)
 	const [loadingComposition, setLoadingComposition] = useState(false)
+	const [compoundQuery, setCompoundQuery] = useState('')
+	const [visibleCompoundLimit, setVisibleCompoundLimit] = useState(
+		INITIAL_COMPOUNDS_TO_SHOW,
+	)
+	const [showSourceIds, setShowSourceIds] = useState(false)
 	const signInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.EXPLORE_GRAPH)}`
+	const normalizedCompoundQuery = compoundQuery.trim().toLowerCase()
+	const matchingCompounds = (composition?.compounds ?? []).filter(compound =>
+		compound.name.toLowerCase().includes(normalizedCompoundQuery),
+	)
+	const visibleCompounds = matchingCompounds.slice(0, visibleCompoundLimit)
 
 	useEffect(() => {
 		const term = query.trim()
@@ -51,6 +62,9 @@ export function ProductCompositionExplorer() {
 		setComposition(null)
 		setSearchError(null)
 		setCompositionError(null)
+		setCompoundQuery('')
+		setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
+		setShowSourceIds(false)
 		if (term.length < 2) {
 			setSearching(false)
 			return
@@ -98,20 +112,20 @@ export function ProductCompositionExplorer() {
 	}, [selectedFood])
 
 	return (
-		<section className='space-y-5' aria-label='FooDB food composition graph'>
+		<section className='space-y-5' aria-label='FooDB food record explorer'>
 			<div className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'>
 				<label
 					htmlFor='foodb-product-search'
 					className='text-sm font-semibold text-text-primary'
 				>
-					Find a FooDB food
+					Search FooDB foods
 				</label>
 				<div className='mt-2 flex flex-col gap-3 sm:flex-row'>
 					<input
 						id='foodb-product-search'
 						value={query}
 						onChange={event => setQuery(event.target.value)}
-						placeholder='Search source food names…'
+						placeholder='Enter a food name, such as apple'
 						maxLength={120}
 						className='min-h-11 flex-1 rounded-xl border border-border-medium bg-bg-input px-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
 					/>
@@ -122,8 +136,8 @@ export function ProductCompositionExplorer() {
 					)}
 				</div>
 				<p className='mt-2 text-xs text-text-muted'>
-					Names locate FooDB records only. Ingredient linking is a separate,
-					unresolved identity bridge.
+					Choose the exact source record you want to inspect. This does not
+					guess which ChefKix ingredient it represents.
 				</p>
 				{searchError && (
 					<div
@@ -151,28 +165,39 @@ export function ProductCompositionExplorer() {
 					</div>
 				)}
 				{search && (
-					<div className='mt-3 space-y-2' aria-label='FooDB food results'>
+					<div className='mt-4 space-y-2' aria-label='FooDB food results'>
 						{search.foods.length ? (
-							search.foods.map(food => (
-								<button
-									key={food.foodId}
-									type='button'
-									aria-pressed={selectedFood?.foodId === food.foodId}
-									onClick={() => {
-										setComposition(null)
-										setCompositionError(null)
-										setSelectedFood(food)
-									}}
-									className='flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left hover:border-primary/50'
-								>
-									<span className='font-medium text-text-primary'>
-										{food.name}
-									</span>
-									<span className='shrink-0 font-mono text-xs text-text-muted'>
-										FooDB Food {food.foodId}
-									</span>
-								</button>
-							))
+							<>
+								<h3 className='text-sm font-semibold text-text-primary'>
+									{search.foods.length} matching FooDB{' '}
+									{search.foods.length === 1 ? 'record' : 'records'}
+								</h3>
+								{search.foods.map(food => (
+									<button
+										key={food.foodId}
+										type='button'
+										aria-pressed={selectedFood?.foodId === food.foodId}
+										onClick={() => {
+											setComposition(null)
+											setCompositionError(null)
+											setCompoundQuery('')
+											setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
+											setShowSourceIds(false)
+											setSelectedFood(food)
+										}}
+										className='flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left hover:border-primary/50 aria-pressed:border-primary aria-pressed:bg-bg-elevated'
+									>
+										<span className='font-medium text-text-primary'>
+											{food.name}
+										</span>
+										<span className='shrink-0 text-xs text-text-muted'>
+											{selectedFood?.foodId === food.foodId
+												? 'Selected'
+												: 'View record'}
+										</span>
+									</button>
+								))}
+							</>
 						) : (
 							<p className='text-sm text-text-secondary'>
 								No matching Food records in this selected source subset. This
@@ -218,23 +243,35 @@ export function ProductCompositionExplorer() {
 			{composition && composition.food && (
 				<section
 					className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'
-					aria-label='Food compound relations'
+					aria-label='Selected food record details'
 				>
 					<div className='flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle pb-4'>
 						<div>
 							<p className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
-								Food node
+								Selected FooDB record
 							</p>
 							<h3 className='mt-1 text-lg font-bold text-text-primary'>
 								{composition.food.name}
 							</h3>
-							<p className='mt-1 font-mono text-xs text-text-muted'>
-								{composition.food.id}
-							</p>
+							{showSourceIds && (
+								<p className='mt-1 font-mono text-xs text-text-muted'>
+									{composition.food.id}
+								</p>
+							)}
 						</div>
-						<span className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'>
-							FooDB 1.0 · 2020-04-07
-						</span>
+						<div className='flex flex-wrap items-center gap-2'>
+							<span className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'>
+								FooDB 1.0 · 2020-04-07
+							</span>
+							<button
+								type='button'
+								aria-pressed={showSourceIds}
+								onClick={() => setShowSourceIds(value => !value)}
+								className='min-h-11 rounded-lg px-3 text-xs font-medium text-text-secondary underline underline-offset-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+							>
+								{showSourceIds ? 'Hide source IDs' : 'Show source IDs'}
+							</button>
+						</div>
 					</div>
 					{composition.status === 'NO_ELIGIBLE_RELATION_UNKNOWN' ? (
 						<p className='py-4 text-sm text-text-secondary'>
@@ -243,41 +280,103 @@ export function ProductCompositionExplorer() {
 						</p>
 					) : (
 						<div className='py-4'>
-							<h4 className='text-sm font-semibold text-text-primary'>
-								Recorded compound-presence relations
-							</h4>
-							<ul className='mt-3 divide-y divide-border-subtle'>
-								{composition.compounds.map(compound => (
-									<li
-										key={compound.id}
-										className='grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center'
-									>
-										<div className='text-sm font-medium text-text-primary'>
-											{composition.food?.name}
-										</div>
-										<div className='text-xs font-semibold text-primary'>
-											→ compound present
-										</div>
-										<div>
-											<div className='text-sm font-medium text-text-primary'>
+							<div className='flex flex-wrap items-end justify-between gap-3'>
+								<div>
+									<h4 className='text-sm font-semibold text-text-primary'>
+										Recorded compound links
+									</h4>
+									<p className='mt-1 text-xs leading-5 text-text-muted'>
+										A link means this source record lists the compound as
+										present. It does not tell you how much is present or what it
+										means for cooking.
+									</p>
+								</div>
+								<label className='w-full sm:w-64'>
+									<span className='sr-only'>
+										Filter recorded compound names
+									</span>
+									<input
+										id='foodb-compound-filter'
+										type='search'
+										value={compoundQuery}
+										onChange={event => {
+											setCompoundQuery(event.target.value)
+											setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
+										}}
+										placeholder='Filter these compounds'
+										className='min-h-11 w-full rounded-xl border border-border-medium bg-bg-input px-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
+									/>
+								</label>
+							</div>
+							<p className='mt-3 text-xs text-text-muted' role='status'>
+								{normalizedCompoundQuery
+									? `${matchingCompounds.length} of ${composition.compounds.length} listed compounds match`
+									: `${composition.compounds.length} compound links listed`}
+							</p>
+							{matchingCompounds.length ? (
+								<ul className='mt-2 divide-y divide-border-subtle'>
+									{visibleCompounds.map(compound => (
+										<li
+											key={compound.id}
+											className='flex flex-wrap items-center justify-between gap-2 py-3'
+										>
+											<span className='text-sm font-medium text-text-primary'>
 												{compound.name}
-											</div>
-											<p className='mt-1 font-mono text-xs text-text-muted'>
-												{compound.id}
-											</p>
-										</div>
-									</li>
-								))}
-							</ul>
+											</span>
+											<span className='rounded-full bg-bg-elevated px-2.5 py-1 text-xs text-text-secondary'>
+												Recorded present
+											</span>
+											{showSourceIds && (
+												<span className='w-full font-mono text-xs text-text-muted'>
+													{compound.id}
+												</span>
+											)}
+										</li>
+									))}
+								</ul>
+							) : (
+								<p
+									className='mt-4 rounded-xl bg-bg-elevated p-3 text-sm text-text-secondary'
+									role='status'
+								>
+									No listed compound names match this filter. Clear it to see
+									the full source-record list; this does not show absence from
+									FooDB.
+								</p>
+							)}
+							{visibleCompounds.length < matchingCompounds.length && (
+								<button
+									type='button'
+									onClick={() =>
+										setVisibleCompoundLimit(
+											limit => limit + INITIAL_COMPOUNDS_TO_SHOW,
+										)
+									}
+									className='mt-3 min-h-11 rounded-lg px-3 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+								>
+									Show{' '}
+									{Math.min(
+										INITIAL_COMPOUNDS_TO_SHOW,
+										matchingCompounds.length - visibleCompounds.length,
+									)}{' '}
+									more
+								</button>
+							)}
 						</div>
 					)}
-					{composition.filteredKnownRelationCount > 0 && (
-						<p className='border-t border-border-subtle pt-3 text-xs text-text-muted'>
-							{composition.filteredKnownRelationCount} source-present
-							relation(s) were withheld by the artifact’s export filter; they
-							are not treated as absent.
+					<div className='mt-3 border-t border-border-subtle pt-3 text-xs leading-5 text-text-muted'>
+						<p>
+							Presence is not quantity, nutrition, flavor, safety, allergen, or
+							substitution evidence. Missing links are unknown.
 						</p>
-					)}
+						{composition.filteredKnownRelationCount > 0 && (
+							<p className='mt-2'>
+								{composition.filteredKnownRelationCount} additional
+								source-present relation(s) were withheld by the artifact’s
+								export filter; they are not treated as absent.
+							</p>
+						)}
+					</div>
 				</section>
 			)}
 			{composition && !composition.food && (
@@ -290,15 +389,21 @@ export function ProductCompositionExplorer() {
 				</div>
 			)}
 
-			<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3 text-xs text-text-muted'>
-				Source: FooDB 1.0 under CC BY-NC 4.0 · noncommercial use only. This view
-				covers a selected top-255 profile scope, not every food or compound. A
-				present edge is not a quantity, flavor, safety, allergen, nutrition, or
-				substitution claim. Missing edges are unknown. Manifest:{' '}
-				<code title={PRODUCT_GRAPH_MANIFEST_SHA256}>
-					{PRODUCT_GRAPH_MANIFEST_SHA256.slice(0, 12)}…
-				</code>
-			</div>
+			<details className='rounded-xl border border-border-subtle bg-bg-elevated p-3 text-xs text-text-muted'>
+				<summary className='cursor-pointer font-semibold text-text-secondary'>
+					About the source and coverage
+				</summary>
+				<div className='mt-3 space-y-2 leading-5'>
+					<p>
+						FooDB 1.0 · 2020-04-07 · CC BY-NC 4.0 (non-commercial). This is a
+						selected top-255 profile subset, not every food or compound.
+					</p>
+					<p>Artifact manifest SHA-256:</p>
+					<code className='block break-all'>
+						{PRODUCT_GRAPH_MANIFEST_SHA256}
+					</code>
+				</div>
+			</details>
 		</section>
 	)
 }

@@ -31,7 +31,7 @@ const provenance = {
 
 beforeEach(() => jest.clearAllMocks())
 
-it('makes pinned product composition the default and shows only typed source relations', async () => {
+it('guides a user from a source-food search to readable, honest composition details', async () => {
 	jest.mocked(searchProductFoods).mockResolvedValue({
 		provenance,
 		foods: [{ foodId: '42', name: 'Apple' }],
@@ -55,27 +55,98 @@ it('makes pinned product composition the default and shows only typed source rel
 
 	render(<GraphExplorer />)
 	expect(
-		screen.getByRole('region', { name: 'FooDB food composition graph' }),
+		screen.getByRole('region', { name: 'FooDB food record explorer' }),
 	).toBeInTheDocument()
 	expect(
 		screen.queryByRole('button', { name: 'Legacy knowledge graph' }),
 	).toBeNull()
 	expect(screen.queryByTestId('graph-content')).not.toBeInTheDocument()
 
-	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
-		target: { value: 'Apple' },
-	})
+	fireEvent.change(
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		{
+			target: { value: 'Apple' },
+		},
+	)
 	const result = await screen.findByRole('button', {
-		name: /Apple.*FooDB Food 42/,
+		name: /Apple.*View record/,
 	})
 	fireEvent.click(result)
 
 	await waitFor(() =>
 		expect(screen.getByText('Source compound')).toBeInTheDocument(),
 	)
-	expect(screen.getByText('→ compound present')).toBeInTheDocument()
-	expect(screen.getByText(/Missing edges are unknown/)).toBeInTheDocument()
+	expect(screen.getByText('Recorded present')).toBeInTheDocument()
+	expect(screen.getByText('Recorded compound links')).toBeInTheDocument()
+	expect(
+		screen.getByText(
+			/does not tell you how much is present or what it means for cooking/i,
+		),
+	).toBeInTheDocument()
+	expect(screen.getByText(/Missing links are unknown/)).toBeInTheDocument()
+	expect(screen.queryByText('foodb:1.0:food-id:42')).not.toBeInTheDocument()
+	fireEvent.click(screen.getByRole('button', { name: 'Show source IDs' }))
+	expect(screen.getByText('foodb:1.0:food-id:42')).toBeInTheDocument()
 	expect(getProductFoodComposition).toHaveBeenCalledWith('42')
+})
+
+it('filters the selected source record list and reveals long lists progressively', async () => {
+	const compounds = Array.from({ length: 14 }, (_, index) => ({
+		id: `foodb:1.0:compound-id:${index + 1}`,
+		name: index === 13 ? 'Unique filtered compound' : `Compound ${index + 1}`,
+		predicate: 'has_compound' as const,
+		presence: 'PRESENT' as const,
+		contentRowSupport: 8,
+		exportEligibleSupport: 8,
+	}))
+	jest.mocked(searchProductFoods).mockResolvedValue({
+		provenance,
+		foods: [{ foodId: '42', name: 'Apple' }],
+	})
+	jest.mocked(getProductFoodComposition).mockResolvedValue({
+		status: 'AVAILABLE',
+		provenance,
+		food: { id: 'foodb:1.0:food-id:42', name: 'Apple', type: 'Food' },
+		compounds,
+		filteredKnownRelationCount: 4,
+	})
+
+	render(<GraphExplorer />)
+	fireEvent.change(
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		{
+			target: { value: 'Apple' },
+		},
+	)
+	fireEvent.click(
+		await screen.findByRole('button', { name: /Apple.*View record/ }),
+	)
+
+	await screen.findByText('Compound 1')
+	expect(screen.queryByText('Compound 13')).not.toBeInTheDocument()
+	expect(
+		screen.getByRole('button', { name: 'Show 2 more' }),
+	).toBeInTheDocument()
+	expect(
+		screen.getByText(/4 additional source-present relation\(s\) were withheld/),
+	).toBeInTheDocument()
+	fireEvent.change(
+		screen.getByRole('searchbox', { name: 'Filter recorded compound names' }),
+		{
+			target: { value: 'Unique filtered' },
+		},
+	)
+	expect(screen.getByText('Unique filtered compound')).toBeInTheDocument()
+	expect(screen.getByText(/1 of 14 listed compounds match/)).toBeInTheDocument()
+	fireEvent.change(
+		screen.getByRole('searchbox', { name: 'Filter recorded compound names' }),
+		{
+			target: { value: 'not listed' },
+		},
+	)
+	expect(
+		screen.getByText(/this does not show absence from FooDB/i),
+	).toBeInTheDocument()
 })
 
 it('explains that sign-in is required when the protected product search returns 401', async () => {
@@ -84,9 +155,12 @@ it('explains that sign-in is required when the protected product search returns 
 		.mockRejectedValue({ response: { status: 401 } })
 
 	render(<GraphExplorer />)
-	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
-		target: { value: 'Apple' },
-	})
+	fireEvent.change(
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		{
+			target: { value: 'Apple' },
+		},
+	)
 
 	const alert = await screen.findByRole('alert')
 	expect(alert).toHaveTextContent(
@@ -105,9 +179,12 @@ it('keeps access denial distinct from authentication and service failures', asyn
 		.mockRejectedValue({ response: { status: 403 } })
 
 	render(<GraphExplorer />)
-	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
-		target: { value: 'Apple' },
-	})
+	fireEvent.change(
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		{
+			target: { value: 'Apple' },
+		},
+	)
 
 	expect(await screen.findByRole('alert')).toHaveTextContent(
 		'This account cannot access the pinned FooDB product data.',
@@ -128,11 +205,14 @@ it('explains an out-of-scope selection instead of leaving a dead-looking result 
 		filteredKnownRelationCount: 0,
 	})
 	render(<GraphExplorer />)
-	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
-		target: { value: 'Apple' },
-	})
+	fireEvent.change(
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		{
+			target: { value: 'Apple' },
+		},
+	)
 	fireEvent.click(
-		await screen.findByRole('button', { name: /Apple.*FooDB Food 42/ }),
+		await screen.findByRole('button', { name: /Apple.*View record/ }),
 	)
 
 	expect(

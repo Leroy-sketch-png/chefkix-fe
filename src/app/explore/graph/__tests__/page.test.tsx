@@ -33,7 +33,7 @@ it('mounts the graph explorer only when the explicit build flag is true', () => 
 	render(<PublicGraphExplorerPage />)
 
 	expect(
-		screen.getByRole('heading', { name: 'Food composition map' }),
+		screen.getByRole('heading', { name: 'Explore food records' }),
 	).toBeInTheDocument()
 	expect(screen.getByTestId('graph-explorer')).toHaveTextContent('Explorer')
 	expect(screen.queryByTestId('graph-explorer-preview-boundary')).toBeNull()
