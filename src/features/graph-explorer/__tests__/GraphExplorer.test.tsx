@@ -64,9 +64,14 @@ beforeEach(() => {
 	jest.mocked(getGraphEvidenceSnapshot).mockResolvedValue(undefined)
 })
 
+function renderLegacyGraph() {
+	render(<GraphExplorer />)
+	fireEvent.click(screen.getByRole('button', { name: 'Legacy knowledge graph' }))
+}
+
 it('keeps live API data separate from unvalidated academic fixtures', async () => {
 	jest.mocked(getGraphData).mockResolvedValue(base)
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('source-bound-graph')).toHaveTextContent(
 			'source fields only',
@@ -80,7 +85,7 @@ it('keeps live API data separate from unvalidated academic fixtures', async () =
 
 it('states that no graph evidence is shown when the live graph request fails', async () => {
 	jest.mocked(getGraphData).mockRejectedValue(new Error('Not found'))
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 
 	await waitFor(() =>
 		expect(screen.getByRole('alert')).toHaveTextContent(
@@ -110,7 +115,7 @@ it('finds an ingredient by remote alias outside the initial page', async () => {
 			: base,
 	)
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain('butter'),
 	)
@@ -138,7 +143,7 @@ it('reports an unknown search without inventing a graph node', async () => {
 			query?.query ? { ...base, nodes: [], edges: [] } : base,
 		)
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain('butter'),
 	)
@@ -181,7 +186,7 @@ it('clears a failed search message after a later search succeeds', async () => {
 		}
 	})
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain('butter'),
 	)
@@ -238,7 +243,7 @@ it('shows the grounded compound overlap after an edge is selected', async () => 
 		compoundOverlapSemantics: 'Jaccard of official presence profiles',
 	})
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain(
 			'coconut oil',
@@ -275,7 +280,7 @@ it('retries compound overlap after an empty result', async () => {
 			compoundOverlapSemantics: 'Jaccard of official presence profiles',
 		})
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain(
 			'coconut oil',
@@ -319,7 +324,7 @@ it('loads abstaining shadow evidence only when the explicit feature flag is on',
 		},
 	})
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() =>
 		expect(screen.getByTestId('graph-content').textContent).toContain(
 			'coconut oil',
@@ -344,7 +349,7 @@ it('displays the verified artifact manifest hash in the footer when evidence is 
 		totalEdges: 23185,
 	})
 
-	render(<GraphExplorer />)
+	renderLegacyGraph()
 	await waitFor(() => {
 		const el = screen.getByTestId('graph-artifact-footer-hash')
 		expect(el).toBeInTheDocument()

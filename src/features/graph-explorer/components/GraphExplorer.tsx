@@ -19,6 +19,7 @@ import {
 	mergeGraphData,
 } from '../services/graphExplorerService'
 import { GraphCanvas } from './GraphCanvas'
+import { ProductCompositionExplorer } from './ProductCompositionExplorer'
 import type {
 	GraphData,
 	GraphEdge,
@@ -35,6 +36,33 @@ const signals: Array<{ value: GraphSignal | 'all'; label: string }> = [
 ]
 
 export function GraphExplorer() {
+	const [showLegacy, setShowLegacy] = useState(false)
+
+	if (!showLegacy) {
+		return (
+			<ProductCompositionExplorer onShowLegacy={() => setShowLegacy(true)} />
+		)
+	}
+
+	return (
+		<div className='space-y-4'>
+			<div className='rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-text-secondary'>
+				<strong className='text-text-primary'>Legacy knowledge graph.</strong>{' '}
+				This separate view is not the pinned FooDB product graph.
+				<button
+					type='button'
+					onClick={() => setShowLegacy(false)}
+					className='ml-2 min-h-11 rounded-lg px-3 font-semibold text-primary underline underline-offset-2'
+				>
+					Return to product graph
+				</button>
+			</div>
+			<LegacyKnowledgeGraphExplorer />
+		</div>
+	)
+}
+
+function LegacyKnowledgeGraphExplorer() {
 	const [data, setData] = useState<GraphData | null>(null)
 	const [searchData, setSearchData] = useState<GraphData | null>(null)
 	const [error, setError] = useState<string | null>(null)
