@@ -55,7 +55,7 @@ describe('AI proxy authentication and credential custody', () => {
 		expect(result).toEqual({
 			authenticated: false,
 			status: 401,
-			message: 'Authentication required for AI features.',
+			message: 'Please sign in to continue.',
 		})
 		expect(requestMock).not.toHaveBeenCalled()
 	})

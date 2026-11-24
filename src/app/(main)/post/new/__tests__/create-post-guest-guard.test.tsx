@@ -43,22 +43,6 @@ describe('CreatePostPage Guest Guard', () => {
 	const mockUseSearchParams = useSearchParams as jest.Mock
 	const mockUseAuth = useAuth as jest.Mock
 
-	beforeAll(() => {
-		Object.defineProperty(window, 'matchMedia', {
-			writable: true,
-			value: jest.fn().mockImplementation((query: string) => ({
-				matches: false,
-				media: query,
-				onchange: null,
-				addListener: jest.fn(),
-				removeListener: jest.fn(),
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
-			})),
-		})
-	})
-
 	beforeEach(() => {
 		jest.clearAllMocks()
 		mockUseRouter.mockReturnValue({
