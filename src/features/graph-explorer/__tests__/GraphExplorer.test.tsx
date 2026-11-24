@@ -11,10 +11,10 @@ it('keeps the Explorer on the pinned product graph without a legacy fallback', (
 	render(<GraphExplorer />)
 
 	expect(
-		screen.getByRole('region', { name: 'FooDB food composition graph' }),
+		screen.getByRole('region', { name: 'FooDB food record explorer' }),
 	).toBeInTheDocument()
 	expect(
-		screen.getByRole('textbox', { name: 'Find a FooDB food' }),
+		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
 	).toBeInTheDocument()
 	expect(
 		screen.queryByRole('button', { name: 'Legacy knowledge graph' }),
