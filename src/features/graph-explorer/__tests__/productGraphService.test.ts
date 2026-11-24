@@ -19,8 +19,9 @@ const provenance = {
 	source: 'FooDB 1.0',
 	releaseDate: '2020-04-07',
 	license: 'CC BY-NC 4.0',
-	scope: 'selected profile subset',
-	interpretation: 'presence only',
+	scope: 'Top-255 profile scope; export-eligible edges only',
+	interpretation:
+		'Missing relations are unknown; presence is not quantity or substitution evidence.',
 }
 
 beforeEach(() => jest.clearAllMocks())
@@ -72,4 +73,23 @@ it('keeps filtered or missing relations explicitly unknown', async () => {
 		compounds: [],
 	})
 	expect(api.get).toHaveBeenCalledWith('/knowledge/product/foods/42/compounds')
+})
+
+it('rejects contradictory status and data rather than converting it into an empty graph', async () => {
+	jest.mocked(api.get).mockResolvedValue({
+		data: {
+			success: true,
+			data: {
+				status: 'UNKNOWN_OR_OUT_OF_SCOPE',
+				provenance,
+				food: { id: 'foodb:1.0:food-id:42', name: 'Apple', type: 'Food' },
+				compounds: [],
+				filteredKnownRelationCount: 0,
+			},
+		},
+	})
+
+	await expect(getProductFoodComposition('42')).rejects.toThrow(
+		'contradicts its typed source relations',
+	)
 })

@@ -24,8 +24,9 @@ const provenance = {
 	source: 'FooDB 1.0' as const,
 	releaseDate: '2020-04-07' as const,
 	license: 'CC BY-NC 4.0' as const,
-	scope: 'selected profile subset',
-	interpretation: 'presence only',
+	scope: 'Top-255 profile scope; export-eligible edges only',
+	interpretation:
+		'Missing relations are unknown; presence is not quantity or substitution evidence.',
 }
 
 beforeEach(() => jest.clearAllMocks())
@@ -69,4 +70,28 @@ it('makes pinned product composition the default and shows only typed source rel
 	expect(screen.getByText('→ compound present')).toBeInTheDocument()
 	expect(screen.getByText(/Missing edges are unknown/)).toBeInTheDocument()
 	expect(getProductFoodComposition).toHaveBeenCalledWith('42')
+})
+
+it('explains an out-of-scope selection instead of leaving a dead-looking result area', async () => {
+	jest.mocked(searchProductFoods).mockResolvedValue({
+		provenance,
+		foods: [{ foodId: '42', name: 'Apple' }],
+	})
+	jest.mocked(getProductFoodComposition).mockResolvedValue({
+		status: 'UNKNOWN_OR_OUT_OF_SCOPE',
+		provenance,
+		food: null,
+		compounds: [],
+		filteredKnownRelationCount: 0,
+	})
+	render(<GraphExplorer />)
+	fireEvent.change(screen.getByRole('textbox', { name: 'Find a FooDB food' }), {
+		target: { value: 'Apple' },
+	})
+	fireEvent.click(await screen.findByRole('button', { name: /Apple.*FooDB Food 42/ }))
+
+	expect(
+		await screen.findByText(/outside the pinned graph scope/i),
+	).toBeInTheDocument()
+	expect(screen.getByRole('status')).toHaveTextContent(/unknown here/i)
 })

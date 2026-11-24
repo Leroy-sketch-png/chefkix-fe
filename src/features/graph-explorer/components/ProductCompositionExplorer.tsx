@@ -147,7 +147,11 @@ export function ProductCompositionExplorer({
 									key={food.foodId}
 									type='button'
 									aria-pressed={selectedFood?.foodId === food.foodId}
-									onClick={() => setSelectedFood(food)}
+					onClick={() => {
+						setComposition(null)
+						setCompositionError(null)
+						setSelectedFood(food)
+					}}
 									className='flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left hover:border-primary/50'
 								>
 									<span className='font-medium text-text-primary'>{food.name}</span>
@@ -234,6 +238,15 @@ export function ProductCompositionExplorer({
 						</p>
 					)}
 				</section>
+			)}
+			{composition && !composition.food && (
+				<div
+					className='rounded-xl border border-border-subtle bg-bg-card p-4 text-sm text-text-secondary'
+					role='status'
+				>
+					This FooDB Food is outside the pinned graph scope. Its relationships
+					are unknown here; this does not mean none exist.
+				</div>
 			)}
 
 			<div className='rounded-xl border border-border-subtle bg-bg-elevated p-3 text-xs text-text-muted'>

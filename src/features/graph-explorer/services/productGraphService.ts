@@ -16,6 +16,9 @@ export const PRODUCT_GRAPH_EDGES_SHA256 =
 const FOOD_ID = /^[1-9]\d{0,18}$/
 const FOOD_NODE_ID = /^foodb:1\.0:food-id:[1-9]\d{0,18}$/
 const COMPOUND_NODE_ID = /^foodb:1\.0:compound-id:[1-9]\d{0,18}$/
+const EXPECTED_SCOPE = 'Top-255 profile scope; export-eligible edges only'
+const EXPECTED_INTERPRETATION =
+	'Missing relations are unknown; presence is not quantity or substitution evidence.'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -35,8 +38,8 @@ function provenance(value: unknown): ProductGraphProvenance {
 		value.source !== 'FooDB 1.0' ||
 		value.releaseDate !== '2020-04-07' ||
 		value.license !== 'CC BY-NC 4.0' ||
-		typeof value.scope !== 'string' ||
-		typeof value.interpretation !== 'string'
+		value.scope !== EXPECTED_SCOPE ||
+		value.interpretation !== EXPECTED_INTERPRETATION
 	) {
 		throw new Error('The product graph did not match its pinned source manifest.')
 	}
@@ -88,6 +91,7 @@ export async function getProductFoodComposition(foodId: string) {
 			status !== 'UNKNOWN_OR_OUT_OF_SCOPE') ||
 		!Array.isArray(payload.compounds) ||
 		typeof payload.filteredKnownRelationCount !== 'number' ||
+		!Number.isSafeInteger(payload.filteredKnownRelationCount) ||
 		payload.filteredKnownRelationCount < 0
 	) {
 		throw new Error('The product graph response is invalid.')
@@ -112,7 +116,10 @@ export async function getProductFoodComposition(foodId: string) {
 			item.predicate !== 'has_compound' ||
 			item.presence !== 'PRESENT' ||
 			typeof item.contentRowSupport !== 'number' ||
+			!Number.isSafeInteger(item.contentRowSupport) ||
+			item.contentRowSupport < 1 ||
 			typeof item.exportEligibleSupport !== 'number' ||
+			!Number.isSafeInteger(item.exportEligibleSupport) ||
 			item.exportEligibleSupport < 1 ||
 			item.exportEligibleSupport > item.contentRowSupport
 		) {
@@ -120,6 +127,14 @@ export async function getProductFoodComposition(foodId: string) {
 		}
 		return item as unknown as ProductFoodCompositionResponse['compounds'][number]
 	})
+	if (
+		(status === 'AVAILABLE' && (!food || compounds.length === 0)) ||
+		(status === 'NO_ELIGIBLE_RELATION_UNKNOWN' && (!food || compounds.length > 0)) ||
+		(status === 'UNKNOWN_OR_OUT_OF_SCOPE' &&
+			(food !== null || compounds.length > 0 || payload.filteredKnownRelationCount !== 0))
+	) {
+		throw new Error('The product graph status contradicts its typed source relations.')
+	}
 	return {
 		status: status as ProductFoodCompositionResponse['status'],
 		provenance: provenance(payload.provenance),
