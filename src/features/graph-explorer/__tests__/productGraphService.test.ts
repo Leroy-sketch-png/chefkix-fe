@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_PREFIX } from '@/constants'
 import {
 	getProductFoodComposition,
 	PRODUCT_GRAPH_EDGES_SHA256,
@@ -28,23 +29,32 @@ beforeEach(() => jest.clearAllMocks())
 
 it('uses the product-only endpoint and verifies pinned search provenance', async () => {
 	jest.mocked(api.get).mockResolvedValue({
-		data: { success: true, data: { provenance, foods: [{ foodId: '42', name: 'Apple' }] } },
+		data: {
+			success: true,
+			data: { provenance, foods: [{ foodId: '42', name: 'Apple' }] },
+		},
 	})
 
 	await expect(searchProductFoods('apple')).resolves.toEqual({
 		provenance,
 		foods: [{ foodId: '42', name: 'Apple' }],
 	})
-	expect(api.get).toHaveBeenCalledWith('/knowledge/product/foods', {
-		params: { q: 'apple', limit: 10 },
-	})
+	expect(api.get).toHaveBeenCalledWith(
+		`${API_PREFIX}/knowledge/product/foods`,
+		{
+			params: { q: 'apple', limit: 10 },
+		},
+	)
 })
 
 it('rejects a response from a different manifest instead of accepting a graph substitute', async () => {
 	jest.mocked(api.get).mockResolvedValue({
 		data: {
 			success: true,
-			data: { provenance: { ...provenance, manifestSha256: '0'.repeat(64) }, foods: [] },
+			data: {
+				provenance: { ...provenance, manifestSha256: '0'.repeat(64) },
+				foods: [],
+			},
 		},
 	})
 
@@ -72,7 +82,9 @@ it('keeps filtered or missing relations explicitly unknown', async () => {
 		filteredKnownRelationCount: 3,
 		compounds: [],
 	})
-	expect(api.get).toHaveBeenCalledWith('/knowledge/product/foods/42/compounds')
+	expect(api.get).toHaveBeenCalledWith(
+		`${API_PREFIX}/knowledge/product/foods/42/compounds`,
+	)
 })
 
 it('rejects contradictory status and data rather than converting it into an empty graph', async () => {

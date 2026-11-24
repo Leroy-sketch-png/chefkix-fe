@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios'
+import { API_PREFIX } from '@/constants'
 import type {
 	ProductFoodCandidate,
 	ProductFoodCompositionResponse,
@@ -41,7 +42,9 @@ function provenance(value: unknown): ProductGraphProvenance {
 		value.scope !== EXPECTED_SCOPE ||
 		value.interpretation !== EXPECTED_INTERPRETATION
 	) {
-		throw new Error('The product graph did not match its pinned source manifest.')
+		throw new Error(
+			'The product graph did not match its pinned source manifest.',
+		)
 	}
 	return value as unknown as ProductGraphProvenance
 }
@@ -64,7 +67,7 @@ export async function searchProductFoods(query: string, limit = 10) {
 	if (!term || term.length > 120 || limit < 1 || limit > 20) {
 		throw new Error('Enter a food name to search the source graph.')
 	}
-	const response = await api.get('/knowledge/product/foods', {
+	const response = await api.get(`${API_PREFIX}/knowledge/product/foods`, {
 		params: { q: term, limit },
 	})
 	const payload = unwrap(response.data)
@@ -78,9 +81,10 @@ export async function searchProductFoods(query: string, limit = 10) {
 }
 
 export async function getProductFoodComposition(foodId: string) {
-	if (!FOOD_ID.test(foodId)) throw new Error('The selected source Food ID is invalid.')
+	if (!FOOD_ID.test(foodId))
+		throw new Error('The selected source Food ID is invalid.')
 	const response = await api.get(
-		`/knowledge/product/foods/${encodeURIComponent(foodId)}/compounds`,
+		`${API_PREFIX}/knowledge/product/foods/${encodeURIComponent(foodId)}/compounds`,
 	)
 	const payload = unwrap(response.data)
 	const status = isRecord(payload) ? payload.status : undefined
@@ -129,11 +133,16 @@ export async function getProductFoodComposition(foodId: string) {
 	})
 	if (
 		(status === 'AVAILABLE' && (!food || compounds.length === 0)) ||
-		(status === 'NO_ELIGIBLE_RELATION_UNKNOWN' && (!food || compounds.length > 0)) ||
+		(status === 'NO_ELIGIBLE_RELATION_UNKNOWN' &&
+			(!food || compounds.length > 0)) ||
 		(status === 'UNKNOWN_OR_OUT_OF_SCOPE' &&
-			(food !== null || compounds.length > 0 || payload.filteredKnownRelationCount !== 0))
+			(food !== null ||
+				compounds.length > 0 ||
+				payload.filteredKnownRelationCount !== 0))
 	) {
-		throw new Error('The product graph status contradicts its typed source relations.')
+		throw new Error(
+			'The product graph status contradicts its typed source relations.',
+		)
 	}
 	return {
 		status: status as ProductFoodCompositionResponse['status'],
