@@ -164,7 +164,7 @@ it('turns two food selections into an honest shared-record comparison', async ()
 	expect(await screen.findByText('Shared record')).toBeInTheDocument()
 	expect(
 		screen.getByRole('region', { name: 'Food comparison results' }),
-	).toHaveTextContent(/1\s*shared compound/)
+	).toHaveTextContent(/1\s*matching compound/)
 	expect(screen.queryByText('Apple-only record')).not.toBeInTheDocument()
 	expect(
 		screen.getByText(/which compound links appear in both source records/i),
@@ -184,6 +184,39 @@ it('turns two food selections into an honest shared-record comparison', async ()
 	expect(
 		screen.getByRole('link', { name: 'Sign in to compare' }),
 	).toBeInTheDocument()
+})
+
+it('keeps the compound list collapsed while showing its incompleteness warning', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [food(query, query === 'Apple' ? '42' : '84')],
+	}))
+	jest
+		.mocked(getProductFoodComposition)
+		.mockImplementation(async id =>
+			composition('Food', id, [relation('Shared record', '9')], 1),
+		)
+	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Avocado')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+
+	const results = await screen.findByRole('region', {
+		name: 'Food comparison results',
+	})
+	const browseLabel = within(results).getByText(
+		'Browse 1 matching compound names',
+	)
+	const disclosure = browseLabel.closest('details')
+	expect(disclosure).not.toHaveAttribute('open')
+	expect(
+		within(results).getByText(/source export withheld additional known links/i),
+	).toBeVisible()
+	expect(within(results).getByText('Shared record')).not.toBeVisible()
+
+	fireEvent.click(browseLabel)
+	expect(disclosure).toHaveAttribute('open')
+	expect(within(results).getByText('Shared record')).toBeVisible()
 })
 
 it('does not turn no shared listed links into a claim of absence', async () => {

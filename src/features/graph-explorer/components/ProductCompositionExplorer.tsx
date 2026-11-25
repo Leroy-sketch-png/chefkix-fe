@@ -527,62 +527,62 @@ export function ProductCompositionExplorer() {
 									<div className='flex flex-wrap items-end justify-between gap-3'>
 										<div>
 											<p className='text-sm font-semibold text-text-secondary'>
-												Listed for both
+												Listed in both records
 											</p>
 											<p className='mt-1 text-4xl font-bold tabular-nums tracking-tight text-text-primary'>
 												{sharedCompounds.length}
 												<span className='ml-2 text-base font-medium tracking-normal text-text-muted'>
 													{sharedCompounds.length === 1
-														? 'shared compound'
-														: 'shared compounds'}
+														? 'matching compound'
+														: 'matching compounds'}
 												</span>
 											</p>
 										</div>
 										<p className='sr-only' role='status'>
 											{sharedCompounds.length} shared listed compounds found.
 										</p>
-										<div
-											aria-hidden='true'
-											className='flex items-center gap-1 pb-1'
-										>
-											{Array.from(
-												{ length: Math.min(sharedCompounds.length, 8) },
-												(_, index) => (
-													<span
-														key={index}
-														className={`size-2.5 rounded-full ${index % 2 === 0 ? 'bg-primary' : 'bg-accent-teal'}`}
-													/>
-												),
-											)}
-										</div>
 									</div>
+									{hasUnknownLinks && (
+										<p className='mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm leading-5 text-text-secondary'>
+											The source export withheld additional known links for one
+											or both foods. This overlap may be incomplete.
+										</p>
+									)}
 									{sharedCompounds.length ? (
-										<ul className='mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
-											{sharedCompounds.map(compound => (
-												<li
-													key={compound.id}
-													className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
+										<details className='group mt-4 rounded-xl border border-border-subtle bg-bg-elevated/40 px-4 py-3'>
+											<summary className='flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-text-primary marker:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden'>
+												<span>
+													Browse {sharedCompounds.length} matching compound
+													names
+												</span>
+												<span
+													aria-hidden='true'
+													className='text-primary transition-transform group-open:rotate-90'
 												>
-													<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
-														<Check aria-hidden='true' className='size-4' />
-													</span>
-													<span className='text-sm font-semibold text-text-primary'>
-														{compound.name}
-													</span>
-												</li>
-											))}
-										</ul>
+													›
+												</span>
+											</summary>
+											<ul className='mt-3 grid gap-2 border-t border-border-subtle pt-3 sm:grid-cols-2 lg:grid-cols-3'>
+												{sharedCompounds.map(compound => (
+													<li
+														key={compound.id}
+														className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
+													>
+														<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
+															<Check aria-hidden='true' className='size-4' />
+														</span>
+														<span className='text-sm font-semibold text-text-primary'>
+															{compound.name}
+														</span>
+													</li>
+												))}
+											</ul>
+										</details>
 									) : (
 										<p className='mt-5 rounded-xl border border-border-subtle bg-bg-elevated/70 p-4 text-sm leading-6 text-text-secondary'>
 											No compound appears in both displayed records. The source
 											subset may omit links, so this is not proof the foods have
 											nothing in common.
-										</p>
-									)}
-									{hasUnknownLinks && (
-										<p className='mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm leading-5 text-text-secondary'>
-											The source export withheld additional known links for one
-											or both foods. The shared list may be incomplete.
 										</p>
 									)}
 									<p className='mt-5 border-t border-border-subtle pt-4 text-xs leading-5 text-text-muted'>
