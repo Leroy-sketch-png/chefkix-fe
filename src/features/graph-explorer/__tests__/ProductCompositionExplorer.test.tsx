@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within,
+} from '@testing-library/react'
 import { GraphExplorer } from '../components/GraphExplorer'
 import {
 	getProductFoodComposition,
@@ -29,194 +35,211 @@ const provenance = {
 		'Missing relations are unknown; presence is not quantity or substitution evidence.',
 }
 
-beforeEach(() => jest.clearAllMocks())
+function food(name: string, foodId: string) {
+	return { name, foodId }
+}
 
-it('guides a user from a source-food search to readable, honest composition details', async () => {
-	jest.mocked(searchProductFoods).mockResolvedValue({
-		provenance,
-		foods: [{ foodId: '42', name: 'Apple' }],
-	})
-	jest.mocked(getProductFoodComposition).mockResolvedValue({
-		status: 'AVAILABLE',
-		provenance,
-		food: { id: 'foodb:1.0:food-id:42', name: 'Apple', type: 'Food' },
-		compounds: [
-			{
-				id: 'foodb:1.0:compound-id:9',
-				name: 'Source compound',
-				predicate: 'has_compound',
-				presence: 'PRESENT',
-				contentRowSupport: 8,
-				exportEligibleSupport: 8,
-			},
-		],
-		filteredKnownRelationCount: 0,
-	})
-
-	render(<GraphExplorer />)
-	expect(
-		screen.getByRole('region', { name: 'FooDB food record explorer' }),
-	).toBeInTheDocument()
-	expect(
-		screen.queryByRole('button', { name: 'Legacy knowledge graph' }),
-	).toBeNull()
-	expect(screen.queryByTestId('graph-content')).not.toBeInTheDocument()
-
-	fireEvent.change(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
-		{
-			target: { value: 'Apple' },
-		},
-	)
-	const result = await screen.findByRole('button', {
-		name: /Apple.*View record/,
-	})
-	fireEvent.click(result)
-
-	await waitFor(() =>
-		expect(screen.getByText('Source compound')).toBeInTheDocument(),
-	)
-	expect(screen.getByText('Recorded present')).toBeInTheDocument()
-	expect(screen.getByText('Recorded compound links')).toBeInTheDocument()
-	expect(
-		screen.getByText(
-			/does not tell you how much is present or what it means for cooking/i,
-		),
-	).toBeInTheDocument()
-	expect(screen.getByText(/Missing links are unknown/)).toBeInTheDocument()
-	expect(screen.queryByText('foodb:1.0:food-id:42')).not.toBeInTheDocument()
-	fireEvent.click(screen.getByRole('button', { name: 'Show source IDs' }))
-	expect(screen.getByText('foodb:1.0:food-id:42')).toBeInTheDocument()
-	expect(getProductFoodComposition).toHaveBeenCalledWith('42')
-})
-
-it('filters the selected source record list and reveals long lists progressively', async () => {
-	const compounds = Array.from({ length: 14 }, (_, index) => ({
-		id: `foodb:1.0:compound-id:${index + 1}`,
-		name: index === 13 ? 'Unique filtered compound' : `Compound ${index + 1}`,
+function relation(name: string, id: string) {
+	return {
+		id: `foodb:1.0:compound-id:${id}`,
+		name,
 		predicate: 'has_compound' as const,
 		presence: 'PRESENT' as const,
 		contentRowSupport: 8,
 		exportEligibleSupport: 8,
-	}))
-	jest.mocked(searchProductFoods).mockResolvedValue({
-		provenance,
-		foods: [{ foodId: '42', name: 'Apple' }],
-	})
-	jest.mocked(getProductFoodComposition).mockResolvedValue({
-		status: 'AVAILABLE',
-		provenance,
-		food: { id: 'foodb:1.0:food-id:42', name: 'Apple', type: 'Food' },
-		compounds,
-		filteredKnownRelationCount: 4,
-	})
+	}
+}
 
-	render(<GraphExplorer />)
+function composition(
+	name: string,
+	id: string,
+	compounds: ReturnType<typeof relation>[],
+	filteredKnownRelationCount = 0,
+) {
+	return {
+		status: compounds.length
+			? ('AVAILABLE' as const)
+			: ('NO_ELIGIBLE_RELATION_UNKNOWN' as const),
+		provenance,
+		food: { id: `foodb:1.0:food-id:${id}`, name, type: 'Food' as const },
+		compounds,
+		filteredKnownRelationCount,
+	}
+}
+
+beforeEach(() => jest.clearAllMocks())
+
+async function chooseFood(side: 'first' | 'second', name: string) {
 	fireEvent.change(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		screen.getByRole('textbox', { name: `Search ${side} food` }),
 		{
-			target: { value: 'Apple' },
+			target: { value: name },
 		},
 	)
 	fireEvent.click(
-		await screen.findByRole('button', { name: /Apple.*View record/ }),
+		await screen.findByRole('button', { name: new RegExp(`${name}.*Choose`) }),
 	)
+}
 
-	await screen.findByText('Compound 1')
-	expect(screen.queryByText('Compound 13')).not.toBeInTheDocument()
+it('turns two food selections into an honest shared-record comparison', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [
+			query.toLowerCase() === 'apple'
+				? food('Apple', '42')
+				: food('Avocado', '84'),
+		],
+	}))
+	jest
+		.mocked(getProductFoodComposition)
+		.mockImplementation(async id =>
+			id === '42'
+				? composition('Apple', id, [
+						relation('Shared record', '9'),
+						relation('Apple-only record', '10'),
+					])
+				: composition('Avocado', id, [
+						relation('Shared record', '9'),
+						relation('Avocado-only record', '11'),
+					]),
+		)
+
+	render(<GraphExplorer />)
 	expect(
-		screen.getByRole('button', { name: 'Show 2 more' }),
+		screen.getByRole('heading', { name: 'What do two foods have in common?' }),
 	).toBeInTheDocument()
 	expect(
-		screen.getByText(/4 additional source-present relation\(s\) were withheld/),
-	).toBeInTheDocument()
-	fireEvent.change(
-		screen.getByRole('searchbox', { name: 'Filter recorded compound names' }),
-		{
-			target: { value: 'Unique filtered' },
-		},
-	)
-	expect(screen.getByText('Unique filtered compound')).toBeInTheDocument()
-	expect(screen.getByText(/1 of 14 listed compounds match/)).toBeInTheDocument()
-	fireEvent.change(
-		screen.getByRole('searchbox', { name: 'Filter recorded compound names' }),
-		{
-			target: { value: 'not listed' },
-		},
-	)
+		screen.getByRole('button', { name: /Show what they share/ }),
+	).toBeDisabled()
+	expect(screen.queryByTestId('graph-content')).not.toBeInTheDocument()
+
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Avocado')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+
+	expect(await screen.findByText('Shared record')).toBeInTheDocument()
 	expect(
-		screen.getByText(/this does not show absence from FooDB/i),
+		screen.getByRole('region', { name: 'Food comparison results' }),
+	).toHaveTextContent(/1\s*shared compound/)
+	expect(screen.queryByText('Apple-only record')).not.toBeInTheDocument()
+	expect(
+		screen.getByText(/which compound links appear in both source records/i),
+	).toBeInTheDocument()
+	expect(
+		screen.getByText(/does not describe amounts, nutrition, flavor, safety/i),
+	).toBeInTheDocument()
+	expect(getProductFoodComposition).toHaveBeenNthCalledWith(1, '42')
+	expect(getProductFoodComposition).toHaveBeenNthCalledWith(2, '84')
+})
+
+it('does not turn no shared listed links into a claim of absence', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [food(query, query === 'Apple' ? '42' : '84')],
+	}))
+	jest
+		.mocked(getProductFoodComposition)
+		.mockImplementation(async id =>
+			id === '42'
+				? composition('Apple', id, [relation('Apple link', '1')], 2)
+				: composition('Avocado', id, [relation('Avocado link', '2')]),
+		)
+	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Avocado')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+
+	expect(
+		await screen.findByText(/No compound appears in both displayed records/i),
+	).toBeInTheDocument()
+	expect(
+		screen.getByText(/not proof the foods have nothing in common/i),
+	).toBeInTheDocument()
+	expect(
+		screen.getByText(/export withheld additional known links/i),
 	).toBeInTheDocument()
 })
 
-it('explains that sign-in is required when the protected product search returns 401', async () => {
+it('explains when a selected food cannot be compared from this subset', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [food(query, query === 'Apple' ? '42' : '84')],
+	}))
+	jest.mocked(getProductFoodComposition).mockImplementation(async id =>
+		id === '42'
+			? composition('Apple', id, [relation('Apple link', '1')])
+			: {
+					status: 'UNKNOWN_OR_OUT_OF_SCOPE' as const,
+					provenance,
+					food: null,
+					compounds: [],
+					filteredKnownRelationCount: 0,
+				},
+	)
+	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Avocado')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+	expect(
+		await screen.findByText(
+			/We can’t make this comparison from the available records/i,
+		),
+	).toBeInTheDocument()
+	expect(
+		screen.getByText(/outside the selected record scope/i),
+	).toBeInTheDocument()
+})
+
+it('keeps authentication and access errors distinct', async () => {
 	jest
 		.mocked(searchProductFoods)
 		.mockRejectedValue({ response: { status: 401 } })
-
 	render(<GraphExplorer />)
-	fireEvent.change(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
-		{
-			target: { value: 'Apple' },
-		},
-	)
+	fireEvent.change(screen.getByRole('textbox', { name: 'Search first food' }), {
+		target: { value: 'Apple' },
+	})
 
 	const alert = await screen.findByRole('alert')
-	expect(alert).toHaveTextContent(
-		'Sign in to search the pinned FooDB product data.',
-	)
+	expect(alert).toHaveTextContent('Sign in to search the pinned food records.')
 	expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
 		'href',
 		'/auth/sign-in?returnTo=%2Fexplore%2Fgraph',
 	)
-	expect(alert).not.toHaveTextContent('temporarily unavailable')
+	expect(alert).not.toHaveTextContent('could not be reached')
 })
 
-it('keeps access denial distinct from authentication and service failures', async () => {
-	jest
-		.mocked(searchProductFoods)
-		.mockRejectedValue({ response: { status: 403 } })
-
-	render(<GraphExplorer />)
-	fireEvent.change(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
-		{
-			target: { value: 'Apple' },
-		},
-	)
-
-	expect(await screen.findByRole('alert')).toHaveTextContent(
-		'This account cannot access the pinned FooDB product data.',
-	)
-	expect(screen.queryByRole('link', { name: 'Sign in' })).toBeNull()
-})
-
-it('explains an out-of-scope selection instead of leaving a dead-looking result area', async () => {
+it('requires two distinct selected source records', async () => {
 	jest.mocked(searchProductFoods).mockResolvedValue({
 		provenance,
-		foods: [{ foodId: '42', name: 'Apple' }],
-	})
-	jest.mocked(getProductFoodComposition).mockResolvedValue({
-		status: 'UNKNOWN_OR_OUT_OF_SCOPE',
-		provenance,
-		food: null,
-		compounds: [],
-		filteredKnownRelationCount: 0,
+		foods: [food('Apple', '42')],
 	})
 	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
 	fireEvent.change(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		screen.getByRole('textbox', { name: 'Search second food' }),
 		{
 			target: { value: 'Apple' },
 		},
 	)
-	fireEvent.click(
-		await screen.findByRole('button', { name: /Apple.*View record/ }),
-	)
-
 	expect(
-		await screen.findByText(/outside the pinned graph scope/i),
+		await screen.findByRole('button', { name: /Already chosen/ }),
+	).toBeDisabled()
+	expect(
+		screen.getByRole('button', { name: /Show what they share/ }),
+	).toBeDisabled()
+})
+
+it('does not expose record IDs until the source disclosure is opened', async () => {
+	render(<GraphExplorer />)
+	const disclosure = screen
+		.getByText('Where these records come from')
+		.closest('details')
+	expect(disclosure).not.toHaveAttribute('open')
+	expect(
+		within(disclosure as HTMLElement).getByText(PRODUCT_GRAPH_MANIFEST_SHA256),
 	).toBeInTheDocument()
-	expect(screen.getByRole('status')).toHaveTextContent(/unknown here/i)
+	fireEvent.click(screen.getByText('Where these records come from'))
+	await waitFor(() =>
+		expect(screen.getByText(PRODUCT_GRAPH_MANIFEST_SHA256)).toBeInTheDocument(),
+	)
 })

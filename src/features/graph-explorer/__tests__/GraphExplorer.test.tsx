@@ -11,11 +11,22 @@ it('keeps the Explorer on the pinned product graph without a legacy fallback', (
 	render(<GraphExplorer />)
 
 	expect(
-		screen.getByRole('region', { name: 'FooDB food record explorer' }),
+		screen.getByRole('region', { name: 'Compare food records' }),
 	).toBeInTheDocument()
 	expect(
-		screen.getByRole('textbox', { name: 'Search FooDB foods' }),
+		screen.getByRole('heading', {
+			name: 'What do two foods have in common?',
+		}),
 	).toBeInTheDocument()
+	expect(
+		screen.getByRole('textbox', { name: 'Search first food' }),
+	).toBeInTheDocument()
+	expect(
+		screen.getByRole('textbox', { name: 'Search second food' }),
+	).toBeInTheDocument()
+	expect(
+		screen.getByRole('button', { name: 'Show what they share' }),
+	).toBeDisabled()
 	expect(
 		screen.queryByRole('button', { name: 'Legacy knowledge graph' }),
 	).toBeNull()

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { ArrowDown, ArrowLeft, ArrowRight, Check, Search } from 'lucide-react'
 import { PATHS } from '@/constants'
 import {
 	getProductFoodComposition,
@@ -15,7 +16,7 @@ import type {
 } from '../types/productGraph'
 
 type RequestFailure = 'unauthenticated' | 'forbidden' | 'unavailable'
-const INITIAL_COMPOUNDS_TO_SHOW = 12
+type PickerSide = 'first' | 'second'
 
 function classifyRequestFailure(error: unknown): RequestFailure {
 	const status =
@@ -27,44 +28,15 @@ function classifyRequestFailure(error: unknown): RequestFailure {
 	return 'unavailable'
 }
 
-export function ProductCompositionExplorer() {
-	const [query, setQuery] = useState('')
+function useFoodSearch(query: string) {
 	const [search, setSearch] = useState<ProductFoodSearchResponse | null>(null)
-	const [selectedFood, setSelectedFood] = useState<ProductFoodCandidate | null>(
-		null,
-	)
-	const [composition, setComposition] =
-		useState<ProductFoodCompositionResponse | null>(null)
-	const [searchError, setSearchError] = useState<
-		'unauthenticated' | 'forbidden' | 'unavailable' | null
-	>(null)
-	const [compositionError, setCompositionError] = useState<
-		'unauthenticated' | 'forbidden' | 'unavailable' | null
-	>(null)
+	const [error, setError] = useState<RequestFailure | null>(null)
 	const [searching, setSearching] = useState(false)
-	const [loadingComposition, setLoadingComposition] = useState(false)
-	const [compoundQuery, setCompoundQuery] = useState('')
-	const [visibleCompoundLimit, setVisibleCompoundLimit] = useState(
-		INITIAL_COMPOUNDS_TO_SHOW,
-	)
-	const [showSourceIds, setShowSourceIds] = useState(false)
-	const signInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.EXPLORE_GRAPH)}`
-	const normalizedCompoundQuery = compoundQuery.trim().toLowerCase()
-	const matchingCompounds = (composition?.compounds ?? []).filter(compound =>
-		compound.name.toLowerCase().includes(normalizedCompoundQuery),
-	)
-	const visibleCompounds = matchingCompounds.slice(0, visibleCompoundLimit)
 
 	useEffect(() => {
 		const term = query.trim()
 		setSearch(null)
-		setSelectedFood(null)
-		setComposition(null)
-		setSearchError(null)
-		setCompositionError(null)
-		setCompoundQuery('')
-		setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
-		setShowSourceIds(false)
+		setError(null)
 		if (term.length < 2) {
 			setSearching(false)
 			return
@@ -76,8 +48,8 @@ export function ProductCompositionExplorer() {
 				.then(result => {
 					if (active) setSearch(result)
 				})
-				.catch(error => {
-					if (active) setSearchError(classifyRequestFailure(error))
+				.catch(failure => {
+					if (active) setError(classifyRequestFailure(failure))
 				})
 				.finally(() => {
 					if (active) setSearching(false)
@@ -89,319 +61,514 @@ export function ProductCompositionExplorer() {
 		}
 	}, [query])
 
-	useEffect(() => {
-		if (!selectedFood) return
-		let active = true
-		setLoadingComposition(true)
-		setCompositionError(null)
-		void getProductFoodComposition(selectedFood.foodId)
-			.then(result => {
-				if (active) setComposition(result)
-			})
-			.catch(error => {
-				if (active) {
-					setCompositionError(classifyRequestFailure(error))
-				}
-			})
-			.finally(() => {
-				if (active) setLoadingComposition(false)
-			})
-		return () => {
-			active = false
-		}
-	}, [selectedFood])
+	return { search, error, searching }
+}
+
+function AccessMessage({ failure }: { failure: RequestFailure }) {
+	const signInHref = `${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.EXPLORE_GRAPH)}`
+	return (
+		<p
+			className='mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-text-secondary'
+			role='alert'
+		>
+			{failure === 'unauthenticated' ? (
+				<>
+					Sign in to search the pinned food records.{' '}
+					<Link
+						href={signInHref}
+						className='font-semibold text-primary underline underline-offset-2'
+					>
+						Sign in
+					</Link>
+				</>
+			) : failure === 'forbidden' ? (
+				'Your account cannot access these pinned food records.'
+			) : (
+				'The pinned food records could not be reached. Try again in a moment.'
+			)}
+		</p>
+	)
+}
+
+function FoodPicker({
+	side,
+	query,
+	selectedFood,
+	otherFood,
+	onQueryChange,
+	onSelect,
+}: {
+	side: PickerSide
+	query: string
+	selectedFood: ProductFoodCandidate | null
+	otherFood: ProductFoodCandidate | null
+	onQueryChange: (value: string) => void
+	onSelect: (food: ProductFoodCandidate) => void
+}) {
+	const { search, error, searching } = useFoodSearch(query)
+	const number = side === 'first' ? 'A' : 'B'
+	const label = side === 'first' ? 'First food' : 'Second food'
+	const accent = side === 'first' ? 'border-l-primary' : 'border-l-accent-teal'
+	const duplicate = (food: ProductFoodCandidate) =>
+		food.foodId === otherFood?.foodId
 
 	return (
-		<section className='space-y-5' aria-label='FooDB food record explorer'>
-			<div className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'>
-				<label
-					htmlFor='foodb-product-search'
-					className='text-sm font-semibold text-text-primary'
-				>
-					Search FooDB foods
-				</label>
-				<div className='mt-2 flex flex-col gap-3 sm:flex-row'>
-					<input
-						id='foodb-product-search'
-						value={query}
-						onChange={event => setQuery(event.target.value)}
-						placeholder='Enter a food name, such as apple'
-						maxLength={120}
-						className='min-h-11 flex-1 rounded-xl border border-border-medium bg-bg-input px-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
-					/>
-					{searching && (
-						<span className='self-center text-sm text-text-muted' role='status'>
-							Searching source…
-						</span>
+		<section
+			className={`rounded-2xl border border-border-subtle border-l-4 ${accent} bg-bg-card p-4 shadow-card sm:p-5`}
+			aria-label={label}
+		>
+			<div className='mb-3 flex items-center gap-3'>
+				<span className='grid size-9 place-items-center rounded-full bg-bg-elevated text-xs font-bold tabular-nums text-text-secondary'>
+					{number}
+				</span>
+				<div className='min-w-0 flex-1'>
+					<p className='text-xs font-semibold uppercase tracking-[0.14em] text-text-muted'>
+						{selectedFood ? 'Selected food' : label}
+					</p>
+					{selectedFood && (
+						<p className='truncate text-lg font-bold text-text-primary'>
+							{selectedFood.name}
+						</p>
 					)}
 				</div>
-				<p className='mt-2 text-xs text-text-muted'>
-					Choose the exact source record you want to inspect. This does not
-					guess which ChefKix ingredient it represents.
-				</p>
-				{searchError && (
-					<div
-						className='mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-text-secondary'
-						role='alert'
+				{selectedFood && (
+					<button
+						type='button'
+						onClick={() => onQueryChange('')}
+						className='min-h-10 rounded-lg px-3 text-sm font-semibold text-primary underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 					>
-						{searchError === 'unauthenticated' ? (
-							<>
-								Sign in to search the pinned FooDB product data.{' '}
-								<Link
-									href={signInHref}
-									className='font-semibold text-primary underline underline-offset-2'
-								>
-									Sign in
-								</Link>
-							</>
-						) : searchError === 'forbidden' ? (
-							<>This account cannot access the pinned FooDB product data.</>
-						) : (
-							<>
-								Pinned product data is temporarily unavailable. No substitute
-								graph is shown.
-							</>
-						)}
-					</div>
-				)}
-				{search && (
-					<div className='mt-4 space-y-2' aria-label='FooDB food results'>
-						{search.foods.length ? (
-							<>
-								<h3 className='text-sm font-semibold text-text-primary'>
-									{search.foods.length} matching FooDB{' '}
-									{search.foods.length === 1 ? 'record' : 'records'}
-								</h3>
-								{search.foods.map(food => (
-									<button
-										key={food.foodId}
-										type='button'
-										aria-pressed={selectedFood?.foodId === food.foodId}
-										onClick={() => {
-											setComposition(null)
-											setCompositionError(null)
-											setCompoundQuery('')
-											setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
-											setShowSourceIds(false)
-											setSelectedFood(food)
-										}}
-										className='flex min-h-11 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left hover:border-primary/50 aria-pressed:border-primary aria-pressed:bg-bg-elevated'
-									>
-										<span className='font-medium text-text-primary'>
-											{food.name}
-										</span>
-										<span className='shrink-0 text-xs text-text-muted'>
-											{selectedFood?.foodId === food.foodId
-												? 'Selected'
-												: 'View record'}
-										</span>
-									</button>
-								))}
-							</>
-						) : (
-							<p className='text-sm text-text-secondary'>
-								No matching Food records in this selected source subset. This
-								does not establish absence from FooDB or ChefKix.
-							</p>
-						)}
-					</div>
+						Change
+					</button>
 				)}
 			</div>
-
-			{loadingComposition && (
-				<div
-					className='rounded-2xl border border-border-subtle bg-bg-card p-5 text-sm text-text-muted'
-					role='status'
-				>
-					Loading pinned food relations…
-				</div>
+			{!selectedFood && (
+				<>
+					<label className='sr-only' htmlFor={`food-search-${side}`}>
+						Search {label.toLowerCase()}
+					</label>
+					<div className='relative'>
+						<Search
+							aria-hidden='true'
+							className='pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-muted'
+						/>
+						<input
+							id={`food-search-${side}`}
+							value={query}
+							onChange={event => onQueryChange(event.target.value)}
+							placeholder={
+								side === 'first'
+									? 'Try apple, rice, or lentil'
+									: 'Choose another food'
+							}
+							maxLength={120}
+							className='min-h-12 w-full rounded-xl border border-border-medium bg-bg-input pl-10 pr-3 text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20'
+						/>
+					</div>
+				</>
 			)}
-			{compositionError && (
-				<div
-					className='rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-text-secondary'
-					role='alert'
-				>
-					{compositionError === 'unauthenticated' ? (
-						<>
-							Sign in to view this food’s pinned source relations.{' '}
-							<Link
-								href={signInHref}
-								className='font-semibold text-primary underline underline-offset-2'
-							>
-								Sign in
-							</Link>
-						</>
-					) : compositionError === 'forbidden' ? (
-						<>This account cannot access the pinned FooDB product data.</>
+			{searching && (
+				<p className='mt-3 text-sm text-text-muted' role='status'>
+					Finding matching records…
+				</p>
+			)}
+			{error && <AccessMessage failure={error} />}
+			{search && !selectedFood && (
+				<div className='mt-3 space-y-2' aria-label={`${label} search results`}>
+					{search.foods.length ? (
+						search.foods.map(food => {
+							const isDuplicate = duplicate(food)
+							return (
+								<button
+									key={food.foodId}
+									type='button'
+									disabled={isDuplicate}
+									onClick={() => onSelect(food)}
+									className='flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left transition hover:border-primary/50 hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50'
+								>
+									<span className='font-semibold text-text-primary'>
+										{food.name}
+									</span>
+									<span className='text-xs text-text-muted'>
+										{isDuplicate ? 'Already chosen' : 'Choose'}
+									</span>
+								</button>
+							)
+						})
 					) : (
-						<>
-							Could not verify this source graph. No substitute graph is shown.
-						</>
+						<p className='rounded-xl bg-bg-elevated p-3 text-sm text-text-secondary'>
+							No matching record in this selected subset. That does not mean the
+							food is absent from FooDB.
+						</p>
 					)}
 				</div>
 			)}
-			{composition && composition.food && (
-				<section
-					className='rounded-2xl border border-border-subtle bg-bg-card p-4 shadow-card'
-					aria-label='Selected food record details'
+			{!query.trim() && !selectedFood && (
+				<p className='mt-3 text-sm leading-5 text-text-muted'>
+					Search by the food’s source-record name.
+				</p>
+			)}
+		</section>
+	)
+}
+
+function relationMessage(response: ProductFoodCompositionResponse) {
+	if (response.status === 'UNKNOWN_OR_OUT_OF_SCOPE') {
+		return `${response.food?.name ?? 'This food'} is outside the selected record scope. Its links are unknown here.`
+	}
+	if (response.status === 'NO_ELIGIBLE_RELATION_UNKNOWN') {
+		return `No export-eligible links are shown for ${response.food?.name ?? 'this food'}. That is unknown, not proof that no links exist.`
+	}
+	return null
+}
+
+export function ProductCompositionExplorer() {
+	const [firstQuery, setFirstQuery] = useState('')
+	const [secondQuery, setSecondQuery] = useState('')
+	const [firstFood, setFirstFood] = useState<ProductFoodCandidate | null>(null)
+	const [secondFood, setSecondFood] = useState<ProductFoodCandidate | null>(
+		null,
+	)
+	const [comparison, setComparison] = useState<{
+		first: ProductFoodCompositionResponse
+		second: ProductFoodCompositionResponse
+	} | null>(null)
+	const [loading, setLoading] = useState(false)
+	const [failure, setFailure] = useState<RequestFailure | null>(null)
+	const firstProblem = comparison ? relationMessage(comparison.first) : null
+	const secondProblem = comparison ? relationMessage(comparison.second) : null
+	const sharedCompounds = useMemo(() => {
+		if (!comparison || firstProblem || secondProblem) return []
+		const secondIds = new Set(
+			comparison.second.compounds.map(compound => compound.id),
+		)
+		return comparison.first.compounds.filter(compound =>
+			secondIds.has(compound.id),
+		)
+	}, [comparison, firstProblem, secondProblem])
+	const canCompare = Boolean(
+		firstFood && secondFood && firstFood.foodId !== secondFood.foodId,
+	)
+
+	const chooseFood = (side: PickerSide, food: ProductFoodCandidate) => {
+		if (side === 'first') {
+			setFirstFood(food)
+			setFirstQuery('')
+		} else {
+			setSecondFood(food)
+			setSecondQuery('')
+		}
+		setComparison(null)
+		setFailure(null)
+	}
+
+	const changeQuery = (side: PickerSide, value: string) => {
+		if (side === 'first') {
+			setFirstQuery(value)
+			setFirstFood(null)
+		} else {
+			setSecondQuery(value)
+			setSecondFood(null)
+		}
+		setComparison(null)
+		setFailure(null)
+	}
+
+	const compareFoods = async () => {
+		if (!firstFood || !secondFood || firstFood.foodId === secondFood.foodId)
+			return
+		setLoading(true)
+		setComparison(null)
+		setFailure(null)
+		try {
+			const [first, second] = await Promise.all([
+				getProductFoodComposition(firstFood.foodId),
+				getProductFoodComposition(secondFood.foodId),
+			])
+			setComparison({ first, second })
+		} catch (error) {
+			setFailure(classifyRequestFailure(error))
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const hasUnknownLinks = Boolean(
+		comparison &&
+			(comparison.first.filteredKnownRelationCount > 0 ||
+				comparison.second.filteredKnownRelationCount > 0),
+	)
+
+	return (
+		<section className='space-y-6' aria-label='Compare food records'>
+			<header className='relative isolate overflow-hidden rounded-[2rem] border border-border-subtle bg-gradient-to-br from-bg-card via-bg-card to-bg-elevated px-5 py-6 shadow-card sm:px-8 sm:py-8'>
+				<svg
+					aria-hidden='true'
+					viewBox='0 0 240 120'
+					className='pointer-events-none absolute right-8 top-1/2 hidden h-32 w-64 -translate-y-1/2 text-text-primary lg:block'
 				>
-					<div className='flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle pb-4'>
+					<defs>
+						<clipPath id='food-comparison-left'>
+							<circle cx='91' cy='60' r='48' />
+						</clipPath>
+					</defs>
+					<circle
+						cx='91'
+						cy='60'
+						r='48'
+						fill='var(--color-brand)'
+						fillOpacity='.14'
+						stroke='var(--color-brand)'
+						strokeOpacity='.55'
+						strokeWidth='2'
+					/>
+					<circle
+						cx='149'
+						cy='60'
+						r='48'
+						fill='var(--color-accent-teal)'
+						fillOpacity='.16'
+						stroke='var(--color-accent-teal)'
+						strokeOpacity='.65'
+						strokeWidth='2'
+					/>
+					<circle
+						cx='149'
+						cy='60'
+						r='48'
+						fill='var(--color-accent-purple)'
+						fillOpacity='.26'
+						clipPath='url(#food-comparison-left)'
+					/>
+					<text
+						x='62'
+						y='64'
+						textAnchor='middle'
+						fill='currentColor'
+						fontSize='12'
+						fontWeight='700'
+					>
+						A
+					</text>
+					<text
+						x='120'
+						y='64'
+						textAnchor='middle'
+						fill='currentColor'
+						fontSize='10'
+						fontWeight='700'
+					>
+						BOTH
+					</text>
+					<text
+						x='178'
+						y='64'
+						textAnchor='middle'
+						fill='currentColor'
+						fontSize='12'
+						fontWeight='700'
+					>
+						B
+					</text>
+				</svg>
+				<div className='relative max-w-2xl'>
+					<Link
+						href={PATHS.EXPLORE}
+						className='mb-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+					>
+						<ArrowLeft aria-hidden='true' className='size-4' /> Back to Explore
+					</Link>
+					<p className='inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-primary'>
+						FooDB · Food comparison
+					</p>
+					<h1 className='mt-2 max-w-xl text-3xl font-bold leading-tight tracking-tight text-text-primary sm:text-4xl'>
+						What do two foods have in common?
+					</h1>
+					<p className='mt-3 max-w-xl text-sm leading-6 text-text-secondary sm:text-base'>
+						Pick two foods to see which compound links appear in both source
+						records.
+					</p>
+				</div>
+			</header>
+
+			<div className='grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center'>
+				<FoodPicker
+					side='first'
+					query={firstQuery}
+					selectedFood={firstFood}
+					otherFood={secondFood}
+					onQueryChange={value => changeQuery('first', value)}
+					onSelect={food => chooseFood('first', food)}
+				/>
+				<div
+					aria-hidden='true'
+					className='mx-auto grid size-11 place-items-center rounded-full border border-border-subtle bg-bg-elevated text-text-muted max-md:-my-1'
+				>
+					<ArrowRight className='hidden size-5 md:block' />
+					<ArrowDown className='size-5 md:hidden' />
+				</div>
+				<FoodPicker
+					side='second'
+					query={secondQuery}
+					selectedFood={secondFood}
+					otherFood={firstFood}
+					onQueryChange={value => changeQuery('second', value)}
+					onSelect={food => chooseFood('second', food)}
+				/>
+			</div>
+
+			<div className='flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-border-subtle bg-bg-elevated/60 p-4 sm:flex-row sm:items-center sm:px-5'>
+				<p className='text-sm leading-5 text-text-secondary'>
+					We match the same source compound IDs—not similar-sounding names.
+				</p>
+				<button
+					type='button'
+					disabled={!canCompare || loading}
+					onClick={compareFoods}
+					className='inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-text-muted disabled:text-bg'
+				>
+					{loading ? 'Comparing records…' : 'Show what they share'}
+					{!loading && <ArrowRight aria-hidden='true' className='size-4' />}
+				</button>
+			</div>
+
+			{failure && <AccessMessage failure={failure} />}
+
+			{comparison && (
+				<section
+					className='overflow-hidden rounded-[1.75rem] border border-border-subtle bg-bg-card shadow-card'
+					aria-label='Food comparison results'
+				>
+					<div className='grid gap-4 bg-bg-elevated/70 p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-7 sm:py-6'>
 						<div>
-							<p className='text-xs font-semibold uppercase tracking-wide text-text-muted'>
-								Selected FooDB record
+							<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
+								First food
 							</p>
-							<h3 className='mt-1 text-lg font-bold text-text-primary'>
-								{composition.food.name}
-							</h3>
-							{showSourceIds && (
-								<p className='mt-1 font-mono text-xs text-text-muted'>
-									{composition.food.id}
-								</p>
-							)}
+							<h2 className='mt-1 text-xl font-bold text-text-primary'>
+								{comparison.first.food?.name ?? firstFood?.name}
+							</h2>
 						</div>
-						<div className='flex flex-wrap items-center gap-2'>
-							<span className='rounded-full bg-bg-elevated px-3 py-1 text-xs font-medium text-text-secondary'>
-								FooDB 1.0 · 2020-04-07
-							</span>
-							<button
-								type='button'
-								aria-pressed={showSourceIds}
-								onClick={() => setShowSourceIds(value => !value)}
-								className='min-h-11 rounded-lg px-3 text-xs font-medium text-text-secondary underline underline-offset-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-							>
-								{showSourceIds ? 'Hide source IDs' : 'Show source IDs'}
-							</button>
+						<div className='mx-auto grid size-12 place-items-center rounded-full bg-bg-card text-primary shadow-sm'>
+							<ArrowRight aria-hidden='true' className='size-5' />
+						</div>
+						<div className='sm:text-right'>
+							<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
+								Second food
+							</p>
+							<h2 className='mt-1 text-xl font-bold text-text-primary'>
+								{comparison.second.food?.name ?? secondFood?.name}
+							</h2>
 						</div>
 					</div>
-					{composition.status === 'NO_ELIGIBLE_RELATION_UNKNOWN' ? (
-						<p className='py-4 text-sm text-text-secondary'>
-							No export-eligible relation is shown for this Food in the selected
-							scope. Missing relations are unknown, not absent.
-						</p>
+					{firstProblem || secondProblem ? (
+						<div className='p-5 sm:p-7' role='status'>
+							<p className='font-semibold text-text-primary'>
+								We can’t make this comparison from the available records.
+							</p>
+							<p className='mt-2 text-sm leading-6 text-text-secondary'>
+								{firstProblem}
+								{firstProblem && secondProblem ? ' ' : ''}
+								{secondProblem}
+							</p>
+						</div>
 					) : (
-						<div className='py-4'>
+						<div className='p-5 sm:p-7'>
 							<div className='flex flex-wrap items-end justify-between gap-3'>
 								<div>
-									<h4 className='text-sm font-semibold text-text-primary'>
-										Recorded compound links
-									</h4>
-									<p className='mt-1 text-xs leading-5 text-text-muted'>
-										A link means this source record lists the compound as
-										present. It does not tell you how much is present or what it
-										means for cooking.
+									<p className='text-sm font-semibold text-text-secondary'>
+										Listed for both
+									</p>
+									<p className='mt-1 text-4xl font-bold tabular-nums tracking-tight text-text-primary'>
+										{sharedCompounds.length}
+										<span className='ml-2 text-base font-medium tracking-normal text-text-muted'>
+											{sharedCompounds.length === 1
+												? 'shared compound'
+												: 'shared compounds'}
+										</span>
 									</p>
 								</div>
-								<label className='w-full sm:w-64'>
-									<span className='sr-only'>
-										Filter recorded compound names
-									</span>
-									<input
-										id='foodb-compound-filter'
-										type='search'
-										value={compoundQuery}
-										onChange={event => {
-											setCompoundQuery(event.target.value)
-											setVisibleCompoundLimit(INITIAL_COMPOUNDS_TO_SHOW)
-										}}
-										placeholder='Filter these compounds'
-										className='min-h-11 w-full rounded-xl border border-border-medium bg-bg-input px-3 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20'
-									/>
-								</label>
+								<p className='sr-only' role='status'>
+									{sharedCompounds.length} shared listed compounds found.
+								</p>
+								<div
+									aria-hidden='true'
+									className='flex items-center gap-1 pb-1'
+								>
+									{Array.from(
+										{ length: Math.min(sharedCompounds.length, 8) },
+										(_, index) => (
+											<span
+												key={index}
+												className={`size-2.5 rounded-full ${index % 2 === 0 ? 'bg-primary' : 'bg-accent-teal'}`}
+											/>
+										),
+									)}
+								</div>
 							</div>
-							<p className='mt-3 text-xs text-text-muted' role='status'>
-								{normalizedCompoundQuery
-									? `${matchingCompounds.length} of ${composition.compounds.length} listed compounds match`
-									: `${composition.compounds.length} compound links listed`}
-							</p>
-							{matchingCompounds.length ? (
-								<ul className='mt-2 divide-y divide-border-subtle'>
-									{visibleCompounds.map(compound => (
+							{sharedCompounds.length ? (
+								<ul className='mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+									{sharedCompounds.map(compound => (
 										<li
 											key={compound.id}
-											className='flex flex-wrap items-center justify-between gap-2 py-3'
+											className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
 										>
-											<span className='text-sm font-medium text-text-primary'>
+											<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
+												<Check aria-hidden='true' className='size-4' />
+											</span>
+											<span className='text-sm font-semibold text-text-primary'>
 												{compound.name}
 											</span>
-											<span className='rounded-full bg-bg-elevated px-2.5 py-1 text-xs text-text-secondary'>
-												Recorded present
-											</span>
-											{showSourceIds && (
-												<span className='w-full font-mono text-xs text-text-muted'>
-													{compound.id}
-												</span>
-											)}
 										</li>
 									))}
 								</ul>
 							) : (
-								<p
-									className='mt-4 rounded-xl bg-bg-elevated p-3 text-sm text-text-secondary'
-									role='status'
-								>
-									No listed compound names match this filter. Clear it to see
-									the full source-record list; this does not show absence from
-									FooDB.
+								<p className='mt-5 rounded-xl border border-border-subtle bg-bg-elevated/70 p-4 text-sm leading-6 text-text-secondary'>
+									No compound appears in both displayed records. The source
+									subset may omit links, so this is not proof the foods have
+									nothing in common.
 								</p>
 							)}
-							{visibleCompounds.length < matchingCompounds.length && (
-								<button
-									type='button'
-									onClick={() =>
-										setVisibleCompoundLimit(
-											limit => limit + INITIAL_COMPOUNDS_TO_SHOW,
-										)
-									}
-									className='mt-3 min-h-11 rounded-lg px-3 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-								>
-									Show{' '}
-									{Math.min(
-										INITIAL_COMPOUNDS_TO_SHOW,
-										matchingCompounds.length - visibleCompounds.length,
-									)}{' '}
-									more
-								</button>
+							{hasUnknownLinks && (
+								<p className='mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm leading-5 text-text-secondary'>
+									The source export withheld additional known links for one or
+									both foods. The shared list may be incomplete.
+								</p>
 							)}
+							<p className='mt-5 border-t border-border-subtle pt-4 text-xs leading-5 text-text-muted'>
+								This comparison covers listed compound presence in a selected
+								FooDB subset only. It does not describe amounts, nutrition,
+								flavor, safety, allergens, or whether one food can replace
+								another.
+							</p>
 						</div>
 					)}
-					<div className='mt-3 border-t border-border-subtle pt-3 text-xs leading-5 text-text-muted'>
-						<p>
-							Presence is not quantity, nutrition, flavor, safety, allergen, or
-							substitution evidence. Missing links are unknown.
-						</p>
-						{composition.filteredKnownRelationCount > 0 && (
-							<p className='mt-2'>
-								{composition.filteredKnownRelationCount} additional
-								source-present relation(s) were withheld by the artifact’s
-								export filter; they are not treated as absent.
-							</p>
-						)}
-					</div>
 				</section>
 			)}
-			{composition && !composition.food && (
-				<div
-					className='rounded-xl border border-border-subtle bg-bg-card p-4 text-sm text-text-secondary'
-					role='status'
-				>
-					This FooDB Food is outside the pinned graph scope. Its relationships
-					are unknown here; this does not mean none exist.
-				</div>
-			)}
 
-			<details className='rounded-xl border border-border-subtle bg-bg-elevated p-3 text-xs text-text-muted'>
-				<summary className='cursor-pointer font-semibold text-text-secondary'>
-					About the source and coverage
+			<details className='group rounded-2xl border border-border-subtle bg-bg-card px-4 py-3 text-sm text-text-muted'>
+				<summary className='cursor-pointer list-none font-semibold text-text-secondary marker:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden'>
+					<span className='inline-flex items-center gap-2'>
+						<span
+							aria-hidden='true'
+							className='text-primary transition-transform group-open:rotate-90'
+						>
+							›
+						</span>
+						Where these records come from
+					</span>
 				</summary>
-				<div className='mt-3 space-y-2 leading-5'>
+				<div className='mt-3 space-y-2 border-t border-border-subtle pt-3 text-xs leading-5'>
 					<p>
-						FooDB 1.0 · 2020-04-07 · CC BY-NC 4.0 (non-commercial). This is a
-						selected top-255 profile subset, not every food or compound.
+						FooDB 1.0, released 2020-04-07 · selected top-255 profile subset ·
+						CC BY-NC 4.0.
 					</p>
-					<p>Artifact manifest SHA-256:</p>
-					<code className='block break-all'>
-						{PRODUCT_GRAPH_MANIFEST_SHA256}
-					</code>
+					<p>
+						Only source-listed, export-eligible compound links are compared.
+						Missing links are unknown.
+					</p>
+					<p>
+						Source manifest:{' '}
+						<code className='break-all'>{PRODUCT_GRAPH_MANIFEST_SHA256}</code>
+					</p>
 				</div>
 			</details>
 		</section>
