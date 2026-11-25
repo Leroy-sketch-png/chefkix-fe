@@ -1,11 +1,21 @@
 import { render, screen } from '@testing-library/react'
 import { GraphExplorer } from '../components/GraphExplorer'
 import { getGraphData } from '../services/graphExplorerService'
+import { useAuthStore } from '@/store/authStore'
 
 jest.mock('../services/graphExplorerService', () => ({
 	...jest.requireActual('../services/graphExplorerService'),
 	getGraphData: jest.fn(),
 }))
+
+beforeEach(() => {
+	useAuthStore.setState({
+		isAuthenticated: true,
+		isHydrated: true,
+		isLoading: false,
+		accessToken: 'fixture-token',
+	})
+})
 
 it('keeps the Explorer on the pinned product graph without a legacy fallback', () => {
 	render(<GraphExplorer />)
