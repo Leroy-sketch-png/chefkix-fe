@@ -87,6 +87,34 @@ it('keeps filtered or missing relations explicitly unknown', async () => {
 	)
 })
 
+it('rejects composition data for a different Food ID than requested', async () => {
+	jest.mocked(api.get).mockResolvedValue({
+		data: {
+			success: true,
+			data: {
+				status: 'AVAILABLE',
+				provenance,
+				food: { id: 'foodb:1.0:food-id:84', name: 'Avocado', type: 'Food' },
+				compounds: [
+					{
+						id: 'foodb:1.0:compound-id:9',
+						name: 'Example compound',
+						predicate: 'has_compound',
+						presence: 'PRESENT',
+						contentRowSupport: 2,
+						exportEligibleSupport: 2,
+					},
+				],
+				filteredKnownRelationCount: 0,
+			},
+		},
+	})
+
+	await expect(getProductFoodComposition('42')).rejects.toThrow(
+		'different Food ID than requested',
+	)
+})
+
 it('rejects contradictory status and data rather than converting it into an empty graph', async () => {
 	jest.mocked(api.get).mockResolvedValue({
 		data: {
