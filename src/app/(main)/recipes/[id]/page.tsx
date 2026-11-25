@@ -740,6 +740,7 @@ function RecipeDetailContent() {
 			<PageContainer maxWidth='2xl'>
 				<PremiumSurface
 					eyebrow={t('eyebrow')}
+					eyebrowClassName='hidden sm:flex'
 					chipText={t('chipText')}
 					className='mb-4 p-2 md:p-3'
 					tone='blue'
@@ -1123,7 +1124,7 @@ function RecipeDetailContent() {
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
-								className='-order-1 mb-6 space-y-3 md:order-none md:mb-0'
+								className='order-1 mb-6 space-y-3 md:order-none md:mb-0'
 							>
 								{/* Primary cooking action */}
 								<motion.button

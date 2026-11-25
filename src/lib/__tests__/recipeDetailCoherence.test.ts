@@ -49,14 +49,14 @@ describe('recipe detail coherence contract', () => {
 		expect(pageSource).toContain('handleRecipeDetailKeyDown(e, {')
 	})
 
-	it('uses viewport-relative hero sizing and mobile-first action order', () => {
+	it('keeps recipe decision facts ahead of the primary action on mobile', () => {
 		expect(pageSource).toContain(
 			'h-[min(18rem,42dvh)] w-full overflow-hidden sm:h-[min(24rem,50dvh)] md:h-[min(34rem,70dvh)]',
 		)
 		expect(pageSource).toContain('line-clamp-3 max-w-3xl')
 		expect(pageSource).toContain('md:line-clamp-none')
 		expect(pageSource).toContain(
-			"className='-order-1 mb-6 space-y-3 md:order-none md:mb-0'",
+			"className='order-1 mb-6 space-y-3 md:order-none md:mb-0'",
 		)
 		expect(pageSource).toContain("className='flex flex-col bg-bg-card")
 		expect(pageSource).not.toContain('h-[28rem]')
