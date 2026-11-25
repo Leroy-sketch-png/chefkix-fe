@@ -93,21 +93,23 @@ export function CookieConsent({
 					const scrollTarget = getAppScrollTarget()
 					const revealConsent = () => {
 						scrollTarget.removeEventListener('scroll', revealConsent)
-						window.removeEventListener('pointerdown', revealConsent)
-						window.removeEventListener('keydown', revealConsent)
+						window.removeEventListener('click', revealConsent)
+						window.removeEventListener('keyup', revealConsent)
 						setVisible(true)
 					}
 
 					scrollTarget.addEventListener('scroll', revealConsent, { once: true })
-					window.addEventListener('pointerdown', revealConsent, {
+					// Reveal after the user's first activation completes. Showing the
+					// banner during pointerdown/keydown can swallow that navigation action.
+					window.addEventListener('click', revealConsent, {
 						once: true,
 					})
-					window.addEventListener('keydown', revealConsent, { once: true })
+					window.addEventListener('keyup', revealConsent, { once: true })
 
 					return () => {
 						scrollTarget.removeEventListener('scroll', revealConsent)
-						window.removeEventListener('pointerdown', revealConsent)
-						window.removeEventListener('keydown', revealConsent)
+						window.removeEventListener('click', revealConsent)
+						window.removeEventListener('keyup', revealConsent)
 					}
 				}
 
