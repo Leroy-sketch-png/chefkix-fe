@@ -225,6 +225,71 @@ function relationMessage(response: ProductFoodCompositionResponse) {
 	return null
 }
 
+function ComparisonCount({ label, count }: { label: string; count: number }) {
+	return (
+		<div className='rounded-xl border border-border-subtle bg-bg-elevated/50 p-3'>
+			<p className='text-xs leading-5 text-text-secondary'>{label}</p>
+			<p className='mt-1 text-2xl font-bold tabular-nums text-text-primary'>
+				{count}
+			</p>
+		</div>
+	)
+}
+
+function CompoundListDisclosure({
+	summaryLabel,
+	compounds,
+	total,
+	query,
+}: {
+	summaryLabel: string
+	compounds: ProductFoodCompositionResponse['compounds']
+	total: number
+	query: string
+}) {
+	return (
+		<details className='group rounded-xl border border-border-subtle bg-bg-elevated/40 px-4 py-3'>
+			<summary className='flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-text-primary marker:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden'>
+				<span>{summaryLabel}</span>
+				<span
+					aria-hidden='true'
+					className='text-primary transition-transform group-open:rotate-90'
+				>
+					›
+				</span>
+			</summary>
+			<div className='mt-3 border-t border-border-subtle pt-3'>
+				{query && (
+					<p className='mb-3 text-xs text-text-muted' role='status'>
+						Showing {compounds.length} of {total} names matching “{query}”.
+					</p>
+				)}
+				{compounds.length ? (
+					<ul className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+						{compounds.map(compound => (
+							<li
+								key={compound.id}
+								className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
+							>
+								<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
+									<Check aria-hidden='true' className='size-4' />
+								</span>
+								<span className='text-sm font-semibold text-text-primary'>
+									{compound.name}
+								</span>
+							</li>
+						))}
+					</ul>
+				) : (
+					<p className='rounded-lg bg-bg p-3 text-sm text-text-secondary'>
+						No listed compound name matches “{query}”.
+					</p>
+				)}
+			</div>
+		</details>
+	)
+}
+
 export function ProductCompositionExplorer() {
 	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 	const isAuthHydrated = useAuthStore(state => state.isHydrated)
@@ -238,6 +303,7 @@ export function ProductCompositionExplorer() {
 		first: ProductFoodCompositionResponse
 		second: ProductFoodCompositionResponse
 	} | null>(null)
+	const [compoundQuery, setCompoundQuery] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [failure, setFailure] = useState<RequestFailure | null>(null)
 	useEffect(() => {
@@ -260,6 +326,31 @@ export function ProductCompositionExplorer() {
 			secondIds.has(compound.id),
 		)
 	}, [comparison, firstProblem, secondProblem])
+	const oneSidedCompounds = useMemo(() => {
+		if (!comparison || firstProblem || secondProblem)
+			return { first: [], second: [] }
+		const firstIds = new Set(
+			comparison.first.compounds.map(compound => compound.id),
+		)
+		const secondIds = new Set(
+			comparison.second.compounds.map(compound => compound.id),
+		)
+		return {
+			first: comparison.first.compounds.filter(
+				compound => !secondIds.has(compound.id),
+			),
+			second: comparison.second.compounds.filter(
+				compound => !firstIds.has(compound.id),
+			),
+		}
+	}, [comparison, firstProblem, secondProblem])
+	const normalizedCompoundQuery = compoundQuery.trim().toLowerCase()
+	const matchingNames = (
+		compounds: ProductFoodCompositionResponse['compounds'],
+	) =>
+		compounds.filter(compound =>
+			compound.name.toLowerCase().includes(normalizedCompoundQuery),
+		)
 	const canCompare = Boolean(
 		firstFood && secondFood && firstFood.foodId !== secondFood.foodId,
 	)
@@ -273,6 +364,7 @@ export function ProductCompositionExplorer() {
 			setSecondQuery('')
 		}
 		setComparison(null)
+		setCompoundQuery('')
 		setFailure(null)
 	}
 
@@ -285,6 +377,7 @@ export function ProductCompositionExplorer() {
 			setSecondFood(null)
 		}
 		setComparison(null)
+		setCompoundQuery('')
 		setFailure(null)
 	}
 
@@ -293,6 +386,7 @@ export function ProductCompositionExplorer() {
 			return
 		setLoading(true)
 		setComparison(null)
+		setCompoundQuery('')
 		setFailure(null)
 		try {
 			const [first, second] = await Promise.all([
@@ -548,42 +642,70 @@ export function ProductCompositionExplorer() {
 											or both foods. This overlap may be incomplete.
 										</p>
 									)}
+									<div className='mt-5 grid gap-2 sm:grid-cols-2'>
+										<ComparisonCount
+											label={`In ${comparison.first.food?.name ?? firstFood?.name}’s returned list, not ${comparison.second.food?.name ?? secondFood?.name}’s`}
+											count={oneSidedCompounds.first.length}
+										/>
+										<ComparisonCount
+											label={`In ${comparison.second.food?.name ?? secondFood?.name}’s returned list, not ${comparison.first.food?.name ?? firstFood?.name}’s`}
+											count={oneSidedCompounds.second.length}
+										/>
+									</div>
+									{sharedCompounds.length +
+										oneSidedCompounds.first.length +
+										oneSidedCompounds.second.length >
+										0 && (
+										<div className='mt-5 space-y-3'>
+											<label
+												className='block text-sm font-semibold text-text-primary'
+												htmlFor='compound-name-filter'
+											>
+												Find a listed compound
+											</label>
+											<input
+												id='compound-name-filter'
+												type='search'
+												value={compoundQuery}
+												onChange={event => setCompoundQuery(event.target.value)}
+												placeholder='Try malic acid'
+												className='min-h-11 w-full rounded-xl border border-border-medium bg-bg-input px-3 text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20'
+											/>
+											<p className='text-xs leading-5 text-text-muted'>
+												Filters names in these returned lists; it does not add
+												meaning beyond the source records.
+											</p>
+										</div>
+									)}
 									{sharedCompounds.length ? (
-										<details className='group mt-4 rounded-xl border border-border-subtle bg-bg-elevated/40 px-4 py-3'>
-											<summary className='flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 font-semibold text-text-primary marker:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden'>
-												<span>
-													Browse {sharedCompounds.length} matching compound
-													names
-												</span>
-												<span
-													aria-hidden='true'
-													className='text-primary transition-transform group-open:rotate-90'
-												>
-													›
-												</span>
-											</summary>
-											<ul className='mt-3 grid gap-2 border-t border-border-subtle pt-3 sm:grid-cols-2 lg:grid-cols-3'>
-												{sharedCompounds.map(compound => (
-													<li
-														key={compound.id}
-														className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
-													>
-														<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
-															<Check aria-hidden='true' className='size-4' />
-														</span>
-														<span className='text-sm font-semibold text-text-primary'>
-															{compound.name}
-														</span>
-													</li>
-												))}
-											</ul>
-										</details>
+										<CompoundListDisclosure
+											summaryLabel={`Browse ${sharedCompounds.length} matching compound names`}
+											compounds={matchingNames(sharedCompounds)}
+											total={sharedCompounds.length}
+											query={normalizedCompoundQuery}
+										/>
 									) : (
 										<p className='mt-5 rounded-xl border border-border-subtle bg-bg-elevated/70 p-4 text-sm leading-6 text-text-secondary'>
 											No compound appears in both displayed records. The source
 											subset may omit links, so this is not proof the foods have
 											nothing in common.
 										</p>
+									)}
+									{oneSidedCompounds.first.length > 0 && (
+										<CompoundListDisclosure
+											summaryLabel={`Browse ${oneSidedCompounds.first.length} ${oneSidedCompounds.first.length === 1 ? 'compound' : 'compounds'} listed for ${comparison.first.food?.name ?? firstFood?.name}, not ${comparison.second.food?.name ?? secondFood?.name}`}
+											compounds={matchingNames(oneSidedCompounds.first)}
+											total={oneSidedCompounds.first.length}
+											query={normalizedCompoundQuery}
+										/>
+									)}
+									{oneSidedCompounds.second.length > 0 && (
+										<CompoundListDisclosure
+											summaryLabel={`Browse ${oneSidedCompounds.second.length} ${oneSidedCompounds.second.length === 1 ? 'compound' : 'compounds'} listed for ${comparison.second.food?.name ?? secondFood?.name}, not ${comparison.first.food?.name ?? firstFood?.name}`}
+											compounds={matchingNames(oneSidedCompounds.second)}
+											total={oneSidedCompounds.second.length}
+											query={normalizedCompoundQuery}
+										/>
 									)}
 									<p className='mt-5 border-t border-border-subtle pt-4 text-xs leading-5 text-text-muted'>
 										This comparison covers listed compound presence in a

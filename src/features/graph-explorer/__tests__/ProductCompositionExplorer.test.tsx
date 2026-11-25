@@ -165,7 +165,7 @@ it('turns two food selections into an honest shared-record comparison', async ()
 	expect(
 		screen.getByRole('region', { name: 'Food comparison results' }),
 	).toHaveTextContent(/1\s*matching compound/)
-	expect(screen.queryByText('Apple-only record')).not.toBeInTheDocument()
+	expect(screen.getByText('Apple-only record')).not.toBeVisible()
 	expect(
 		screen.getByText(/which compound links appear in both source records/i),
 	).toBeInTheDocument()
@@ -217,6 +217,64 @@ it('keeps the compound list collapsed while showing its incompleteness warning',
 	fireEvent.click(browseLabel)
 	expect(disclosure).toHaveAttribute('open')
 	expect(within(results).getByText('Shared record')).toBeVisible()
+})
+
+it('separates shared and one-sided returned links and filters their names', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [food(query, query === 'Apple' ? '42' : '84')],
+	}))
+	jest
+		.mocked(getProductFoodComposition)
+		.mockImplementation(async id =>
+			id === '42'
+				? composition('Apple', id, [
+						relation('Malic acid', '9'),
+						relation('Apple-listed link', '10'),
+					])
+				: composition('Pear', id, [
+						relation('Malic acid', '9'),
+						relation('Pear-listed link', '11'),
+					]),
+		)
+	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Pear')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+
+	const results = await screen.findByRole('region', {
+		name: 'Food comparison results',
+	})
+	expect(
+		within(results).getByText('In Apple’s returned list, not Pear’s'),
+	).toBeInTheDocument()
+	expect(
+		within(results).getByText('In Pear’s returned list, not Apple’s'),
+	).toBeInTheDocument()
+	expect(within(results).getByText('Apple-listed link')).not.toBeVisible()
+	expect(within(results).getByText('Pear-listed link')).not.toBeVisible()
+
+	fireEvent.change(
+		within(results).getByRole('searchbox', { name: 'Find a listed compound' }),
+		{ target: { value: 'malic acid' } },
+	)
+	const sharedList = within(results).getByText(
+		'Browse 1 matching compound names',
+	)
+	fireEvent.click(sharedList)
+	expect(within(results).getByText('Malic acid')).toBeVisible()
+	expect(
+		within(results).getByText(/Showing 1 of 1 names matching “malic acid”/),
+	).toBeVisible()
+	const pearOnly = within(results).getByText(
+		'Browse 1 compound listed for Pear, not Apple',
+	)
+	fireEvent.click(pearOnly)
+	expect(
+		within(results).getAllByText(
+			/No listed compound name matches “malic acid”/,
+		),
+	).toHaveLength(2)
 })
 
 it('does not turn no shared listed links into a claim of absence', async () => {
