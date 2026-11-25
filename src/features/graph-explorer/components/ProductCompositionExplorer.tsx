@@ -95,6 +95,7 @@ function FoodPicker({
 	query,
 	selectedFood,
 	otherFood,
+	isBusy,
 	onQueryChange,
 	onSelect,
 }: {
@@ -102,6 +103,7 @@ function FoodPicker({
 	query: string
 	selectedFood: ProductFoodCandidate | null
 	otherFood: ProductFoodCandidate | null
+	isBusy: boolean
 	onQueryChange: (value: string) => void
 	onSelect: (food: ProductFoodCandidate) => void
 }) {
@@ -134,6 +136,7 @@ function FoodPicker({
 				{selectedFood && (
 					<button
 						type='button'
+						disabled={isBusy}
 						onClick={() => onQueryChange('')}
 						className='min-h-10 rounded-lg px-3 text-sm font-semibold text-primary underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
 					>
@@ -181,7 +184,7 @@ function FoodPicker({
 								<button
 									key={food.foodId}
 									type='button'
-									disabled={isDuplicate}
+									disabled={isDuplicate || isBusy}
 									onClick={() => onSelect(food)}
 									className='flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-2 text-left transition hover:border-primary/50 hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50'
 								>
@@ -396,6 +399,7 @@ export function ProductCompositionExplorer() {
 					query={firstQuery}
 					selectedFood={firstFood}
 					otherFood={secondFood}
+					isBusy={loading}
 					onQueryChange={value => changeQuery('first', value)}
 					onSelect={food => chooseFood('first', food)}
 				/>
@@ -411,6 +415,7 @@ export function ProductCompositionExplorer() {
 					query={secondQuery}
 					selectedFood={secondFood}
 					otherFood={firstFood}
+					isBusy={loading}
 					onQueryChange={value => changeQuery('second', value)}
 					onSelect={food => chooseFood('second', food)}
 				/>

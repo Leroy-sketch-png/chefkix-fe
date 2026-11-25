@@ -160,6 +160,43 @@ it('does not turn no shared listed links into a claim of absence', async () => {
 	).toBeInTheDocument()
 })
 
+it('locks food choices while the comparison is loading', async () => {
+	jest.mocked(searchProductFoods).mockImplementation(async query => ({
+		provenance,
+		foods: [food(query, query === 'Apple' ? '42' : '84')],
+	}))
+	let resolveFirst:
+		| ((value: ReturnType<typeof composition>) => void)
+		| undefined
+	let resolveSecond:
+		| ((value: ReturnType<typeof composition>) => void)
+		| undefined
+	jest.mocked(getProductFoodComposition).mockImplementation(
+		id =>
+			new Promise<ReturnType<typeof composition>>(resolve => {
+				if (id === '42') resolveFirst = resolve
+				else resolveSecond = resolve
+			}),
+	)
+	render(<GraphExplorer />)
+	await chooseFood('first', 'Apple')
+	await chooseFood('second', 'Avocado')
+	fireEvent.click(screen.getByRole('button', { name: /Show what they share/ }))
+
+	const changeButtons = await screen.findAllByRole('button', { name: 'Change' })
+	expect(changeButtons).toHaveLength(2)
+	changeButtons.forEach(button => expect(button).toBeDisabled())
+	expect(
+		screen.getByRole('button', { name: 'Comparing records…' }),
+	).toBeDisabled()
+
+	resolveFirst?.(composition('Apple', '42', [relation('Shared record', '9')]))
+	resolveSecond?.(
+		composition('Avocado', '84', [relation('Shared record', '9')]),
+	)
+	expect(await screen.findByText('Shared record')).toBeInTheDocument()
+})
+
 it('explains when a selected food cannot be compared from this subset', async () => {
 	jest.mocked(searchProductFoods).mockImplementation(async query => ({
 		provenance,
