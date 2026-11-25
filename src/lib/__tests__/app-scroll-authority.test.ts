@@ -5,6 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { AppShell } from '@/components/layout/AppShell'
 import {
 	clearPendingFeedScrollPosition,
+	getAppScrollDistanceToBottom,
 	getAppScrollContainer,
 	getAppScrollTarget,
 	getAppScrollTop,
@@ -56,10 +57,10 @@ describe('application scroll authority', () => {
 	it('reveals and operates the global control from AppShell scroll events', () => {
 		const container = document.createElement('main')
 		container.id = 'main-content'
-		Object.defineProperty(container, 'scrollTop', {
-			configurable: true,
-			value: 450,
-			writable: true,
+		Object.defineProperties(container, {
+			scrollTop: { configurable: true, value: 450, writable: true },
+			scrollHeight: { configurable: true, value: 2000 },
+			clientHeight: { configurable: true, value: 640 },
 		})
 		container.scrollTo = jest.fn()
 		document.body.appendChild(container)
@@ -76,6 +77,46 @@ describe('application scroll authority', () => {
 		})
 	})
 
+	it('hides the floating control before it can cover end-of-page content', () => {
+		const container = document.createElement('main')
+		container.id = 'main-content'
+		Object.defineProperties(container, {
+			scrollHeight: { configurable: true, value: 2000 },
+			clientHeight: { configurable: true, value: 640 },
+			scrollTop: { configurable: true, value: 450, writable: true },
+		})
+		document.body.appendChild(container)
+
+		const { getByRole } = render(
+			React.createElement(ScrollToTop, { threshold: 400 }),
+		)
+		const button = getByRole('button', { name: 'Scroll to top' })
+		fireEvent.scroll(container)
+		expect(button).toHaveAttribute('aria-hidden', 'false')
+		expect(button).toHaveAttribute('tabindex', '0')
+		button.focus()
+		expect(button).toHaveFocus()
+
+		container.scrollTop = 1312 // Exactly 48px remain in the shared scroll area.
+		fireEvent.scroll(container)
+		expect(button).toHaveAttribute('aria-hidden', 'true')
+		expect(button).toHaveAttribute('tabindex', '-1')
+		expect(button).not.toHaveFocus()
+	})
+
+	it('measures remaining distance in the shared AppShell scroll area', () => {
+		const container = document.createElement('main')
+		container.id = 'main-content'
+		Object.defineProperties(container, {
+			scrollHeight: { configurable: true, value: 2000 },
+			clientHeight: { configurable: true, value: 640 },
+			scrollTop: { configurable: true, value: 450, writable: true },
+		})
+		document.body.appendChild(container)
+
+		expect(getAppScrollDistanceToBottom()).toBe(910)
+	})
+
 	it('falls back to window scrolling outside AppShell', () => {
 		Object.defineProperty(window, 'scrollY', {
 			configurable: true,
@@ -89,6 +130,51 @@ describe('application scroll authority', () => {
 
 		scrollAppTo(0, 'smooth')
 		expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+	})
+
+	it('measures remaining distance from the document when AppShell is absent', () => {
+		Object.defineProperty(document.documentElement, 'scrollHeight', {
+			configurable: true,
+			value: 2000,
+		})
+		Object.defineProperty(window, 'innerHeight', {
+			configurable: true,
+			value: 640,
+		})
+		Object.defineProperty(window, 'scrollY', {
+			configurable: true,
+			value: 320,
+		})
+
+		expect(getAppScrollDistanceToBottom()).toBe(1040)
+	})
+
+	it('rechecks end clearance after a window-scrolling viewport resize', () => {
+		Object.defineProperty(document.documentElement, 'scrollHeight', {
+			configurable: true,
+			value: 2000,
+		})
+		Object.defineProperty(window, 'innerHeight', {
+			configurable: true,
+			value: 640,
+		})
+		Object.defineProperty(window, 'scrollY', {
+			configurable: true,
+			value: 1300,
+		})
+
+		const { getByRole } = render(
+			React.createElement(ScrollToTop, { threshold: 400 }),
+		)
+		const button = getByRole('button', { name: 'Scroll to top' })
+		expect(button).toHaveAttribute('aria-hidden', 'false')
+
+		Object.defineProperty(window, 'innerHeight', {
+			configurable: true,
+			value: 660,
+		})
+		fireEvent.resize(window)
+		expect(button).toHaveAttribute('aria-hidden', 'true')
 	})
 
 	it('waits for actual Feed readiness without frame polling or expiry', () => {

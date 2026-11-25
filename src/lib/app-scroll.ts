@@ -37,6 +37,16 @@ export function getAppScrollTop(): number {
 	return getAppScrollContainer()?.scrollTop ?? window.scrollY
 }
 
+export function getAppScrollDistanceToBottom(): number {
+	const container = getAppScrollContainer()
+	const scrollHeight =
+		container?.scrollHeight ?? document.documentElement.scrollHeight
+	const clientHeight = container?.clientHeight ?? window.innerHeight
+	const scrollTop = container?.scrollTop ?? window.scrollY
+
+	return Math.max(0, scrollHeight - clientHeight - scrollTop)
+}
+
 export function scrollAppTo(
 	top: number,
 	behavior: ScrollBehavior = 'auto',

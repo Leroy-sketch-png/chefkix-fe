@@ -5,11 +5,14 @@ import { usePathname } from 'next/navigation'
 import { ArrowUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
+	getAppScrollDistanceToBottom,
 	getAppScrollTarget,
 	getAppScrollTop,
 	scrollAppTo,
 } from '@/lib/app-scroll'
 import { useUiStore } from '@/store/uiStore'
+
+const END_OF_PAGE_HIDE_DISTANCE = 48
 
 interface ScrollToTopProps {
 	/** Show button after scrolling this many pixels */
@@ -19,23 +22,41 @@ interface ScrollToTopProps {
 
 export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 	const [visible, setVisible] = React.useState(false)
+	const buttonRef = React.useRef<HTMLButtonElement>(null)
 	const pathname = usePathname()
 	const cookingMode = useUiStore(state => state.cookingMode)
 	const isAuthRoute = pathname === '/auth' || pathname.startsWith('/auth/')
 
 	React.useEffect(() => {
 		const scrollTarget = getAppScrollTarget()
-		const handleScroll = () => setVisible(getAppScrollTop() > threshold)
+		const updateVisibility = () =>
+			setVisible(
+				getAppScrollTop() > threshold &&
+					getAppScrollDistanceToBottom() > END_OF_PAGE_HIDE_DISTANCE,
+			)
 
-		handleScroll()
-		scrollTarget.addEventListener('scroll', handleScroll, { passive: true })
-		return () => scrollTarget.removeEventListener('scroll', handleScroll)
+		updateVisibility()
+		scrollTarget.addEventListener('scroll', updateVisibility, {
+			passive: true,
+		})
+		window.addEventListener('resize', updateVisibility, { passive: true })
+		return () => {
+			scrollTarget.removeEventListener('scroll', updateVisibility)
+			window.removeEventListener('resize', updateVisibility)
+		}
 	}, [pathname, threshold])
+
+	React.useEffect(() => {
+		if (!visible && buttonRef.current === document.activeElement) {
+			buttonRef.current.blur()
+		}
+	}, [visible])
 
 	if (cookingMode !== 'hidden' || isAuthRoute) return null
 
 	return (
 		<button
+			ref={buttonRef}
 			type='button'
 			onClick={() => scrollAppTo(0, 'smooth')}
 			className={cn(
@@ -47,6 +68,8 @@ export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 				className,
 			)}
 			aria-label='Scroll to top'
+			aria-hidden={!visible}
+			tabIndex={visible ? 0 : -1}
 		>
 			<ArrowUp className='size-4 text-text-secondary' />
 		</button>

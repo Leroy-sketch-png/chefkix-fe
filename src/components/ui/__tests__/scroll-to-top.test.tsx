@@ -15,17 +15,21 @@ describe('ScrollToTop', () => {
 	})
 
 	it('stays below modal surfaces in the shared stacking order', () => {
-		render(<ScrollToTop />)
+		const { container } = render(<ScrollToTop />)
 
-		const button = screen.getByRole('button', { name: 'Scroll to top' })
+		const button = container.querySelector(
+			'button[aria-label="Scroll to top"]',
+		)!
 		expect(button.className).toContain('z-sticky')
 		expect(button.className).not.toContain('z-notification')
 	})
 
 	it('clears the mobile bottom-navigation action area and keeps its desktop offset', () => {
-		render(<ScrollToTop />)
+		const { container } = render(<ScrollToTop />)
 
-		const button = screen.getByRole('button', { name: 'Scroll to top' })
+		const button = container.querySelector(
+			'button[aria-label="Scroll to top"]',
+		)!
 		expect(button.className).toContain(
 			'bottom-[calc(4rem+var(--space-2)+env(safe-area-inset-bottom))]',
 		)
