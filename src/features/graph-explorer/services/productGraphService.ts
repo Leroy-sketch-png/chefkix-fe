@@ -111,6 +111,15 @@ export async function getProductFoodComposition(foodId: string) {
 	) {
 		throw new Error('The product graph returned an invalid Food node.')
 	}
+	if (
+		food !== null &&
+		isRecord(food) &&
+		food.id !== `foodb:1.0:food-id:${foodId}`
+	) {
+		throw new Error(
+			'The product graph returned a different Food ID than requested.',
+		)
+	}
 	const compounds = payload.compounds.map(item => {
 		if (
 			!isRecord(item) ||

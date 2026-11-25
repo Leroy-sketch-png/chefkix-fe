@@ -166,6 +166,8 @@ it('turns two food selections into an honest shared-record comparison', async ()
 		screen.getByRole('region', { name: 'Food comparison results' }),
 	).toHaveTextContent(/1\s*matching compound/)
 	expect(screen.getByText('Apple-only record')).not.toBeVisible()
+	expect(screen.getByText('foodb:1.0:food-id:42')).toBeInTheDocument()
+	expect(screen.getByText('foodb:1.0:food-id:84')).toBeInTheDocument()
 	expect(
 		screen.getByText(/which compound links appear in both source records/i),
 	).toBeInTheDocument()
@@ -174,6 +176,12 @@ it('turns two food selections into an honest shared-record comparison', async ()
 	).toBeInTheDocument()
 	expect(getProductFoodComposition).toHaveBeenNthCalledWith(1, '42')
 	expect(getProductFoodComposition).toHaveBeenNthCalledWith(2, '84')
+	fireEvent.click(screen.getByText('Where these records come from'))
+	expect(screen.getByText(PRODUCT_GRAPH_MANIFEST_SHA256)).toBeInTheDocument()
+	expect(screen.getByText(PRODUCT_GRAPH_NODES_SHA256)).toBeInTheDocument()
+	expect(screen.getByText(PRODUCT_GRAPH_EDGES_SHA256)).toBeInTheDocument()
+	fireEvent.click(screen.getByText('Browse 1 matching compound names'))
+	expect(screen.getByText('foodb:1.0:compound-id:9')).toBeInTheDocument()
 
 	act(() =>
 		useAuthStore.setState({ isAuthenticated: false, accessToken: null }),

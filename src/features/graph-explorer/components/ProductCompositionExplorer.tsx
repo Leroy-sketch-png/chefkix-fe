@@ -9,6 +9,8 @@ import {
 	getProductFoodComposition,
 	searchProductFoods,
 	PRODUCT_GRAPH_MANIFEST_SHA256,
+	PRODUCT_GRAPH_NODES_SHA256,
+	PRODUCT_GRAPH_EDGES_SHA256,
 } from '../services/productGraphService'
 import type {
 	ProductFoodCandidate,
@@ -269,13 +271,18 @@ function CompoundListDisclosure({
 						{compounds.map(compound => (
 							<li
 								key={compound.id}
-								className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
+								className='flex min-h-14 items-start gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
 							>
 								<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
 									<Check aria-hidden='true' className='size-4' />
 								</span>
-								<span className='text-sm font-semibold text-text-primary'>
-									{compound.name}
+								<span className='min-w-0'>
+									<span className='block text-sm font-semibold text-text-primary'>
+										{compound.name}
+									</span>
+									<code className='mt-1 block break-all text-[11px] text-text-muted'>
+										{compound.id}
+									</code>
 								</span>
 							</li>
 						))}
@@ -592,6 +599,10 @@ export function ProductCompositionExplorer() {
 									<h2 className='mt-1 text-xl font-bold text-text-primary'>
 										{comparison.first.food?.name ?? firstFood?.name}
 									</h2>
+									<code className='mt-1 block break-all text-xs text-text-muted'>
+										{comparison.first.food?.id ??
+											`foodb:1.0:food-id:${firstFood?.foodId}`}
+									</code>
 								</div>
 								<div className='mx-auto grid size-12 place-items-center rounded-full bg-bg-card text-primary shadow-sm'>
 									<ArrowRight aria-hidden='true' className='size-5' />
@@ -603,6 +614,10 @@ export function ProductCompositionExplorer() {
 									<h2 className='mt-1 text-xl font-bold text-text-primary'>
 										{comparison.second.food?.name ?? secondFood?.name}
 									</h2>
+									<code className='mt-1 block break-all text-xs text-text-muted'>
+										{comparison.second.food?.id ??
+											`foodb:1.0:food-id:${secondFood?.foodId}`}
+									</code>
 								</div>
 							</div>
 							{firstProblem || secondProblem ? (
@@ -744,6 +759,14 @@ export function ProductCompositionExplorer() {
 					<p>
 						Source manifest:{' '}
 						<code className='break-all'>{PRODUCT_GRAPH_MANIFEST_SHA256}</code>
+					</p>
+					<p>
+						Node file SHA-256:{' '}
+						<code className='break-all'>{PRODUCT_GRAPH_NODES_SHA256}</code>
+					</p>
+					<p>
+						Edge file SHA-256:{' '}
+						<code className='break-all'>{PRODUCT_GRAPH_EDGES_SHA256}</code>
 					</p>
 				</div>
 			</details>
