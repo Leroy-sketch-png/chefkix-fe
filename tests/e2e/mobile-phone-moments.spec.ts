@@ -188,7 +188,8 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 			await route.fulfill({ status: 204, headers: corsHeaders })
 			return
 		}
-		if (request.method() !== 'GET') writeRequests.push(`${request.method()} ${url.pathname}`)
+		if (request.method() !== 'GET')
+			writeRequests.push(`${request.method()} ${url.pathname}`)
 		if (
 			request.method() === 'GET' &&
 			url.pathname === '/api/v1/recipes/mobile-readiness-fixture'
@@ -238,7 +239,7 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 						author: {
 							userId: 'fixture-chef',
 							username: 'fixture-chef',
-						displayName: 'Fixture Chef',
+							displayName: 'Fixture Chef',
 						},
 						isLiked: false,
 						isSaved: false,
@@ -249,8 +250,7 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 		}
 		if (
 			request.method() === 'GET' &&
-			url.pathname ===
-				'/api/v1/recipes/mobile-readiness-fixture/social-proof'
+			url.pathname === '/api/v1/recipes/mobile-readiness-fixture/social-proof'
 		) {
 			await route.fulfill({
 				status: 200,
@@ -274,8 +274,12 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 	await expect(
 		page.getByRole('heading', { name: 'Quick tomato chickpea skillet' }),
 	).toBeVisible()
-	await expect(page.getByText('Recipe detail', { exact: true })).not.toBeVisible()
-	await expect(page.getByText('Cooking workspace', { exact: true })).not.toBeVisible()
+	await expect(
+		page.getByText('Recipe detail', { exact: true }),
+	).not.toBeVisible()
+	await expect(
+		page.getByText('Cooking workspace', { exact: true }),
+	).not.toBeVisible()
 	const time = page.getByText('25 min', { exact: true })
 	const servings = page.getByText('2 servings', { exact: true })
 	const cooking = page.getByRole('button', { name: /Start Cooking/ })
@@ -311,14 +315,277 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 	const firstIngredient = page
 		.locator('li')
 		.filter({ hasText: '1 can chickpeas' })
-	.first()
+		.first()
 	await firstIngredient.scrollIntoViewIfNeeded()
 	await expect(firstIngredient).toBeInViewport()
 	await cooking.scrollIntoViewIfNeeded()
 	await expect(cooking).toBeInViewport()
 	await expect(cooking).toBeEnabled()
-	await expect.poll(() => writeRequests.filter(path => path.includes('cook'))).toHaveLength(0)
+	await expect
+		.poll(() => writeRequests.filter(path => path.includes('cook')))
+		.toHaveLength(0)
 	await page.screenshot({
 		path: testInfo.outputPath('phone-recipe-detail-decision.png'),
 	})
+})
+
+test('phone local cooking preview keeps the active step readable and does not start hardware or a real session', async ({
+	page,
+}, testInfo) => {
+	const pageErrors: string[] = []
+	page.on('pageerror', error =>
+		pageErrors.push(error.name + ': ' + error.message),
+	)
+	await page.setViewportSize({ width: 360, height: 640 })
+	await page.addInitScript(() => {
+		const previewWindow = window as typeof window & {
+			__previewMediaRequests: number
+			__previewVoiceStarts: number
+			__previewWakeLockRequests: number
+		}
+		previewWindow.__previewMediaRequests = 0
+		previewWindow.__previewVoiceStarts = 0
+		previewWindow.__previewWakeLockRequests = 0
+
+		Object.defineProperty(navigator, 'mediaDevices', {
+			configurable: true,
+			value: {
+				getUserMedia: async () => {
+					previewWindow.__previewMediaRequests += 1
+					throw new DOMException(
+						'Blocked by the test fixture',
+						'NotAllowedError',
+					)
+				},
+			},
+		})
+
+		class FixtureSpeechRecognition extends EventTarget {
+			lang = ''
+			continuous = false
+			interimResults = false
+			maxAlternatives = 1
+			onresult: ((event: Event) => void) | null = null
+			onerror: ((event: Event) => void) | null = null
+			onend: (() => void) | null = null
+
+			start() {
+				previewWindow.__previewVoiceStarts += 1
+				return true
+			}
+
+			stop() {}
+		}
+
+		Object.defineProperty(window, 'SpeechRecognition', {
+			configurable: true,
+			value: FixtureSpeechRecognition,
+		})
+		Object.defineProperty(navigator, 'wakeLock', {
+			configurable: true,
+			value: {
+				request: async () => {
+					previewWindow.__previewWakeLockRequests += 1
+					return { release: async () => {}, addEventListener: () => {} }
+				},
+			},
+		})
+	})
+	await installIsolatedSignedInFixture(page)
+	const writeRequests: string[] = []
+	await page.route('**/api/v1/**', async route => {
+		const request = route.request()
+		const url = new URL(request.url())
+		if (request.method() === 'OPTIONS') {
+			await route.fulfill({ status: 204, headers: corsHeaders })
+			return
+		}
+		if (request.method() !== 'GET')
+			writeRequests.push(`${request.method()} ${url.pathname}`)
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/recipes/mobile-preview-fixture'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						id: 'mobile-preview-fixture',
+						createdAt: '2026-01-01T00:00:00Z',
+						updatedAt: '2026-01-01T00:00:00Z',
+						recipeStatus: 'DRAFT',
+						title: 'Preview a simple chickpea skillet',
+						description:
+							'A short local preview fixture for the cooking player.',
+						coverImageUrl: ['/images/recipes/shakshuka.webp'],
+						videoUrl: [],
+						difficulty: 'Beginner',
+						prepTimeMinutes: 5,
+						cookTimeMinutes: 10,
+						totalTimeMinutes: 15,
+						servings: 2,
+						cuisineType: 'Mediterranean',
+						dietaryTags: [],
+						fullIngredientList: [
+							{ name: 'chickpeas', quantity: '1', unit: 'can' },
+						],
+						steps: [
+							{
+								stepNumber: 1,
+								title: 'Warm the pan',
+								description: 'Warm oil in a skillet over medium heat.',
+								timerSeconds: 90,
+							},
+							{
+								stepNumber: 2,
+								title: 'Add the chickpeas',
+								description: 'Add the chickpeas and stir gently.',
+							},
+						],
+						xpReward: 25,
+						difficultyMultiplier: 1,
+						rewardBadges: [],
+						skillTags: [],
+						likeCount: 0,
+						saveCount: 0,
+						viewCount: 0,
+						cookCount: 0,
+						author: {
+							userId: 'mobile-visual-fixture',
+							username: 'mobile-fixture',
+							displayName: 'Mobile Fixture',
+						},
+						isLiked: false,
+						isSaved: false,
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/recipes/mobile-preview-fixture/social-proof'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { cookCount: 0, postCount: 0, recentCookers: [] },
+				}),
+			})
+			return
+		}
+		await route.fulfill({
+			status: 200,
+			headers: { ...corsHeaders, 'content-type': 'application/json' },
+			body: JSON.stringify({ success: true, statusCode: 200, data: [] }),
+		})
+	})
+
+	await page.goto('/recipes/mobile-preview-fixture')
+	await expect(
+		page.getByRole('heading', { name: 'Preview a simple chickpea skillet' }),
+	).toBeVisible()
+	await page.getByRole('button', { name: 'Manage' }).click()
+	await page.getByRole('menuitem', { name: 'Preview cooking' }).click()
+	const beginPreview = page.getByRole('button', { name: "Let's Cook!" })
+	await expect(beginPreview).toBeInViewport()
+	await page.screenshot({
+		path: testInfo.outputPath('phone-cooking-preview-prep.png'),
+	})
+	const firstInstruction = page
+		.getByText('Warm oil in a skillet over medium heat.', { exact: true })
+		.last()
+	const timer = page.getByRole('timer')
+	const nextStep = page.getByRole('button', { name: /Next/ }).last()
+	await beginPreview.click()
+	await expect(firstInstruction).toBeVisible()
+	await expect(firstInstruction).toBeInViewport()
+	await expect(timer).toBeInViewport()
+	await expect(nextStep).toBeInViewport()
+	const [instructionBox, timerBox, nextBox] = await Promise.all([
+		firstInstruction.boundingBox(),
+		timer.boundingBox(),
+		nextStep.boundingBox(),
+	])
+	for (const box of [instructionBox, timerBox, nextBox]) {
+		expect(box).not.toBeNull()
+		expect(box!.y).toBeGreaterThanOrEqual(0)
+		expect(box!.y + box!.height).toBeLessThanOrEqual(640)
+	}
+	await expect(timer).toHaveAttribute('aria-label', /Paused/)
+	await page.screenshot({
+		path: testInfo.outputPath('phone-cooking-preview-active-step.png'),
+	})
+
+	await page.keyboard.press('ArrowRight')
+	await expect(
+		page
+			.getByText('Add the chickpeas and stir gently.', { exact: true })
+			.last(),
+	).toBeVisible()
+	await page.keyboard.press('ArrowLeft')
+	await expect(firstInstruction).toBeVisible()
+
+	// The in-player Scan escape hatch should return the same preview state, not
+	// silently reset the instruction or start a real cooking session.
+	const scanIngredients = page.getByRole('link', { name: 'Scan ingredients' })
+	await expect(scanIngredients).toBeVisible()
+	await scanIngredients.click()
+	await expect(page).toHaveURL(/\/scan(?:[/?#]|$)/)
+	const scanHeading = page.getByRole('heading', {
+		name: 'Choose what you want from a food photo',
+	})
+	await expect(scanHeading).toBeInViewport()
+	await expect
+		.poll(() =>
+			scanHeading.evaluate(element => {
+				const rect = element.getBoundingClientRect()
+				const hit = document.elementFromPoint(
+					rect.left + rect.width / 2,
+					rect.top + rect.height / 2,
+				)
+				return hit === element || element.contains(hit)
+			}),
+		)
+		.toBe(true)
+	await page.screenshot({
+		path: testInfo.outputPath('phone-cooking-preview-scan-destination.png'),
+	})
+	await page.goBack()
+	await expect(page).toHaveURL(/\/recipes\/mobile-preview-fixture(?:[/?#]|$)/)
+	await expect(firstInstruction).toBeVisible()
+	await expect(timer).toHaveAttribute('aria-label', /Paused/)
+	await expect(nextStep).toBeVisible()
+	await expect
+		.poll(() =>
+			page.evaluate(() => {
+				const tracked = window as typeof window & {
+					__previewMediaRequests: number
+					__previewVoiceStarts: number
+					__previewWakeLockRequests: number
+				}
+				return [
+					tracked.__previewMediaRequests,
+					tracked.__previewVoiceStarts,
+					tracked.__previewWakeLockRequests,
+				]
+			}),
+		)
+		.toEqual([0, 0, 0])
+	const previewBlocksNavigation = await page.evaluate(() => {
+		const event = new Event('beforeunload', { cancelable: true })
+		window.dispatchEvent(event)
+		return event.defaultPrevented
+	})
+	expect(previewBlocksNavigation).toBe(false)
+	expect(pageErrors).toEqual([])
+	expect(
+		writeRequests.filter(request => /\/cooking-sessions(?:\/|$)/.test(request)),
+	).toEqual([])
 })

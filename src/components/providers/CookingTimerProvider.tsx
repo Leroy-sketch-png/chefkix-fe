@@ -33,8 +33,13 @@ import { useUiStore } from '@/store/uiStore'
  */
 export const CookingTimerProvider = () => {
 	const t = useTranslations('cooking')
-	const { session, localTimers, tickTimers, resumeExistingSession } =
-		useCookingStore()
+	const {
+		session,
+		isPreviewMode,
+		localTimers,
+		tickTimers,
+		resumeExistingSession,
+	} = useCookingStore()
 	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 	const { openCookingPanel, setCookingMode } = useUiStore()
 	const hasSyncedRef = useRef(false)
@@ -46,7 +51,7 @@ export const CookingTimerProvider = () => {
 	// This is the GLOBAL guard. CookingPanel/CookingPlayer have their own, but those
 	// only fire when the component is mounted/visible. This one fires ALWAYS.
 	const hasActiveSession =
-		session?.status === 'in_progress' && !!session?.recipeId
+		!isPreviewMode && session?.status === 'in_progress' && !!session?.recipeId
 	useBeforeUnloadWarning(hasActiveSession, t('cpBeforeUnloadWarning'))
 
 	// Sync with backend on mount — catch "ninja sessions" that exist on BE but not in FE store

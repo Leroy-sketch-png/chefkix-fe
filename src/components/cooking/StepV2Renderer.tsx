@@ -395,7 +395,7 @@ const KitchenModeRenderer = ({
 	const t = useTranslations('cooking')
 	const { preferences, isReady: preferencesReady } = useRuntimePreferences()
 	return (
-		<div className='space-y-6'>
+		<div className='space-y-3 sm:space-y-6'>
 			<StepMedia
 				key={`${step.videoUrl ?? ''}:${step.imageUrl ?? ''}`}
 				step={step}
@@ -404,10 +404,10 @@ const KitchenModeRenderer = ({
 
 			{/* Large step number */}
 			<div className='text-center'>
-				<span className='font-display text-4xl font-bold text-brand md:text-5xl'>
+				<span className='font-display text-3xl font-bold text-brand sm:text-4xl md:text-5xl'>
 					{step.stepNumber}
 				</span>
-				<p className='text-lg font-medium text-text-muted'>
+				<p className='text-base font-medium text-text-muted sm:text-lg'>
 					{t('kitchenStepLabel', {
 						title: step.title ?? t('ttsTitleFallback'),
 					})}
@@ -424,7 +424,7 @@ const KitchenModeRenderer = ({
 			)}
 
 			{/* Main instruction - LARGE */}
-			<p className='mx-auto max-w-2xl text-center text-2xl font-medium leading-relaxed text-text-primary md:text-3xl'>
+			<p className='mx-auto max-w-2xl text-center text-xl font-medium leading-snug text-text-primary sm:text-2xl sm:leading-relaxed md:text-3xl'>
 				{step.description}
 			</p>
 
