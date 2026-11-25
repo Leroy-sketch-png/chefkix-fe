@@ -340,7 +340,7 @@ export function SignUpForm() {
 							name='acceptTerms'
 							render={({ field }) => (
 								<FormItem>
-									<div className='flex min-h-11 items-start gap-3'>
+									<div className='flex items-start gap-3'>
 										<FormControl>
 											<Checkbox
 												id='accept-terms'
@@ -351,11 +351,11 @@ export function SignUpForm() {
 												}
 											/>
 										</FormControl>
-										<p className='min-w-0 flex-1 text-sm leading-5 text-text-secondary'>
+										<p className='min-w-0 flex-1 text-sm leading-6 text-text-secondary'>
 											<label
 												id='accept-terms-label'
 												htmlFor='accept-terms'
-												className='inline-flex min-h-11 cursor-pointer items-center font-medium text-text-primary'
+												className='cursor-pointer font-medium text-text-primary'
 											>
 												{t('acceptTerms')}
 											</label>{' '}
@@ -376,7 +376,7 @@ export function SignUpForm() {
 											</Link>
 										</p>
 									</div>
-									<FormMessage className='text-xs' />
+									<FormMessage className='ml-9 text-xs' />
 								</FormItem>
 							)}
 						/>

@@ -21,6 +21,7 @@ export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 	const [visible, setVisible] = React.useState(false)
 	const pathname = usePathname()
 	const cookingMode = useUiStore(state => state.cookingMode)
+	const isAuthRoute = pathname === '/auth' || pathname.startsWith('/auth/')
 
 	React.useEffect(() => {
 		const scrollTarget = getAppScrollTarget()
@@ -31,7 +32,7 @@ export function ScrollToTop({ threshold = 400, className }: ScrollToTopProps) {
 		return () => scrollTarget.removeEventListener('scroll', handleScroll)
 	}, [pathname, threshold])
 
-	if (cookingMode !== 'hidden') return null
+	if (cookingMode !== 'hidden' || isAuthRoute) return null
 
 	return (
 		<button

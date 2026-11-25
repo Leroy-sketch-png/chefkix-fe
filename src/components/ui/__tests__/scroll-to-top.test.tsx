@@ -2,12 +2,15 @@ import { render, screen } from '@testing-library/react'
 import { ScrollToTop } from '../scroll-to-top'
 import { useUiStore } from '@/store/uiStore'
 
+const mockUsePathname = jest.fn()
+
 jest.mock('next/navigation', () => ({
-	usePathname: () => '/settings',
+	usePathname: () => mockUsePathname(),
 }))
 
 describe('ScrollToTop', () => {
 	beforeEach(() => {
+		mockUsePathname.mockReturnValue('/settings')
 		useUiStore.setState({ cookingMode: 'hidden' })
 	})
 
@@ -27,6 +30,14 @@ describe('ScrollToTop', () => {
 			'bottom-[calc(4rem+var(--space-2)+env(safe-area-inset-bottom))]',
 		)
 		expect(button.className).toContain('md:bottom-6')
+	})
+
+	it('does not cover primary actions on authentication routes', () => {
+		mockUsePathname.mockReturnValue('/auth/sign-up')
+
+		const { container } = render(<ScrollToTop />)
+
+		expect(container).toBeEmptyDOMElement()
 	})
 
 	it.each(['mini', 'docked', 'expanded'] as const)(

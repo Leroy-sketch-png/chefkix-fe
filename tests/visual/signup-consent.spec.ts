@@ -17,17 +17,43 @@ test.describe('signup terms consent control', () => {
 			const checkbox = page.getByRole('checkbox', {
 				name: 'I accept the Terms of Service and Privacy Policy',
 			})
+			await expect(
+				page.getByRole('button', { name: 'Scroll to top' }),
+			).toHaveCount(0)
 			await expect(checkbox).toBeVisible()
 			await expect(checkbox).toHaveAttribute('aria-checked', 'false')
 			await page.getByRole('button', { name: 'Continue securely' }).click()
 			await expect(
 				page.getByText('You must accept the Terms of Service to continue'),
 			).toBeVisible()
+			await expect(
+				page.getByRole('button', { name: 'Scroll to top' }),
+			).toHaveCount(0)
+			await expect
+				.poll(async () => {
+					const control = await checkbox.boundingBox()
+					const firstLabelLine = await page
+						.locator('#accept-terms-label')
+						.evaluate(element => {
+							const range = document.createRange()
+							range.selectNodeContents(element)
+							const rect = range.getClientRects()[0]
+							return rect ? { y: rect.y, height: rect.height } : null
+						})
+					if (!control || !firstLabelLine) return Number.POSITIVE_INFINITY
+					return Math.abs(
+						control.y +
+							control.height / 2 -
+							(firstLabelLine.y + firstLabelLine.height / 2),
+					)
+				})
+				.toBeLessThanOrEqual(4)
 
 			const geometry = await checkbox.evaluate(element => {
 				const rect = element.getBoundingClientRect()
 				const style = getComputedStyle(element)
 				return {
+					x: rect.x,
 					width: rect.width,
 					height: rect.height,
 					borderWidth: parseFloat(style.borderTopWidth),
@@ -38,6 +64,23 @@ test.describe('signup terms consent control', () => {
 			expect(geometry.height).toBeGreaterThanOrEqual(24)
 			expect(geometry.borderWidth).toBeGreaterThanOrEqual(2)
 			expect(geometry.backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+			const firstLabelLine = await page
+				.locator('#accept-terms-label')
+				.evaluate(element => {
+					const range = document.createRange()
+					range.selectNodeContents(element)
+					const rect = range.getClientRects()[0]
+					return rect ? { x: rect.x, y: rect.y, height: rect.height } : null
+				})
+			expect(firstLabelLine).not.toBeNull()
+			expect(
+				Math.abs(firstLabelLine!.x - (geometry.x + geometry.width + 12)),
+			).toBeLessThanOrEqual(2)
+			const errorBox = await page
+				.getByText('You must accept the Terms of Service to continue')
+				.boundingBox()
+			expect(errorBox).not.toBeNull()
+			expect(Math.abs(errorBox!.x - firstLabelLine!.x)).toBeLessThanOrEqual(2)
 
 			await page.locator('label[for="accept-terms"]').click()
 			await expect(checkbox).toHaveAttribute('aria-checked', 'true')
