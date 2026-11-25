@@ -1,4 +1,5 @@
 import {
+	act,
 	fireEvent,
 	render,
 	screen,
@@ -6,6 +7,7 @@ import {
 	within,
 } from '@testing-library/react'
 import { GraphExplorer } from '../components/GraphExplorer'
+import { useAuthStore } from '@/store/authStore'
 import {
 	getProductFoodComposition,
 	searchProductFoods,
@@ -67,7 +69,15 @@ function composition(
 	}
 }
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+	jest.clearAllMocks()
+	useAuthStore.setState({
+		isAuthenticated: true,
+		isHydrated: true,
+		isLoading: false,
+		accessToken: 'fixture-token',
+	})
+})
 
 async function chooseFood(side: 'first' | 'second', name: string) {
 	fireEvent.change(
@@ -80,6 +90,40 @@ async function chooseFood(side: 'first' | 'second', name: string) {
 		await screen.findByRole('button', { name: new RegExp(`${name}.*Choose`) }),
 	)
 }
+
+it('explains the sign-in requirement before showing unusable search fields', () => {
+	useAuthStore.setState({ isAuthenticated: false, accessToken: null })
+	render(<GraphExplorer />)
+
+	expect(
+		screen.getByRole('heading', { name: 'Sign in to compare two foods' }),
+	).toBeInTheDocument()
+	expect(
+		screen.getByRole('link', { name: 'Sign in to compare' }),
+	).toHaveAttribute('href', '/auth/sign-in?returnTo=%2Fexplore%2Fgraph')
+	expect(
+		screen.queryByRole('textbox', { name: 'Search first food' }),
+	).toBeNull()
+	expect(searchProductFoods).not.toHaveBeenCalled()
+})
+
+it('waits for auth hydration before choosing the guest experience', () => {
+	useAuthStore.setState({ isAuthenticated: false, isHydrated: false })
+	render(<GraphExplorer />)
+
+	expect(
+		screen.getByRole('status', { name: 'Checking access' }),
+	).toBeInTheDocument()
+	expect(screen.queryByRole('link', { name: 'Sign in to compare' })).toBeNull()
+	expect(
+		screen.queryByRole('textbox', { name: 'Search first food' }),
+	).toBeNull()
+
+	act(() => useAuthStore.setState({ isHydrated: true }))
+	expect(
+		screen.getByRole('link', { name: 'Sign in to compare' }),
+	).toBeInTheDocument()
+})
 
 it('turns two food selections into an honest shared-record comparison', async () => {
 	jest.mocked(searchProductFoods).mockImplementation(async query => ({
@@ -130,6 +174,16 @@ it('turns two food selections into an honest shared-record comparison', async ()
 	).toBeInTheDocument()
 	expect(getProductFoodComposition).toHaveBeenNthCalledWith(1, '42')
 	expect(getProductFoodComposition).toHaveBeenNthCalledWith(2, '84')
+
+	act(() =>
+		useAuthStore.setState({ isAuthenticated: false, accessToken: null }),
+	)
+	expect(
+		screen.queryByRole('region', { name: 'Food comparison results' }),
+	).not.toBeInTheDocument()
+	expect(
+		screen.getByRole('link', { name: 'Sign in to compare' }),
+	).toBeInTheDocument()
 })
 
 it('does not turn no shared listed links into a claim of absence', async () => {

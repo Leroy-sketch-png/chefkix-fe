@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowDown, ArrowLeft, ArrowRight, Check, Search } from 'lucide-react'
 import { PATHS } from '@/constants'
+import { useAuthStore } from '@/store/authStore'
 import {
 	getProductFoodComposition,
 	searchProductFoods,
@@ -225,6 +226,8 @@ function relationMessage(response: ProductFoodCompositionResponse) {
 }
 
 export function ProductCompositionExplorer() {
+	const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+	const isAuthHydrated = useAuthStore(state => state.isHydrated)
 	const [firstQuery, setFirstQuery] = useState('')
 	const [secondQuery, setSecondQuery] = useState('')
 	const [firstFood, setFirstFood] = useState<ProductFoodCandidate | null>(null)
@@ -237,6 +240,15 @@ export function ProductCompositionExplorer() {
 	} | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [failure, setFailure] = useState<RequestFailure | null>(null)
+	useEffect(() => {
+		if (!isAuthHydrated || isAuthenticated) return
+		setFirstQuery('')
+		setSecondQuery('')
+		setFirstFood(null)
+		setSecondFood(null)
+		setComparison(null)
+		setFailure(null)
+	}, [isAuthHydrated, isAuthenticated])
 	const firstProblem = comparison ? relationMessage(comparison.first) : null
 	const secondProblem = comparison ? relationMessage(comparison.second) : null
 	const sharedCompounds = useMemo(() => {
@@ -393,160 +405,197 @@ export function ProductCompositionExplorer() {
 				</div>
 			</header>
 
-			<div className='grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center'>
-				<FoodPicker
-					side='first'
-					query={firstQuery}
-					selectedFood={firstFood}
-					otherFood={secondFood}
-					isBusy={loading}
-					onQueryChange={value => changeQuery('first', value)}
-					onSelect={food => chooseFood('first', food)}
-				/>
-				<div
-					aria-hidden='true'
-					className='mx-auto grid size-11 place-items-center rounded-full border border-border-subtle bg-bg-elevated text-text-muted max-md:-my-1'
-				>
-					<ArrowRight className='hidden size-5 md:block' />
-					<ArrowDown className='size-5 md:hidden' />
-				</div>
-				<FoodPicker
-					side='second'
-					query={secondQuery}
-					selectedFood={secondFood}
-					otherFood={firstFood}
-					isBusy={loading}
-					onQueryChange={value => changeQuery('second', value)}
-					onSelect={food => chooseFood('second', food)}
-				/>
-			</div>
-
-			<div className='flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-border-subtle bg-bg-elevated/60 p-4 sm:flex-row sm:items-center sm:px-5'>
-				<p className='text-sm leading-5 text-text-secondary'>
-					We match the same source compound IDs—not similar-sounding names.
-				</p>
-				<button
-					type='button'
-					disabled={!canCompare || loading}
-					onClick={compareFoods}
-					className='inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-text-muted disabled:text-bg'
-				>
-					{loading ? 'Comparing records…' : 'Show what they share'}
-					{!loading && <ArrowRight aria-hidden='true' className='size-4' />}
-				</button>
-			</div>
-
-			{failure && <AccessMessage failure={failure} />}
-
-			{comparison && (
+			{!isAuthHydrated ? (
 				<section
-					className='overflow-hidden rounded-[1.75rem] border border-border-subtle bg-bg-card shadow-card'
-					aria-label='Food comparison results'
+					aria-label='Checking access'
+					className='rounded-2xl border border-border-subtle bg-bg-card p-5 text-sm text-text-secondary shadow-card'
+					role='status'
 				>
-					<div className='grid gap-4 bg-bg-elevated/70 p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-7 sm:py-6'>
-						<div>
-							<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
-								First food
-							</p>
-							<h2 className='mt-1 text-xl font-bold text-text-primary'>
-								{comparison.first.food?.name ?? firstFood?.name}
-							</h2>
-						</div>
-						<div className='mx-auto grid size-12 place-items-center rounded-full bg-bg-card text-primary shadow-sm'>
-							<ArrowRight aria-hidden='true' className='size-5' />
-						</div>
-						<div className='sm:text-right'>
-							<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
-								Second food
-							</p>
-							<h2 className='mt-1 text-xl font-bold text-text-primary'>
-								{comparison.second.food?.name ?? secondFood?.name}
-							</h2>
-						</div>
+					Checking whether food-record search is available…
+				</section>
+			) : !isAuthenticated ? (
+				<section
+					aria-labelledby='food-comparison-sign-in-title'
+					className='flex flex-col gap-4 rounded-2xl border border-border-subtle bg-bg-card p-5 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-6'
+				>
+					<div className='max-w-xl'>
+						<h2
+							id='food-comparison-sign-in-title'
+							className='text-lg font-bold text-text-primary'
+						>
+							Sign in to compare two foods
+						</h2>
+						<p className='mt-2 text-sm leading-6 text-text-secondary'>
+							Search the pinned FooDB records and compare their listed compound
+							links. This shows source-record overlap only—not taste, nutrition,
+							safety, or substitution advice.
+						</p>
 					</div>
-					{firstProblem || secondProblem ? (
-						<div className='p-5 sm:p-7' role='status'>
-							<p className='font-semibold text-text-primary'>
-								We can’t make this comparison from the available records.
-							</p>
-							<p className='mt-2 text-sm leading-6 text-text-secondary'>
-								{firstProblem}
-								{firstProblem && secondProblem ? ' ' : ''}
-								{secondProblem}
-							</p>
+					<Link
+						href={`${PATHS.AUTH.SIGN_IN}?returnTo=${encodeURIComponent(PATHS.EXPLORE_GRAPH)}`}
+						className='inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-card transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+					>
+						Sign in to compare
+					</Link>
+				</section>
+			) : (
+				<>
+					<div className='grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center'>
+						<FoodPicker
+							side='first'
+							query={firstQuery}
+							selectedFood={firstFood}
+							otherFood={secondFood}
+							isBusy={loading}
+							onQueryChange={value => changeQuery('first', value)}
+							onSelect={food => chooseFood('first', food)}
+						/>
+						<div
+							aria-hidden='true'
+							className='mx-auto grid size-11 place-items-center rounded-full border border-border-subtle bg-bg-elevated text-text-muted max-md:-my-1'
+						>
+							<ArrowRight className='hidden size-5 md:block' />
+							<ArrowDown className='size-5 md:hidden' />
 						</div>
-					) : (
-						<div className='p-5 sm:p-7'>
-							<div className='flex flex-wrap items-end justify-between gap-3'>
+						<FoodPicker
+							side='second'
+							query={secondQuery}
+							selectedFood={secondFood}
+							otherFood={firstFood}
+							isBusy={loading}
+							onQueryChange={value => changeQuery('second', value)}
+							onSelect={food => chooseFood('second', food)}
+						/>
+					</div>
+
+					<div className='flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-border-subtle bg-bg-elevated/60 p-4 sm:flex-row sm:items-center sm:px-5'>
+						<p className='text-sm leading-5 text-text-secondary'>
+							We match the same source compound IDs—not similar-sounding names.
+						</p>
+						<button
+							type='button'
+							disabled={!canCompare || loading}
+							onClick={compareFoods}
+							className='inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-text-muted disabled:text-bg'
+						>
+							{loading ? 'Comparing records…' : 'Show what they share'}
+							{!loading && <ArrowRight aria-hidden='true' className='size-4' />}
+						</button>
+					</div>
+
+					{failure && <AccessMessage failure={failure} />}
+
+					{comparison && (
+						<section
+							className='overflow-hidden rounded-[1.75rem] border border-border-subtle bg-bg-card shadow-card'
+							aria-label='Food comparison results'
+						>
+							<div className='grid gap-4 bg-bg-elevated/70 p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:px-7 sm:py-6'>
 								<div>
-									<p className='text-sm font-semibold text-text-secondary'>
-										Listed for both
+									<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
+										First food
 									</p>
-									<p className='mt-1 text-4xl font-bold tabular-nums tracking-tight text-text-primary'>
-										{sharedCompounds.length}
-										<span className='ml-2 text-base font-medium tracking-normal text-text-muted'>
-											{sharedCompounds.length === 1
-												? 'shared compound'
-												: 'shared compounds'}
-										</span>
-									</p>
+									<h2 className='mt-1 text-xl font-bold text-text-primary'>
+										{comparison.first.food?.name ?? firstFood?.name}
+									</h2>
 								</div>
-								<p className='sr-only' role='status'>
-									{sharedCompounds.length} shared listed compounds found.
-								</p>
-								<div
-									aria-hidden='true'
-									className='flex items-center gap-1 pb-1'
-								>
-									{Array.from(
-										{ length: Math.min(sharedCompounds.length, 8) },
-										(_, index) => (
-											<span
-												key={index}
-												className={`size-2.5 rounded-full ${index % 2 === 0 ? 'bg-primary' : 'bg-accent-teal'}`}
-											/>
-										),
-									)}
+								<div className='mx-auto grid size-12 place-items-center rounded-full bg-bg-card text-primary shadow-sm'>
+									<ArrowRight aria-hidden='true' className='size-5' />
+								</div>
+								<div className='sm:text-right'>
+									<p className='text-xs font-semibold uppercase tracking-[0.15em] text-text-muted'>
+										Second food
+									</p>
+									<h2 className='mt-1 text-xl font-bold text-text-primary'>
+										{comparison.second.food?.name ?? secondFood?.name}
+									</h2>
 								</div>
 							</div>
-							{sharedCompounds.length ? (
-								<ul className='mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
-									{sharedCompounds.map(compound => (
-										<li
-											key={compound.id}
-											className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
-										>
-											<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
-												<Check aria-hidden='true' className='size-4' />
-											</span>
-											<span className='text-sm font-semibold text-text-primary'>
-												{compound.name}
-											</span>
-										</li>
-									))}
-								</ul>
+							{firstProblem || secondProblem ? (
+								<div className='p-5 sm:p-7' role='status'>
+									<p className='font-semibold text-text-primary'>
+										We can’t make this comparison from the available records.
+									</p>
+									<p className='mt-2 text-sm leading-6 text-text-secondary'>
+										{firstProblem}
+										{firstProblem && secondProblem ? ' ' : ''}
+										{secondProblem}
+									</p>
+								</div>
 							) : (
-								<p className='mt-5 rounded-xl border border-border-subtle bg-bg-elevated/70 p-4 text-sm leading-6 text-text-secondary'>
-									No compound appears in both displayed records. The source
-									subset may omit links, so this is not proof the foods have
-									nothing in common.
-								</p>
+								<div className='p-5 sm:p-7'>
+									<div className='flex flex-wrap items-end justify-between gap-3'>
+										<div>
+											<p className='text-sm font-semibold text-text-secondary'>
+												Listed for both
+											</p>
+											<p className='mt-1 text-4xl font-bold tabular-nums tracking-tight text-text-primary'>
+												{sharedCompounds.length}
+												<span className='ml-2 text-base font-medium tracking-normal text-text-muted'>
+													{sharedCompounds.length === 1
+														? 'shared compound'
+														: 'shared compounds'}
+												</span>
+											</p>
+										</div>
+										<p className='sr-only' role='status'>
+											{sharedCompounds.length} shared listed compounds found.
+										</p>
+										<div
+											aria-hidden='true'
+											className='flex items-center gap-1 pb-1'
+										>
+											{Array.from(
+												{ length: Math.min(sharedCompounds.length, 8) },
+												(_, index) => (
+													<span
+														key={index}
+														className={`size-2.5 rounded-full ${index % 2 === 0 ? 'bg-primary' : 'bg-accent-teal'}`}
+													/>
+												),
+											)}
+										</div>
+									</div>
+									{sharedCompounds.length ? (
+										<ul className='mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+											{sharedCompounds.map(compound => (
+												<li
+													key={compound.id}
+													className='flex min-h-14 items-center gap-3 rounded-xl border border-border-subtle bg-bg px-3 py-3'
+												>
+													<span className='grid size-7 shrink-0 place-items-center rounded-full bg-accent-teal/15 text-accent-teal'>
+														<Check aria-hidden='true' className='size-4' />
+													</span>
+													<span className='text-sm font-semibold text-text-primary'>
+														{compound.name}
+													</span>
+												</li>
+											))}
+										</ul>
+									) : (
+										<p className='mt-5 rounded-xl border border-border-subtle bg-bg-elevated/70 p-4 text-sm leading-6 text-text-secondary'>
+											No compound appears in both displayed records. The source
+											subset may omit links, so this is not proof the foods have
+											nothing in common.
+										</p>
+									)}
+									{hasUnknownLinks && (
+										<p className='mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm leading-5 text-text-secondary'>
+											The source export withheld additional known links for one
+											or both foods. The shared list may be incomplete.
+										</p>
+									)}
+									<p className='mt-5 border-t border-border-subtle pt-4 text-xs leading-5 text-text-muted'>
+										This comparison covers listed compound presence in a
+										selected FooDB subset only. It does not describe amounts,
+										nutrition, flavor, safety, allergens, or whether one food
+										can replace another.
+									</p>
+								</div>
 							)}
-							{hasUnknownLinks && (
-								<p className='mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm leading-5 text-text-secondary'>
-									The source export withheld additional known links for one or
-									both foods. The shared list may be incomplete.
-								</p>
-							)}
-							<p className='mt-5 border-t border-border-subtle pt-4 text-xs leading-5 text-text-muted'>
-								This comparison covers listed compound presence in a selected
-								FooDB subset only. It does not describe amounts, nutrition,
-								flavor, safety, allergens, or whether one food can replace
-								another.
-							</p>
-						</div>
+						</section>
 					)}
-				</section>
+				</>
 			)}
 
 			<details className='group rounded-2xl border border-border-subtle bg-bg-card px-4 py-3 text-sm text-text-muted'>
