@@ -13,11 +13,11 @@ describe('cooking player responsive navigation footer', () => {
 
 	it('keeps navigation on one row and kitchen controls on a separate mobile row', () => {
 		expect(footerSource).toContain(
-			'grid grid-cols-2 items-center gap-x-2 gap-y-3',
+			'grid grid-cols-2 items-center gap-x-2 gap-y-2',
 		)
 		expect(footerSource).toContain('col-start-2 row-start-1')
 		expect(footerSource).toContain(
-			'col-span-2 row-start-2 flex items-center justify-center gap-3',
+			'col-span-2 row-start-2 flex items-center justify-center gap-2',
 		)
 		expect(footerSource).toContain('sm:flex sm:justify-between sm:gap-0')
 		expect(footerSource).toContain('sm:col-auto sm:row-auto sm:contents')
@@ -31,7 +31,7 @@ describe('cooking player responsive navigation footer', () => {
 		expect(footerSource).toContain('onClick={handlePrevStep}')
 		expect(footerSource).toContain('onClick={handleNextStep}')
 		expect(footerSource).toContain(
-			"className={kitchenMode ? 'size-14' : 'size-11'}",
+			"kitchenMode ? 'size-11 sm:size-14' : 'size-11'",
 		)
 	})
 })
@@ -51,15 +51,15 @@ describe('cooking player narrow-screen header and progress', () => {
 
 	it('keeps the AI action accessible without colliding with fixed header controls', () => {
 		expect(headerSource).toContain("aria-label={t('aiAssist')}")
-		expect(headerSource).toContain('size-10 items-center justify-center')
-		expect(headerSource).toContain('hidden min-[360px]:inline')
+		expect(headerSource).toContain('grid size-11 place-items-center')
+		expect(headerSource).toContain('hidden sm:inline')
 		expect(headerSource).toContain('hidden min-[440px]:flex')
 	})
 
 	it('keeps progress text and the ingredient action from shrinking into wrapped labels', () => {
 		expect(progressSource).toContain('shrink-0 whitespace-nowrap font-medium')
-		expect(progressSource).toContain('inline-flex shrink-0 items-center')
-		expect(progressSource).toContain('gap-2 whitespace-nowrap rounded-lg')
+		expect(progressSource).toContain('inline-flex min-h-11 shrink-0 items-center')
+		expect(progressSource).toContain('gap-1 whitespace-nowrap rounded-lg')
 	})
 })
 
@@ -124,7 +124,9 @@ describe('cooking player header motion', () => {
 	const headerSource = playerSource.slice(headerStart, headerEnd)
 
 	it('keeps the cooking header static instead of running a decorative infinite shimmer', () => {
-		expect(headerSource).toContain("className='relative overflow-hidden bg-brand p-6 text-white'")
+		expect(headerSource).toContain(
+			"className='relative overflow-hidden bg-brand px-3 py-3 text-white sm:p-6'",
+		)
 		expect(headerSource).not.toContain('via-white/10')
 		expect(headerSource).not.toContain('repeat: Infinity')
 	})
