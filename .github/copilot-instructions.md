@@ -12,7 +12,6 @@
 
 # KNOWLEDGE GAPS (features referenced by code but not built)
 - No draft auto-save on post creation (content lost on browser crash)
-- No ToS checkbox on signup despite `TERMS_NOT_ACCEPTED` error code
 - No dietary restrictions in InterestPicker (only cuisines)
 - `copilot-instructions.md` was in FE .gitignore (bare pattern) — removed July 2026; `.github/copilot-instructions.md` is now tracked
 

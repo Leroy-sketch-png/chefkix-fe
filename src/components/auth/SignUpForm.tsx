@@ -340,35 +340,41 @@ export function SignUpForm() {
 							name='acceptTerms'
 							render={({ field }) => (
 								<FormItem>
-									<div className='flex items-start gap-3'>
+									<div className='flex min-h-11 items-start gap-3'>
 										<FormControl>
 											<Checkbox
+												id='accept-terms'
 												checked={field.value}
-												onCheckedChange={field.onChange}
+												aria-labelledby='accept-terms-label terms-of-service-link accept-terms-join privacy-policy-link'
+												onCheckedChange={checked =>
+													field.onChange(checked === true)
+												}
 											/>
 										</FormControl>
-										<button
-											type='button'
-											onClick={() => field.onChange(!field.value)}
-											className='cursor-pointer text-left text-sm leading-5 text-text-secondary'
-										>
-											<span>{t('acceptTerms')} </span>
+										<p className='min-w-0 flex-1 text-sm leading-5 text-text-secondary'>
+											<label
+												id='accept-terms-label'
+												htmlFor='accept-terms'
+												className='inline-flex min-h-11 cursor-pointer items-center font-medium text-text-primary'
+											>
+												{t('acceptTerms')}
+											</label>{' '}
 											<Link
+												id='terms-of-service-link'
 												href='/terms'
 												className='font-medium text-brand underline underline-offset-2 hover:no-underline'
-												onClick={e => e.stopPropagation()}
 											>
 												{t('termsOfService')}
 											</Link>
-											<span> and </span>
+											<span id='accept-terms-join'> and </span>
 											<Link
+												id='privacy-policy-link'
 												href='/privacy'
 												className='font-medium text-brand underline underline-offset-2 hover:no-underline'
-												onClick={e => e.stopPropagation()}
 											>
 												{t('privacyPolicy')}
 											</Link>
-										</button>
+										</p>
 									</div>
 									<FormMessage className='text-xs' />
 								</FormItem>
