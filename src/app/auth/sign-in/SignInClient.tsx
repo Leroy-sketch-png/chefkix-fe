@@ -19,7 +19,7 @@ const SignInPage = () => {
 		process.env.NEXT_PUBLIC_ENABLE_DEV_QUICK_LOGIN === 'true'
 	const guestExploreHref = getGuestBrowseHref(returnTo)
 	return (
-		<AuthLayout className='px-4 py-8 sm:py-8'>
+		<AuthLayout className='px-4 py-4 sm:py-8'>
 			{showDevQuickLogin ? <DevQuickLogin /> : null}
 
 			<div className='relative w-full max-w-md'>
@@ -67,7 +67,7 @@ const SignInPage = () => {
 								</div>
 
 								<div className='space-y-2 text-center sm:text-left'>
-									<div className='flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
+									<div className='hidden flex-wrap items-center justify-center gap-2 sm:flex sm:justify-start'>
 										<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 											<Users className='size-3' />
 											{t('signInAudiencePrimary')}

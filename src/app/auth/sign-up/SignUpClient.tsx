@@ -26,7 +26,7 @@ const SignUpPage = () => {
 	const referralCode = getReferralCodeFromRedeemPath(returnTo)
 	const guestExploreHref = getGuestBrowseHref(returnTo)
 	return (
-		<AuthLayout className='px-4 py-8 sm:py-8'>
+		<AuthLayout className='px-4 py-4 sm:py-8'>
 			<motion.div
 				variants={staggerContainer}
 				initial='hidden'
@@ -37,7 +37,7 @@ const SignUpPage = () => {
 
 				<motion.div
 					variants={staggerItem}
-					className='mb-3 flex flex-col items-center sm:mb-4'
+					className='mb-2 flex flex-col items-center sm:mb-4'
 				>
 					<motion.div className='mb-2 flex size-10 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/20 sm:mb-4 sm:size-16'>
 						<ChefHat className='size-5 text-white sm:size-8' />
@@ -51,7 +51,7 @@ const SignUpPage = () => {
 						{t('signUpTitle')}
 					</motion.h1>
 					<motion.p
-						className='flex items-center gap-1 text-sm text-text-muted sm:text-base'
+						className='hidden items-center gap-1 text-sm text-text-muted sm:flex sm:text-base'
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ delay: 0.3 }}
@@ -63,8 +63,8 @@ const SignUpPage = () => {
 
 				<motion.div variants={staggerItem}>
 					<div className='overflow-hidden rounded-3xl border border-border-subtle/80 bg-bg-card/96 shadow-card'>
-						<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-xp/8 px-4 py-4 sm:px-8 sm:py-5'>
-							<div className='mb-4 flex items-center justify-between'>
+						<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-xp/8 px-4 py-3 sm:px-8 sm:py-5'>
+							<div className='mb-2 flex items-center justify-between sm:mb-4'>
 								<Link
 									href={PATHS.HOME}
 									className='flex size-10 items-center justify-center rounded-full border border-border-subtle bg-bg-card text-text-secondary shadow-card transition-all hover:border-brand hover:text-brand sm:size-12'
@@ -81,7 +81,7 @@ const SignUpPage = () => {
 								</Link>
 							</div>
 
-							<div className='space-y-2 text-center sm:text-left'>
+							<div className='hidden space-y-2 text-center sm:block sm:text-left'>
 								<div className='flex flex-wrap items-center justify-center gap-2 sm:justify-start'>
 									<span className='inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-2xs font-bold uppercase tracking-widest text-brand'>
 										<Users className='size-3' />
@@ -95,19 +95,19 @@ const SignUpPage = () => {
 								<p className='text-sm text-text-secondary'>
 									{t('signUpPageSubtitle')}
 								</p>
-								{referralCode && (
-									<p
-										className='flex items-center justify-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success sm:justify-start'
-										role='status'
-									>
-										<Gift className='size-4 shrink-0' />
-										{referralT('inviteSignupReady', { code: referralCode })}
-									</p>
-								)}
 							</div>
+							{referralCode && (
+								<p
+									className='mt-2 flex items-center justify-center gap-2 rounded-lg border border-success/25 bg-success/10 px-3 py-2 text-sm font-medium text-success sm:justify-start'
+									role='status'
+								>
+									<Gift className='size-4 shrink-0' />
+									{referralT('inviteSignupReady', { code: referralCode })}
+								</p>
+							)}
 						</div>
 
-						<div className='px-4 py-4 sm:px-8 sm:py-6'>
+						<div className='px-4 py-3 sm:px-8 sm:py-6'>
 							<SignUpForm />
 						</div>
 					</div>

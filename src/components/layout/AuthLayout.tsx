@@ -51,7 +51,7 @@ export function AuthLayout({
 	}
 
 	return (
-		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4 py-12'>
+		<div className='relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4 py-4 sm:py-12'>
 			<div className='pointer-events-none absolute inset-0'>
 				<div className='absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,90,54,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(234,179,8,0.12),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.45),transparent_28%)]' />
 				<div className='absolute inset-0 bg-[linear-gradient(180deg,rgba(248,244,239,0.08),rgba(248,244,239,0.68))]' />
@@ -60,7 +60,7 @@ export function AuthLayout({
 			</div>
 
 			<div className='relative z-10 w-full'>
-				<div className='mx-auto mb-6 flex max-w-md items-center justify-center'>
+				<div className='mx-auto mb-6 hidden max-w-md items-center justify-center sm:flex'>
 					<div className='inline-flex items-center gap-2 rounded-full border border-border-subtle/80 bg-bg-card/88 px-4 py-2 text-2xs font-semibold uppercase tracking-widest text-text-secondary shadow-card'>
 						<span className='size-2 rounded-full bg-brand' />
 						{t('productPositioning')}
