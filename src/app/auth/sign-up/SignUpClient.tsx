@@ -39,8 +39,8 @@ const SignUpPage = () => {
 					variants={staggerItem}
 					className='mb-2 flex flex-col items-center sm:mb-4'
 				>
-					<motion.div className='mb-2 flex size-10 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/20 sm:mb-4 sm:size-16'>
-						<ChefHat className='size-5 text-white sm:size-8' />
+					<motion.div className='mb-1 flex size-8 items-center justify-center rounded-2xl bg-brand shadow-warm shadow-brand/20 sm:mb-4 sm:size-16'>
+						<ChefHat className='size-4 text-white sm:size-8' />
 					</motion.div>
 					<motion.h1
 						className='mb-0.5 text-xl font-bold text-text-primary sm:text-3xl'
@@ -63,7 +63,7 @@ const SignUpPage = () => {
 
 				<motion.div variants={staggerItem}>
 					<div className='overflow-hidden rounded-3xl border border-border-subtle/80 bg-bg-card/96 shadow-card'>
-						<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-xp/8 px-4 py-3 sm:px-8 sm:py-5'>
+						<div className='border-b border-border-subtle/80 bg-gradient-to-r from-brand/8 via-bg-card to-xp/8 px-4 py-2 sm:px-8 sm:py-5'>
 							<div className='mb-2 flex items-center justify-between sm:mb-4'>
 								<Link
 									href={PATHS.HOME}
@@ -107,7 +107,7 @@ const SignUpPage = () => {
 							)}
 						</div>
 
-						<div className='px-4 py-3 sm:px-8 sm:py-6'>
+						<div className='px-4 py-2 sm:px-8 sm:py-6'>
 							<SignUpForm />
 						</div>
 					</div>

@@ -17,6 +17,9 @@ test.describe('signup terms consent control', () => {
 			const checkbox = page.getByRole('checkbox', {
 				name: 'I accept the Terms of Service and Privacy Policy',
 			})
+			const continueButton = page.getByRole('button', {
+				name: 'Continue securely',
+			})
 			const consentRow = page
 				.locator('#accept-terms-label')
 				.locator('xpath=../..')
@@ -42,7 +45,12 @@ test.describe('signup terms consent control', () => {
 			expect(
 				initialConsentRowBounds!.y + initialConsentRowBounds!.height,
 			).toBeLessThanOrEqual(viewport.height)
-			await page.getByRole('button', { name: 'Continue securely' }).click()
+			const initialContinueBounds = await continueButton.boundingBox()
+			expect(initialContinueBounds).not.toBeNull()
+			expect(
+				initialContinueBounds!.y + initialContinueBounds!.height,
+			).toBeLessThanOrEqual(viewport.height)
+			await continueButton.click()
 			await expect(
 				page.getByText('You must accept the Terms of Service to continue'),
 			).toBeVisible()
