@@ -176,11 +176,19 @@ test('phone comparison keeps expanded provenance reachable and clear of the floa
 	})
 })
 
-test('phone recipe detail makes time, servings, ingredients and cook entry findable without starting a session', async ({
+test('phone recipe detail keeps signed-out cook intent tied to the recipe', async ({
 	page,
 }, testInfo) => {
 	await page.setViewportSize({ width: 360, height: 640 })
 	const writeRequests: string[] = []
+	await page.route('**/*', async route => {
+		const url = new URL(route.request().url())
+		if (url.origin !== apiOrigin) {
+			await route.abort('blockedbyclient')
+			return
+		}
+		await route.continue()
+	})
 	await page.route('**/api/v1/**', async route => {
 		const request = route.request()
 		const url = new URL(request.url())
@@ -188,8 +196,11 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 			await route.fulfill({ status: 204, headers: corsHeaders })
 			return
 		}
-		if (request.method() !== 'GET')
+		if (request.method() !== 'GET') {
 			writeRequests.push(`${request.method()} ${url.pathname}`)
+			await route.abort('blockedbyclient')
+			return
+		}
 		if (
 			request.method() === 'GET' &&
 			url.pathname === '/api/v1/recipes/mobile-readiness-fixture'
@@ -280,7 +291,7 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 	await expect(
 		page.getByText('Cooking workspace', { exact: true }),
 	).not.toBeVisible()
-	const time = page.getByText('25 min', { exact: true })
+	const time = page.getByText('Total Time: 25 min', { exact: true })
 	const servings = page.getByText('2 servings', { exact: true })
 	const cooking = page.getByRole('button', { name: /Start Cooking/ })
 	const nav = page.getByRole('navigation', { name: 'Mobile navigation' })
@@ -327,6 +338,25 @@ test('phone recipe detail makes time, servings, ingredients and cook entry finda
 	await page.screenshot({
 		path: testInfo.outputPath('phone-recipe-detail-decision.png'),
 	})
+
+	await cooking.click()
+	const authGate = page.getByRole('dialog', { name: 'Ready to cook?' })
+	await expect(authGate).toContainText('Ready to cook?')
+	await authGate.getByRole('button', { name: 'Sign In' }).click()
+	await expect(page).toHaveURL(
+		/\/auth\/sign-in\?returnTo=%2Frecipes%2Fmobile-readiness-fixture$/,
+	)
+	await expect(writeRequests).toEqual([])
+
+	await page.goto('/recipes/mobile-readiness-fixture')
+	await page.getByRole('button', { name: /Start Cooking/ }).click()
+	const secondAuthGate = page.getByRole('dialog', { name: 'Ready to cook?' })
+	await expect(secondAuthGate).toContainText('Ready to cook?')
+	await secondAuthGate.getByRole('button', { name: 'Create Account' }).click()
+	await expect(page).toHaveURL(
+		/\/auth\/sign-up\?returnTo=%2Frecipes%2Fmobile-readiness-fixture$/,
+	)
+	await expect(writeRequests).toEqual([])
 })
 
 test('phone local cooking preview keeps the active step readable and does not start hardware or a real session', async ({

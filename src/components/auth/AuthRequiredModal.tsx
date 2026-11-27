@@ -18,6 +18,8 @@ import { Portal } from '@/components/ui/portal'
 import { cn } from '@/lib/utils'
 import { TRANSITION_SPRING } from '@/lib/motion'
 import { useTranslations } from 'next-intl'
+import { PATHS } from '@/constants/paths'
+import { getPostAuthRedirectPath } from '@/constants/auth'
 
 // Action Configurations
 
@@ -68,6 +70,7 @@ interface AuthRequiredModalProps {
 	isOpen: boolean
 	onClose: () => void
 	action?: AuthAction
+	returnTo?: string | null
 	className?: string
 }
 
@@ -75,10 +78,17 @@ export function AuthRequiredModal({
 	isOpen,
 	onClose,
 	action = 'default',
+	returnTo,
 	className,
 }: AuthRequiredModalProps) {
 	const router = useRouter()
 	const t = useTranslations('shared')
+	const authPath = (path: string) => {
+		const safeReturnTo = getPostAuthRedirectPath(returnTo, '')
+		return safeReturnTo
+			? `${path}?returnTo=${encodeURIComponent(safeReturnTo)}`
+			: path
+	}
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -147,7 +157,7 @@ export function AuthRequiredModal({
 									<Button
 										onClick={() => {
 											onClose()
-											router.push('/auth/sign-in')
+										router.push(authPath(PATHS.AUTH.SIGN_IN))
 										}}
 										className='w-full'
 									>
@@ -157,7 +167,7 @@ export function AuthRequiredModal({
 										variant='outline'
 										onClick={() => {
 											onClose()
-											router.push('/auth/sign-up')
+											router.push(authPath(PATHS.AUTH.SIGN_UP))
 										}}
 										className='w-full'
 									>

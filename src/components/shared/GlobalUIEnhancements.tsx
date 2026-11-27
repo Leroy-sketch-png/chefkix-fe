@@ -57,6 +57,7 @@ export function GlobalUIEnhancements() {
 				isOpen={authGateOpen}
 				onClose={closeAuthGate}
 				action={authGateAction}
+				returnTo={pathname}
 			/>
 			<PremiumUpgradeModal
 				isOpen={premiumGateOpen}
