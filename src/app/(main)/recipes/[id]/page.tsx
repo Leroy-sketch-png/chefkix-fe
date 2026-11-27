@@ -134,6 +134,7 @@ function RecipeDetailContent() {
 	const searchParams = useSearchParams()
 	const recipeId = params?.id as string
 	const t = useTranslations('recipeDetail')
+	const tRecipe = useTranslations('recipe')
 
 	// Difficulty explanations for tooltip (must be inside component for i18n hook access)
 	const DIFFICULTY_EXPLANATIONS: Record<
@@ -926,7 +927,7 @@ function RecipeDetailContent() {
 										<Tooltip>
 											<TooltipTrigger asChild>
 												<span className='cursor-help font-medium underline decoration-dotted underline-offset-4'>
-													{totalTime} {t('unitMin')}
+													{tRecipe('totalTime')}: {totalTime} {t('unitMin')}
 												</span>
 											</TooltipTrigger>
 											<TooltipContent className='p-3'>

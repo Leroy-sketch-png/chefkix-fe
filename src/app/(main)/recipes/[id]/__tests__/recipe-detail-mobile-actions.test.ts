@@ -7,6 +7,13 @@ const source = readFileSync(
 )
 
 describe('recipe detail mobile actions', () => {
+	it('labels the displayed duration as total time, separate from step timers', () => {
+		expect(source).toContain("const tRecipe = useTranslations('recipe')")
+		expect(source).toContain(
+			"{tRecipe('totalTime')}: {totalTime} {t('unitMin')}",
+		)
+	})
+
 	it('wraps social actions below 440px and preserves the inline layout above it', () => {
 		expect(source).toContain(
 			"className='grid grid-cols-2 gap-2 min-[440px]:flex'",
