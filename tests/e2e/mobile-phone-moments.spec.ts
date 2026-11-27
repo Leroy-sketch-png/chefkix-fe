@@ -525,6 +525,234 @@ test('successful fixture sign-in returns to the intended recipe without starting
 	expect(cookingSessionWrites).toEqual([])
 })
 
+test('fixture signup and email verification return to the intended recipe', async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 360, height: 640 })
+	const interceptedWrites: string[] = []
+	const cookingSessionWrites: string[] = []
+	await page.route('**/*', async route => {
+		const request = route.request()
+		const url = new URL(request.url())
+		if (url.origin !== apiOrigin) {
+			await route.abort('blockedbyclient')
+			return
+		}
+		if (
+			request.method() !== 'GET' &&
+			request.method() !== 'OPTIONS' &&
+			!url.pathname.startsWith('/api/v1/')
+		) {
+			await route.abort('blockedbyclient')
+			return
+		}
+		await route.continue()
+	})
+	await page.route('**/api/v1/**', async route => {
+		const request = route.request()
+		const url = new URL(request.url())
+		if (request.method() === 'OPTIONS') {
+			await route.fulfill({ status: 204, headers: corsHeaders })
+			return
+		}
+		if (request.method() !== 'GET') {
+			interceptedWrites.push(`${request.method()} ${url.pathname}`)
+		}
+		if (
+			request.method() === 'POST' &&
+			url.pathname === '/api/v1/auth/register'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						expiresAt: '2099-01-01T00:10:00.000Z',
+						resendAvailableAt: '2099-01-01T00:01:00.000Z',
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/auth/check-username'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { available: true },
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'POST' &&
+			url.pathname === '/api/v1/auth/verify-otp-user'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { accessToken: 'synthetic-verified-signup-token' },
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/auth/me'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						profileId: 'synthetic-verified-profile',
+						userId: 'synthetic-verified-chef',
+						email: 'signup-fixture@example.test',
+						username: 'signup-fixture',
+						firstName: 'Signup',
+						lastName: 'Fixture',
+						dob: '2000-01-01',
+						displayName: 'Signup Fixture',
+						phoneNumber: null,
+						avatarUrl: '',
+						bio: '',
+						accountType: 'normal',
+						location: '',
+						preferences: [],
+						statistics: {
+							currentLevel: 1,
+							currentXP: 0,
+							currentXPGoal: 1000,
+						},
+						createdAt: '2026-01-01T00:00:00Z',
+						updatedAt: '2026-01-01T00:00:00Z',
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/recipes/mobile-readiness-fixture'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						id: 'mobile-readiness-fixture',
+						title: 'Quick tomato chickpea skillet',
+						description: 'A warm, simple skillet meal for a weeknight.',
+						coverImageUrl: ['/images/recipes/shakshuka.webp'],
+						difficulty: 'Beginner',
+						prepTimeMinutes: 10,
+						cookTimeMinutes: 15,
+						totalTimeMinutes: 25,
+						servings: 2,
+						cuisineType: 'Mediterranean',
+						fullIngredientList: [
+							{ name: 'chickpeas', quantity: '1', unit: 'can' },
+						],
+						steps: [
+							{
+								stepNumber: 1,
+								title: 'Warm the pan',
+								description: 'Warm oil in a skillet over medium heat.',
+							},
+						],
+						author: {
+							userId: 'synthetic-verified-chef',
+							username: 'fixture-chef',
+							displayName: 'Fixture Chef',
+						},
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname ===
+				'/api/v1/recipes/mobile-readiness-fixture/social-proof'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { cookCount: 0, postCount: 0, recentCookers: [] },
+				}),
+			})
+			return
+		}
+		if (request.method() !== 'GET') {
+			if (url.pathname.startsWith('/api/v1/cooking-sessions')) {
+				cookingSessionWrites.push(`${request.method()} ${url.pathname}`)
+			}
+			await route.abort('blockedbyclient')
+			return
+		}
+		await route.fulfill({
+			status: 200,
+			headers: { ...corsHeaders, 'content-type': 'application/json' },
+			body: JSON.stringify({ success: true, statusCode: 200, data: [] }),
+		})
+	})
+
+	await page.goto(
+		'/auth/sign-up?returnTo=%2Frecipes%2Fmobile-readiness-fixture',
+	)
+	await page.getByLabel('First Name').fill('Signup')
+	await page.getByLabel('Last Name').fill('Fixture')
+	await page.getByLabel('Username').fill('signup-fixture')
+	await page.getByLabel('Email', { exact: true }).fill('signup-fixture@example.test')
+	await expect(
+		page.getByRole('checkbox', { name: /I accept the Terms of Service/ }),
+	).toBeVisible()
+	await page.getByLabel(/I accept the/).check()
+	await page.getByRole('button', { name: 'Continue securely' }).click()
+	await expect(page).toHaveURL(
+		/\/auth\/verify-otp\?email=signup-fixture%40example\.test&returnTo=%2Frecipes%2Fmobile-readiness-fixture$/,
+	)
+	await page.getByLabel('One-Time Password').fill('123456')
+	await page.getByLabel('Password', { exact: true }).fill('Synthetic-only-password-123!')
+	await page.getByLabel('Confirm password').fill('Synthetic-only-password-123!')
+	await page.getByRole('button', { name: 'Verify and create account' }).click()
+	await expect(page).toHaveURL(/\/recipes\/mobile-readiness-fixture$/)
+	await expect(
+		page.getByRole('heading', { name: 'Quick tomato chickpea skillet' }),
+	).toBeVisible()
+	await expect(
+		page.getByRole('button', { name: /Start Cooking/ }),
+	).toBeEnabled()
+	expect(interceptedWrites).toContain('POST /api/v1/auth/register')
+	expect(interceptedWrites).toContain('POST /api/v1/auth/verify-otp-user')
+	expect(
+		interceptedWrites.filter(path => path === 'POST /api/v1/auth/register'),
+	).toHaveLength(1)
+	expect(
+		interceptedWrites.filter(
+			path => path === 'POST /api/v1/auth/verify-otp-user',
+		),
+	).toHaveLength(1)
+	expect(cookingSessionWrites).toEqual([])
+})
+
 test('phone local cooking preview keeps the active step readable and does not start hardware or a real session', async ({
 	page,
 }, testInfo) => {

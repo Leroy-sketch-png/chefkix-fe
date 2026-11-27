@@ -240,9 +240,13 @@ export const VerifyOtpForm = () => {
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>{t('otpLabel')}</FormLabel>
-								<FormControl>
-									<div className='flex justify-center'>
-										<InputOTP maxLength={6} {...field}>
+								<div className='flex justify-center'>
+									<FormControl>
+										<InputOTP
+											maxLength={6}
+											containerClassName='flex justify-center'
+											{...field}
+										>
 											<InputOTPGroup>
 												<InputOTPSlot index={0} />
 												<InputOTPSlot index={1} />
@@ -252,8 +256,8 @@ export const VerifyOtpForm = () => {
 												<InputOTPSlot index={5} />
 											</InputOTPGroup>
 										</InputOTP>
-									</div>
-								</FormControl>
+									</FormControl>
+								</div>
 								<FormDescription className='text-center'>
 									{t('otpDescription')}
 								</FormDescription>

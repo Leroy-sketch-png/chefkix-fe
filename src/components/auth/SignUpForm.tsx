@@ -254,8 +254,8 @@ export function SignUpForm() {
 									<FormLabel className='text-sm font-medium text-text-primary'>
 										{t('username')}
 									</FormLabel>
-									<FormControl>
-										<div className='relative'>
+									<div className='relative'>
+										<FormControl>
 											<Input
 												placeholder={t('usernamePlaceholder')}
 												autoComplete='username'
@@ -271,23 +271,23 @@ export function SignUpForm() {
 														'border-success focus-visible:border-success focus-visible:ring-success/20',
 												)}
 											/>
-											{/* Username availability indicator */}
-											<div className='absolute right-3 top-1/2 -translate-y-1/2'>
-												{usernameStatus === 'checking' && (
-													<Loader2 className='size-4 animate-spin text-text-muted' />
-												)}
-												{usernameStatus === 'available' && (
-													<CheckCircle2 className='size-4 text-success' />
-												)}
-												{usernameStatus === 'taken' && (
-													<XCircle className='size-4 text-destructive' />
-												)}
-												{usernameStatus === 'error' && (
-													<AlertCircle className='size-4 text-warning' />
-												)}
-											</div>
+										</FormControl>
+										{/* Username availability indicator */}
+										<div className='absolute right-3 top-1/2 -translate-y-1/2'>
+											{usernameStatus === 'checking' && (
+												<Loader2 className='size-4 animate-spin text-text-muted' />
+											)}
+											{usernameStatus === 'available' && (
+												<CheckCircle2 className='size-4 text-success' />
+											)}
+											{usernameStatus === 'taken' && (
+												<XCircle className='size-4 text-destructive' />
+											)}
+											{usernameStatus === 'error' && (
+												<AlertCircle className='size-4 text-warning' />
+											)}
 										</div>
-									</FormControl>
+									</div>
 									{usernameStatus === 'taken' && (
 										<p className='text-xs text-destructive'>
 											{t('usernameAlreadyTaken')}

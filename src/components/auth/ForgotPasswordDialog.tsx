@@ -242,17 +242,21 @@ export const ForgotPasswordDialog = ({
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>{t('resetOtpLabel')}</FormLabel>
-											<FormControl>
-												<div className='flex justify-center'>
-													<InputOTP maxLength={6} {...field}>
+											<div className='flex justify-center'>
+												<FormControl>
+													<InputOTP
+														maxLength={6}
+														containerClassName='flex justify-center'
+														{...field}
+													>
 														<InputOTPGroup>
 															{Array.from({ length: 6 }).map((_, index) => (
 																<InputOTPSlot key={index} index={index} />
 															))}
 														</InputOTPGroup>
 													</InputOTP>
-												</div>
-											</FormControl>
+												</FormControl>
+											</div>
 											<FormDescription className='text-center'>
 												<ResendOtpButton onResend={handleResend} />
 											</FormDescription>
