@@ -359,6 +359,172 @@ test('phone recipe detail keeps signed-out cook intent tied to the recipe', asyn
 	await expect(writeRequests).toEqual([])
 })
 
+test('successful fixture sign-in returns to the intended recipe without starting a cook', async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 360, height: 640 })
+	const cookingSessionWrites: string[] = []
+	await page.route('**/*', async route => {
+		const url = new URL(route.request().url())
+		if (url.origin !== apiOrigin) {
+			await route.abort('blockedbyclient')
+			return
+		}
+		await route.continue()
+	})
+	await page.route('**/api/v1/**', async route => {
+		const request = route.request()
+		const url = new URL(request.url())
+		if (request.method() === 'OPTIONS') {
+			await route.fulfill({ status: 204, headers: corsHeaders })
+			return
+		}
+		if (
+			request.method() === 'POST' &&
+			url.pathname === '/api/v1/auth/login'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { accessToken: 'synthetic-recipe-return-token' },
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/auth/me'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						profileId: 'synthetic-profile',
+						userId: 'fixture-chef',
+						email: 'fixture@example.test',
+						username: 'fixture-cook',
+						firstName: 'Fixture',
+						lastName: 'Cook',
+						dob: '2000-01-01',
+						displayName: 'Fixture Cook',
+						phoneNumber: null,
+						avatarUrl: '',
+						bio: '',
+						accountType: 'normal',
+						location: '',
+						preferences: [],
+						statistics: {
+							currentLevel: 1,
+							currentXP: 0,
+							currentXPGoal: 1000,
+						},
+						createdAt: '2026-01-01T00:00:00Z',
+						updatedAt: '2026-01-01T00:00:00Z',
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname === '/api/v1/recipes/mobile-readiness-fixture'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: {
+						id: 'mobile-readiness-fixture',
+						title: 'Quick tomato chickpea skillet',
+						description: 'A warm, simple skillet meal for a weeknight.',
+						coverImageUrl: ['/images/recipes/shakshuka.webp'],
+						difficulty: 'Beginner',
+						prepTimeMinutes: 10,
+						cookTimeMinutes: 15,
+						totalTimeMinutes: 25,
+						servings: 2,
+						cuisineType: 'Mediterranean',
+						fullIngredientList: [
+							{ name: 'chickpeas', quantity: '1', unit: 'can' },
+						],
+						steps: [
+							{
+								stepNumber: 1,
+								title: 'Warm the pan',
+								description: 'Warm oil in a skillet over medium heat.',
+							},
+						],
+						author: {
+							userId: 'fixture-chef',
+							username: 'fixture-chef',
+							displayName: 'Fixture Chef',
+						},
+					},
+				}),
+			})
+			return
+		}
+		if (
+			request.method() === 'GET' &&
+			url.pathname ===
+				'/api/v1/recipes/mobile-readiness-fixture/social-proof'
+		) {
+			await route.fulfill({
+				status: 200,
+				headers: { ...corsHeaders, 'content-type': 'application/json' },
+				body: JSON.stringify({
+					success: true,
+					statusCode: 200,
+					data: { cookCount: 0, postCount: 0, recentCookers: [] },
+				}),
+			})
+			return
+		}
+		if (request.method() !== 'GET') {
+			if (url.pathname.startsWith('/api/v1/cooking-sessions')) {
+				cookingSessionWrites.push(`${request.method()} ${url.pathname}`)
+			}
+			await route.abort('blockedbyclient')
+			return
+		}
+		await route.fulfill({
+			status: 200,
+			headers: { ...corsHeaders, 'content-type': 'application/json' },
+			body: JSON.stringify({ success: true, statusCode: 200, data: [] }),
+		})
+	})
+
+	await page.goto(
+		'/auth/sign-in?returnTo=%2Frecipes%2Fmobile-readiness-fixture',
+	)
+	await page.getByTestId('signin-username').fill('fixture@example.test')
+	await page.getByTestId('signin-password').fill('synthetic-only-password')
+	await page.getByTestId('signin-submit').click()
+	await expect(page).toHaveURL(
+		/\/recipes\/mobile-readiness-fixture$/,
+	)
+	await expect(
+		page.getByRole('heading', { name: 'Quick tomato chickpea skillet' }),
+	).toBeVisible()
+	await expect(
+		page.getByRole('button', { name: /Start Cooking/ }),
+	).toBeEnabled()
+	await page.getByRole('button', { name: 'Manage' }).click()
+	await page
+		.getByRole('menuitem', { name: 'Preview cooking', exact: true })
+		.click()
+	await expect(page.getByText('Preview Mode', { exact: true })).toBeVisible()
+	expect(cookingSessionWrites).toEqual([])
+})
+
 test('phone local cooking preview keeps the active step readable and does not start hardware or a real session', async ({
 	page,
 }, testInfo) => {
