@@ -47,6 +47,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare standalone assets for browser test
+        run: node scripts/prepare-standalone-e2e.mjs
+
+      - name: Verify mobile post-auth recipe return
+        run: >
+          npx playwright test tests/e2e/mobile-phone-moments.spec.ts
+          --config=playwright.e2e.config.ts
+          --project=mobile-iphone
+          --grep "successful fixture sign-in returns to the intended recipe without starting a cook"
+
   publish:
     name: Build & Publish Staging Image
     needs: build
